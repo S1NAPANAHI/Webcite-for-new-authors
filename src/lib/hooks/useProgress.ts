@@ -272,23 +272,33 @@ export function useItemProgress(
   };
 }
 
+// Define the stats type
+type ProgressStats = {
+  totalItems: number;
+  completedItems: number;
+  inProgressItems: number;
+  averageProgress: number;
+  totalReadingTime: number;
+};
+
 // Hook for progress statistics
 export function useProgressStats(userId?: string) {
   const queryKey = `progress-stats${userId ? `:${userId}` : ''}`;
   
-  const fetcher = useCallback(async () => {
+  // Fix the fetcher function to match the expected signature
+  const fetcher = useCallback(async (key: string): Promise<ProgressStats[]> => {
     const stats = await progressApi.getStats(userId);
-    return [stats]; // Return as array for consistency
+    return [stats]; // Return as array for consistency with useDataApi
   }, [userId]);
 
-  const { data, error, isLoading, refetch } = useDataApi<ReturnType<typeof progressApi.getStats>>(
+  const { data, error, isLoading, refetch } = useDataApi<ProgressStats>(
     queryKey,
     fetcher,
     { revalidateOnFocus: false, realtime: false }
   );
 
   return {
-    stats: data[0],
+    stats: data?.[0],
     isLoading,
     error,
     refetch,

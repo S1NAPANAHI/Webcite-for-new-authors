@@ -40,7 +40,7 @@ Welcome to the Novel Worldbuilding Hub, a comprehensive platform for creating, m
    npm run dev
    ```
 
-   The application will be available at `https://zoroastervers-website.vercel.app/)`.
+   The application will be available at `https://zoroastervers-website.vercel.app/`.
 
 ## 🤝 Contribution Guide
 

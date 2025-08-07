@@ -16,30 +16,6 @@ Welcome to the Novel Worldbuilding Hub, a comprehensive platform for creating, m
 - Node.js (v18 or higher)
 - npm
 
-### Installation
-
-1. **Clone the repository**:
-
-   ```bash
-   git clone https://github.com/your-username/novel-worldbuilding-hub.git
-   ```
-
-2. **Install dependencies**:
-
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**:
-
-   Copy the `.env.example` file to a new `.env` file and fill in the required values.
-
-4. **Run the development server**:
-
-   ```bash
-   npm run dev
-   ```
-
    The application will be available at `https://zoroastervers-website.vercel.app/`.
 
 ## 🤝 Contribution Guide

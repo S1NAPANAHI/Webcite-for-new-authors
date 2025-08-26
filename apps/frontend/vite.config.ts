@@ -10,15 +10,26 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
-    plugins: [react()],
+    plugins: [react({
+      babel: {
+        plugins: ['@babel/plugin-transform-typescript', { allowNamespaces: true }],
+      },
+    })],
     resolve: {
-      alias: {
-        '@': path.resolve(__dirname, './src'),
-        '@zoroaster/ui': path.resolve(__dirname, '../../packages/ui'),
-        '@zoroaster/shared': path.resolve(__dirname, '../../packages/shared'),
-        'lexical': path.resolve(__dirname, 'node_modules/lexical'),
-        '@lexical/react': path.resolve(__dirname, 'node_modules/@lexical/react'),
-        'quill': path.resolve(__dirname, 'node_modules/quill'),
+      alias: [
+        { find: '@', replacement: path.resolve(__dirname, './src') },
+        { find: '@zoroaster/ui', replacement: path.resolve(__dirname, '../../packages/ui/src') },
+        { find: '@zoroaster/shared', replacement: path.resolve(__dirname, '../../packages/shared/src') },
+        { find: 'lexical', replacement: path.resolve(__dirname, 'node_modules/lexical') },
+        { find: '@lexical/react', replacement: path.resolve(__dirname, 'node_modules/@lexical/react') },
+        { find: 'quill', replacement: path.resolve(__dirname, 'node_modules/quill') },
+      ],
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react-router-dom'],
+      esbuildOptions: {
+        target: 'es2020',
       },
     },
     css: {

@@ -1,18 +1,26 @@
 {
   "version": 2,
+  "buildCommand": "cd apps/frontend && pnpm install && pnpm run build",
+  "outputDirectory": "apps/frontend/dist",
   "builds": [
     {
       "src": "apps/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "zeroConfig": true
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/apps/frontend/$1"
+      "dest": "/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_VERSION": "18.x"
+  },
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "framework": "vite"
 }

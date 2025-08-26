@@ -6,11 +6,26 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "cd apps/frontend && npm install && npm run build"
+    "dev": "cd apps/frontend && pnpm dev",
+    "build": "cd apps/frontend && pnpm install && pnpm run build",
+    "start": "cd apps/frontend && pnpm preview",
+    "lint": "cd apps/frontend && pnpm lint",
+    "vercel-build": "cd apps/frontend && pnpm install && pnpm run build"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   },
   "dependencies": {
     "framer-motion": "^12.23.12",
     "marked": "^16.2.0",
     "quill": "^2.0.3"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
   }
 }

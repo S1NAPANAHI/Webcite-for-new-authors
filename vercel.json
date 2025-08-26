@@ -16,6 +16,5 @@
   "outputDirectory": "apps/frontend/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "framework": "vite",
-  "regions": ["iad1"],
-  "nodeVersion": "18.x"
+  "regions": ["iad1"]
 }

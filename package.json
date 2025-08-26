@@ -7,15 +7,16 @@
   ],
   "scripts": {
     "dev": "cd apps/frontend && pnpm dev",
-    "build": "cd apps/frontend && pnpm install && pnpm run build",
+    "build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
     "start": "cd apps/frontend && pnpm preview",
     "lint": "cd apps/frontend && pnpm lint",
-    "vercel-build": "cd apps/frontend && pnpm install && pnpm run build"
+    "vercel-build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build"
   },
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
+  "packageManager": "pnpm@8.14.0",
   "dependencies": {
     "framer-motion": "^12.23.12",
     "marked": "^16.2.0",

@@ -1,8 +1,8 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "apps/frontend/package.json",
+    { 
+      "src": "apps/frontend/package.json", 
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
@@ -10,10 +10,7 @@
     }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
-    }
+    { "src": "/(.*)", "dest": "/$1" }
   ],
   "buildCommand": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
   "outputDirectory": "apps/frontend/dist",

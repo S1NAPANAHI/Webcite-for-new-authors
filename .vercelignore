@@ -1,0 +1,35 @@
+# Ignore everything
+except
+!apps/frontend/**
+!packages/**
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!vercel.json
+
+# Ignore development files
+**/node_modules
+**/.git
+**/.gitignore
+**/.DS_Store
+**/dist
+**/build
+**/.next
+**/out
+**/.vercel
+**/.vscode
+**/*.log
+**/coverage
+**/temp
+**/tmp
+**/test
+**/tests
+**/__tests__
+**/*.test.*
+**/*.spec.*
+**/cypress
+**/e2e
+**/docs
+**/examples
+**/scripts
+**/config

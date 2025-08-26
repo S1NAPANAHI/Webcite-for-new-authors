@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => {
       extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
     },
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom'],
+      include: ['react', 'react-dom', 'react-router-dom', 'react-quill', 'quill'],
       esbuildOptions: {
         target: 'es2020',
       },
@@ -43,14 +43,6 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env': { ...env },
       __APP_ENV__: JSON.stringify(env.NODE_ENV || 'development'),
-    },
-    optimizeDeps: {
-      include: [
-        'react',
-        'react-dom',
-        'react-quill',
-        'quill'
-      ],
     },
     server: {
       port: 5173,

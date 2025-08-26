@@ -17,6 +17,14 @@ const viteEnv = (() => {
 const supabaseUrl = process.env.VITE_SUPABASE_URL || viteEnv?.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || viteEnv?.VITE_SUPABASE_ANON_KEY || '';
 
+// Debug log to check if environment variables are loaded
+const VITE_DEBUG = process.env.VITE_DEBUG || viteEnv?.VITE_DEBUG || false;
+
+if (VITE_DEBUG) {
+  console.log('Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
+  console.log('Supabase Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
+}
+
 // Validate environment variables
 if ((!supabaseUrl || !supabaseAnonKey) && isBrowser) {
   const errorMessage = `

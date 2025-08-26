@@ -1,0 +1,78 @@
+/* Custom Form Elements */
+
+.radio-option,
+.checkbox-option {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    margin-bottom: 12px; /* Added for spacing */
+}
+
+.radio-option:hover, .checkbox-option:hover {
+    border-color: var(--primary);
+    background-color: var(--grayLight);
+    transform: translateY(-1px);
+}
+
+.radio-option input, .checkbox-option input {
+    display: none;
+}
+
+.radio-custom, .checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--grayMedium);
+    border-radius: 50%;
+    margin-right: 15px;
+    position: relative;
+    transition: all 0.3s ease;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.checkbox-custom {
+    border-radius: 4px;
+}
+
+.radio-option input:checked + .radio-custom {
+    border-color: var(--primary);
+    background-color: var(--primary);
+}
+
+.radio-option input:checked + .radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.checkbox-option input:checked + .checkbox-custom {
+    border-color: var(--primary);
+    background-color: var(--primary);
+}
+
+.checkbox-option input:checked + .checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    transform: translate(-50%, -50%);
+}
+
+.option-text {
+    font-weight: 500;
+    color: var(--text-color);
+}

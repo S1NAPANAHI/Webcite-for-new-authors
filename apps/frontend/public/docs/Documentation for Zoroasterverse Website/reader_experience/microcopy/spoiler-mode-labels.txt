@@ -1,0 +1,17 @@
+Spoiler Mode
+
+Minimal: High-level summaries only; major reveals hidden.
+
+Standard: Reveals canon for content in your Library; abstracts unreached branches.
+
+Full: Shows all canon, including branches and endings.
+
+Adjust for this page only
+
+Global spoiler setting: Minimal
+
+Spoiler level: Standard (for owners)
+
+Toggle spoiler visibility
+
+Show spoiler content

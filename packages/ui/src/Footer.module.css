@@ -1,0 +1,64 @@
+.zoroFooter {
+  background: linear-gradient(to right, #1c1c1c, #2e2e2e);
+  color: #f5f5f5;
+  padding: 40px 20px;
+  font-family: 'Georgia', serif; /* Assuming Georgia is available or handled by Tailwind */
+}
+
+.footerContent {
+  max-width: 1200px; /* Adjust as needed */
+  margin: 0 auto;
+}
+
+.footerColumns {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px; /* Added gap for spacing between columns */
+}
+
+.column {
+  flex: 1; /* Distribute space evenly */
+  min-width: 200px; /* Minimum width for columns before wrapping */
+}
+
+.column h4 {
+  font-size: 1.2em;
+  margin-bottom: 10px;
+}
+
+.column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.column ul li {
+  margin-bottom: 5px;
+}
+
+.column ul li a {
+  color: #f5f5f5;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.column ul li a:hover {
+  color: #ffd700; /* Gold color */
+}
+
+.socialIcons {
+  display: flex;
+  gap: 15px; /* Spacing between social icons */
+}
+
+.socialIcons li a {
+  font-size: 1.5em; /* Adjust icon size */
+}
+
+.footerQuote {
+  margin-top: 30px;
+  text-align: center;
+  font-style: italic;
+  color: #ccc;
+}

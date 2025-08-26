@@ -1,0 +1,27 @@
+{
+  "name": "@zoroaster/shared",
+  "version": "1.0.0",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./supabaseClient": "./src/supabaseClient.js",
+    "./supabaseAdminClient": "./src/supabaseAdminClient.js"
+  },
+  "scripts": {
+    "generate-types": "supabase gen types typescript --local > src/database.types.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.55.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.3.0",
+    "uuid": "^10.0.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/uuid": "^9.0.8",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7"
+  }
+}

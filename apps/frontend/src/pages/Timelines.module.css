@@ -1,0 +1,189 @@
+.timeline {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
+
+.timeline::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  background-color: #e5e7eb;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  margin-left: -3px;
+  border-radius: 3px;
+}
+
+.milestone {
+  position: relative;
+  background-color: white;
+  border-radius: 0.5rem;
+  margin: 2rem 0;
+  width: 46%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s forwards;
+}
+
+.milestone.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.milestone:nth-child(odd) {
+  left: 0;
+}
+
+.milestone:nth-child(even) {
+  left: 50%;
+}
+
+.milestone .dot {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  right: -36px;
+  background-color: #3b82f6;
+  border: 4px solid white;
+  border-radius: 50%;
+  z-index: 1;
+  box-shadow: 0 0 0 4px #3b82f6;
+  top: 2rem;
+}
+
+.milestone:nth-child(even) .dot {
+  left: -36px;
+  right: auto;
+}
+
+.milestone .content {
+  padding: 1.5rem;
+  position: relative;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.milestone .content:hover {
+  transform: translateY(-2px);
+}
+
+.milestone .date {
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-size: 0.875rem;
+}
+
+.milestone h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.milestone p {
+  margin: 0.5rem 0 0 0;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.expandedContent {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.detailsText {
+  color: #4b5563;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.miniTimeline {
+  margin-top: 1rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid #e5e7eb;
+}
+
+.miniMilestone {
+  position: relative;
+  padding: 0.75rem 0;
+}
+
+.miniDot {
+  position: absolute;
+  left: -1.6rem;
+  top: 1.25rem;
+  width: 8px;
+  height: 8px;
+  background-color: #3b82f6;
+  border-radius: 50%;
+}
+
+.miniContent {
+  padding: 0.5rem 0;
+}
+
+.miniDate {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.miniContent h4 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.miniContent p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+  .timeline::after {
+    left: 31px;
+  }
+
+  .milestone {
+    width: 100%;
+    padding-left: 70px;
+    padding-right: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .milestone:nth-child(even) {
+    left: 0;
+  }
+
+  .milestone .dot {
+    left: 15px;
+    right: auto;
+  }
+
+  .milestone:nth-child(even) .dot {
+    left: 15px;
+  }
+}

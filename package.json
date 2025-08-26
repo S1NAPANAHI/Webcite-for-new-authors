@@ -10,22 +10,25 @@
     "build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
     "start": "cd apps/frontend && pnpm preview",
     "lint": "cd apps/frontend && pnpm lint",
-    "vercel-build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build"
+    "vercel-build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
+    "generate-types": "tsx scripts/generate-types.ts"
   },
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
-  "packageManager": "pnpm@8.14.0",
+  "packageManager": "pnpm@10.15.0",
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
     "framer-motion": "^12.23.12",
     "marked": "^16.2.0",
     "quill": "^2.0.3"
   },
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   }

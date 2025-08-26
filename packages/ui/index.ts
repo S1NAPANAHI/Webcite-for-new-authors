@@ -59,7 +59,6 @@ export * from './src/WikiEditor';
 export * from './src/ContentEditor';
 export * from './src/ContentTable';
 export * from './src/ProductCard';
-export * from './src/ProductCard';
 export * from './src/WikiNavItem';
 export * from './src/OverviewTab';
 export * from './src/ProfileTab';

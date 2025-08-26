@@ -1,4 +1,5 @@
 // Auto-generated types for Supabase
+import { WikiPage } from './wiki';
 
 export type Json =
   | string
@@ -202,7 +203,6 @@ export type Inserts<T extends keyof Database['public']['Tables']> = Database['pu
 export type Updates<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
 
 export type Profile = Tables<'profiles'>;
-export type WikiPage = Tables<'wiki_pages'> & { folder_id?: string };
 export type WikiFolder = Tables<'wiki_folders'>;
 export type Product = Tables<'products'>;
 export type Subscription = Tables<'subscriptions'>;
@@ -214,11 +214,6 @@ export type WikiNavItem = {
   type: 'page' | 'folder';
   children?: WikiNavItem[];
   parent_id?: string | null;
-};
-
-export type WikiPageData = WikiPage & {
-  folder_id?: string;
-  sections?: WikiSection[];
 };
 
 export type WikiSection = {

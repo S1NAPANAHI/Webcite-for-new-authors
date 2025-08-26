@@ -33,14 +33,7 @@ export const fetchPages = async (): Promise<WikiPage[]> => {
 };
 
 
-export interface WikiSection {
-  id: string;
-  title: string;
-  content: string;
-  type: 'text' | 'infobox' | 'gallery' | 'timeline' | 'quote' | 'category-list';
-}
-
-export interface WikiSection {
+export interface WikiSectionView {
   id: string;
   title: string;
   content: string;
@@ -48,8 +41,8 @@ export interface WikiSection {
 }
 
 export interface WikiPage extends Tables<'wiki_pages'> {
-  // Add properties that are derived or joined
-  sections?: WikiSection[]; // Make it optional, as it's derived
+  folder_id?: string; // Add properties that are derived or joined
+  sections?: WikiSectionView[]; // Make it optional, as it's derived
   category?: {
     id: string;
     name: string;
@@ -248,9 +241,9 @@ export const fetchWikiPages = async ({
       throw new Error('Failed to fetch wiki content');
     }
 
-    const pageSectionsMap = new Map<string, WikiSection[]>();
+    const pageSectionsMap = new Map<string, WikiSectionView[]>();
     for (const block of contentBlocks || []) {
-      const section: WikiSection = {
+      const section: WikiSectionView = {
         id: block.id,
         type: block.type,
         content: block.content.text, // Assuming content is stored as { text: "..." }
@@ -281,7 +274,7 @@ export const fetchWikiPages = async ({
  */
 export const createWikiPage = async (pageData: {
   title: string;
-  sections: WikiSection[];
+  sections: WikiSectionView[];
   excerpt?: string | null;
   is_published?: boolean;
   seo_title?: string | null;
@@ -361,7 +354,7 @@ export const updateWikiPage = async (
   id: string,
   updates: {
     title?: string;
-    sections?: WikiSection[];
+    sections?: WikiSectionView[];
     excerpt?: string | null;
     is_published?: boolean;
     seo_title?: string | null;

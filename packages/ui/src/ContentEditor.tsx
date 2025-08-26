@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+import { X, Save } from 'lucide-react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -478,5 +480,3 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
     </div>
   );
 };
-
-

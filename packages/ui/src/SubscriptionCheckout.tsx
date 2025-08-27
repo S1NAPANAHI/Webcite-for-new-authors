@@ -9,7 +9,15 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 
 import type { Product } from '@zoroaster/shared';
 
 interface StripeCheckoutProps {
-  product: Product;
+  product: {
+    id: string;
+    name: string;
+    price: number; // unit_amount
+    currency: string;
+    interval?: string;
+    trial_period_days?: number;
+    is_subscription: boolean;
+  };
   onSuccess: (sessionId: string) => void;
   onCancel: () => void;
   customerEmail?: string;
@@ -45,7 +53,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          priceId: product.price_id,
+          priceId: product.id,
           successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}/cancel`,
           customerEmail: email,
@@ -85,19 +93,11 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
       {/* Product Header */}
       <div className="bg-gradient-to-r from-primary/80 to-secondary/80 p-6 text-text-light">
         <div className="flex items-center space-x-4">
-          {product.cover_image_url ? (
-            <img 
-              src={product.cover_image_url} 
-              alt={product.title}
-              className="w-16 h-20 object-cover rounded-md shadow-md"
-            />
-          ) : (
-            <div className="w-16 h-20 bg-white bg-opacity-20 rounded-md flex items-center justify-center">
-              <Crown className="w-8 h-8 text-white" />
-            </div>
-          )}
+          <div className="w-16 h-20 bg-white bg-opacity-20 rounded-md flex items-center justify-center">
+            <Crown className="w-8 h-8 text-white" />
+          </div>
           <div>
-            <h2 className="text-xl font-bold">{product.title}</h2>
+            <h2 className="text-xl font-bold">{product.name}</h2>
             <p className="text-text-light/80 text-sm">{product.description}</p>
           </div>
         </div>
@@ -107,7 +107,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
       <div className="p-6 border-b border-border/30">
         <div className="text-center">
           <div className="text-3xl font-bold text-secondary">
-            {formatPrice(product.amount_cents, product.currency)}
+            {formatPrice(product.price, product.currency)}
           </div>
           {product.is_subscription && (
             <div className="text-text-light/70">
@@ -220,7 +220,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   );
 };
 
-const StripeCheckout: React.FC<StripeCheckoutProps> = (props) => {
+const SubscriptionCheckout: React.FC<StripeCheckoutProps> = (props) => {
   // Check if Stripe key is configured
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   
@@ -256,4 +256,4 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = (props) => {
   );
 };
 
-export { StripeCheckout };
+export { SubscriptionCheckout };

@@ -18,7 +18,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
   product_type: z.enum(['single_issue', 'bundle', 'chapter_pass', 'arc_pass']),
-  active: z.boolean().default(true),
+  active: z.boolean(),
   work_id: z.string().nullable().optional(),
   content_grants: z.array(
     z.object({

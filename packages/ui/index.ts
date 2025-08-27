@@ -17,7 +17,7 @@ export * from './src/use-toast';
 export * from './src/dialog';
 export * from './src/alert-dialog';
 export * from './src/LoadingSkeleton';
-export * from './src/StripeCheckout';
+
 export * from './src/ReadingTab';
 export * from './src/Layout';
 export * from './src/HomePage';

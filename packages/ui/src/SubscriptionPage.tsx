@@ -250,17 +250,12 @@ export const SubscriptionPage: React.FC = () => {
         <SubscriptionCheckout
           product={{
             id: selectedPlan.id,
-            name: selectedPlan.name, // Changed from title to name
-            description: selectedPlan.highlight || '',
-            price_id: selectedPlan.paypalPlanId, // Using paypalPlanId as a placeholder for Stripe Price ID
-            amount_cents: selectedPlan.price * 100,
+            name: selectedPlan.name,
+            price: selectedPlan.price * 100, // Use 'price' instead of 'amount_cents'
             currency: 'usd', // Assuming USD, needs to be dynamic if multiple currencies
             interval: selectedPlan.interval,
             is_subscription: true,
-            // Add other required properties of Product from @zoroaster/shared if any
-            // For example, if 'active' is required and not optional in Product:
-            active: true, // Assuming all subscription products are active
-            product_type: selectedPlan.interval === 'month' ? 'chapter_pass' : 'arc_pass', // Assuming these types based on interval
+            trial_period_days: undefined, // Add if selectedPlan has this property
           }}
           onClose={handleCheckoutClose}
           onSuccess={handleCheckoutSuccess}

@@ -25,7 +25,7 @@ export type WikiSectionView = {
 export interface WikiPage extends Tables<'wiki_pages'> {
   sections?: WikiSectionView[];
   category?: Tables<'wiki_categories'> | null;
-  user?: Tables<'profiles'> | null;
+  user?: Tables<'profiles'> | null | any;
   seo_title?: string;
   seo_description?: string;
   seo_keywords?: string[];
@@ -37,7 +37,22 @@ export const fetchPages = async (): Promise<WikiPage[]> => {
         .select('*, category:wiki_categories(*), user:profiles(*)')
         .order('title');
     if (error) throw error;
-    return (data as WikiPage[]) || [];
+
+    type SupabasePageData = (Tables<'wiki_pages'> & {
+        category: Tables<'wiki_categories'> | null;
+        user: Tables<'profiles'> | null | { error: true } | string; // Be very explicit about possible user types
+    })[];
+
+    const pages = (data as SupabasePageData) || []; // Cast to unknown first, then any[]
+
+    for (const page of pages) {
+        // Explicitly check if page.user is an error object and set to null
+        if (page.user && typeof page.user === 'object' && 'error' in page.user) {
+            page.user = null;
+        }
+    }
+
+    return pages as WikiPage[];
 };
 
 export interface WikiCategory extends Tables<'wiki_categories'> {
@@ -100,7 +115,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
 
   if (page) {
     // Explicitly check if page.user is an error object and set to null
-    if (page.user && typeof page.user === 'object' && 'error' in page.user) {
+    if (page.user !== null && (typeof page.user === 'string' || (typeof page.user === 'object' && 'error' in page.user))) {
       page.user = null;
     }
 
@@ -125,7 +140,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
     await supabase.rpc('increment_wiki_page_views', { page_id: page.id });
   }
 
-  return page as WikiPage;
+  return page as unknown as WikiPage;
 };
 
 /**
@@ -181,7 +196,7 @@ export const fetchWikiPages = async ({
   if (wikiPages.length > 0) {
     for (const p of wikiPages) {
       // Explicitly check if p.user is an error object and set to null
-      if (p.user && typeof p.user === 'object' && 'error' in p.user) {
+      if (p.user !== null && (typeof p.user === 'string' || (typeof p.user === 'object' && 'error' in p.user))) {
         p.user = null;
       }
     }
@@ -267,7 +282,12 @@ export const createWikiPage = async (pageData: {
     throw new Error('Failed to create wiki page');
   }
 
-  const newPage = page as WikiPage;
+  const newPage = page as unknown as WikiPage;
+
+  // Add this block:
+  if (newPage.user !== null && (typeof newPage.user === 'string' || (typeof newPage.user === 'object' && 'error' in newPage.user))) {
+    newPage.user = null;
+  }
 
   if (newPage && pageData.sections && pageData.sections.length > 0) {
     const contentBlocksToInsert = pageData.sections.map((section, index) => ({
@@ -290,7 +310,7 @@ export const createWikiPage = async (pageData: {
     }
   }
 
-  return { ...newPage, sections: pageData.sections } as WikiPage;
+  return { ...newPage, sections: pageData.sections } as unknown as WikiPage;
 };
 
 /**
@@ -327,7 +347,12 @@ export const updateWikiPage = async (
     console.error('Error updating wiki page:', error);
     throw new Error('Failed to update wiki page');
   }
-  const updatedPage = page as WikiPage;
+  const updatedPage = page as unknown as WikiPage;
+
+  // Add this block:
+  if (updatedPage.user !== null && (typeof updatedPage.user === 'string' || (typeof updatedPage.user === 'object' && 'error' in updatedPage.user))) {
+    updatedPage.user = null;
+  }
 
   if (updatedPage && incomingSections) {
     // Delete existing content blocks
@@ -362,7 +387,7 @@ export const updateWikiPage = async (
     }
   }
 
-  return { ...updatedPage, sections: incomingSections } as WikiPage;
+  return { ...updatedPage, sections: incomingSections } as unknown as WikiPage;
 };
 
 

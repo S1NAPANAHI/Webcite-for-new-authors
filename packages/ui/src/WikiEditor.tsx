@@ -34,7 +34,7 @@ const QuillEditor = forwardRef<any, QuillEditorProps>(({ value, onChange, ...pro
   return (
     <Suspense fallback={<div>Loading editor...</div>}>
       <ReactQuill
-        ref={ref}
+        ref={ref as any}
         theme={props.theme} // Explicitly pass theme
         value={value}
         onChange={onChange}
@@ -76,10 +76,10 @@ export function WikiEditor() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<WikiCategory[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCategorySearch, setShowCategorySearch] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<WikiCategory | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   
@@ -165,7 +165,7 @@ export function WikiEditor() {
     }));
   };
 
-  const updateSection = (sectionId: string, updates: Partial<WikiSection>) => {
+  const updateSection = (sectionId: string, updates: Partial<WikiSectionView>) => {
     setPage(prev => ({
       ...prev,
       sections: prev.sections.map(section =>
@@ -202,7 +202,7 @@ export function WikiEditor() {
     }));
   };
 
-  const handleSelectCategory = (category: Category) => {
+  const handleSelectCategory = (category: WikiCategory) => {
     setSelectedCategory(category);
     setPage(prev => ({ ...prev, category_id: category.id }));
     setShowCategorySearch(false);
@@ -506,12 +506,12 @@ export function WikiEditor() {
     />
   );
 
-  const renderSectionContent = (section: WikiSection) => {
+  const renderSectionContent = (section: WikiSectionView) => {
     switch (section.type) {
       case 'text':
         return (
           <div className="mt-4">
-            <QuillEditor
+            <Editor
               value={section.content || ''}
               onChange={(content) => updateSection(section.id, { content })}
               modules={modules}

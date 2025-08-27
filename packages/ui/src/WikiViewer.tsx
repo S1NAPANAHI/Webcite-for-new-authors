@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
 import { Input } from '@zoroaster/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@zoroaster/ui';
-import { Menu, Search, X, ChevronRight, ChevronDown, BookOpen, Folder, File } from 'lucide-react';
+import { Menu, Search, X, ChevronRight, ChevronDown, BookOpen, Folder as FolderIcon, File } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiPage, Folder, WikiSectionView } from '@zoroaster/shared/wiki'; // Import types from shared
@@ -332,7 +332,7 @@ export function WikiViewer() {
           {loading ? (
             <div className="text-center py-8 text-muted-foreground">Loading...</div>
           ) : (
-            renderFolderTree(buildFolderTree(folders))
+            renderFolderTree(buildFolderTree(folders as Folder[]))
           )}
         </div>
         

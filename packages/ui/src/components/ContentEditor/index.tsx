@@ -49,53 +49,71 @@ export function ContentEditor<T extends ContentItem>({
     }
 
     // Default values based on content type
-    const baseData: Partial<FormData<T>> = {
-      status: 'draft' as ContentStatus,
-    };
-
     switch (contentType) {
       case 'posts':
       case 'pages':
         return {
-          ...baseData,
+          status: 'draft',
           title: '',
           content: '',
           slug: '',
           author_id: '',
           excerpt: '',
           featured_image: '',
-          tags: []
-        } as unknown as FormData<T>;
+          tags: [],
+          category_id: undefined,
+        } as FormData<T>;
       case 'storeItems':
         return {
-          ...baseData,
+          status: 'active', // Default status for storeItems
           name: '',
           description: '',
           price: 0,
           category: 'digital',
           image_url: '',
-          stock_quantity: 0
-        } as unknown as FormData<T>;
+          stock_quantity: 0,
+          sku: undefined,
+        } as FormData<T>;
       case 'libraryItems':
         return {
-          ...baseData,
+          status: 'draft',
           title: '',
           description: '',
           file_url: '',
           file_type: '',
           file_size: 0,
           category: 'tutorial',
-          tags: []
-        } as unknown as FormData<T>;
+          thumbnail_url: undefined,
+        } as FormData<T>;
       case 'characters':
         return {
-          ...baseData,
+          status: 'draft',
           name: '',
           description: '',
           role: '',
           backstory: '',
-          image_url: ''
-        } as unknown as FormData<T>;
+          image_url: '',
+          birth_date: undefined,
+          death_date: undefined,
+          species: undefined,
+          occupation: undefined,
+          relationships: undefined,
+        } as FormData<T>;
+      case 'timelineEvents': // Add this case
+        return {
+          status: 'draft',
+          title: '',
+          date: '',
+          era: 'ancient',
+          description: ''
+        } as FormData<T>;
+      case 'betaUsers': // Add this case
+        return {
+          status: 'pending',
+          name: '',
+          email: '',
+          message: ''
+        } as FormData<T>;
       default:
         throw new Error(`Unsupported content type: ${contentType}`);
     }

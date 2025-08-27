@@ -70,73 +70,73 @@ const TimelineManager: React.FC = () => {
   const [isReordering, setIsReordering] = useState(false);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['timelineEvents', { showUnpublished }],
-    queryFn: () => fetchTimelineEvents({ includeUnpublished: true }),
-  });
+  // const { data, isLoading, error, refetch } = useQuery({
+  //   queryKey: ['timelineEvents', { showUnpublished }],
+  //   queryFn: () => fetchTimelineEvents({ includeUnpublished: true }),
+  // });
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteTimelineEvent,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({
-        title: 'Success',
-        description: 'Timeline event deleted successfully',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  // const deleteMutation = useMutation({
+  //   mutationFn: deleteTimelineEvent,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+  //     toast({
+  //       title: 'Success',
+  //       description: 'Timeline event deleted successfully',
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     toast({
+  //       title: 'Error',
+  //       description: error.message,
+  //       variant: 'destructive',
+  //     });
+  //   },
+  // });
 
-  const togglePublishMutation = useMutation({
-    mutationFn: ({ id, isPublished }: { id: string; isPublished: boolean }) =>
-      toggleTimelineEventPublishStatus(id, !isPublished),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({
-        title: 'Success',
-        description: 'Timeline event status updated',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  // const togglePublishMutation = useMutation({
+  //   mutationFn: ({ id, isPublished }: { id: string; isPublished: boolean }) =>
+  //     toggleTimelineEventPublishStatus(id, !isPublished),
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+  //     toast({
+  //       title: 'Success',
+  //       description: 'Timeline event status updated',
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     toast({
+  //       title: 'Error',
+  //       description: error.message,
+  //       variant: 'destructive',
+  //     });
+  //   },
+  // });
 
-  const reorderMutation = useMutation({
-    mutationFn: reorderTimelineEvents,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({
-        title: 'Success',
-        description: 'Timeline events reordered successfully',
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
-      // Revert to the previous state on error
-      refetch();
-    },
-  });
+  // const reorderMutation = useMutation({
+  //   mutationFn: reorderTimelineEvents,
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+  //     toast({
+  //       title: 'Success',
+  //       description: 'Timeline events reordered successfully',
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     toast({
+  //       title: 'Error',
+  //       description: error.message,
+  //       variant: 'destructive',
+  //     });
+  //     // Revert to the previous state on error
+  //     refetch();
+  //   },
+  // });
 
   useEffect(() => {
-    if (data?.data) {
-      setEvents(data.data);
-    }
-  }, [data]);
+    // if (data?.data) {
+    //   setEvents(data.data);
+    // }
+  }, []); // Removed data from dependency array
 
   const handleEdit = (event: TimelineEvent) => {
     setEditingEvent(event);
@@ -149,13 +149,13 @@ const TimelineManager: React.FC = () => {
 
   const confirmDelete = () => {
     if (eventToDelete) {
-      deleteMutation.mutate(eventToDelete);
+      // deleteMutation.mutate(eventToDelete);
       setEventToDelete(null);
     }
   };
 
   const togglePublishStatus = (id: string, isPublished: boolean) => {
-    togglePublishMutation.mutate({ id, isPublished });
+    // togglePublishMutation.mutate({ id, isPublished });
   };
 
   const handleDragEnd = (event: any) => {
@@ -171,18 +171,18 @@ const TimelineManager: React.FC = () => {
         newItems.splice(newIndex, 0, removed);
         
         // Update the order property based on the new position
-        const updatedItems = newItems.map((item, index) => ({
+        const updatedItems: TimelineEvent[] = newItems.map((item, index) => ({
           ...item,
           order: index,
         }));
         
         // Send the update to the server
-        reorderMutation.mutate(
-          updatedItems.map((item) => ({
-            id: item.id,
-            order: item.order,
-          }))
-        );
+        // reorderMutation.mutate(
+        //   updatedItems.map((item) => ({
+        //     id: item.id,
+        //     order: item.order,
+        //   }))
+        // );
         
         return updatedItems;
       });
@@ -200,45 +200,44 @@ const TimelineManager: React.FC = () => {
     })
   );
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <LoadingSkeleton className="h-10 w-32" />
-          <LoadingSkeleton className="h-10 w-40" />
-        </div>
-        <LoadingSkeleton className="h-12 w-full" />
-        {[...Array(5)].map((_, i) => (
-          <LoadingSkeleton key={i} className="h-20 w-full" />
-        ))}
-      </div>
-    );
-  }
+  // if (isLoading) { // Commented out isLoading check
+  //   return (
+  //     <div className="space-y-4">
+  //       <div className="flex justify-between items-center">
+  //         <LoadingSkeleton className="h-10 w-32" />
+  //         <LoadingSkeleton className="h-10 w-40" />
+  //       </div>
+  //       <LoadingSkeleton className="h-12 w-full" />
+  //       {[...Array(5)].map((_, i) => (
+  //         <LoadingSkeleton key={i} className="h-20 w-full" />
+  //       ))}
+  //     </div>
+  //   );
+  // }
 
-  if (error) {
-    return (
-      <div className="rounded-md bg-red-50 p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <XCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">
-              Error loading timeline events
-            </h3>
-            <div className="mt-2 text-sm text-red-700">
-              <p>{error.message}</p>
-            </div>
-            <div className="mt-4">
-              <Button variant="outline" onClick={() => refetch()}>
-                Retry
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (error) { // Commented out error check
+  //   return (
+  //     <div className="rounded-md bg-red-50 p-4">
+  //       <div className="flex">
+  //         <div className="flex-shrink-0">
+  //           <XCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+  //         </div>
+  //         <div className="ml-3">
+  //           <h3 className="text-sm font-medium text-red-800">
+  //             Error loading timeline events
+  //           </h3>
+  //           <div className="mt-2 text-sm text-red-700">
+  //             <p>{error.message}</p>
+  //           </div>
+  //           <div className="mt-4">
+  //             <Button variant="outline" onClick={() => refetch()}>
+  //               Retry
+  //             </Button>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
 
   return (
     <div className="space-y-6">

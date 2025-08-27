@@ -18,7 +18,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
   product_type: z.enum(['single_issue', 'bundle', 'chapter_pass', 'arc_pass']),
-  active: z.boolean().default(true),
+  active: z.boolean().optional().default(true),
   work_id: z.string().nullable().optional(),
   content_grants: z.array(
     z.object({
@@ -69,7 +69,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       product_type: (product?.product_type as any) || 'single_issue',
       active: product?.active ?? true,
       work_id: product?.work_id || null,
-      content_grants: product?.content_grants?.length ? product.content_grants : [],
+      content_grants: Array.isArray(product?.content_grants)
+        ? (product.content_grants as { type: "work" | "chapter"; id: string; }[])
+        : [],
     },
   });
 
@@ -97,7 +99,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     fetchWorks();
   }, []);
 
-  const onSubmit = (data: ProductFormData) => {
+  const onSubmit: SubmitHandler<ProductFormData> = (data) => {
     // Transform data to match the expected API format
     const submitData = {
       ...data,
@@ -346,10 +348,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {editingProduct ? 'Updating...' : 'Creating...'}
+              {product ? 'Updating...' : 'Creating...'}
             </>
           ) : (
-            <>{editingProduct ? 'Update Product' : 'Create Product'}</>
+            <>{product ? 'Update Product' : 'Create Product'}</>
           )}
         </Button>
       </div>

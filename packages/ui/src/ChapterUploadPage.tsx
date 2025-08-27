@@ -11,14 +11,14 @@ type Book = {
 };
 
 const fetchBooks = async (): Promise<Book[]> => {
-  const { data, error } = await supabase.from('books').select('id, title');
+  const { data, error } = await supabase.from('works').select('id, title');
   if (error) throw new Error(error.message);
   return data as Book[];
 };
 
 // Mutation to create a new book
 const createBook = async (newBookTitle: string): Promise<Book> => {
-  const { data, error } = await supabase.from('books').insert({ title: newBookTitle }).select();
+  const { data, error } = await supabase.from('works').insert({ title: newBookTitle }).select();
   if (error) throw new Error(error.message);
   return data[0] as Book;
 };

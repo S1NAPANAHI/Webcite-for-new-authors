@@ -32,16 +32,16 @@ type Work = {
 };
 
 type UserLibraryItem = {
-  id: string;
-  user_id: string;
-  work_id: string;
-  purchase_date: string;
-  is_finished: boolean;
+  id?: string;
+  user_id?: string;
+  work_id?: string;
+  purchase_date?: string;
+  is_finished?: boolean;
   last_read_chapter?: number;
-  epub_downloads_used: number;
-  pdf_downloads_used: number;
-  mobi_downloads_used: number;
-  work: Work; // Joined work data (though not used directly in this component anymore)
+  epub_downloads_used?: number;
+  pdf_downloads_used?: number;
+  mobi_downloads_used?: number;
+  // work?: Work; // Joined work data (though not used directly in this component anymore)
 };
 
 // --- Supabase Data Functions ---

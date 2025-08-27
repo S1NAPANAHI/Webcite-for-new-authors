@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 
 // --- TYPE DEFINITIONS ---
 type HomepageContentItem = {
-  id: string;
+  id: number;
   created_at: string;
   title?: string;
   content: string;

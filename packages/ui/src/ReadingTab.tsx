@@ -10,7 +10,7 @@ interface Chapter {
   id: string;
   title: string;
   chapter_number: number;
-  book_id: string;
+  work_id: string; // Changed from book_id to work_id
   is_published: boolean;
   // Add other relevant chapter fields as needed
 }
@@ -54,7 +54,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
         // If user has an active subscription, fetch their entitlements
         const { data: entitlements, error: entitlementsError } = await supabase
           .from('entitlements')
-          .select('work_id')
+          .select('scope') // Select 'scope' instead of 'work_id'
           .eq('user_id', user.id);
 
         if (entitlementsError) {
@@ -67,7 +67,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
           return;
         }
 
-        const entitledWorkIds = entitlements.map(ent => ent.work_id);
+        const entitledWorkIds = entitlements.map(ent => ent.scope.split(':')[1]); // Assuming scope is like 'work:work_id'
 
         // Now, fetch chapters that belong to these entitled works (books)
         // Assuming 'work_id' from entitlements directly maps to 'book_id' in chapters table
@@ -135,7 +135,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
           <div key={chapter.id} className="bg-background-dark p-4 rounded-lg shadow-md">
             <h3 className="text-xl font-medium text-primary">{chapter.title}</h3>
             <p className="text-text-light">Chapter {chapter.chapter_number}</p>
-            <p className="text-text-light text-sm">Book ID: {chapter.book_id}</p>
+            <p className="text-text-light text-sm">Work ID: {chapter.work_id}</p>
             <button
               className="mt-4 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded"
               onClick={() => handleReadChapter(chapter.id)}

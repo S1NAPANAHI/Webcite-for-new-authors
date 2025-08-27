@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
 import { Input } from '@zoroaster/ui';
 import { Plus, Folder, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders, fetchPages } from '@zoroaster/shared';
+import { supabase, fetchFolders, fetchPages, WikiPage } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiEditor } from '@zoroaster/ui';
 import { SortableFolderTree } from '@zoroaster/ui';
@@ -16,21 +16,7 @@ type Folder = {
   children?: Folder[];
 };
 
-type Section = {
-  id: string;
-  type: string;
-  content: string;
-  title?: string;
-};
 
-type Page = {
-  id: string;
-  title: string;
-  slug: string;
-  folder_id: string | null;
-  updated_at: string;
-  content: Section[];
-};
 
 export function WikiManager() {
   const { folderId } = useParams();
@@ -137,37 +123,49 @@ export function WikiManager() {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error('You must be logged in to create a page');
       
-      const newPage = {
+      // Prepare page data for wiki_pages table
+      const pageDataToInsert = {
         title: newPageName.trim(),
         slug: newPageName.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
         folder_id: folderId || null,
-        content: [{
-          id: 'section-1',
-          type: 'text',
-          content: '',
-          title: 'Introduction'
-        }],
         is_published: false,
+        created_by: user.id, // Add created_by
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        view_count: 0, // Default view count
       };
       
-      const { data, error } = await supabase
-        .from('pages')
-        .insert([newPage])
+      const { data: newWikiPage, error: pageError } = await supabase
+        .from('wiki_pages') // Correct table name
+        .insert([pageDataToInsert])
         .select()
         .single();
       
-      if (error) throw error;
+      if (pageError) throw pageError;
+
+      // Insert initial content block (section)
+      const initialSection = {
+        page_id: newWikiPage.id,
+        type: 'paragraph', // Default type
+        content: '',
+        position: 0,
+        created_by: user.id,
+      };
+
+      const { error: contentBlockError } = await supabase
+        .from('wiki_content_blocks')
+        .insert([initialSection]);
+
+      if (contentBlockError) throw contentBlockError;
       
       // Update local state
-      setPages(prev => [...prev, data]);
+      setPages(prev => [...prev, { ...newWikiPage, content: [initialSection] }]); // Add content to local state
       setNewPageName('');
       setShowNewPageInput(false);
       
       // Select the new page
-      setSelectedPage(data.id);
-      setEditingPage(data.id);
+      setSelectedPage(newWikiPage.id);
+      setEditingPage(newWikiPage.id);
       
       toast.success('Page created successfully');
     } catch (error) {
@@ -297,11 +295,11 @@ export function WikiManager() {
         return item.type === 'folder' 
           ? supabase
               .from('wiki_folders')
-              .update({ order_index: index })
+              .update({}) // Removed order_index update
               .eq('id', item.id)
           : supabase
               .from('wiki_pages')
-              .update({ order_index: index })
+              .update({}) // Removed order_index update
               .eq('id', item.id);
       });
       

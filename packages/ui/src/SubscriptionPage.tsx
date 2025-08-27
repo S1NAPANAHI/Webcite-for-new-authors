@@ -17,7 +17,7 @@ interface SubscriptionPlan {
 
 export const SubscriptionPage: React.FC = () => {
   const { isAuthenticated } = useAuth();
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
 
   const subscriptionPlans: SubscriptionPlan[] = [
@@ -248,7 +248,16 @@ export const SubscriptionPage: React.FC = () => {
 
       {showCheckoutModal && selectedPlan && (
         <SubscriptionCheckout
-          plan={subscriptionPlans.find(p => p.id === selectedPlan)!}
+          product={{
+            id: selectedPlan.id,
+            title: selectedPlan.name,
+            description: selectedPlan.highlight || '',
+            price_id: selectedPlan.paypalPlanId, // Using paypalPlanId as a placeholder for Stripe Price ID
+            amount_cents: selectedPlan.price * 100,
+            currency: 'usd', // Assuming USD, needs to be dynamic if multiple currencies
+            interval: selectedPlan.interval,
+            is_subscription: true,
+          }}
           onClose={handleCheckoutClose}
           onSuccess={handleCheckoutSuccess}
         />

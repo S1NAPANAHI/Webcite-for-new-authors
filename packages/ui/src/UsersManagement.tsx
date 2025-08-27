@@ -203,7 +203,7 @@ export const UsersManagement = () => {
               setStartDate(activeSub.current_period_start ? new Date(activeSub.current_period_start).toISOString().split('T')[0] : '');
             setEndDate(activeSub.current_period_end ? new Date(activeSub.current_period_end).toISOString().split('T')[0] : '');
     } else {
-      setSubscriptionType('');
+      setPlanId('');
       setSubscriptionStatus('active');
       setStartDate(new Date().toISOString().split('T')[0]);
       setEndDate('');

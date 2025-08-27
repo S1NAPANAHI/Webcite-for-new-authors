@@ -1,19 +1,22 @@
 import { supabase } from './supabaseClient';
-import type { Subscription } from './database.types';
+import { Tables } from './database.types';
+
+export type Subscription = Tables<'subscriptions'>;
 
 export const getSubscription = async (userId: string): Promise<Subscription | null> => {
-  try {
     const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .in('status', ['trialing', 'active'])
-      .eq('user_id', userId)
-      .maybeSingle();
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
 
-    if (error) throw error;
+    if (error) {
+        console.error('Error fetching subscription:', error);
+        return null;
+    }
+
     return data;
-  } catch (error) {
-    console.error('Error fetching subscription:', error);
-    throw error;
-  }
 };
+
+
+

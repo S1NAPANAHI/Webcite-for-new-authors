@@ -11,7 +11,7 @@ import {
   ContentType,
   ContentStatus,
   FormData
-} from '../../types/content';
+} from '@shared/types/content';
 
 // Helper function to generate a URL-friendly slug from a string
 const generateSlug = (str: string): string => {

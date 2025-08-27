@@ -8,3 +8,4 @@ export * from './src/CartContext';
 export * from './src/userStats';
 export * from './src/profile';
 export * from './src/subscription';
+export * from './src/product';

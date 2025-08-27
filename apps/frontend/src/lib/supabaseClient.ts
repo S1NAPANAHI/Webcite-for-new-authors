@@ -7,7 +7,7 @@ declare global {
   interface ImportMetaEnv {
     readonly VITE_SUPABASE_URL: string;
     readonly VITE_SUPABASE_ANON_KEY: string;
-    readonly VITE_DEBUG?: string;
+    readonly VITE_DEBUG: string;
   }
 }
 
@@ -43,10 +43,11 @@ export const supabase = createClient<Database>(
     global: {
       // Get the latest record instead of from local cache
       fetch: (url, options = {}) => {
+        const { headers, ...restOptions } = options;
         return fetch(url, {
-          ...options,
+          ...restOptions,
           headers: {
-            ...options.headers,
+            ...headers,
             'Cache-Control': 'no-cache',
           },
         });

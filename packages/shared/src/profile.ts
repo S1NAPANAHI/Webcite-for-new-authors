@@ -1,7 +1,10 @@
 import { supabase } from './supabaseClient';
-import type { Profile } from './database.types';
+import { Tables } from './database.types';
 
-export const getProfile = async (userId: string): Promise<Profile | null> => {
+export type UserProfile = Tables<'profiles'>;
+
+
+export const getProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
     const { data, error } = await supabase
       .from('profiles')

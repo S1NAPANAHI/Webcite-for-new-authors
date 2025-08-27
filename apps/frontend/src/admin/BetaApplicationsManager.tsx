@@ -108,10 +108,12 @@ const BetaApplicationsManager: React.FC = () => {
       return;
     }
 
+    const profileStatus = newStatus === 'approved' ? 'approved' : 'rejected';
+
     // Then, update the profiles table
     const { error: profileUpdateError } = await supabase
       .from('profiles')
-      .update({ beta_reader_status: newStatus }) // Use newStatus directly as it matches enum
+      .update({ beta_reader_status: profileStatus }) // Use newStatus directly as it matches enum
       .eq('id', application.user_id);
 
     if (profileUpdateError) {

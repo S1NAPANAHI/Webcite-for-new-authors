@@ -6,13 +6,14 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "cd apps/frontend && npm run dev",
-    "build": "npm install && npm run build --workspace=frontend",
-    "start": "cd apps/frontend && npm run start",
-    "lint": "npm run lint --workspace=frontend",
-    "vercel-build": "npm install && npm run build --workspace=frontend",
+    "dev": "pnpm --filter frontend dev",
+    "build": "pnpm install && pnpm --filter frontend build",
+    "start": "pnpm --filter frontend start",
+    "lint": "pnpm --filter frontend lint",
+    "vercel-build": "pnpm install && pnpm --filter frontend build",
     "generate-types": "tsx scripts/generate-types.ts"
   },
+  "packageManager": "pnpm@8.15.0",
   "engines": {
     "node": ">=18.0.0"
   },

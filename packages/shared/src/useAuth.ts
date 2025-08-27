@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import { User } from '@supabase/supabase-js'; // Import User type
 import { UserProfile } from './profile';
 
 interface AuthState {
@@ -10,12 +11,7 @@ interface AuthState {
   isLoading: boolean;
 }
 
-export const useAuth = (): AuthState & { 
-  loading: boolean; 
-  isAuthenticated: boolean; 
-  isAdmin: boolean;
-  userProfile: UserProfile | null;
-} => {
+export const useAuth = (): AuthState => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);

@@ -17,6 +17,12 @@ export type UserProfile = {
   reading_hours?: number;
   reading_streak?: number;
   achievements?: number;
+  // Fields that were previously in UserProfile or user_metadata
+  bio?: string | null;
+  location?: string | null;
+  favorite_genre?: string | null;
+  reading_goal?: number | null;
+  email?: string | null; // Assuming email might be part of the profile or user object
 };
 
 

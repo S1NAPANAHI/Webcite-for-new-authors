@@ -7,7 +7,7 @@ import { useToast } from '@zoroaster/ui';
 
 // Define types for homepage content items
 type HomepageContentItem = {
-  id: string;
+  id: number;
   section: string; // e.g., 'hero_title', 'hero_description', 'stat_words_written'
   title?: string; // Used for news/releases, or as a label for single items
   content: string; // The actual value or description
@@ -115,10 +115,10 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: updateHomepageContent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homepageContent'] });
-      toastInstance.toastInstance.toast({ title: 'Content updated successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'Content updated successfully!', variant: 'default' });
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error updating content: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error updating content: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -126,10 +126,10 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: createHomepageContent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['homepageContent'] });
-      toastInstance.toastInstance.toast({ title: 'Content created successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'Content created successfully!', variant: 'default' });
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error creating content: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error creating content: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -137,11 +137,11 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: createNewsItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newsItems'] });
-      toastInstance.toastInstance.toast({ title: 'News item added successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'News item added successfully!', variant: 'default' });
       closeNewsModal();
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error adding news item: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error adding news item: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -149,11 +149,11 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: updateNewsItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newsItems'] });
-      toastInstance.toastInstance.toast({ title: 'News item updated successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'News item updated successfully!', variant: 'default' });
       closeNewsModal();
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error updating news item: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error updating news item: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -161,10 +161,10 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: deleteNewsItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['newsItems'] });
-      toastInstance.toastInstance.toast({ title: 'News item deleted successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'News item deleted successfully!', variant: 'default' });
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error deleting news item: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error deleting news item: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -172,11 +172,11 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: createReleaseItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['releaseItems'] });
-      toastInstance.toastInstance.toast({ title: 'Release item added successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'Release item added successfully!', variant: 'default' });
       closeReleaseModal();
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error adding release item: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error adding release item: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -184,11 +184,11 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: updateReleaseItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['releaseItems'] });
-      toastInstance.toastInstance.toast({ title: 'Release item updated successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'Release item updated successfully!', variant: 'default' });
       closeReleaseModal();
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error updating release item: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error updating release item: ${err.message}`, variant: 'destructive' });
     }
   });
 
@@ -196,10 +196,10 @@ export const HomepageContentManager: React.FC = () => {
     mutationFn: deleteReleaseItem,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['releaseItems'] });
-      toastInstance.toastInstance.toast({ title: 'Release item deleted successfully!', variant: 'default' });
+      toastInstance.toast({ title: 'Release item deleted successfully!', variant: 'default' });
     },
     onError: (err) => {
-      toastInstance.toastInstance.toast({ title: `Error deleting release item: ${err.message}`, variant: 'destructive' });
+      toastInstance.toast({ title: `Error deleting release item: ${err.message}`, variant: 'destructive' });
     }
   });
 

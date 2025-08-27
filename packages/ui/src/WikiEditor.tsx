@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 
 // Import ReactQuill with dynamic import
 const ReactQuill = lazy(() => import('react-quill-new').then(module => ({
-  default: module.default
+  default: module.default as any
 })));
 
 // Import Quill CSS
@@ -58,29 +58,7 @@ const formats = [
   'link', 'image'
 ];
 
-type WikiSection = {
-  id: string;
-  title: string;
-  content: string;
-  type: 'text' | 'infobox' | 'gallery' | 'timeline' | 'quote' | 'category-list';
-};
-
-type WikiPage = {
-  id?: string;
-  title: string;
-  slug: string;
-  sections: WikiSection[];
-  category_id: string | null;
-  is_published: boolean;
-  seo_title: string;
-  seo_description: string;
-  seo_keywords: string[];
-};
-
-type Category = {
-  id: string;
-  name: string;
-};
+import { WikiPage, WikiSectionView, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared/wiki';
 
 export function WikiEditor() {
   const { id } = useParams<{ id?: string }>();
@@ -122,23 +100,8 @@ export function WikiEditor() {
   const fetchCategories = async () => {
     try {
       console.log('Fetching categories...');
-      
-      // Now fetch the categories
-      const { data, error, status } = await supabase
-        .from('wiki_categories')
-        .select('*')
-        .order('name', { ascending: true });
-      
-      console.log('Categories fetch status:', status);
-      console.log('Categories data:', data);
-      
-      if (error) {
-        console.error('Error fetching categories:', error);
-        throw error;
-      }
-      
-      setCategories(data as Category[] || []);
-      
+      const data = await fetchSharedCategories(); // Use the shared function
+      setCategories(data || []);
       if (!data || data.length === 0) {
         console.warn('No categories found in the database');
         toast.warning('No categories found. Please create categories first.');
@@ -151,34 +114,19 @@ export function WikiEditor() {
 
   const fetchWikiPage = async () => {
     try {
-      const { data, error } = await supabase
-        .from('wiki_pages')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (error) throw error;
+      if (!id) { // Ensure id exists for fetching a specific page
+        throw new Error('Page ID is missing.');
+      }
+      const data = await fetchSharedWikiPage(id); // Use the shared function
       
       if (data) {
-        setPage({
-          ...data,
-          sections: Array.isArray(data.content) ? data.content : [], // Ensure content is properly mapped to sections
-        });
+        setPage(data); // The shared function already returns a WikiPage with sections and SEO fields
+        // Set selected category if exists
+        if (data.category) { // Use data.category directly
+          setSelectedCategory(data.category);
+        }
       } else {
         throw new Error('Wiki page not found.');
-      }
-      
-      // Set selected category if exists
-      if (data.category_id) {
-        const { data: categoryData } = await supabase
-          .from('wiki_categories')
-          .select('*')
-          .eq('id', data.category_id)
-          .single();
-        
-        if (categoryData) {
-          setSelectedCategory(categoryData as Category);
-        }
       }
     } catch (error) {
       console.error('Error fetching wiki page:', error);
@@ -193,12 +141,12 @@ export function WikiEditor() {
     setPage(prev => ({ ...prev, [name]: value }));
   };
 
-  const addSection = (type: WikiSection['type']) => {
-    const newSection: WikiSection = {
+  const addSection = (type: WikiSectionView['type']) => {
+    const newSection: WikiSectionView = {
       id: `section-${Date.now()}`,
       title: 'New Section',
       content: '',
-      type
+      type: type || 'paragraph' // Default to paragraph if type is not provided
     };
     setPage(prev => ({
       ...prev,
@@ -687,15 +635,20 @@ export function WikiEditor() {
                           <div className="flex space-x-2">
                             <select
                               value={section.type}
-                              onChange={(e) => updateSection(section.id, { type: e.target.value as WikiSection['type'] })}
+                              onChange={(e) => updateSection(section.id, { type: e.target.value as WikiSectionView['type'] })}
                               className="text-sm p-1 border rounded"
                             >
-                              <option value="text">Text</option>
-                              <option value="infobox">Infobox</option>
-                              <option value="gallery">Gallery</option>
-                              <option value="timeline">Timeline</option>
+                              <option value="paragraph">Paragraph</option>
+                              <option value="heading_1">Heading 1</option>
+                              <option value="heading_2">Heading 2</option>
+                              <option value="heading_3">Heading 3</option>
+                              <option value="bullet_list">Bullet List</option>
+                              <option value="ordered_list">Ordered List</option>
+                              <option value="image">Image</option>
+                              <option value="table">Table</option>
                               <option value="quote">Quote</option>
-                              <option value="category-list">Category List</option>
+                              <option value="code">Code</option>
+                              <option value="divider">Divider</option>
                             </select>
                             <Button
                               variant="ghost"
@@ -717,14 +670,11 @@ export function WikiEditor() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-6">
-                  <Button type="button" variant="outline" onClick={() => addSection('text')}>
-                    Add Text Section
+                  <Button type="button" variant="outline" onClick={() => addSection('paragraph')}>
+                    Add Paragraph
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => addSection('infobox')}>
-                    Add Infobox
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => addSection('gallery')}>
-                    Add Gallery
+                  <Button type="button" variant="outline" onClick={() => addSection('heading_1')}>
+                    Add Heading 1
                   </Button>
                   <Button type="button" variant="outline" onClick={() => addSection('quote')}>
                     Add Quote

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Download, Crown, Star, Eye, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { StripeCheckout } from './StripeCheckout'; // Assuming StripeCheckout is in the same package
-import { useCart } from '@zoroaster/shared';
+import { useCart, Product } from '@zoroaster/shared';
 
 
 
@@ -46,10 +46,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     if (primaryPrice) {
       addItem({
         id: product.id,
-        name: product.name,
+        title: product.name,
         price: primaryPrice.unit_amount / 100,
         currency: primaryPrice.currency,
-        // format: product.files[0]?.format || 'pdf' // Files are no longer directly on product
+        format: 'digital' // Added a placeholder format
       });
     }
   };

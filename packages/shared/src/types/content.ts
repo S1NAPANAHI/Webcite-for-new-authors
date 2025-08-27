@@ -1,7 +1,7 @@
 export type ContentStatus = 'draft' | 'published' | 'archived';
 
 export interface BaseContent {
-  id?: string;
+  id: string;
   status: ContentStatus;
   created_at?: string;
   updated_at?: string;

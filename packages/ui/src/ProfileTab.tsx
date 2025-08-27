@@ -32,7 +32,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, onProfileUp
       location,
       favorite_genre: favoriteGenre,
       reading_goal: readingGoal,
-      updated_at: new Date(),
+      updated_at: new Date().toISOString(),
     };
 
     const { error } = await supabase

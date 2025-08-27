@@ -264,14 +264,15 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'libraryItems':
+        const libraryItemFormData = formData as Omit<LibraryItem, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
               <input
                 type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                value={libraryItemFormData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Resource title..."
               />
@@ -279,8 +280,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
               <select
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                value={libraryItemFormData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="tutorial">Tutorial</option>
@@ -293,8 +294,8 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">File URL</label>
               <input
                 type="url"
-                value={formData.file_url}
-                onChange={(e) => setFormData({...formData, file_url: e.target.value})}
+                value={libraryItemFormData.file_url}
+                onChange={(e) => setFormData({...formData, file_url: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="https://..."
               />
@@ -302,8 +303,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                value={libraryItemFormData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value} as FormData<T>)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Resource description..."
@@ -312,14 +313,15 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'characters':
+        const characterFormData = formData as Omit<Character, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Character Name</label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                value={characterFormData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Character name..."
               />
@@ -327,8 +329,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
               <select
-                value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
+                value={characterFormData.role}
+                onChange={(e) => setFormData({...formData, role: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="protagonist">Protagonist</option>
@@ -341,8 +343,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                value={characterFormData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value} as FormData<T>)}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Character description..."
@@ -351,7 +353,7 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Backstory</label>
               <textarea
-                value={formData.backstory}
+                value={characterFormData.backstory}
                 onChange={(e) => setFormData(prev => ({ ...prev, backstory: e.target.value } as FormData<T>))}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -361,14 +363,15 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'timelineEvents':
+        const timelineEventFormData = formData as Omit<TimelineEvent, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Event Title</label>
               <input
                 type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                value={timelineEventFormData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Event title..."
               />
@@ -377,16 +380,16 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
               <input
                 type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                value={timelineEventFormData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Era</label>
               <select
-                value={formData.era}
-                onChange={(e) => setFormData({...formData, era: e.target.value})}
+                value={timelineEventFormData.era}
+                onChange={(e) => setFormData({...formData, era: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ancient">Ancient</option>
@@ -398,8 +401,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                value={timelineEventFormData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value} as FormData<T>)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Event description..."
@@ -408,14 +411,15 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'betaUsers':
+        const betaUserFormData = formData as Omit<BetaUser, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                value={betaUserFormData.name}
+                onChange={(e) => setFormData({...formData, name: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="User name..."
               />
@@ -424,8 +428,8 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <input
                 type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                value={betaUserFormData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value} as FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="user@example.com"
               />
@@ -433,8 +437,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
               <textarea
-                value={formData.message}
-                onChange={(e) => setFormData({...formData, message: e.target.value})}
+                value={betaUserFormData.message}
+                onChange={(e) => setFormData({...formData, message: e.target.value} as FormData<T>)}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="User message/notes..."

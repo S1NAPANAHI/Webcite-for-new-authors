@@ -110,7 +110,7 @@ const ArtistCollaborationPage: React.FC = () => {
 
     // Effect for dynamic form sections (revenue share)
     useEffect(() => {
-        const trackSelectGroup = document.getElementById('preferredTrack')?.closest(`.form-group`); // Changed from styles['form-group']
+        const trackSelectGroup = document.getElementById('preferredTrack')?.closest(`.form-group`) as HTMLElement; // Changed from styles['form-group']
         if (trackSelectGroup) {
             if (formData.revenueShareWilling === 'yes') {
                 trackSelectGroup.style.display = 'block';

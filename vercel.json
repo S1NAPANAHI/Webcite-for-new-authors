@@ -7,6 +7,6 @@
   "installCommand": "pnpm install",
   "regions": ["iad1"],
   "env": {
-    "NODE_VERSION": "20"
+    "NODE_VERSION": "18.17.1"
   }
 }

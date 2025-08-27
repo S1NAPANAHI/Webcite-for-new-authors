@@ -3,11 +3,11 @@
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "buildCommand": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
-  "installCommand": "pnpm install",
+  "buildCommand": "npm install -g pnpm@9.15.9 && pnpm install --no-frozen-lockfile && pnpm run -r build",
+  "installCommand": "npm install -g pnpm@9.15.9 && pnpm install --no-frozen-lockfile",
   "regions": ["iad1"],
   "env": {
     "NODE_VERSION": "18.17.1",
-    "NPM_RC_ARGS": "--shamefully-hoist"
+    "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
   }
 }

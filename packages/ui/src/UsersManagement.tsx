@@ -126,7 +126,7 @@ export const UsersManagement = () => {
 
     } catch (err) {
       console.error('Error fetching users or checking admin status:', err);
-      setError(err.message || 'An unexpected error occurred.');
+      setError((err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -291,7 +291,7 @@ export const UsersManagement = () => {
       }, 600);
     } catch (err) {
       console.error('Error adding user:', err);
-      setAddUserError(err.message || 'An unexpected error occurred while adding user.');
+      setAddUserError((err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred while adding user.');
     } finally {
       setAddUserLoading(false);
     }
@@ -346,7 +346,7 @@ export const UsersManagement = () => {
       }, 600);
     } catch (err) {
       console.error('Error managing subscription:', err);
-      setSubscriptionError(err.message || 'An unexpected error occurred while managing subscription.');
+      setSubscriptionError((err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred while managing subscription.');
     } finally {
       setSubscriptionLoading(false);
     }
@@ -395,7 +395,7 @@ export const UsersManagement = () => {
       }, 600);
     } catch (err) {
       console.error('Error updating user details:', err);
-      setUserDetailsError(err.message || 'An unexpected error occurred while updating user details.');
+      setUserDetailsError((err instanceof Error ? err.message : String(err)) || 'An unexpected error occurred while updating user details.');
     } finally {
       setUserDetailsLoading(false);
     }
@@ -434,7 +434,7 @@ export const UsersManagement = () => {
       alert(`User ${userToDelete.email} deleted successfully.`);
     } catch (err) {
       console.error('Error deleting user:', err);
-      alert(`Failed to delete user: ${(err as Error).message}`);
+      alert(`Failed to delete user: ${(err instanceof Error ? err.message : String(err))}`);
     }
   };
 

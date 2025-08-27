@@ -20,10 +20,12 @@ interface Tab {
 }
 
 export const AccountPage = () => {
-  const { user, userProfile, isLoading: loading, isAuthenticated } = useAuth(); // Use useAuth hook
+  const { user, userProfile: authUserProfile, isLoading: loading, isAuthenticated } = useAuth(); // Use useAuth hook
   const [activeTab, setActiveTab] = useState('overview');
   const [error, setError] = useState<string | null>(null); // Keep local error state for other errors
   const navigate = useNavigate();
+
+  const userProfile = authUserProfile;
 
   // Redirect if not authenticated and not loading
   useEffect(() => {
@@ -38,7 +40,7 @@ export const AccountPage = () => {
   };
 
   // This function will now update the userProfile state from useAuth
-  const handleProfileUpdate = (updatedProfile: Partial<typeof userProfile>) => {
+  const handleProfileUpdate = (updatedProfile: Partial<any>) => {
     // This will trigger a re-fetch in useAuth, or you can directly update the state if useAuth provides a setter
     // For now, we'll rely on useAuth's internal state management after a profile update
     // If you need immediate UI update, you might need to pass a setter from useAuth or re-fetch here.
@@ -104,37 +106,37 @@ export const AccountPage = () => {
       id: 'overview',
       name: 'Overview',
       icon: <UserIcon size={18} />,
-      component: <OverviewTab userProfile={userProfile} />
+      component: <OverviewTab userProfile={userProfile as any} />
     },
     {
       id: 'profile',
       name: 'Profile',
       icon: <User size={18} />,
-      component: <ProfileTab userProfile={userProfile} onProfileUpdate={handleProfileUpdate} />
+      component: <ProfileTab userProfile={userProfile as any} onProfileUpdate={handleProfileUpdate} />
     },
     {
       id: 'reading',
       name: 'Reading',
       icon: <BookOpen size={18} />,
-      component: <ReadingTab userProfile={userProfile} />
+      component: <ReadingTab userProfile={userProfile as any} />
     },
     {
       id: 'achievements',
       name: 'Achievements',
       icon: <Award size={18} />,
-      component: <AchievementsTab userProfile={userProfile} />
+      component: <AchievementsTab userProfile={userProfile as any} />
     },
     {
       id: 'preferences',
       name: 'Preferences',
       icon: <Settings size={18} />,
-      component: <PreferencesTab userProfile={userProfile} />
+      component: <PreferencesTab userProfile={userProfile as any} />
     },
     {
       id: 'security',
       name: 'Security',
       icon: <Shield size={18} />,
-      component: <SecurityTab userProfile={userProfile} />
+      component: <SecurityTab userProfile={userProfile as any} />
     }
   ];
 

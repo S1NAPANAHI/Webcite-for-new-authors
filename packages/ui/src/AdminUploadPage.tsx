@@ -50,8 +50,8 @@ export const AdminUploadPage = () => {
       const data = await response.json();
       setUsers(data.users);
     } catch (err) {
-      console.error('Error fetching users:', err.message);
-      setUsersError('Failed to load users: ' + err.message);
+      console.error('Error fetching users:', err instanceof Error ? err.message : err);
+      setUsersError('Failed to load users: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       setUsersLoading(false);
     }
@@ -187,8 +187,8 @@ export const AdminUploadPage = () => {
       closeSubscriptionModal();
       fetchUsers(); // Refresh user list
     } catch (err) {
-      console.error('Error updating subscription:', err.message);
-      alert('Error updating subscription: ' + err.message);
+      console.error('Error updating subscription:', err instanceof Error ? err.message : err);
+      alert('Error updating subscription: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 

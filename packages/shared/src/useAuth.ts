@@ -1,29 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-
-// Define the User type locally to avoid import issues
-interface User {
-  id: string;
-  email?: string;
-  user_metadata?: any;
-}
-
-// Define the UserProfile type
-interface UserProfile {
-  id: string;
-  username: string;
-  display_name: string;
-  bio?: string;
-  location?: string;
-  favorite_genre?: string;
-  reading_goal?: number;
-  role?: string; // Add role to UserProfile
-  books_read?: number;
-  currently_reading?: string;
-  reading_hours?: number;
-  reading_streak?: number;
-  achievements_count?: number;
-}
+import { UserProfile } from './profile';
 
 interface AuthState {
   user: User | null;
@@ -127,6 +104,5 @@ export const useAuth = (): AuthState & {
     isAuthenticated,
     isAdmin,
     isLoading,
-    loading: isLoading, // Alias for backward compatibility
   };
 };

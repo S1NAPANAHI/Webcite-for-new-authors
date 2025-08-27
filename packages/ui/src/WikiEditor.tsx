@@ -391,7 +391,7 @@ export function WikiEditor() {
       } else if (error.code === '42501') { // Permission denied
         toast.error('You do not have permission to perform this action');
       } else {
-        toast.error(`Failed to save wiki page: ${error.message || 'Unknown error'}`);
+        toast.error(`Failed to save wiki page: ${(error instanceof Error ? error.message : String(error)) || 'Unknown error'}`);
       }
       
       throw error; // Re-throw to allow further error handling if needed
@@ -418,7 +418,7 @@ export function WikiEditor() {
         toast.success(`Page ${newStatus ? 'published' : 'unpublished'} successfully`);
       } catch (error) {
         console.error('Error updating publish status:', error);
-        toast.error(`Failed to update page status: ${error.message}`);
+        toast.error(`Failed to update page status: ${(error instanceof Error ? error.message : String(error))}`);
         // Revert on error
         setPage(prev => ({ ...prev, is_published: !newStatus }));
       }

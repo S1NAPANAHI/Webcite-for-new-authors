@@ -99,7 +99,7 @@ const ProfilePage = () => {
         <main className="md:col-span-3 bg-background-light rounded-lg shadow-lg p-6">
           {activeTab === 'overview' && <div>Overview Content (Coming Soon)</div>}
           {activeTab === 'profile' && <div>Profile Content (Coming Soon)</div>}
-          {activeTab === 'reading' && <ReadingTab />}
+          {activeTab === 'reading' && <ReadingTab userProfile={userProfile} />}
           {activeTab === 'achievements' && <div>Achievements Content (Coming Soon)</div>}
           {activeTab === 'preferences' && <div>Preferences Content (Coming Soon)</div>}
           {activeTab === 'security' && <div>Security Content (Coming Soon)</div>}

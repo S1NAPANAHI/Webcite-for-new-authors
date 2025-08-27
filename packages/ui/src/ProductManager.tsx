@@ -74,7 +74,7 @@ export const ProductManager: React.FC = () => {
       await fetchProducts();
     } catch (error) {
       console.error('Error saving product:', error);
-      toast.error(error.message || 'Failed to save product');
+      toast.error((error instanceof Error ? error.message : String(error)) || 'Failed to save product');
     } finally {
       setIsSubmitting(false);
     }
@@ -97,7 +97,7 @@ export const ProductManager: React.FC = () => {
       await fetchProducts();
     } catch (error) {
       console.error('Error deleting product:', error);
-      toast.error(error.message || 'Failed to archive product');
+      toast.error((error instanceof Error ? error.message : String(error)) || 'Failed to archive product');
     }
   };
 

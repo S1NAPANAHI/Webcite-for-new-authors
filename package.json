@@ -1,6 +1,7 @@
 {
   "name": "zoroasterverse",
   "private": true,
+  "packageManager": "pnpm@9.15.9",
   "workspaces": [
     "apps/*",
     "packages/*"
@@ -10,7 +11,7 @@
     "build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
     "start": "cd apps/frontend && pnpm preview",
     "lint": "cd apps/frontend && pnpm lint",
-    "vercel-build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
+    "vercel-build": "pnpm install --no-frozen-lockfile && pnpm run -r build",
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "engines": {

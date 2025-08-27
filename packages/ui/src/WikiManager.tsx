@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
 import { Input } from '@zoroaster/ui';
-import { Plus, Folder, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders, fetchPages, WikiPage, Database } from '@zoroaster/shared';
+import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
+import { supabase, fetchFolders, fetchPages, WikiPage, Database, Folder } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiEditor } from '@zoroaster/ui';
 import { SortableFolderTree } from '@zoroaster/ui';
@@ -137,12 +137,11 @@ export function WikiManager() {
       if (pageError) throw pageError;
 
       // Insert initial content block (section)
-      const initialSection = {
-        page_id: newWikiPage.id,
+      const initialSection: WikiSectionView = {
+        id: `section-${Date.now()}`,
+        title: 'Introduction',
         type: 'paragraph' as Database["public"]["Enums"]["content_block_type"], // Explicitly cast to enum type
         content: '',
-        position: 0,
-        created_by: user.id,
       };
 
       const { error: contentBlockError } = await supabase
@@ -592,8 +591,6 @@ export function WikiManager() {
       <div className="flex-1 overflow-y-auto p-6">
         {currentPage ? (
           <WikiEditor 
-            id={currentPage.id} 
-            onSave={handlePageSaved} 
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">

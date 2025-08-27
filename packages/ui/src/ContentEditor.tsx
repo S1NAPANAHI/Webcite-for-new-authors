@@ -76,7 +76,8 @@ export function ContentEditor<T extends ContentItem>({
           author_id: '',
           excerpt: '',
           featured_image: '',
-          tags: []
+          tags: [],
+          category_id: undefined,
         } as FormData<T>;
       case 'storeItems':
         return {
@@ -86,7 +87,8 @@ export function ContentEditor<T extends ContentItem>({
           price: 0,
           category: 'digital',
           image_url: '',
-          stock_quantity: 0
+          stock_quantity: 0,
+          sku: undefined,
         } as FormData<T>;
       case 'libraryItems':
         return {
@@ -97,7 +99,7 @@ export function ContentEditor<T extends ContentItem>({
           file_type: '',
           file_size: 0,
           category: 'tutorial',
-          tags: []
+          thumbnail_url: undefined,
         } as FormData<T>;
       case 'characters':
         return {
@@ -106,7 +108,12 @@ export function ContentEditor<T extends ContentItem>({
           description: '',
           role: '',
           backstory: '',
-          image_url: ''
+          image_url: '',
+          birth_date: undefined,
+          death_date: undefined,
+          species: undefined,
+          occupation: undefined,
+          relationships: undefined,
         } as FormData<T>;
       case 'timelineEvents':
         return {
@@ -361,7 +368,7 @@ export function ContentEditor<T extends ContentItem>({
                 value={characterFormData.description}
                 onChange={handleTextChange('description' as keyof FormData<T>)}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"n                placeholder="Character description..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Character description..."
               />
             </div>
             <div>

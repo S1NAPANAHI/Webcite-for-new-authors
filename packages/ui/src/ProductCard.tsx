@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Download, Crown, Star, Eye, ChevronDown, ChevronUp, Plus } from 'lucide-react';
-import { StripeCheckout } from './StripeCheckout'; // Assuming StripeCheckout is in the same package
+import { SubscriptionCheckout } from './SubscriptionCheckout';
 import { useCart, Product } from '@zoroaster/shared';
 
 
@@ -251,7 +251,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </div>
             </div>
             
-            <StripeCheckout
+            <SubscriptionCheckout
               product={{
                 id: product.id,
                 name: product.name,

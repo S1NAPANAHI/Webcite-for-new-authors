@@ -10,11 +10,11 @@ export interface BaseContent {
 
 export interface Post extends BaseContent {
   title: string;
-  content: string;
+  content?: string;
   slug: string;
   excerpt?: string;
   featured_image?: string;
-  author_id: string;
+  author_id?: string;
   category_id?: string;
   tags?: string[];
 }
@@ -64,6 +64,7 @@ export interface TimelineEvent extends BaseContent {
   date: string;
   era: 'ancient' | 'medieval' | 'modern' | 'future';
   description: string;
+  is_published?: boolean; // Add this line
 }
 
 export interface BetaUser extends BaseContent {

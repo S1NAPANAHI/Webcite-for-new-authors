@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared/src/supabaseClient';
+'@zoroaster
 
 export const AdminUploadPage = () => {
   const [title, setTitle] = useState('');
@@ -44,7 +44,7 @@ export const AdminUploadPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch users.');
+        throw new Error((errorData as { error: string }).error || 'Failed to fetch users.');
       }
 
       const data = await response.json();
@@ -114,12 +114,12 @@ export const AdminUploadPage = () => {
         setPdfFile(null);
         setMobiFile(null);
         // Reset file inputs visually
-        document.getElementById('epubFileInput').value = '';
-        document.getElementById('pdfFileInput').value = '';
-        document.getElementById('mobiFileInput').value = '';
+        (document.getElementById('epubFileInput') as HTMLInputElement).value = '';
+        (document.getElementById('pdfFileInput') as HTMLInputElement).value = '';
+        (document.getElementById('mobiFileInput') as HTMLInputElement).value = '';
 
       } else {
-        setError(data.message || 'Failed to upload work.');
+        setError((data as { message: string }).message || 'Failed to upload work.');
       }
     } catch (err) {
       console.error('Error uploading work:', err);
@@ -180,7 +180,7 @@ export const AdminUploadPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update subscription.');
+        throw new Error((errorData as { error: string }).error || 'Failed to update subscription.');
       }
 
       alert('Subscription updated successfully!');

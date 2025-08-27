@@ -280,7 +280,7 @@ export const UsersManagement = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to add user profile via Edge Function');
+        throw new Error((result as { error: string }).error || 'Failed to add user profile via Edge Function');
       }
 
       setAddUserMessage('User profile added successfully! Full user creation (auth.users) might require backend.');
@@ -335,7 +335,7 @@ export const UsersManagement = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update subscription via Edge Function');
+        throw new Error((result as { error: string }).error || 'Failed to update subscription via Edge Function');
       }
 
       setSubscriptionMessage('Subscription updated successfully!');
@@ -384,7 +384,7 @@ export const UsersManagement = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update user details via Edge Function');
+        throw new Error((result as { error: string }).error || 'Failed to update user details via Edge Function');
       }
 
       setUserDetailsMessage('User details updated successfully!');
@@ -434,7 +434,7 @@ export const UsersManagement = () => {
       alert(`User ${userToDelete.email} deleted successfully.`);
     } catch (err) {
       console.error('Error deleting user:', err);
-      alert(`Failed to delete user: ${err.message}`);
+      alert(`Failed to delete user: ${(err as Error).message}`);
     }
   };
 

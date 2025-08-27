@@ -125,9 +125,9 @@ export const ChapterUploadPage: React.FC = () => {
       if (event.target instanceof HTMLFormElement) {
         event.target.reset(); // Reset file input
       }
-    } catch (err: Error) {
-      console.error('Upload error:', error);
-      toast.error(error.message || 'An error occurred during upload.');
+    } catch (err: unknown) {
+      console.error('Upload error:', err);
+      toast.error((err as Error).message || 'An error occurred during upload.');
     } finally {
       setUploading(false);
     }

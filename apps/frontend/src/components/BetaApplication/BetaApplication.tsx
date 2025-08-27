@@ -2,10 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@zoroaster/shared';
 import './BetaApplication.css'; // Import the CSS file
 
+interface StageData {
+    rawScore: number;
+    passed: boolean;
+    autoFail?: boolean;
+    [key: string]: any; // Allow other properties
+}
+
+interface ApplicationData {
+    stage1?: StageData;
+    stage2?: StageData;
+    stage3?: StageData;
+    stage4?: StageData;
+    compositeScore?: number;
+    // Add other top-level properties if they exist
+}
+
 const BetaApplication: React.FC = () => {
     // Application State
-    const [currentStage, setCurrentStage] = useState(1);
-    const [applicationData, setApplicationData] = useState({});
+    const [currentStage, setCurrentStage] = useState<number | string>(1);
+    const [applicationData, setApplicationData] = useState<ApplicationData>({});
     const [commentCount, setCommentCount] = useState(1);
     const [timeRemaining, setTimeRemaining] = useState(48 * 60 * 60); // 48 hours in seconds
 

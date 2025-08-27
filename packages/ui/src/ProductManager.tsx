@@ -64,7 +64,7 @@ export const ProductManager: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save product');
+        throw new Error((errorData as { message: string }).message || 'Failed to save product');
       }
       
       const result = await response.json();
@@ -90,7 +90,7 @@ export const ProductManager: React.FC = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete product');
+        throw new Error((errorData as { message: string }).message || 'Failed to delete product');
       }
       
       toast.success('Product archived successfully');

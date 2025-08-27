@@ -137,7 +137,7 @@ export function WikiEditor() {
         throw error;
       }
       
-      setCategories(data || []);
+      setCategories(data as Category[] || []);
       
       if (!data || data.length === 0) {
         console.warn('No categories found in the database');
@@ -159,10 +159,14 @@ export function WikiEditor() {
       
       if (error) throw error;
       
-      setPage({
-        ...data,
-        sections: Array.isArray(data.content) ? data.content : [], // Ensure content is properly mapped to sections
-      });
+      if (data) {
+        setPage({
+          ...data,
+          sections: Array.isArray(data.content) ? data.content : [], // Ensure content is properly mapped to sections
+        });
+      } else {
+        throw new Error('Wiki page not found.');
+      }
       
       // Set selected category if exists
       if (data.category_id) {
@@ -173,7 +177,7 @@ export function WikiEditor() {
           .single();
         
         if (categoryData) {
-          setSelectedCategory(categoryData);
+          setSelectedCategory(categoryData as Category);
         }
       }
     } catch (error) {
@@ -315,7 +319,7 @@ export function WikiEditor() {
           .single();
 
         if (error) throw error;
-        resultPage = data;
+        if (data) { resultPage = data; } else { throw new Error('Page data not found after update.'); }
         toast.success('Wiki page updated successfully');
 
         // Delete existing content blocks for update
@@ -336,7 +340,7 @@ export function WikiEditor() {
           .insert([
             {
               ...pageInsertUpdateData,
-              created_by: user.id, // Add created_by for new pages
+              created_by: user!.id, // Add created_by for new pages
               created_at: new Date().toISOString(),
               view_count: 0,
               
@@ -346,7 +350,7 @@ export function WikiEditor() {
           .single();
 
         if (error) throw error;
-        resultPage = data;
+        if (data) { resultPage = data; } else { throw new Error('Page data not found after creation.'); }
         toast.success('Wiki page created successfully');
       }
 
@@ -357,7 +361,7 @@ export function WikiEditor() {
           type: section.type,
           content: section.content, // Assuming content is already in the correct format (jsonb)
           position: index,
-          created_by: user.id, // Assign created_by for content blocks
+          created_by: user!.id, // Assign created_by for content blocks
         }));
 
         const { error: contentBlocksError } = await supabase
@@ -440,7 +444,7 @@ export function WikiEditor() {
           {
             name: newCategoryName.trim(),
             slug: newCategoryName.trim().toLowerCase().replace(/\s+/g, '-'),
-            created_by: user.id,
+            created_by: user!.id,
             is_active: true
           }
         ])

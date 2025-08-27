@@ -1,3 +1,4 @@
+// This is a test comment to force a new commit.
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 

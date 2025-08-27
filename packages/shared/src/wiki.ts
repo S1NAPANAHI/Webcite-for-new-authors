@@ -292,7 +292,18 @@ export const createWikiPage = async (pageData: {
   const MAX_RETRIES = 5;
 
   for (let i = 0; i < MAX_RETRIES; i++) {
-    const { sections, ...pageInsertData } = pageData;
+    const pageInsertData = {
+    title: pageData.title,
+    excerpt: pageData.excerpt,
+    is_published: pageData.is_published,
+    seo_title: pageData.seo_title,
+    seo_description: pageData.seo_description,
+    seo_keywords: pageData.seo_keywords,
+    category_id: pageData.category_id,
+    user_id: pageData.user_id,
+    folder_id: pageData.folder_id,
+  };
+  const sectionsToInsert = pageData.sections;
     const result = await supabase
       .from('wiki_pages')
       .insert([{ ...pageInsertData, slug }])
@@ -323,8 +334,8 @@ export const createWikiPage = async (pageData: {
     throw new Error('Failed to create wiki page after multiple retries');
   }
 
-  if (page && sections && sections.length > 0) {
-    const contentBlocksToInsert = sections.map((section, index) => ({
+  if (page && sectionsToInsert && sectionsToInsert.length > 0) {
+    const contentBlocksToInsert = sectionsToInsert.map((section, index) => ({
       page_id: page.id,
       type: section.type,
       content: section.content,
@@ -365,7 +376,8 @@ export const updateWikiPage = async (
   }
 ): Promise<WikiPage> => {
   // If title is being updated, update the slug as well
-  const { sections, ...updateData } = updates;
+  const { sections: incomingSections, ...updateData } = updates;
+  const sectionsToProcess = incomingSections || [];
   if (updates.title) {
     updateData.slug = generateSlug(updates.title);
   }
@@ -382,7 +394,7 @@ export const updateWikiPage = async (
     throw new Error('Failed to update wiki page');
   }
 
-  if (page && sections) {
+  if (page && sectionsToProcess) {
     // Delete existing content blocks
     const { error: deleteError } = await supabase
       .from('wiki_content_blocks')
@@ -395,8 +407,8 @@ export const updateWikiPage = async (
     }
 
     // Insert new content blocks
-    if (sections.length > 0) {
-      const contentBlocksToInsert = sections.map((section, index) => ({
+    if (sectionsToProcess.length > 0) {
+      const contentBlocksToInsert = sectionsToProcess.map((section, index) => ({
         page_id: page.id,
         type: section.type,
         content: section.content,

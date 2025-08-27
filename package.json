@@ -15,8 +15,10 @@
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   },
+  "packageManager": "pnpm@9.15.9",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "framer-motion": "^12.23.12",

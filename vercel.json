@@ -5,5 +5,8 @@
   ],
   "buildCommand": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
   "installCommand": "pnpm install",
-  "regions": ["iad1"]
+  "regions": ["iad1"],
+  "env": {
+    "NODE_VERSION": "20"
+  }
 }

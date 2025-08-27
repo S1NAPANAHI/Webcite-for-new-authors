@@ -19,10 +19,10 @@ import {
   Character, 
   TimelineEvent, 
   BetaUser 
-} from '@zoroaster/shared/src/types/content';
+} from '@zoroaster/shared/types/content';
 
 // Define content type for the editor
-type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters';
+type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters' | 'timelineEvents' | 'betaUsers';
 
 // Form data type that omits auto-generated fields
 type FormData<T extends ContentItem> = Omit<T, 'id' | 'created_at' | 'updated_at' | 'created_by'>;

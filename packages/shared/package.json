@@ -6,7 +6,9 @@
   "exports": {
     ".": "./index.ts",
     "./supabaseClient": "./src/supabaseClient.js",
-    "./supabaseAdminClient": "./src/supabaseAdminClient.js"
+    "./supabaseAdminClient": "./src/supabaseAdminClient.js",
+    "./profile": "./src/profile.ts",
+    "./types/content": "./src/types/content.ts"
   },
   "scripts": {
     "generate-types": "supabase gen types typescript --local > src/database.types.ts"

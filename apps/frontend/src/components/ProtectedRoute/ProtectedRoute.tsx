@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, isLoading } = useAuth(); // Use the centralized auth state
 
-  if (loading) {
+  if (isLoading) {
     // Still checking auth status, render a loading indicator
     return <div>Loading...</div>; 
   }

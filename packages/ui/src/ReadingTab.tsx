@@ -70,11 +70,11 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
         const entitledWorkIds = entitlements.map(ent => ent.scope.split(':')[1]); // Assuming scope is like 'work:work_id'
 
         // Now, fetch chapters that belong to these entitled works (books)
-        // Assuming 'work_id' from entitlements directly maps to 'book_id' in chapters table
+        // Assuming 'work_id' from entitlements directly maps to 'work_id' in chapters table
         const { data: fetchedChapters, error: chaptersError } = await supabase
           .from('chapters')
           .select('*')
-          .in('book_id', entitledWorkIds) 
+          .in('work_id', entitledWorkIds) // Changed from book_id to work_id
           .eq('is_published', true)
           .order('chapter_number', { ascending: true });
 

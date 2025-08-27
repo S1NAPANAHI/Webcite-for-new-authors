@@ -4,17 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared';
 import { ContentEditor } from '@zoroaster/ui';
 import { ContentTable } from '@zoroaster/ui';
-
-// Define the type for our pages
-type Page = {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  status: 'draft' | 'published';
-  created_at: string;
-  updated_at: string;
-};
+import { Page, ContentStatus } from '@zoroaster/shared/types/content'; // Import Page and ContentStatus
 
 // --- Supabase Data Functions ---
 const fetchPages = async (): Promise<Page[]> => {
@@ -97,7 +87,9 @@ export const PagesManager: React.FC = () => {
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
           item.status === 'published'
             ? 'bg-green-100 text-green-800'
-            : 'bg-yellow-100 text-yellow-800'
+            : item.status === 'draft'
+            ? 'bg-yellow-100 text-yellow-800'
+            : 'bg-gray-100 text-gray-800' // Handle 'archived' or other statuses
         }`}>
           {item.status}
         </span>

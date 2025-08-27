@@ -99,6 +99,11 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
   }
 
   if (page) {
+    // Explicitly check if page.user is an error object and set to null
+    if (page.user && typeof page.user === 'object' && 'error' in page.user) {
+      page.user = null;
+    }
+
     const { data: contentBlocks, error: contentError } = await supabase
       .from('wiki_content_blocks')
       .select('id, type, content, position')
@@ -174,6 +179,13 @@ export const fetchWikiPages = async ({
   const wikiPages = (pages as WikiPage[]) || [];
 
   if (wikiPages.length > 0) {
+    for (const p of wikiPages) {
+      // Explicitly check if p.user is an error object and set to null
+      if (p.user && typeof p.user === 'object' && 'error' in p.user) {
+        p.user = null;
+      }
+    }
+
     const pageIds = wikiPages.map(p => p.id);
     const { data: contentBlocks, error: contentError } = await supabase
       .from('wiki_content_blocks')

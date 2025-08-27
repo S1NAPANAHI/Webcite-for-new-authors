@@ -21,15 +21,26 @@ const ReactQuill = lazy(() => import('react-quill-new').then(module => ({
 import 'quill/dist/quill.snow.css';
 
 // Simple wrapper component for ReactQuill
-const QuillEditor = forwardRef<any, any>(({ value, onChange, ...props }, ref) => {
+interface QuillEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  theme: string;
+  modules: any; // Assuming modules can be any for now
+  formats: any; // Assuming formats can be any for now
+  className?: string;
+}
+
+const QuillEditor = forwardRef<any, QuillEditorProps>(({ value, onChange, ...props }, ref) => {
   return (
     <Suspense fallback={<div>Loading editor...</div>}>
       <ReactQuill
         ref={ref}
-        theme="snow"
+        theme={props.theme} // Explicitly pass theme
         value={value}
         onChange={onChange}
-        {...props}
+        modules={props.modules} // Explicitly pass modules
+        formats={props.formats} // Explicitly pass formats
+        className={props.className} // Explicitly pass className
       />
     </Suspense>
   );

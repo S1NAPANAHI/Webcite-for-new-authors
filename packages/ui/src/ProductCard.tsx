@@ -46,7 +46,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     if (primaryPrice) {
       addItem({
         id: product.id,
-        title: product.name,
+        title: (product as any).name, // Temporarily cast to any
         price: primaryPrice.unit_amount / 100,
         currency: primaryPrice.currency,
         format: 'digital' // Added a placeholder format

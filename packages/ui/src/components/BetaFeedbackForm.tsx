@@ -18,7 +18,7 @@ const feedbackSchema = z.object({
   quickTake: z.string().min(1, 'Quick Take is required').max(200, 'Quick Take must be 1-2 sentences'),
   highlights: z.array(z.string()).min(0, 'Select at least 0 highlights'), // Optional, but can have min/max if needed
   publicReview: z.string().min(1, 'Public review text is required'),
-  allowSpoilers: z.boolean().default(false),
+  allowSpoilers: z.boolean(),
   spoilerContent: z.string().optional(),
 
   // Private Feedback Fields
@@ -116,7 +116,7 @@ const BetaFeedbackForm: React.FC = () => {
     }));
   };
 
-  const onSubmit = (data: FeedbackFormValues) => {
+  const onSubmit: SubmitHandler<FeedbackFormValues> = (data) => {
     console.log('Beta Reader Feedback Submitted:', data);
     toast.success('Thank you for your feedback! Your response has been submitted.');
     // In a real application, you would send this data to your backend
@@ -221,7 +221,7 @@ const BetaFeedbackForm: React.FC = () => {
                   <Label htmlFor={`specificFeedback.${key}`} className="block text-sm font-medium text-gray-700 mb-1">{label}</Label>
                   <Textarea
                     id={`specificFeedback.${key}`}
-                    {...register(`specificFeedback.${key}`)}
+                    {...register(`specificFeedback.${key}` as any)}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
                     placeholder={`Specific feedback about ${label.toLowerCase()}...`}

@@ -19,7 +19,7 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ filePath }) => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const markdown = await response.text();
-        const html = marked(markdown);
+        const html = await marked(markdown); // Added await
         setContent(html);
       } catch (err: any) {
         setError(err.message);

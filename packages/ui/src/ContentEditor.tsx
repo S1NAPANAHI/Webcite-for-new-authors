@@ -65,15 +65,11 @@ export function ContentEditor<T extends ContentItem>({
     }
 
     // Default values based on content type
-    const baseData: Partial<FormData<T>> = {
-      status: 'draft' as ContentStatus,
-    };
-
     switch (contentType) {
       case 'posts':
       case 'pages':
         return {
-          ...baseData,
+          status: 'draft',
           title: '',
           content: '',
           slug: '',
@@ -81,20 +77,20 @@ export function ContentEditor<T extends ContentItem>({
           excerpt: '',
           featured_image: '',
           tags: []
-        } as unknown as FormData<T>;
+        } as FormData<T>;
       case 'storeItems':
         return {
-          ...baseData,
+          status: 'active', // Default status for storeItems
           name: '',
           description: '',
           price: 0,
           category: 'digital',
           image_url: '',
           stock_quantity: 0
-        } as unknown as FormData<T>;
+        } as FormData<T>;
       case 'libraryItems':
         return {
-          ...baseData,
+          status: 'draft',
           title: '',
           description: '',
           file_url: '',
@@ -102,16 +98,31 @@ export function ContentEditor<T extends ContentItem>({
           file_size: 0,
           category: 'tutorial',
           tags: []
-        } as unknown as FormData<T>;
+        } as FormData<T>;
       case 'characters':
         return {
-          ...baseData,
+          status: 'draft',
           name: '',
           description: '',
           role: '',
           backstory: '',
           image_url: ''
-        } as unknown as FormData<T>;
+        } as FormData<T>;
+      case 'timelineEvents':
+        return {
+          status: 'draft',
+          title: '',
+          date: '',
+          era: 'ancient',
+          description: ''
+        } as FormData<T>;
+      case 'betaUsers':
+        return {
+          status: 'pending',
+          name: '',
+          email: '',
+          message: ''
+        } as FormData<T>;
       default:
         throw new Error(`Unsupported content type: ${contentType}`);
     }
@@ -157,16 +168,19 @@ export function ContentEditor<T extends ContentItem>({
   };
 
   // Type-safe field handlers
-  const handleTextChange = useCallback((field: keyof FormData<T>) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value } as FormData<T>));
+  const handleTextChange = useCallback(<K extends keyof FormData<T>>(field: K) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleNumberChange = useCallback((field: keyof FormData<T>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [field]: parseFloat(e.target.value) } as FormData<T>));
+  const handleNumberChange = useCallback(<K extends keyof FormData<T>>(field: K) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const handleSelectChange = useCallback((field: keyof FormData<T>) => (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value } as FormData<T>));
+  const handleSelectChange = useCallback(<K extends keyof FormData<T>>(field: K) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
   
 
@@ -174,14 +188,15 @@ export function ContentEditor<T extends ContentItem>({
     switch(contentType) {
       case 'posts':
       case 'pages':
+        const postPageFormData = formData as FormData<Post | Page>; // Cast to a union of Post | Page
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
               <input
                 type="text"
-                value={'title' in formData ? formData.title : ''}
-                onChange={handleTextChange('title')}
+                value={postPageFormData.title}
+                onChange={handleTextChange('title' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter title..."
                 required
@@ -191,7 +206,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Slug</label>
               <input
                 type="text"
-                value={'slug' in formData ? formData.slug : ''}
+                value={postPageFormData.slug}
                 onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value } as FormData<T>))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="my-awesome-post"
@@ -215,15 +230,15 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'storeItems':
-        const storeItem = formData as StoreItem;
+        const storeItemFormData = formData as FormData<StoreItem>; // Cast to StoreItem
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
               <input
                 type="text"
-                value={storeItem.name}
-                onChange={handleTextChange('name')}
+                value={storeItemFormData.name}
+                onChange={handleTextChange('name' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Product name..."
               />
@@ -233,8 +248,8 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="number"
                 step="0.01"
-                value={storeItem.price}
-                onChange={handleNumberChange('price')}
+                value={storeItemFormData.price}
+                onChange={handleNumberChange('price' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00"
               />
@@ -242,8 +257,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
               <select
-                value={storeItem.category}
-                onChange={handleSelectChange('category')}
+                value={storeItemFormData.category}
+                onChange={handleSelectChange('category' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="digital">Digital</option>
@@ -254,8 +269,8 @@ export function ContentEditor<T extends ContentItem>({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
-                value={storeItem.description}
-                onChange={handleTextChange('description')}
+                value={storeItemFormData.description}
+                onChange={handleTextChange('description' as keyof FormData<T>)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Product description..."
@@ -264,7 +279,7 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'libraryItems':
-        const libraryItemFormData = formData as Omit<LibraryItem, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+        const libraryItemFormData = formData as FormData<LibraryItem>; // Cast to LibraryItem
         return (
           <>
             <div>
@@ -272,7 +287,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="text"
                 value={libraryItemFormData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('title' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Resource title..."
               />
@@ -281,7 +296,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
               <select
                 value={libraryItemFormData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value} as FormData<T>)}
+                onChange={handleSelectChange('category' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="tutorial">Tutorial</option>
@@ -295,7 +310,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="url"
                 value={libraryItemFormData.file_url}
-                onChange={(e) => setFormData({...formData, file_url: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('file_url' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="https://..."
               />
@@ -304,7 +319,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
                 value={libraryItemFormData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('description' as keyof FormData<T>)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Resource description..."
@@ -313,7 +328,7 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'characters':
-        const characterFormData = formData as Omit<Character, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+        const characterFormData = formData as FormData<Character>; // Cast to Character
         return (
           <>
             <div>
@@ -321,7 +336,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="text"
                 value={characterFormData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('name' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Character name..."
               />
@@ -330,7 +345,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
               <select
                 value={characterFormData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value} as FormData<T>)}
+                onChange={handleSelectChange('role' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="protagonist">Protagonist</option>
@@ -344,17 +359,16 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
                 value={characterFormData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('description' as keyof FormData<T>)}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Character description..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"n                placeholder="Character description..."
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Backstory</label>
               <textarea
                 value={characterFormData.backstory}
-                onChange={(e) => setFormData(prev => ({ ...prev, backstory: e.target.value } as FormData<T>))}
+                onChange={handleTextChange('backstory' as keyof FormData<T>)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Character backstory..."
@@ -363,7 +377,7 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'timelineEvents':
-        const timelineEventFormData = formData as Omit<TimelineEvent, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+        const timelineEventFormData = formData as FormData<TimelineEvent>; // Cast to TimelineEvent
         return (
           <>
             <div>
@@ -371,7 +385,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="text"
                 value={timelineEventFormData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('title' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Event title..."
               />
@@ -381,7 +395,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="date"
                 value={timelineEventFormData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('date' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -389,7 +403,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Era</label>
               <select
                 value={timelineEventFormData.era}
-                onChange={(e) => setFormData({...formData, era: e.target.value} as FormData<T>)}
+                onChange={handleSelectChange('era' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="ancient">Ancient</option>
@@ -402,7 +416,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
                 value={timelineEventFormData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('description' as keyof FormData<T>)}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Event description..."
@@ -411,7 +425,7 @@ export function ContentEditor<T extends ContentItem>({
           </>
         );
       case 'betaUsers':
-        const betaUserFormData = formData as Omit<BetaUser, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+        const betaUserFormData = formData as FormData<BetaUser>; // Cast to BetaUser
         return (
           <>
             <div>
@@ -419,7 +433,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="text"
                 value={betaUserFormData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('name' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="User name..."
               />
@@ -429,7 +443,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="email"
                 value={betaUserFormData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('email' as keyof FormData<T>)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="user@example.com"
               />
@@ -438,7 +452,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
               <textarea
                 value={betaUserFormData.message}
-                onChange={(e) => setFormData({...formData, message: e.target.value} as FormData<T>)}
+                onChange={handleTextChange('message' as keyof FormData<T>)}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="User message/notes..."

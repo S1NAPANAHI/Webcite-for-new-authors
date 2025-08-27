@@ -61,7 +61,7 @@ export const SubscriptionPage: React.FC = () => {
       window.location.href = `/login?returnTo=/subscribe`;
       return;
     }
-    setSelectedPlan(planId);
+    setSelectedPlan(subscriptionPlans.find(plan => plan.id === planId) || null);
     setShowCheckoutModal(true);
   };
 
@@ -250,13 +250,17 @@ export const SubscriptionPage: React.FC = () => {
         <SubscriptionCheckout
           product={{
             id: selectedPlan.id,
-            title: selectedPlan.name,
+            name: selectedPlan.name, // Changed from title to name
             description: selectedPlan.highlight || '',
             price_id: selectedPlan.paypalPlanId, // Using paypalPlanId as a placeholder for Stripe Price ID
             amount_cents: selectedPlan.price * 100,
             currency: 'usd', // Assuming USD, needs to be dynamic if multiple currencies
             interval: selectedPlan.interval,
             is_subscription: true,
+            // Add other required properties of Product from @zoroaster/shared if any
+            // For example, if 'active' is required and not optional in Product:
+            active: true, // Assuming all subscription products are active
+            product_type: selectedPlan.interval === 'month' ? 'chapter_pass' : 'arc_pass', // Assuming these types based on interval
           }}
           onClose={handleCheckoutClose}
           onSuccess={handleCheckoutSuccess}

@@ -18,7 +18,7 @@ const fetchBooks = async (): Promise<Book[]> => {
 
 // Mutation to create a new book
 const createBook = async (newBookTitle: string): Promise<Book> => {
-  const { data, error } = await supabase.from('works').insert({ title: newBookTitle }).select();
+  const { data, error } = await supabase.from('works').insert({ title: newBookTitle, type: 'book' }).select();
   if (error) throw new Error(error.message);
   return data[0] as Book;
 };

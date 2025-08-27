@@ -1,13 +1,23 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "apps/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": ".next"
+      }
+    }
+  ],
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "buildCommand": "npm install -g pnpm@9.15.9 && pnpm install --no-frozen-lockfile && pnpm run -r build",
-  "installCommand": "npm install -g pnpm@9.15.9 && pnpm install --no-frozen-lockfile",
+  "buildCommand": "cd apps/frontend && npm install && npm run build",
+  "installCommand": "npm install -g pnpm@9.15.9 && node -e \"fs.writeFileSync('pnpm-lock.yaml', '')\" && pnpm install --no-frozen-lockfile",
   "regions": ["iad1"],
   "env": {
     "NODE_VERSION": "18.17.1",
-    "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+    "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+    "CI": "false"
   }
 }

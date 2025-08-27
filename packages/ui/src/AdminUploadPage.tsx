@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared/src/supabaseClient';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 export const AdminUploadPage = () => {
   const [title, setTitle] = useState('');

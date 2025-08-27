@@ -6,8 +6,12 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
-  // Your generated types will be here
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.4"
+  }
   public: {
     Tables: {
       audit_log: {

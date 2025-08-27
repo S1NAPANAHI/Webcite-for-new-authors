@@ -821,5 +821,3 @@ const BetaApplication: React.FC = () => {
 };
 
 export default BetaApplication;
-cation;
-cation;

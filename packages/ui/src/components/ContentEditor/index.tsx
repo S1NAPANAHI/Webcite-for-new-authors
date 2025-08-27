@@ -11,7 +11,7 @@ import {
   ContentType,
   ContentStatus,
   FormData
-} from '@shared/types/content';
+} from '@zoroaster/shared/types/content';
 
 // Helper function to generate a URL-friendly slug from a string
 const generateSlug = (str: string): string => {

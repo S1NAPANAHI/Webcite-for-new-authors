@@ -43,7 +43,7 @@ export const supabase = createClient<Database>(
     global: {
       // Get the latest record instead of from local cache
       fetch: (url, options = {}) => {
-        const { headers, ...restOptions } = options;
+        const { headers = {}, ...restOptions } = options;
         return fetch(url, {
           ...restOptions,
           headers: {

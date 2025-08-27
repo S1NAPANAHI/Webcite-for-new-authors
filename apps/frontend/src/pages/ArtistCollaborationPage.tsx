@@ -72,10 +72,10 @@ const ArtistCollaborationPage: React.FC = () => {
         if (textElement) {
             if (fileCount > 0) {
                 textElement.innerHTML = `${fileCount} file(s) selected<br><small>Ready to upload</small>`;
-                container.style.backgroundColor = '#e8f5e8'; // Inline style for background
+                (container as HTMLElement).style.backgroundColor = '#e8f5e8'; // Inline style for background
             } else {
                 textElement.innerHTML = 'Drop files here or click to browse<br><small>JPG/PNG, max 5MB per file</small>';
-                container.style.backgroundColor = 'white'; // Inline style for background
+                (container as HTMLElement).style.backgroundColor = 'white'; // Inline style for background
             }
         }
     };

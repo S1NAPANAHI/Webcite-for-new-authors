@@ -114,21 +114,6 @@ export function ContentEditor<T extends ContentItem>({
         throw new Error(`Unsupported content type: ${contentType}`);
     }
   }
-          role: charItem.role || '',
-          description: charItem.description || '',
-          backstory: charItem.backstory || '',
-          status: charItem.status || 'draft'
-        };
-      default:
-        return {} as FormData;
-    }
-  };
-
-  const [formData, setFormData] = useState<FormData<T>>(getInitialFormData());
-
-  useEffect(() => {
-    setFormData(getInitialFormData());
-  }, [getInitialFormData]);
 
   const handleSubmit = useCallback(() => {
     const dataToSave = item ? { ...item, ...formData } : formData;

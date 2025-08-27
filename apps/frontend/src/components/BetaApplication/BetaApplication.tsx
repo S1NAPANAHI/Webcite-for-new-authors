@@ -20,7 +20,7 @@ interface ApplicationData {
 
 const BetaApplication: React.FC = () => {
     // Application State
-    const [currentStage, setCurrentStage] = useState<number | string>(1);
+    const [currentStage, setCurrentStage] = useState<number>(1);
     const [applicationData, setApplicationData] = useState<ApplicationData>({});
     const [commentCount, setCommentCount] = useState(1);
     const [timeRemaining, setTimeRemaining] = useState(48 * 60 * 60); // 48 hours in seconds
@@ -74,8 +74,8 @@ const BetaApplication: React.FC = () => {
     };
 
     // Stage Navigation
-    const showStage = (stage: number | 'admin') => {
-        setCurrentStage(stage);
+            const showStage = (stage: number) => {
+                setCurrentStage(6);
     };
 
     // Word count functionality
@@ -293,7 +293,7 @@ const BetaApplication: React.FC = () => {
         
         setApplicationData(prevData => ({ ...prevData, compositeScore: Math.round(composite * 10) / 10 }));
         
-        setCurrentStage('results');
+        setCurrentStage(6);
 
         // Prepare data for Supabase insertion
         const applicationToSave = {
@@ -525,8 +525,7 @@ const BetaApplication: React.FC = () => {
             )}
 
             {/* Stage 2: Comprehension Test */}
-            {currentStage === 2 && (
-                <div id="stage2" className="stage-content">
+                        {currentStage === 6 && (                <div id="stage2" className="stage-content">
                     <div className="form-section">
                         <h3 className="section-title">Stage 2: Reading Comprehension & Taste Fit</h3>
                         <p><strong>Instructions:</strong> Read the excerpt below and answer the questions. This tests your ability to parse complex worldbuilding and provide specific feedback.</p>
@@ -723,7 +722,7 @@ const BetaApplication: React.FC = () => {
             )}
 
             {/* Admin Panel */}
-            {currentStage === 'admin' && (
+            {currentStage === 5 && (
                 <div id="admin" className="stage-content">
                     <div className="admin-panel">
                         <h3 className="section-title">Admin Panel - Beta Reader Applications</h3>
@@ -816,9 +815,11 @@ const BetaApplication: React.FC = () => {
                 </div>
             )}
 
-            {/* Final Results Display */}            {currentStage === 'results' && (                <div className="score-display">                    <h2 style={{ marginBottom: '20px' }}>Application Complete!</h2>                    <div className="score-breakdown">                        <div className="score-item">                            <h4>Stage 1</h4>                            <p>{(applicationData as any).stage1?.rawScore || 0}/100</p>                        </div>                        <div className="score-item">                            <h4>Stage 2</h4>                            <p>{(applicationData as any).stage2?.rawScore || 0}/60</p>                        </div>                        <div className="score-item">                            <h4>Stage 3</h4>                            <p>{(applicationData as any).stage3?.rawScore || 0}/40</p>                        </div>                        <div className="score-item">                            <h4>Stage 4</h4>                            <p>{(applicationData as any).stage4?.rawScore || 0}/60</p>                        </div>                    </div>                    <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>                        <h3>Final Composite Score: {(applicationData as any).compositeScore || 0}/100</h3>                        <p style={{ marginTop: '15px' }}>Thank you for your application! We\'ll be in touch within 1-2 weeks with our decision.</p>                    </div>                    {/* Submitted Data */}                    <div className="submitted-data" style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>                        <h3>Submitted Application Data for Review</h3>                        {/* Stage 1 Data */}                        {applicationData.stage1 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 1: Application Form</h4>                                {Object.entries((applicationData as any).stage1).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                        {/* Stage 2 Data */}                        {applicationData.stage2 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 2: Comprehension Test</h4>                                {Object.entries((applicationData as any).stage2).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                        {/* Stage 3 Data */}                        {applicationData.stage3 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 3: Calibration Test</h4>                                {Object.entries((applicationData as any).stage3).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                        {/* Stage 4 Data */}                        {applicationData.stage4 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 4: Timed Trial Task</h4>                                {Object.entries((applicationData as any).stage4).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                    </div>                </div>            )}
+            {/* Final Results Display */}            {currentStage === 6 && (                <div className="score-display">                    <h2 style={{ marginBottom: '20px' }}>Application Complete!</h2>                    <div className="score-breakdown">                        <div className="score-item">                            <h4>Stage 1</h4>                            <p>{(applicationData as any).stage1?.rawScore || 0}/100</p>                        </div>                        <div className="score-item">                            <h4>Stage 2</h4>                            <p>{(applicationData as any).stage2?.rawScore || 0}/60</p>                        </div>                        <div className="score-item">                            <h4>Stage 3</h4>                            <p>{(applicationData as any).stage3?.rawScore || 0}/40</p>                        </div>                        <div className="score-item">                            <h4>Stage 4</h4>                            <p>{(applicationData as any).stage4?.rawScore || 0}/60</p>                        </div>                    </div>                    <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>                        <h3>Final Composite Score: {(applicationData as any).compositeScore || 0}/100</h3>                        <p style={{ marginTop: '15px' }}>Thank you for your application! We\'ll be in touch within 1-2 weeks with our decision.</p>                    </div>                    {/* Submitted Data */}                    <div className="submitted-data" style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>                        <h3>Submitted Application Data for Review</h3>                        {/* Stage 1 Data */}                        {applicationData.stage1 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 1: Application Form</h4>                                {Object.entries((applicationData as any).stage1).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                        {/* Stage 2 Data */}                        {applicationData.stage2 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 2: Comprehension Test</h4>                                {Object.entries((applicationData as any).stage2).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                        {/* Stage 3 Data */}                        {applicationData.stage3 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 3: Calibration Test</h4>                                {Object.entries((applicationData as any).stage3).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                        {/* Stage 4 Data */}                        {applicationData.stage4 && (                            <div style={{ marginBottom: '20px' }}>                                <h4>Stage 4: Timed Trial Task</h4>                                {Object.entries((applicationData as any).stage4).map(([key, value]) => (                                    <p key={key}><strong>{key}:</strong> {JSON.stringify(value)}</p>                                ))}                            </div>                        )}                    </div>                </div>            )}
         </div>
     );
 };
 
 export default BetaApplication;
+cation;
+cation;

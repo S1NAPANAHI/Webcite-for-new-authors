@@ -60,3 +60,7 @@ export interface Character extends BaseContent {
 }
 
 export type ContentItem = Post | Page | StoreItem | LibraryItem | Character;
+
+export type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters';
+
+export type FormData<T extends ContentItem> = Omit<T, 'id' | 'created_at' | 'updated_at' | 'created_by'>;

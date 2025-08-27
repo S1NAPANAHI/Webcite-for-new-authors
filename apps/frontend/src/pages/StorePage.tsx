@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid3X3, List, Star, Crown, Download, ShoppingCart, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { ProductCard } from '@zoroaster/ui';
-import type { Product } from '@zoroaster/shared'; // Assuming Product type is now from shared
+import type { Product } from '@zoroaster/shared';
 
 const StorePage = () => {
   const [products, setProducts] = useState<Product[]>([]);

@@ -25,7 +25,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   isAdmin: boolean;
   isAuthenticated: boolean;
-  loading: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,14 +36,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user || null);
-        setLoading(false);
+        setIsLoading(false);
       }
     );
 
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user || null);
-      setLoading(false);
+      setIsLoading(false);
     });
 
     return () => {
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userProfile,
       isAdmin,
       isAuthenticated,
-      loading 
+      isLoading 
     }}>
       {children}
     </AuthContext.Provider>

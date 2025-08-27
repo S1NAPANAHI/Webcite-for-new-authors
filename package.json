@@ -14,8 +14,7 @@
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": "6.35.1"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

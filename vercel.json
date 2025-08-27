@@ -4,10 +4,5 @@
     { "src": "/(.*)", "dest": "/$1" }
   ],
   "buildCommand": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
-  "installCommand": "corepack enable && corepack prepare pnpm@9.15.9 --activate && pnpm install --no-frozen-lockfile",
-  "regions": ["iad1"],
-  "env": {
-    "PNPM_VERSION": "9.15.9",
-    "NODE_VERSION": "18"
-  }
+  "regions": ["iad1"]
 }

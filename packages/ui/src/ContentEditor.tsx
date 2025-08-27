@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save } from 'lucide-react';
-import { LexicalComposer } from ''@lexical/react/LexicalComposer';
-import { RichTextPlugin } from ''@lexical/react/LexicalRichTextPlugin';
-import { ContentEditable } from ''@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from ''@lexical/react/LexicalHistoryPlugin';
-import { AutoFocusPlugin } from ''@lexical/react/LexicalAutoFocusPlugin';
-import LexicalErrorBoundary from ''@lexical/react/LexicalErrorBoundary';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
+import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
 
 interface ContentEditorProps {
   item: any; // The item to be edited (can be post, page, character, etc.)

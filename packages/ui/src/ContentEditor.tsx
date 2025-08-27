@@ -16,8 +16,10 @@ import {
   Page, 
   StoreItem, 
   LibraryItem, 
-  Character 
-} from '@shared/types/content';
+  Character, 
+  TimelineEvent, 
+  BetaUser 
+} from '@zoroaster/shared/src/types/content';
 
 // Define content type for the editor
 type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters';
@@ -155,29 +157,18 @@ export function ContentEditor<T extends ContentItem>({
   };
 
   // Type-safe field handlers
-  const handleTextChange = useCallback(<K extends keyof FormData<T>>(field: K) => 
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: e.target.value
-      } as FormData<T>));
-    }, []);
+  const handleTextChange = useCallback((field: keyof FormData<T>) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value } as FormData<T>));
+  }, []);
 
-  const handleNumberChange = useCallback(<K extends keyof FormData<T>>(field: K) => 
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: parseFloat(e.target.value) || 0
-      } as FormData<T>));
-    }, []);
+  const handleNumberChange = useCallback((field: keyof FormData<T>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: parseFloat(e.target.value) } as FormData<T>));
+  }, []);
 
-  const handleSelectChange = useCallback(<K extends keyof FormData<T>>(field: K) => 
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: e.target.value
-      } as FormData<T>));
-    }, []);
+  const handleSelectChange = useCallback((field: keyof FormData<T>) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value } as FormData<T>));
+  }, []);
+  
 
   const renderFields = () => {
     switch(contentType) {
@@ -201,7 +192,7 @@ export function ContentEditor<T extends ContentItem>({
               <input
                 type="text"
                 value={'slug' in formData ? formData.slug : ''}
-                onChange={handleTextChange('slug')}
+                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value } as FormData<T>))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="my-awesome-post"
               />
@@ -361,7 +352,7 @@ export function ContentEditor<T extends ContentItem>({
               <label className="block text-sm font-medium text-gray-700 mb-2">Backstory</label>
               <textarea
                 value={formData.backstory}
-                onChange={(e) => setFormData({...formData, backstory: e.target.value})}
+                onChange={(e) => setFormData(prev => ({ ...prev, backstory: e.target.value } as FormData<T>))}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Character backstory..."

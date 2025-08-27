@@ -3,21 +3,7 @@ import { ShoppingCart, Download, Crown, Star, Eye, ChevronDown, ChevronUp, Plus 
 import { StripeCheckout } from './StripeCheckout'; // Assuming StripeCheckout is in the same package
 import { useCart } from '@zoroaster/shared';
 
-// Assuming Product type is defined elsewhere (e.g., in shared types or generated types)
-interface Product {
-  id: string;
-  name: string;
-  description: string | null;
-  product_type: 'single_issue' | 'bundle' | 'chapter_pass' | 'arc_pass';
-  active: boolean;
-  created_at: string;
-  updated_at: string;
-  work_id: string | null;
-  content_grants: Array<{ type: 'work' | 'chapter'; id: string }>;
-  price_ids: string[];
-  unit_amounts: number[];
-  currencies: string[];
-}
+
 
 interface ProductCardProps {
   product: Product;
@@ -36,12 +22,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const { addItem, isInCart } = useCart();
 
   // Get primary price (first price or subscription price)
-  const primaryPrice = product.unit_amounts && product.unit_amounts.length > 0 ? {
-    id: product.price_ids[0],
-    unit_amount: product.unit_amounts[0],
-    currency: product.currencies[0],
-    // Assuming interval and trial_days are not directly on product for now, 
-    // will need to fetch full price details if needed for display here.
+  const primaryPrice = product.prices && product.prices.length > 0 ? {
+    id: product.prices[0].id,
+    unit_amount: product.prices[0].unit_amount,
+    currency: product.prices[0].currency,
+    interval: product.prices[0].interval || undefined, // Add interval if available
+    trial_days: product.prices[0].trial_days || undefined, // Add trial_days if available
   } : null;
   
   const formatPrice = (amountCents: number, currency: string) => {

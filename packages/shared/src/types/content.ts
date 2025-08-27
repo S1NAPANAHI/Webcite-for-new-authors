@@ -59,8 +59,21 @@ export interface Character extends BaseContent {
   relationships?: Record<string, string>;
 }
 
-export type ContentItem = Post | Page | StoreItem | LibraryItem | Character;
+export interface TimelineEvent extends BaseContent {
+  title: string;
+  date: string;
+  era: 'ancient' | 'medieval' | 'modern' | 'future';
+  description: string;
+}
 
-export type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters';
+export interface BetaUser extends BaseContent {
+  name: string;
+  email: string;
+  message: string;
+}
+
+export type ContentItem = Post | Page | StoreItem | LibraryItem | Character | TimelineEvent | BetaUser;
+
+export type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters' | 'timelineEvents' | 'betaUsers';
 
 export type FormData<T extends ContentItem> = Omit<T, 'id' | 'created_at' | 'updated_at' | 'created_by'>;

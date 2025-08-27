@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid3X3, List, Star, Crown, Download, ShoppingCart, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { ProductCard } from '@zoroaster/ui';
-import type { Product } from '@zoroaster/shared';
+import type { Product } from '@zoroaster/shared'; // Ensure correct Product type is used
 
 const StorePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -46,7 +46,7 @@ const StorePage = () => {
       // Re-evaluate format filtering based on actual file data from API
       const matchesFormat = selectedFormat === 'all'; // Placeholder for now
       
-      const productPrice = product.unit_amounts && product.unit_amounts.length > 0 ? product.unit_amounts[0] / 100 : 0;
+      const productPrice = product.prices && product.prices.length > 0 ? product.prices[0].unit_amount / 100 : 0;
       const matchesPrice = productPrice >= priceRange[0] && productPrice <= priceRange[1];
       
       return matchesSearch && matchesCategory && matchesFormat && matchesPrice;
@@ -60,12 +60,12 @@ const StorePage = () => {
         case 'oldest':
           return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
         case 'price-low':
-          const priceA = a.unit_amounts && a.unit_amounts.length > 0 ? a.unit_amounts[0] : 0;
-          const priceB = b.unit_amounts && b.unit_amounts.length > 0 ? b.unit_amounts[0] : 0;
+          const priceA = a.prices && a.prices.length > 0 ? a.prices[0].unit_amount : 0;
+          const priceB = b.prices && b.prices.length > 0 ? b.prices[0].unit_amount : 0;
           return priceA - priceB;
         case 'price-high':
-          const priceA_high = a.unit_amounts && a.unit_amounts.length > 0 ? a.unit_amounts[0] : 0;
-          const priceB_high = b.unit_amounts && b.unit_amounts.length > 0 ? b.unit_amounts[0] : 0;
+          const priceA_high = a.prices && a.prices.length > 0 ? a.prices[0].unit_amount : 0;
+          const priceB_high = b.prices && b.prices.length > 0 ? b.prices[0].unit_amount : 0;
           return priceB_high - priceA_high;
         case 'title':
           return a.name.localeCompare(b.name);

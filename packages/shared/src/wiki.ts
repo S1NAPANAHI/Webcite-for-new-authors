@@ -24,15 +24,8 @@ export type WikiSectionView = {
 
 export interface WikiPage extends Tables<'wiki_pages'> {
   sections?: WikiSectionView[];
-  category?: Tables<'wiki_categories'>;
-  user?: {
-    id: string;
-    email?: string;
-    user_metadata?: {
-      full_name?: string;
-      avatar_url?: string;
-    };
-  };
+  category?: Tables<'wiki_categories'> | null;
+  user?: Tables<'profiles'> | null;
 }
 
 export const fetchPages = async (): Promise<WikiPage[]> => {
@@ -159,18 +152,7 @@ export const fetchWikiPages = async ({
   }
 
   if (search) {
-    // Use the search function we created in the database
-    const { data: searchResults, error: searchError } = await supabase
-      .rpc('search_wiki_pages', { search_term: search });
-
-    if (searchError) {
-      console.error('Search error:', searchError);
-      throw new Error('Search failed');
-    }
-
-    // Get the IDs from search results and filter by them
-    const pageIds = (searchResults as any)?.map((p: any) => p.id) || [];
-    query = query.in('id', pageIds);
+    query = query.or(`title.ilike.%${search}%,excerpt.ilike.%${search}%`);
   }
 
   // Apply sorting

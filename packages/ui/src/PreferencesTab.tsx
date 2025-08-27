@@ -1,7 +1,8 @@
 import React from 'react';
+import { UserProfile } from '@zoroaster/shared/profile'; // Import UserProfile
 
 interface PreferencesTabProps {
-  userProfile: any; // Replace 'any' with a proper UserProfile type later
+  userProfile: UserProfile; // Change from 'any' to UserProfile
 }
 
 export const PreferencesTab: React.FC<PreferencesTabProps> = ({ userProfile }) => {

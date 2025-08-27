@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@zoroaster/shared';
+import { UserProfile } from '@zoroaster/shared/profile'; // Import UserProfile
+
+interface ReadingTabProps {
+  userProfile: UserProfile;
+}
 
 interface Chapter {
   id: string;
@@ -10,7 +15,7 @@ interface Chapter {
   // Add other relevant chapter fields as needed
 }
 
-const ReadingTab: React.FC = () => {
+const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

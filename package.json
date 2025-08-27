@@ -1,24 +1,21 @@
 {
   "name": "zoroasterverse",
   "private": true,
-  "packageManager": "pnpm@9.15.9",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev": "cd apps/frontend && pnpm dev",
-    "build": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
-    "start": "cd apps/frontend && pnpm preview",
-    "lint": "cd apps/frontend && pnpm lint",
-    "vercel-build": "pnpm install --no-frozen-lockfile && pnpm run -r build",
+    "dev": "cd apps/frontend && npm run dev",
+    "build": "npm install && npm run build --workspace=frontend",
+    "start": "cd apps/frontend && npm run start",
+    "lint": "npm run lint --workspace=frontend",
+    "vercel-build": "npm install && npm run build --workspace=frontend",
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "pnpm": ">=8.0.0"
+    "node": ">=18.0.0"
   },
-  "packageManager": "pnpm@9.15.9",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "framer-motion": "^12.23.12",

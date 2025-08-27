@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Save } from 'lucide-react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
@@ -6,88 +6,142 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import LexicalErrorBoundary from '@lexical/react/LexicalErrorBoundary';
+import { $getRoot, $getSelection, EditorState } from 'lexical';
 
-interface ContentEditorProps {
-  item: any; // The item to be edited (can be post, page, character, etc.)
-  contentType: string; // e.g., 'posts', 'pages', 'characters'
-  onSave: (data: any) => void;
+// Import types from the shared types file
+import { 
+  ContentItem, 
+  ContentStatus, 
+  Post, 
+  Page, 
+  StoreItem, 
+  LibraryItem, 
+  Character 
+} from '@shared/types/content';
+
+// Define content type for the editor
+type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters';
+
+// Form data type that omits auto-generated fields
+type FormData<T extends ContentItem> = Omit<T, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+
+// Props interface for the ContentEditor component
+interface ContentEditorProps<T extends ContentItem> {
+  item?: T;
+  contentType: ContentType;
+  onSave: (data: T) => void;
   onCancel: () => void;
 }
 
-export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType, onSave, onCancel }) => {
-  const getInitialFormData = () => {
-    switch(contentType) {
+// Helper function to generate a URL-friendly slug from a string
+const generateSlug = (str: string): string => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+export function ContentEditor<T extends ContentItem>({ 
+  item, 
+  contentType, 
+  onSave, 
+  onCancel 
+}: ContentEditorProps<T>) {
+  // State for form data and validation errors
+  const [formData, setFormData] = useState<FormData<T>>(getInitialFormData());
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Initialize form data based on content type
+  function getInitialFormData(): FormData<T> {
+    if (item) {
+      // If we have an existing item, use its values
+      const { id, created_at, updated_at, created_by, ...rest } = item;
+      return rest as FormData<T>;
+    }
+
+    // Default values based on content type
+    const baseData: Partial<FormData<T>> = {
+      status: 'draft' as ContentStatus,
+    };
+
+    switch (contentType) {
       case 'posts':
       case 'pages':
         return {
-          title: item?.title || '',
-          content: item?.content || '',
-          slug: item?.slug || '',
-          status: item?.status || 'draft'
-        };
+          ...baseData,
+          title: '',
+          content: '',
+          slug: '',
+          author_id: '',
+          excerpt: '',
+          featured_image: '',
+          tags: []
+        } as unknown as FormData<T>;
       case 'storeItems':
         return {
-          name: item?.name || '',
-          description: item?.description || '',
-          price: item?.price || 0,
-          category: item?.category || 'digital',
-          status: item?.status || 'active'
-        };
+          ...baseData,
+          name: '',
+          description: '',
+          price: 0,
+          category: 'digital',
+          image_url: '',
+          stock_quantity: 0
+        } as unknown as FormData<T>;
       case 'libraryItems':
         return {
-          title: item?.title || '',
-          description: item?.description || '',
-          category: item?.category || 'tutorial',
-          file_url: item?.file_url || '',
-          status: item?.status || 'draft'
-        };
+          ...baseData,
+          title: '',
+          description: '',
+          file_url: '',
+          file_type: '',
+          file_size: 0,
+          category: 'tutorial',
+          tags: []
+        } as unknown as FormData<T>;
       case 'characters':
         return {
-          name: item?.name || '',
-          role: item?.role || '',
-          description: item?.description || '',
-          backstory: item?.backstory || '',
-          status: item?.status || 'draft'
-        };
-      case 'timelineEvents':
-        return {
-          title: item?.title || '',
-          description: item?.description || '',
-          date: item?.date || '',
-          era: item?.era || 'modern',
-          status: item?.status || 'draft'
-        };
-      case 'betaUsers':
-        return {
-          name: item?.name || '',
-          email: item?.email || '',
-          message: item?.message || '',
-          status: item?.status || 'pending'
+          ...baseData,
+          name: '',
+          description: '',
+          role: '',
+          backstory: '',
+          image_url: ''
+        } as unknown as FormData<T>;
+      default:
+        throw new Error(`Unsupported content type: ${contentType}`);
+    }
+  }
+          role: charItem.role || '',
+          description: charItem.description || '',
+          backstory: charItem.backstory || '',
+          status: charItem.status || 'draft'
         };
       default:
-        return {};
+        return {} as FormData;
     }
   };
 
-  const [formData, setFormData] = useState(getInitialFormData());
+  const [formData, setFormData] = useState<FormData<T>>(getInitialFormData());
 
   useEffect(() => {
     setFormData(getInitialFormData());
-  }, [item, contentType]);
+  }, [getInitialFormData]);
 
-  const handleSubmit = () => {
-    // If editing an existing item, include its ID. Otherwise, omit ID for new items.
+  const handleSubmit = useCallback(() => {
     const dataToSave = item ? { ...item, ...formData } : formData;
-    onSave(dataToSave);
-  };
+    onSave(dataToSave as T);
+  }, [formData, item, onSave]);
 
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, '') // Remove all non-word chars
-      .replace(/[\s_-]+/g, '-')   // Replace spaces and underscores with single dash
-      .replace(/^-+|-+$/g, '');    // Trim dashes from start/end
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +149,7 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
     setFormData(prev => ({
       ...prev,
       title: newTitle,
-      slug: prev.slug || generateSlug(newTitle) // Auto-generate slug if empty
+      ...('slug' in prev ? { slug: prev.slug || generateSlug(newTitle) } : {})
     }));
   };
 
@@ -115,6 +169,31 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
     },
   };
 
+  // Type-safe field handlers
+  const handleTextChange = useCallback(<K extends keyof FormData<T>>(field: K) => 
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: e.target.value
+      } as FormData<T>));
+    }, []);
+
+  const handleNumberChange = useCallback(<K extends keyof FormData<T>>(field: K) => 
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: parseFloat(e.target.value) || 0
+      } as FormData<T>));
+    }, []);
+
+  const handleSelectChange = useCallback(<K extends keyof FormData<T>>(field: K) => 
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: e.target.value
+      } as FormData<T>));
+    }, []);
+
   const renderFields = () => {
     switch(contentType) {
       case 'posts':
@@ -125,8 +204,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
               <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
               <input
                 type="text"
-                value={formData.title}
-                onChange={handleTitleChange}
+                value={'title' in formData ? formData.title : ''}
+                onChange={handleTextChange('title')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter title..."
                 required
@@ -136,8 +215,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
               <label className="block text-sm font-medium text-gray-700 mb-2">Slug</label>
               <input
                 type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                value={'slug' in formData ? formData.slug : ''}
+                onChange={handleTextChange('slug')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="my-awesome-post"
               />
@@ -145,7 +224,7 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Content</label>
-              <div className="editor-container"> {/* Add a container for styling */}
+              <div className="editor-container">
                 <LexicalComposer initialConfig={initialConfig}>
                   <RichTextPlugin
                     contentEditable={<ContentEditable className="editor-input" />}
@@ -160,14 +239,15 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
           </>
         );
       case 'storeItems':
+        const storeItem = formData as StoreItem;
         return (
           <>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                value={storeItem.name}
+                onChange={handleTextChange('name')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Product name..."
               />
@@ -177,8 +257,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
               <input
                 type="number"
                 step="0.01"
-                value={formData.price}
-                onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value)})}
+                value={storeItem.price}
+                onChange={handleNumberChange('price')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00"
               />
@@ -186,8 +266,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
               <select
-                value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                value={storeItem.category}
+                onChange={handleSelectChange('category')}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="digital">Digital</option>
@@ -198,8 +278,8 @@ export const ContentEditor: React.FC<ContentEditorProps> = ({ item, contentType,
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
               <textarea
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                value={storeItem.description}
+                onChange={handleTextChange('description')}
                 rows={6}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Product description..."

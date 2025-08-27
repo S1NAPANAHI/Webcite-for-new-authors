@@ -5,12 +5,14 @@ import { join } from 'path';
 // Full path to .env file
 const envPath = 'C:/Users/Sinap/OneDrive/WORK/MACHINE LEARNING/MACHINE LEARNING/Website/ZOROASTERVERSE/.env';
 
+import { readFileSync } from 'fs';
+
 // Read and parse .env file
-const envFile = require('fs').readFileSync(envPath, 'utf-8');
+const envFile = readFileSync(envPath, 'utf-8');
 const envVars = envFile
   .split('\n')
-  .filter(line => line && !line.startsWith('#'))
-  .reduce((acc, line) => {
+  .filter((line: string) => line && !line.startsWith('#'))
+  .reduce((acc: Record<string, string>, line: string) => {
     const [key, ...value] = line.split('=');
     if (key && value) {
       acc[key.trim()] = value.join('=').trim().replace(/['"]/g, '');

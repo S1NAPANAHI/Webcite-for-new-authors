@@ -63,7 +63,7 @@ const ArtistCollaborationPage: React.FC = () => {
     };
 
     const updateFileUploadDisplay = (inputElement: HTMLInputElement, inputName: string) => {
-        const container = inputElement.closest(`.file-upload`); // Changed from styles['file-upload']
+        const container = inputElement.closest(`.file-upload`) as HTMLElement; // Changed from styles['file-upload']
         if (!container) return;
 
         const fileCount = inputElement.files ? inputElement.files.length : 0;
@@ -82,17 +82,17 @@ const ArtistCollaborationPage: React.FC = () => {
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        e.currentTarget.style.backgroundColor = '#f0f8ff'; // Inline style for background
+        (e.currentTarget as HTMLElement).style.backgroundColor = '#f0f8ff'; // Inline style for background
     };
 
     const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        e.currentTarget.style.backgroundColor = 'white'; // Inline style for background
+        (e.currentTarget as HTMLElement).style.backgroundColor = 'white'; // Inline style for background
     };
 
     const handleDrop = (e: React.DragEvent<HTMLDivElement>, inputName: string) => {
         e.preventDefault();
-        e.currentTarget.style.backgroundColor = '#e8f5e8'; // Inline style for background
+        (e.currentTarget as HTMLElement).style.backgroundColor = '#e8f5e8'; // Inline style for background
         const files = e.dataTransfer.files;
         if (fileInputRefs.current[inputName]) {
             (fileInputRefs.current[inputName] as HTMLInputElement).files = files;
@@ -341,7 +341,7 @@ const ArtistCollaborationPage: React.FC = () => {
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="portfolioLinks" className="block mb-2 font-semibold text-muted-foreground">Portfolio Links<span className="text-destructive"> *</span></label>
-                                <textarea id="portfolioLinks" name="portfolioLinks" placeholder="Please provide links to your portfolio (ArtStation, Behance, personal website, Instagram, etc.)" required value={formData.portfolioLinks} onChange={handleInputChange} ref={el => textAreaRefs.current['portfolioLinks'] = el} data-maxlength="500" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="portfolioLinks" name="portfolioLinks" placeholder="Please provide links to your portfolio (ArtStation, Behance, personal website, Instagram, etc.)" required value={formData.portfolioLinks} onChange={handleInputChange} ref={el => { textAreaRefs.current['portfolioLinks'] = el; }} data-maxlength="500" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                         </div>
 
@@ -436,24 +436,24 @@ const ArtistCollaborationPage: React.FC = () => {
                             <div className="mb-4">
                                 <label htmlFor="portfolioUpload" className="block mb-2 font-semibold text-muted-foreground">Portfolio Upload (3-6 images, optional)</label>
                                 <div className="file-upload border-2 border-dashed border-primary rounded-lg p-8 text-center bg-card transition-colors duration-300 ease-in-out hover:bg-blue-50" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={(e) => handleDrop(e, 'portfolioUpload')}> {/* Converted .file-upload */} 
-                                    <input type="file" id="portfolioUpload" name="portfolioUpload" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'portfolioUpload')} ref={el => fileInputRefs.current['portfolioUpload'] = el} className="hidden" /> {/* Hidden input */} 
+                                    <input type="file" id="portfolioUpload" name="portfolioUpload" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'portfolioUpload')} ref={el => { fileInputRefs.current['portfolioUpload'] = el; }} className="hidden" /> {/* Hidden input */} 
                                     <p className="text-muted-foreground">Drop files here or <span className="text-primary cursor-pointer" onClick={() => fileInputRefs.current['portfolioUpload']?.click()}>click to browse</span><br /><small>JPG/PNG, max 5MB per file</small></p>
                                 </div>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="bestPieces" className="block mb-2 font-semibold text-muted-foreground">Direct Links to 3-5 Best Pieces<span className="text-destructive"> *</span></label>
-                                <textarea id="bestPieces" name="bestPieces" placeholder="Please provide direct links to your best work that showcases your style and skill" required value={formData.bestPieces} onChange={handleInputChange} ref={el => textAreaRefs.current['bestPieces'] = el} data-maxlength="500" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="bestPieces" name="bestPieces" placeholder="Please provide direct links to your best work that showcases your style and skill" required value={formData.bestPieces} onChange={handleInputChange} ref={el => { textAreaRefs.current['bestPieces'] = el; }} data-maxlength="500" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="customSample" className="block mb-2 font-semibold text-muted-foreground">Custom Sample for This Project (optional)</label>
                                 <div className="file-upload border-2 border-dashed border-primary rounded-lg p-8 text-center bg-card transition-colors duration-300 ease-in-out hover:bg-blue-50">
-                                    <input type="file" id="customSample" name="customSample" accept="image/*" onChange={(e) => handleFileChange(e, 'customSample')} ref={el => fileInputRefs.current['customSample'] = el} className="hidden" />
+                                    <input type="file" id="customSample" name="customSample" accept="image/*" onChange={(e) => handleFileChange(e, 'customSample')} ref={el => { fileInputRefs.current['customSample'] = el; }} className="hidden" />
                                     <p className="text-muted-foreground">Upload a custom piece based on our world concept<br /><small>Not required but highly encouraged</small></p>
                                 </div>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="makingOfNotes" className="block mb-2 font-semibold text-muted-foreground">Brief Making-of Notes (optional)</label>
-                                <textarea id="makingOfNotes" name="makingOfNotes" placeholder="Describe your approach, tools, or references used (50-150 words)" value={formData.makingOfNotes} onChange={handleInputChange} ref={el => textAreaRefs.current['makingOfNotes'] = el} data-maxlength="150" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="makingOfNotes" name="makingOfNotes" placeholder="Describe your approach, tools, or references used (50-150 words)" value={formData.makingOfNotes} onChange={handleInputChange} ref={el => { textAreaRefs.current['makingOfNotes'] = el; }} data-maxlength="150" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                         </div>
 
@@ -463,15 +463,15 @@ const ArtistCollaborationPage: React.FC = () => {
                             </h3>
                             <div className="mb-4">
                                 <label htmlFor="visualInfluences" className="block mb-2 font-semibold text-muted-foreground">Visual Influences for This Project<span className="text-destructive"> *</span></label>
-                                <textarea id="visualInfluences" name="visualInfluences" placeholder="What visual influences, artists, or styles do you think overlap with this Persian/Zoroastrian-influenced sci-fi world? (100-200 words)" required value={formData.visualInfluences} onChange={handleInputChange} ref={el => textAreaRefs.current['visualInfluences'] = el} data-maxlength="200" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="visualInfluences" name="visualInfluences" placeholder="What visual influences, artists, or styles do you think overlap with this Persian/Zoroastrian-influenced sci-fi world? (100-200 words)" required value={formData.visualInfluences} onChange={handleInputChange} ref={el => { textAreaRefs.current['visualInfluences'] = el; }} data-maxlength="200" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="worldVisualization" className="block mb-2 font-semibold text-muted-foreground">World Visualization<span className="text-destructive"> *</span></label>
-                                <textarea id="worldVisualization" name="worldVisualization" placeholder="Describe how you'd visualize: cliffside megacity Vənāsō, space elevator, 'soft war' sky, oath-bound warrior (Hooran) (150-250 words)" required value={formData.worldVisualization} onChange={handleInputChange} ref={el => textAreaRefs.current['worldVisualization'] = el} data-maxlength="250" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="worldVisualization" name="worldVisualization" placeholder="Describe how you'd visualize: cliffside megacity Vənāsō, space elevator, 'soft war' sky, oath-bound warrior (Hooran) (150-250 words)" required value={formData.worldVisualization} onChange={handleInputChange} ref={el => { textAreaRefs.current['worldVisualization'] = el; }} data-maxlength="250" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="feedbackProcess" className="block mb-2 font-semibold text-muted-foreground">Feedback & Revision Process<span className="text-destructive"> *</span></label>
-                                <textarea id="feedbackProcess" name="feedbackProcess" placeholder="How do you handle feedback and revisions? What's your typical process? (100-200 words)" required value={formData.feedbackProcess} onChange={handleInputChange} ref={el => textAreaRefs.current['feedbackProcess'] = el} data-maxlength="200" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="feedbackProcess" name="feedbackProcess" placeholder="How do you handle feedback and revisions? What's your typical process? (100-200 words)" required value={formData.feedbackProcess} onChange={handleInputChange} ref={el => { textAreaRefs.current['feedbackProcess'] = el; }} data-maxlength="200" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="colorGrading" className="block mb-2 font-semibold text-muted-foreground">Preferred Color Grading</label>
@@ -485,7 +485,7 @@ const ArtistCollaborationPage: React.FC = () => {
                             </h3>
                             <div className="mb-4">
                                 <label htmlFor="references" className="block mb-2 font-semibold text-muted-foreground">Past Client References or Shipped Work</label>
-                                <textarea id="references" name="references" placeholder="Links to published work, client testimonials, or references (optional)" value={formData.references} onChange={handleInputChange} ref={el => textAreaRefs.current['references'] = el} data-maxlength="500" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
+                                <textarea id="references" name="references" placeholder="Links to published work, client testimonials, or references (optional)" value={formData.references} onChange={handleInputChange} ref={el => { textAreaRefs.current['references'] = el; }} data-maxlength="500" className="w-full p-3 border-2 border-input rounded-md text-base transition-colors duration-300 ease-in-out focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 resize-y min-h-[100px]"></textarea>
                             </div>
                             <div className="mb-4">
                                 <label htmlFor="turnaround" className="block mb-2 font-semibold text-muted-foreground">Typical Turnaround for Single Finished Piece<span className="text-destructive"> *</span></label>

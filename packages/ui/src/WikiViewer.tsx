@@ -20,7 +20,7 @@ type Page = {
   title: string;
   slug: string;
   folder_id: string | null;
-  content: any[];
+  content?: any[];
   updated_at: string;
 };
 
@@ -117,7 +117,7 @@ export function WikiViewer() {
   };
 
   // Generate table of contents from page content
-  const generateToc = (content: any[]) => {
+  const generateToc = (content?: any[]) => {
     if (!content) return [];
     
     const headers = content

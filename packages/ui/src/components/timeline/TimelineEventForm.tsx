@@ -17,7 +17,7 @@ import {
   TimelineEvent, 
   CreateTimelineEventDto,
   UpdateTimelineEventDto 
-} from '../../api/timeline';
+} from '@zoroaster/shared/timeline';
 import { ImageUpload } from '../common/ImageUpload';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -39,7 +39,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   details: z.string().optional(),
   background_image: z.string().optional(),
-  is_published: z.boolean().default(false),
+  is_published: z.boolean().nullable().default(false),
   nested_events: z.array(nestedEventSchema).optional(),
 });
 
@@ -285,7 +285,7 @@ export default function TimelineEventForm({
     }
   };
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
       setIsSubmitting(true);
       
@@ -503,6 +503,7 @@ export default function TimelineEventForm({
                     date: '',
                     title: '',
                     description: '',
+                    order: 0, // Add missing order property
                   })
                 }
               >

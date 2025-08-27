@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from './button';
@@ -18,7 +18,7 @@ const productSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),
   description: z.string().max(500, 'Description is too long').optional(),
   product_type: z.enum(['single_issue', 'bundle', 'chapter_pass', 'arc_pass']),
-  active: z.boolean().optional().default(true),
+  active: z.boolean().default(true),
   work_id: z.string().nullable().optional(),
   content_grants: z.array(
     z.object({

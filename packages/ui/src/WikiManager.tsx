@@ -3,18 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
 import { Input } from '@zoroaster/ui';
 import { Plus, Folder, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders, fetchPages, WikiPage } from '@zoroaster/shared';
+import { supabase, fetchFolders, fetchPages, WikiPage, Database } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiEditor } from '@zoroaster/ui';
 import { SortableFolderTree } from '@zoroaster/ui';
 
-type Folder = {
-  id: string;
-  name: string;
-  slug: string;
-  parent_id: string | null;
-  children?: Folder[];
-};
 
 
 
@@ -22,7 +15,7 @@ export function WikiManager() {
   const { folderId } = useParams();
   const navigate = useNavigate();
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [pages, setPages] = useState<Page[]>([]);
+  const [pages, setPages] = useState<WikiPage[]>([]); // Changed from Page[] to WikiPage[]
   
   const [newFolderName, setNewFolderName] = useState('');
   const [newPageName, setNewPageName] = useState('');
@@ -60,7 +53,7 @@ export function WikiManager() {
         if (pagesError) throw pagesError;
         
         setFolders(foldersData || []);
-        setPages(pagesData || []);
+        setPages(pagesData as WikiPage[] || []); // Cast pagesData to WikiPage[]
         
       } catch (error) {
         console.error('Error fetching wiki data:', error);
@@ -146,7 +139,7 @@ export function WikiManager() {
       // Insert initial content block (section)
       const initialSection = {
         page_id: newWikiPage.id,
-        type: 'paragraph', // Default type
+        type: 'paragraph' as Database["public"]["Enums"]["content_block_type"], // Explicitly cast to enum type
         content: '',
         position: 0,
         created_by: user.id,
@@ -159,7 +152,7 @@ export function WikiManager() {
       if (contentBlockError) throw contentBlockError;
       
       // Update local state
-      setPages(prev => [...prev, { ...newWikiPage, content: [initialSection] }]); // Add content to local state
+      setPages(prev => [...prev, { ...newWikiPage, sections: [initialSection] }]); // Add sections to local state
       setNewPageName('');
       setShowNewPageInput(false);
       
@@ -601,7 +594,6 @@ export function WikiManager() {
           <WikiEditor 
             id={currentPage.id} 
             onSave={handlePageSaved} 
-            initialContent={currentPage.content}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">

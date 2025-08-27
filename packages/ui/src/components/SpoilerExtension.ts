@@ -29,7 +29,7 @@ export const Spoiler = Mark.create({
 
   addCommands() {
     return {
-      toggleSpoiler: () => ({ commands }) => {
+      toggleSpoiler: () => ({ commands }): boolean => { // Explicitly return boolean
         return commands.toggleMark(this.name);
       },
     };
@@ -37,7 +37,7 @@ export const Spoiler = Mark.create({
 
   addKeyboardShortcuts() {
     return {
-      'Mod-Shift-x': () => this.editor.commands.toggleSpoiler(),
+      'Mod-Shift-x': () => (this.editor.commands as any).toggleSpoiler(),
     };
   },
 

@@ -109,7 +109,7 @@ export const CharactersPage: React.FC = () => {
       {characters?.map((character, index) => (
         <section
           key={character.id}
-          ref={el => characterSectionRefs.current[index] = el}
+          ref={el => { characterSectionRefs.current[index] = el; }}
           className={`character-section ${index % 2 === 0 ? '' : ''}`}
         >
           <div className="character-silhouette">

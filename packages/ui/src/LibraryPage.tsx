@@ -32,16 +32,15 @@ type Work = {
 };
 
 type UserLibraryItem = {
-  id?: string;
-  user_id?: string;
-  work_id?: string;
-  purchase_date?: string;
-  is_finished?: boolean;
-  last_read_chapter?: number;
-  epub_downloads_used?: number;
-  pdf_downloads_used?: number;
-  mobi_downloads_used?: number;
-  // work?: Work; // Joined work data (though not used directly in this component anymore)
+  id: string; // purchase ID
+  user_id: string;
+  product_id: string;
+  purchased_at: string;
+  status: string; // purchase status
+  product_title: string;
+  product_description?: string;
+  product_type: 'single_issue' | 'bundle' | 'chapter_pass' | 'arc_pass';
+  work_id?: string; // if the product is associated with a work
 };
 
 // --- Supabase Data Functions ---
@@ -54,11 +53,35 @@ const fetchAllWorks = async (): Promise<Work[]> => {
 const fetchUserLibraryItems = async (userId: string): Promise<UserLibraryItem[]> => {
   if (!userId) return [];
   const { data, error } = await supabase
-    .from('user_library_items')
-    .select('*') // Only select user_library_items fields, join with works is not needed here
+    .from('purchases')
+    .select(`
+      id,
+      user_id,
+      product_id,
+      purchased_at,
+      status,
+      products (
+        name,
+        description,
+        product_type,
+        work_id
+      )
+    `)
     .eq('user_id', userId);
+
   if (error) throw new Error(error.message);
-  return data as UserLibraryItem[];
+
+  return data.map(purchase => ({
+    id: purchase.id,
+    user_id: purchase.user_id,
+    product_id: purchase.product_id,
+    purchased_at: purchase.purchased_at,
+    status: purchase.status,
+    product_title: purchase.products?.name || 'Unknown Product',
+    product_description: purchase.products?.description,
+    product_type: purchase.products?.product_type || 'single_issue',
+    work_id: purchase.products?.work_id,
+  })) as UserLibraryItem[];
 };
 
 const updateLibraryItemProgress = async (itemId: string, isFinished: boolean): Promise<UserLibraryItem> => {
@@ -71,17 +94,190 @@ const updateLibraryItemProgress = async (itemId: string, isFinished: boolean): P
   return data[0] as UserLibraryItem;
 };
 
-const updateDownloadCount = async (itemId: string, format: 'epub' | 'pdf' | 'mobi', currentCount: number): Promise<UserLibraryItem> => {
-  const updatePayload: any = {};
-  updatePayload[`${format}_downloads_used`] = currentCount + 1;
+// --- Work Card Component (New Design) ---
+export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem; queryClient: any }> = ({ work, userLibraryItem, queryClient }) => {
+  const { user } = useAuth(); // Get current user for rating
+  const [userCurrentRating, setUserCurrentRating] = useState<number | null>(null);
+  const [isSampleExpanded, setIsSampleExpanded] = useState(false);
+  const [showSample, setShowSample] = useState(false);
 
-  const { data, error } = await supabase
-    .from('user_library_items')
-    .update(updatePayload)
-    .eq('id', itemId)
-    .select();
-  if (error) throw new Error(error.message);
-  return data[0] as UserLibraryItem;
+  // Fetch user's specific rating for this work
+  const { data: fetchedUserRating } = useQuery({
+    queryKey: ['userRating', user?.id, work.id],
+    queryFn: () => fetchUserRating(user?.id || '', work.id),
+    enabled: !!user?.id, // Only run if user is logged in
+  });
+
+  useEffect(() => {
+    if (fetchedUserRating !== undefined) {
+      setUserCurrentRating(fetchedUserRating);
+    }
+  }, [fetchedUserRating]);
+
+  const upsertRatingMutation = useMutation({
+    mutationFn: ({ userId, workId, rating }: { userId: string; workId: string; rating: number }) => upsertUserRating(userId, workId, rating),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userRating', user?.id, work.id] }); // Invalidate specific user rating
+      queryClient.invalidateQueries({ queryKey: ['allWorks'] }); // Invalidate all works to update average rating/count
+    },
+    onError: (err) => {
+      alert(`Error submitting rating: ${err.message}`);
+    }
+  });
+
+  const handleStarClick = (ratingValue: number) => {
+    if (!user) {
+      alert("Please log in to submit a rating.");
+      return;
+    }
+    if (user.id) {
+      upsertRatingMutation.mutate({ userId: user.id, workId: work.id, rating: ratingValue });
+    }
+  };
+
+  const updateProgressMutation = useMutation({
+    mutationFn: ({ itemId, isFinished }: { itemId: string; isFinished: boolean }) => updateLibraryItemProgress(itemId, isFinished),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userLibraryItems'] });
+    },
+    onError: (err) => {
+      alert(`Error updating progress: ${err.message}`);
+    }
+  });
+
+  const progressPercentage = work.word_count && work.target_word_count
+    ? Math.min(100, Math.round((work.word_count / work.target_word_count) * 100))
+    : work.progress_percentage || 0;
+
+  const authorName = "S. Azar"; // Hardcoded for now
+
+  return (
+    <article className="book-card" data-book-id={work.id} aria-label={`Book card: ${work.title} by ${authorName}`}>
+      <div className="book-main">
+        <div className="cover" role="img" aria-label={`Book cover: ${work.title} by ${authorName}`} style={{ background: work.cover_image_url ? `url(${work.cover_image_url}) center center / cover` : 'var(--teal)' }}>
+          {!work.cover_image_url && (
+            <div className="cover-content">
+              <div className="cover-title">{work.title}</div>
+              <div className="cover-author">{authorName}</div>
+            </div>
+          )}
+        </div>
+
+        <div className="details">
+          <div className="book-header">
+            <h3 className="book-title">{work.title}</h3>
+            <div className="author">{authorName}</div>
+          </div>
+
+          {/* Release Date */}
+          {(work.release_date || work.estimated_release) && (
+            <div className="release-info text-sm text-muted mt-1">
+              {work.release_date ? (
+                <span>Released: {new Date(work.release_date).toLocaleDateString()}</span>
+              ) : (
+                <span>Estimated Release: {work.estimated_release}</span>
+              )}
+            </div>
+          )}
+
+          {/* Progress Bar */}
+          {(work.status === 'planning' || work.status === 'writing' || work.status === 'editing') && (
+            <div className="progress" aria-label="Author writing progress">
+              <div className="progress-head">
+                <span>{progressPercentage}% written</span>
+                <span aria-live="polite">{progressPercentage}%</span>
+              </div>
+              <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercentage} aria-label="Author writing progress">
+                <span style={{ width: `${progressPercentage}%` }}></span>
+              </div>
+            </div>
+          )}
+
+          {/* Description */}
+          <p className="desc">
+            {work.description || 'No description available.'}
+          </p>
+
+          {/* Rating */}
+          <div className="rating" aria-label={`Rating ${work.rating?.toFixed(1) || '0.0'} out of 5 based on ${work.reviews_count || 0} reviews`}>
+            <span className="stars" aria-hidden="true">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className={`star ${i < (userCurrentRating !== null ? userCurrentRating : Math.floor(work.rating || 0)) ? 'filled' : ''}`}
+                  onClick={() => handleStarClick(i + 1)}
+                  onMouseEnter={() => user && setUserCurrentRating(i + 1)}
+                  onMouseLeave={() => user && setUserCurrentRating(fetchedUserRating !== null ? fetchedUserRating : null)}
+                  style={{ cursor: user ? 'pointer' : 'default' }}
+                />
+              ))}
+            </span>
+            <span>{work.rating?.toFixed(1) || '0.0'}</span>
+            <small>• {work.reviews_count || 0} reviews</small>
+          </div>
+
+          {/* Actions */}
+          <div className="actions">
+            {userLibraryItem ? (
+              <>
+                <button className="btn primary">Open</button>
+                {/* Removed download buttons */}
+                <button
+                  onClick={() => updateProgressMutation.mutate({ itemId: userLibraryItem.id, isFinished: !userLibraryItem.is_finished })}
+                  className={`btn ${userLibraryItem.is_finished ? 'btn-finished' : ''}`}
+                >
+                  {userLibraryItem.is_finished ? 'Finished' : 'Mark as finished'}
+                </button>
+              </>
+            ) : (
+              <button className="btn primary">Buy now</button>
+            )}
+          </div>
+
+          {/* Sample Toggle Button */}
+          {work.sample_content && (
+            <button 
+              className="sample-toggle-btn" 
+              onClick={() => setIsSampleExpanded(!isSampleExpanded)}
+              aria-expanded={isSampleExpanded}
+            >
+              <span>Read Sample</span>
+              <svg 
+                className={`toggle-arrow ${isSampleExpanded ? 'expanded' : ''}`} 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+              >
+                <polyline points="6,9 12,15 18,9"></polyline>
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Expandable Sample Card */}
+      {isSampleExpanded && work.sample_content && (
+        <div className="sample-card expanded">
+          <div className="sample-header">
+            <h4>Sample from "{work.title}"</h4>
+          </div>
+          <div className="sample-excerpt">
+            <p>{work.sample_content}</p>
+          </div>
+          <div className="sample-actions">
+            {userLibraryItem ? (
+              <button className="continue-btn">Continue reading</button>
+            ) : (
+              <button className="buy-btn">Buy now</button>
+            )}
+          </div>
+        </div>
+      )}
+    </article>
+  );
 };
 
 const fetchUserRating = async (userId: string, workId: string) => {

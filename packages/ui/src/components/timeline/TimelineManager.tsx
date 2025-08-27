@@ -13,7 +13,7 @@ import {
   toggleTimelineEventPublishStatus,
   reorderTimelineEvents,
   TimelineEvent
-} from '../../api/timeline';
+} from '@zoroaster/shared/timeline';
 import TimelineEventForm from './TimelineEventForm';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useSortable } from '@dnd-kit/sortable';
@@ -302,7 +302,7 @@ const TimelineManager: React.FC = () => {
               >
                 {events.map((event) => (
                   <SortableItem key={event.id} id={event.id}>
-                    {(listeners, isDragging) => (
+                    {({ listeners, isDragging }) => (
                       <>
                         {isReordering && (
                           <TableCell className="w-10">
@@ -375,7 +375,6 @@ const TimelineManager: React.FC = () => {
         description="Are you sure you want to delete this timeline event? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
-        variant="destructive"
       />
     </div>
   );

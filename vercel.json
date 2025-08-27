@@ -3,8 +3,8 @@
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "buildCommand": "cd apps/frontend && pnpm install --no-frozen-lockfile && pnpm run build",
-  "installCommand": "pnpm install",
+  "buildCommand": "cd apps/frontend && npm install && npm run build",
+  "installCommand": "npm install",
   "regions": ["iad1"],
   "env": {
     "NODE_VERSION": "18.17.1"

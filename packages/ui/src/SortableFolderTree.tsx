@@ -4,7 +4,7 @@ import { Button } from './button';
 import { Folder, File, Edit, Trash2 } from 'lucide-react';
 import { cn } from './lib';
 
-import { WikiPage, WikiFolder } from '@zoroaster/shared';
+import { WikiPage, Folder as WikiFolder } from '@zoroaster/shared';
 
 type SortableFolderTreeProps = {
   folders: WikiFolder[];

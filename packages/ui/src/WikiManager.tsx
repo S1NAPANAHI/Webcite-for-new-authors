@@ -3,10 +3,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
 import { Input } from '@zoroaster/ui';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders, fetchPages, WikiPage, Database, Folder, WikiSectionView } from '@zoroaster/shared';
+import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
+import { supabase, fetchFolders, fetchPages, Database, Folder } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiEditor } from '@zoroaster/ui';
 import { SortableFolderTree } from '@zoroaster/ui';
+
+type WikiPageWithSections = WikiPage & {
+  sections: (WikiSectionView & { content: string })[];
+};
 
 interface ReorderedItem {
   id: string;
@@ -18,7 +23,7 @@ export function WikiManager() {
   const { folderId } = useParams();
   const navigate = useNavigate();
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [pages, setPages] = useState<WikiPage[]>([]); // Changed from Page[] to WikiPage[]
+  const [pages, setPages] = useState<WikiPageWithSections[]>([]); // Changed from Page[] to WikiPage[]
   
   const [newFolderName, setNewFolderName] = useState('');
   const [newPageName, setNewPageName] = useState('');
@@ -140,12 +145,34 @@ export function WikiManager() {
       if (pageError) throw pageError;
 
       // Insert initial content block (section)
-      const initialSection = {
+      const initialSection: WikiSectionView = {
         id: `section-${Date.now()}`,
-        type: 'paragraph' as Database["public"]["Enums"]["content_block_type"],
+        title: 'Untitled Section',
+        type: 'paragraph',
         content: '',
         page_id: newWikiPage.id,
         position: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        page_title: newWikiPage.title,
+        page_slug: newWikiPage.slug,
+        category_id: newWikiPage.category_id || null,
+        category_name: null,
+        category_slug: null,
+        category_description: null,
+        category_icon: null,
+        category_color: null,
+        category_order: 0,
+        category_created_at: new Date().toISOString(),
+        category_updated_at: new Date().toISOString(),
+        is_published: newWikiPage.is_published || false,
+        seo_title: newWikiPage.seo_title || null,
+        seo_description: newWikiPage.seo_description || null,
+        seo_keywords: newWikiPage.seo_keywords || [],
+        created_by: newWikiPage.created_by || null,
+        updated_by: newWikiPage.updated_by || null,
+        view_count: 0,
+        version: 1
       };
 
       const { error: contentBlockError } = await supabase
@@ -154,8 +181,15 @@ export function WikiManager() {
 
       if (contentBlockError) throw contentBlockError;
       
-      // Update local state
-      setPages(prev => [...prev, { ...newWikiPage, sections: [initialSection] }]); // Add sections to local state
+      // Update local state with proper typing
+      const newPageWithSections: WikiPageWithSections = {
+        ...newWikiPage,
+        sections: [{
+          ...initialSection,
+          content: initialSection.content || ''
+        }]
+      };
+      setPages(prev => [...prev, newPageWithSections]);
       setNewPageName('');
       setShowNewPageInput(false);
       

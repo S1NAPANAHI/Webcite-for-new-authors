@@ -36,11 +36,11 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
         const now = new Date().toISOString();
         const { data: subscriptions, error: subError } = await supabase
           .from('subscriptions')
-          .select('id') // Just need to know if there's an active subscription
+          .select('id')
           .eq('user_id', user.id)
           .eq('is_active', true)
           .lte('start_date', now)
-          .or(`current_period_end.gte.${now},current_period_end.is.null`);
+          .or(`current_period_end.gte.${now},current_period_end.is.null`) as { data: Array<{ id: string }> | null, error: any };
 
         if (subError) {
           throw subError;

@@ -1,46 +1,35 @@
-import React, { useState, useEffect, useRef, Suspense, lazy, forwardRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, forwardRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared';
 import { Button } from '@zoroaster/ui';
-import { Input } from '@zoroaster/ui';
-import { Label } from '@zoroaster/ui';
-import { Switch } from '@zoroaster/ui';
-import { Textarea } from '@zoroaster/ui';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@zoroaster/ui';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@zoroaster/ui';
-import { Badge } from '@zoroaster/ui';
-import { Loader2, Save, ArrowLeft, Eye, Tag, Search, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from '@zoroaster/ui';
+import { Textarea } from '@zoroaster/ui';
+import { Label } from '@zoroaster/ui';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@zoroaster/ui';
+import { Switch } from '@zoroaster/ui';
+import { Save, Loader2, ArrowLeft, Eye } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
+import { Badge } from './components/ui/badge';
+import { Tag } from './components/ui/tag';
 
-// Import ReactQuill with dynamic import
-const ReactQuill = lazy(() => import('react-quill-new').then(module => ({
-  default: module.default as any
-})));
+// Import ReactQuill
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
-// Import Quill CSS
-import 'quill/dist/quill.snow.css';
-
-// Simple wrapper component for ReactQuill
-interface QuillEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  theme: string;
-  modules: any; // Assuming modules can be any for now
-  formats: any; // Assuming formats can be any for now
-  className?: string;
-}
-
-const QuillEditor = forwardRef<any, QuillEditorProps>(({ value, onChange, ...props }, ref) => {
+const QuillEditor = forwardRef<ReactQuill, React.ComponentProps<typeof ReactQuill>>(({ value, onChange, ...props }, ref) => {
   return (
     <Suspense fallback={<div>Loading editor...</div>}>
       <ReactQuill
+        ref={ref}
         value={value}
         onChange={onChange}
-        {...props} // Spread all props
+        {...props}
       />
     </Suspense>
   );
 });
+
 QuillEditor.displayName = 'QuillEditor';
 
 // Quill modules configuration
@@ -67,7 +56,11 @@ const formats = [
 
 import { WikiPage, WikiSectionView, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
 
-interface WikiEditorProps {
+type WikiPageWithSections = WikiPage & {
+  sections: (WikiSectionView & { content: string })[];
+};
+
+export interface WikiEditorProps {
   id?: string;
   onUpdatePage?: (page: WikiPage) => void;
 }
@@ -84,15 +77,21 @@ export function WikiEditor({ id, onUpdatePage }: WikiEditorProps) {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   
-  const [page, setPage] = useState<WikiPage>({
+  const [page, setPage] = useState<WikiPageWithSections>({
+    id: '',
     title: '',
     slug: '',
+    content: '',
     sections: [{
       id: 'section-1',
       title: 'Introduction',
       content: '',
-      type: 'text'
-    }],
+      type: 'paragraph',
+      page_id: '',
+      position: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as WikiSectionView & { content: string }],
     category_id: null,
     is_published: false,
     seo_title: '',
@@ -234,17 +233,19 @@ export function WikiEditor({ id, onUpdatePage }: WikiEditorProps) {
   };
 
   const handleSave = async () => {
+    setSaving(true);
+    
     try {
-      setSaving(true);
-
       // Basic validation
-      if (!page.title.trim()) {
+      if (!page?.title?.trim()) {
         toast.error('Title is required');
+        setSaving(false);
         return;
       }
 
-      if (!page.slug.trim()) {
+      if (!page.slug?.trim()) {
         toast.error('Slug is required');
+        setSaving(false);
         return;
       }
 
@@ -252,6 +253,7 @@ export function WikiEditor({ id, onUpdatePage }: WikiEditorProps) {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         toast.error('You must be signed in to save changes.');
+        setSaving(false);
         return;
       }
 

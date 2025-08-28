@@ -23,6 +23,18 @@ const MenuComponent = ({ children }: { children: React.ReactNode }) => (
   <div className="menu">{children}</div>
 );
 
+// Define WikiSectionView first since it's used in WikiPage
+interface WikiSectionView {
+  id: string;
+  type: 'heading_1' | 'heading_2' | 'heading_3' | 'paragraph' | 'bullet_list' | 'ordered_list' | 'image' | 'table' | 'quote' | 'code' | 'divider';
+  content: string;
+  title?: string;
+  page_id?: string;
+  position?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface WikiPage extends Omit<SharedWikiPage, 'sections' | 'view_count' | 'excerpt'> {
   id: string;
   title: string;
@@ -37,6 +49,9 @@ interface WikiPage extends Omit<SharedWikiPage, 'sections' | 'view_count' | 'exc
   content: string;
   excerpt: string | null;
   view_count: number | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string[] | null;
 }
 
 interface Folder extends Omit<SharedFolder, 'children'> {
@@ -78,27 +93,6 @@ const isWikiPage = (item: SearchResultItem): item is (Omit<WikiPage, 'view_count
 const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'folder' }) => {
   return item.resultType === 'folder' && 'name' in item && 'id' in item;
 };
-
-// Define WikiSectionView interface
-interface WikiSectionView {
-  id: string;
-  type: 'heading_1' | 'heading_2' | 'heading_3' | 'paragraph' | 'bullet_list' | 'ordered_list' | 'image' | 'table' | 'quote' | 'code' | 'divider';
-  content: {
-    text?: string;
-    items?: string[];
-    url?: string;
-    alt?: string;
-    caption?: string;
-    language?: string;
-    rows?: any[][];
-    align?: string[];
-  };
-  title?: string;
-  page_id?: string;
-  position?: number;
-  created_at?: string;
-  updated_at?: string;
-}
 
 export function WikiViewer() {
   const { folderSlug, pageSlug } = useParams<{ folderSlug?: string; pageSlug?: string }>();

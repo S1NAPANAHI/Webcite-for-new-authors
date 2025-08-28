@@ -44,7 +44,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   const searchTimeoutRef = useRef<number | null>(null);
   const contentRef = useRef<HTMLElement>(null);
 
-  const content = page.content || '';
+  const content = page.excerpt || '';
 
   // Handle search functionality
   const handleSearch = async (query: string) => {
@@ -507,7 +507,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       ) : (
         <div 
           className="prose dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: page.content || '' }}
+          dangerouslySetInnerHTML={{ __html: page.excerpt || '' }}
         />
       )}
     </div>

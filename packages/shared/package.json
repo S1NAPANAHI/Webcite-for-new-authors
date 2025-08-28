@@ -11,7 +11,8 @@
     "./types/content": "./src/types/content.ts"
   },
   "scripts": {
-    "generate-types": "supabase gen types typescript --local > src/database.types.ts"
+    "generate-types": "supabase gen types typescript --local > src/database.types.ts",
+    "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",

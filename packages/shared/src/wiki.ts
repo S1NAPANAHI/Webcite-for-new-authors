@@ -20,6 +20,10 @@ export type WikiSectionView = {
   title: string;
   content: any;
   type: Enums<'content_block_type'>;
+  order_index?: number;
+  created_at?: string;
+  updated_at?: string;
+  page_id?: string;
 };
 
 export interface WikiPage extends Tables<'wiki_pages'> {

@@ -35,7 +35,7 @@ interface WikiSectionView {
   updated_at?: string;
 }
 
-interface WikiPage extends Omit<SharedWikiPage, 'sections' | 'view_count' | 'excerpt'> {
+interface WikiPage {
   id: string;
   title: string;
   slug: string;
@@ -52,6 +52,7 @@ interface WikiPage extends Omit<SharedWikiPage, 'sections' | 'view_count' | 'exc
   seo_title?: string | null;
   seo_description?: string | null;
   seo_keywords?: string[] | null;
+  [key: string]: any; // For any additional properties that might exist
 }
 
 interface Folder extends Omit<SharedFolder, 'children'> {

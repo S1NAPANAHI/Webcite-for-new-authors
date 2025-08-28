@@ -62,6 +62,7 @@ export function SortableFolderTree({
         ...folder,
         children: [],
         pages: [],
+        type: 'folder',
       });
     });
 

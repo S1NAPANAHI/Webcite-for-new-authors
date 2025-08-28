@@ -64,7 +64,7 @@ export interface TimelineEvent extends BaseContent {
   date: string;
   era: 'ancient' | 'medieval' | 'modern' | 'future';
   description: string;
-  is_published?: boolean; // Add this line
+  is_published: boolean;
 }
 
 export interface BetaUser extends BaseContent {

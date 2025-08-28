@@ -36,7 +36,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
 
         // Check if user has ANY active subscription
         const now = new Date().toISOString();
-        let baseQuery = supabase.from('subscriptions');
+        let baseQuery: any = supabase.from('subscriptions');
         let query = baseQuery
           .select('id')
           .eq('user_id', user.id)

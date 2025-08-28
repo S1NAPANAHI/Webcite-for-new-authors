@@ -257,7 +257,7 @@ export const SubscriptionPage: React.FC = () => {
             is_subscription: true,
             trial_period_days: undefined, // Add if selectedPlan has this property
           }}
-          onClose={handleCheckoutClose}
+          onCancel={handleCheckoutClose}
           onSuccess={handleCheckoutSuccess}
         />
       )}

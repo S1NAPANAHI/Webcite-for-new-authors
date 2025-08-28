@@ -94,7 +94,7 @@ export function ContentEditor<T extends ContentItem>({
           backstory: '',
           image_url: '',
           birth_date: undefined,
-          death_date: undefined,
+          death_date: null,
           species: undefined,
           occupation: undefined,
           relationships: undefined,
@@ -105,7 +105,8 @@ export function ContentEditor<T extends ContentItem>({
           title: '',
           date: '',
           era: 'ancient',
-          description: ''
+          description: '',
+          is_published: false,
         } as FormData<T>;
       case 'betaUsers': // Add this case
         return {

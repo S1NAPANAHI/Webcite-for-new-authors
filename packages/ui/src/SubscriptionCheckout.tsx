@@ -98,7 +98,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
           </div>
           <div>
             <h2 className="text-xl font-bold">{product.name}</h2>
-            <p className="text-text-light/80 text-sm">{product.description}</p>
+            
           </div>
         </div>
       </div>

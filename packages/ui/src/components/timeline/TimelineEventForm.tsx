@@ -11,13 +11,15 @@ import { Textarea } from '../../textarea';
 import { Label } from '../../label';
 import { Switch } from '../../switch';
 import { useToast } from '../../use-toast';
-import { 
-  createTimelineEvent, 
-  updateTimelineEvent, 
-  TimelineEvent, 
+import { TimelineEvent } from '@zoroaster/shared';
+import {
+  createTimelineEvent,
+  updateTimelineEvent
+} from '../../api/timeline';
+import {
   CreateTimelineEventDto,
-  UpdateTimelineEventDto 
-} from '@zoroaster/shared/timeline';
+  UpdateTimelineEventDto
+} from '../../types/timeline';
 import { ImageUpload } from '../common/ImageUpload';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -39,7 +41,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   details: z.string().optional(),
   background_image: z.string().optional(),
-  is_published: z.boolean().nullable().default(false),
+  is_published: z.boolean().default(false),
   nested_events: z.array(nestedEventSchema).optional(),
 });
 

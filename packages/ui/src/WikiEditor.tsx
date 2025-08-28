@@ -34,7 +34,6 @@ const QuillEditor = forwardRef<any, QuillEditorProps>(({ value, onChange, ...pro
   return (
     <Suspense fallback={<div>Loading editor...</div>}>
       <ReactQuill
-        ref={ref as any}
         theme={props.theme} // Explicitly pass theme
         value={value}
         onChange={onChange}
@@ -69,7 +68,7 @@ const formats = [
   'link', 'image'
 ];
 
-import { WikiPage, WikiSectionView, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared/wiki';
+import { WikiPage, WikiSectionView, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared/wiki';
 
 export function WikiEditor() {
   const { id } = useParams<{ id?: string }>();
@@ -495,14 +494,14 @@ export function WikiEditor() {
     </div>
   );
 
-  const Editor = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => (
+  const Editor = ({ value, onChange, theme, modules, formats, className }: QuillEditorProps) => (
     <QuillEditor
-      theme="snow"
+      theme={theme}
       value={value}
       onChange={onChange}
       modules={modules}
       formats={formats}
-      className="min-h-[200px]"
+      className={className}
     />
   );
 
@@ -514,6 +513,7 @@ export function WikiEditor() {
             <Editor
               value={section.content || ''}
               onChange={(content) => updateSection(section.id, { content })}
+              theme="snow" // Pass theme
               modules={modules}
               formats={formats}
               className="min-h-[300px]"

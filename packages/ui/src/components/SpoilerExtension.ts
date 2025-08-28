@@ -29,7 +29,7 @@ export const Spoiler = Mark.create({
 
   addCommands() {
     return {
-      toggleSpoiler: () => ({ commands }) => {
+      toggleSpoiler: ({ commands }) => {
         return commands.toggleMark(this.name);
       },
     };

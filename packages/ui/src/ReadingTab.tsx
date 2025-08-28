@@ -43,7 +43,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
           .eq('is_active', true)
           .lte('start_date', now);
 
-        query = query.or(`current_period_end.gte.${now},current_period_end.is.null`);
+        query = (query as any).or(`current_period_end.gte.${now},current_period_end.is.null`);
 
         const { data: subscriptions, error: subError } = await query as any;
 

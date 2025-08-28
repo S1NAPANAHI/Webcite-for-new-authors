@@ -17,13 +17,27 @@ import { Tag } from './components/ui/tag';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
-const QuillEditor = forwardRef<ReactQuill, React.ComponentProps<typeof ReactQuill>>(({ value, onChange, ...props }, ref) => {
+interface WikiPageWithSections extends WikiPage {
+  sections: (WikiSectionView & { content: string })[];
+  content: string;
+}
+
+interface QuillEditorProps extends React.ComponentProps<typeof ReactQuill> {
+  value: string;
+  onChange: (content: string) => void;
+}
+
+const QuillEditor = forwardRef<ReactQuill, QuillEditorProps>(({ value, onChange, ...props }, ref) => {
+  const handleChange = (content: string) => {
+    onChange(content);
+  };
+
   return (
     <Suspense fallback={<div>Loading editor...</div>}>
       <ReactQuill
         ref={ref}
         value={value}
-        onChange={onChange}
+        onChange={handleChange}
         {...props}
       />
     </Suspense>
@@ -56,16 +70,13 @@ const formats = [
 
 import { WikiPage, WikiSectionView, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
 
-type WikiPageWithSections = WikiPage & {
-  sections: (WikiSectionView & { content: string })[];
-};
-
-export interface WikiEditorProps {
+interface WikiEditorProps {
   id?: string;
   onUpdatePage?: (page: WikiPage) => void;
+  initialData?: WikiPageWithSections;
 }
 
-export function WikiEditor({ id, onUpdatePage }: WikiEditorProps) {
+export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
   const { id: urlId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!!id);
@@ -77,7 +88,7 @@ export function WikiEditor({ id, onUpdatePage }: WikiEditorProps) {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   
-  const [page, setPage] = useState<WikiPageWithSections>({
+  const [page, setPage] = useState<WikiPageWithSections>(initialData || {
     id: '',
     title: '',
     slug: '',

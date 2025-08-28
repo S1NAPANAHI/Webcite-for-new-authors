@@ -23,7 +23,7 @@ export function WikiManager() {
   const { folderId } = useParams();
   const navigate = useNavigate();
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [pages, setPages] = useState<WikiPageWithSections[]>([]); // Changed from Page[] to WikiPage[]
+  const [pages, setPages] = useState<WikiPageWithSections[]>([]); 
   
   const [newFolderName, setNewFolderName] = useState('');
   const [newPageName, setNewPageName] = useState('');
@@ -55,13 +55,24 @@ export function WikiManager() {
         // Fetch all pages
         const { data: pagesData, error: pagesError } = await supabase
           .from('wiki_pages')
-          .select('*')
-          .order('title');
+          .select(`
+            *,
+            sections:wiki_sections(*)
+          `);
         
         if (pagesError) throw pagesError;
         
+        // Transform the data to match WikiPageWithSections
+        const formattedPages = (pagesData || []).map(page => ({
+          ...page,
+          sections: (page.sections || []).map((section: any) => ({
+            ...section,
+            content: section.content || ''
+          }))
+        })) as WikiPageWithSections[];
+        
         setFolders(foldersData || []);
-        setPages(pagesData as WikiPage[] || []); // Cast pagesData to WikiPage[]
+        setPages(formattedPages);
         
       } catch (error) {
         console.error('Error fetching wiki data:', error);
@@ -255,11 +266,32 @@ export function WikiManager() {
     }
   };
 
-  const handlePageSaved = (updatedPage: any) => {
-    setPages(prev => 
-      prev.map(p => p.id === updatedPage.id ? updatedPage : p)
-    );
-    setEditingPage(null);
+  const handlePageSaved = async (updatedPage: WikiPage) => {
+    try {
+      const { data, error } = await supabase
+        .from('wiki_pages')
+        .upsert({
+          ...updatedPage,
+          updated_at: new Date().toISOString(),
+          updated_by: (await supabase.auth.getUser()).data.user?.id
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Update the pages list
+      setPages(prev => 
+        prev.map(p => p.id === data.id ? { ...p, ...data } : p)
+      );
+      
+      toast.success('Page saved successfully');
+      return data;
+    } catch (error) {
+      console.error('Error saving page:', error);
+      toast.error('Failed to save page');
+      throw error;
+    }
   };
 
   const handleEditFolder = (folder: Folder) => {
@@ -619,11 +651,7 @@ export function WikiManager() {
         {currentPage ? (
           <WikiEditor 
             id={currentPage.id}
-            onUpdatePage={(updatedPage) => {
-              setPages(prev => 
-                prev.map(p => p.id === updatedPage.id ? updatedPage : p)
-              );
-            }}
+            onUpdatePage={handlePageSaved}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">

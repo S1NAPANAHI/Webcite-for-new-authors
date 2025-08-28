@@ -96,8 +96,14 @@ const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'fold
 
 type WikiViewerProps = {
   page: WikiPage & {
-    content?: string;
-    sections?: WikiSectionView[];
+    content: string;
+    sections?: Array<{
+      id: string;
+      title: string;
+      content: string;
+      order_index: number;
+      type: string;
+    }>;
   };
   onEdit?: () => void;
 };
@@ -373,6 +379,10 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
     setSearchResults([]);
   }, [folderSlug, pageSlug]);
 
+  if (!page) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="flex h-screen bg-background">
       {/* Left Sidebar - Navigation */}
@@ -554,24 +564,31 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
     )}
     
     {/* WikiViewer component */}
-    <div className="prose max-w-none">
-      <div className="flex justify-between items-center mb-6">
-        <h1>{page.title}</h1>
-        {onEdit && (
-          <Button variant="outline" onClick={onEdit}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
-        )}
-      </div>
+    <div className="prose dark:prose-invert max-w-none">
+      <h1>{page.title}</h1>
       
-      {/* Use the content with proper type checking */}
-      <div dangerouslySetInnerHTML={{ __html: content }} />
-      
-      {/* Update Menu usage */}
-      <div className="mt-4">
-        <MenuIcon className="h-5 w-5" />
-      </div>
+      {page.sections?.length ? (
+        <div className="space-y-6">
+          {page.sections
+            .sort((a, b) => a.order_index - b.order_index)
+            .map((section) => (
+              <div key={section.id} className="section">
+                {section.title && (
+                  <h2 className="text-2xl font-semibold mb-2">{section.title}</h2>
+                )}
+                <div 
+                  className="prose dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: section.content || '' }}
+                />
+              </div>
+            ))}
+        </div>
+      ) : (
+        <div 
+          className="prose dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: page.content || '' }}
+        />
+      )}
     </div>
   </div>
   );

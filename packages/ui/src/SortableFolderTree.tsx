@@ -4,7 +4,7 @@ import { Button } from './button';
 import { Folder, File, Edit, Trash2 } from 'lucide-react';
 import { cn } from './lib';
 
-type Folder = {
+type WikiFolder = {
   id: string;
   name: string;
   parent_id: string | null;
@@ -14,7 +14,7 @@ type Folder = {
   created_by: string | null;
 };
 
-type Page = {
+type WikiPage = {
   id: string;
   title: string;
   slug: string;
@@ -30,16 +30,16 @@ type Page = {
 };
 
 type SortableFolderTreeProps = {
-  folders: Folder[];
-  pages: Page[];
+  folders: WikiFolder[];
+  pages: WikiPage[];
   selectedFolder?: string | null;
   selectedPage: string;
   onSelect: (folderId: string) => void;
   onPageSelect: (pageId: string) => void;
   onDeleteFolder: (folderId: string) => void;
-  onEditFolder: (folder: Folder) => void;
+  onEditFolder: (folder: WikiFolder) => void;
   onDeletePage: (pageId: string) => void;
-  onEditPage: (page: Page) => void;
+  onEditPage: (page: WikiPage) => void;
   onMoveItem?: (itemId: string, folderId: string | null) => void;
 };
 

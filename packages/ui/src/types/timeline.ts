@@ -36,8 +36,10 @@ export interface CreateTimelineEventDto {
   nested_events?: Omit<TimelineNestedEvent, 'id' | 'timeline_event_id' | 'created_at' | 'updated_at'>[];
 }
 
-export interface UpdateTimelineEventDto extends Partial<Omit<CreateTimelineEventDto, 'nested_events'>> {
+export interface UpdateTimelineEventDto extends Partial<Omit<CreateTimelineEventDto, 'nested_events' | 'details' | 'background_image'>> {
   id: string;
+  details?: string | null;
+  background_image?: string | null;
   nested_events?: Array<Omit<TimelineNestedEvent, 'timeline_event_id' | 'created_at' | 'updated_at'>>;
 }
 

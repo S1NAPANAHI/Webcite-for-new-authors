@@ -304,28 +304,21 @@ export default function TimelineEventForm({
     mutationFn: async (formData: FormValues & { id: string }) => {
       const { nested_events, details, background_image, id, ...rest } = formData;
       
-      // Prepare the data for the API call
-      const apiData: UpdateTimelineEventDto = {
-        ...rest,
+      // Prepare the update data with the ID included
+      const updateData: UpdateTimelineEventDto = {
         id,
-        details: details || undefined,
-        // Only include background_image if it has a value
-        ...(background_image ? { background_image } : {}),
+        ...rest,
+        details: details || null, // Use null for empty details
+        background_image: background_image || null, // Use null for empty background_image
         nested_events: (nested_events || []).map((item, index) => ({
-          date: item.date,
-          title: item.title,
-          description: item.description,
+          ...item,
           order: index,
           timeline_event_id: id
         }))
       };
       
-      // Remove undefined values before sending to the API
-      const cleanData = Object.fromEntries(
-        Object.entries(apiData).filter(([_, v]) => v !== undefined)
-      ) as UpdateTimelineEventDto;
-      
-      return updateTimelineEvent(cleanData);
+      // Pass the complete update data object to the API function
+      return updateTimelineEvent(updateData.id, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });

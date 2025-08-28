@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@zoroaster/shared';
 import { UserProfile } from '@zoroaster/shared/profile'; // Import UserProfile
 
+import { PostgrestResponse } from '@supabase/supabase-js';
+
 interface ReadingTabProps {
   userProfile: UserProfile;
 }
@@ -34,7 +36,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
 
         // Check if user has ANY active subscription
         const now = new Date().toISOString();
-        const { data: subscriptions, error: subError } = await supabase
+        const { data: subscriptions, error: subError }: PostgrestResponse<{ id: string }> = await supabase
           .from('subscriptions')
           .select('id')
           .eq('user_id', user.id)

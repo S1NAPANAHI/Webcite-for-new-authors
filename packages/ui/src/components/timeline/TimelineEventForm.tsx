@@ -27,38 +27,24 @@ const nestedEventSchema = z.object({
 });
 
 const formSchema = z.object({
+  id: z.string().optional(),
   date: z.string().min(1, 'Date is required'),
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
-  details: z.string().optional(),
+  details: z.string().optional().nullable(),
   background_image: z.string().optional().nullable(),
   is_published: z.boolean().default(false),
   era: z.enum(['ancient', 'medieval', 'modern', 'future']).default('ancient'),
-  nested_events: z.array(nestedEventSchema).default([]),
+  nested_events: z.array(nestedEventSchema).default([]).optional(),
 });
 
-type FormValues = {
-  date: string;
-  title: string;
-  description: string;
-  details?: string | null;
-  background_image?: string | null;
-  is_published: boolean;
-  era: 'ancient' | 'medieval' | 'modern' | 'future';
-  nested_events: Array<{
-    id?: string;
-    date: string;
-    title: string;
-    description: string;
-    order?: number;
-    timeline_event_id?: string;
-  }>;
-};
+type FormValues = z.infer<typeof formSchema>;
 
-type CreateTimelineEventDto = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at'> & {
+// Extend the TimelineEvent type to include our form fields
+type TimelineEventFormData = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at' | 'background_image'> & {
   details?: string | null;
-  background_image?: string | null;
-  nested_events?: Array<Omit<NestedEvent, 'id'>>;
+  background_image?: string; // API expects string or undefined, not null
+  nested_events?: Array<Omit<NestedEvent, 'id' | 'timeline_event_id'>>;
 };
 
 type UpdateTimelineEventDto = Partial<Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at'>> & { 
@@ -213,8 +199,9 @@ export default function TimelineEventForm({
   const [isUploading, setIsUploading] = useState(false);
   
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues,
+    mode: 'onChange',
   });
 
   const {
@@ -269,23 +256,29 @@ export default function TimelineEventForm({
 
 
   const { mutate: createTimelineEventMutation } = useMutation({
-    mutationFn: (data: FormValues) => {
-      const apiData: CreateTimelineEventDto = {
-        title: data.title,
-        description: data.description,
-        details: data.details || null,
-        date: data.date,
-        era: data.era,
-        background_image: data.background_image || null,
-        is_published: data.is_published,
-        nested_events: (data.nested_events || []).map((item, index) => ({
+    mutationFn: async (formData: Omit<FormValues, 'id'>) => {
+      const { nested_events, details, background_image, ...rest } = formData;
+      
+      // Prepare the data for the API call
+      const apiData: TimelineEventFormData = {
+        ...rest,
+        details: details || undefined,
+        // Only include background_image if it has a value
+        ...(background_image ? { background_image } : {}),
+        nested_events: (nested_events || []).map((item, index) => ({
           date: item.date,
           title: item.title,
           description: item.description,
-          order: index,
+          order: index
         }))
       };
-      return createTimelineEvent(apiData);
+      
+      // Remove undefined values before sending to the API
+      const cleanData = Object.fromEntries(
+        Object.entries(apiData).filter(([_, v]) => v !== undefined)
+      ) as TimelineEventFormData;
+      
+      return createTimelineEvent(cleanData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
@@ -308,25 +301,31 @@ export default function TimelineEventForm({
   });
 
   const { mutate: updateTimelineEventMutation } = useMutation({
-    mutationFn: (data: FormValues & { id: string }) => {
+    mutationFn: async (formData: FormValues & { id: string }) => {
+      const { nested_events, details, background_image, id, ...rest } = formData;
+      
+      // Prepare the data for the API call
       const apiData: UpdateTimelineEventDto = {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        details: data.details || null,
-        date: data.date,
-        era: data.era,
-        background_image: data.background_image || null,
-        is_published: data.is_published,
-        nested_events: (data.nested_events || []).map((item, index) => ({
-          id: item.id,
+        ...rest,
+        id,
+        details: details || undefined,
+        // Only include background_image if it has a value
+        ...(background_image ? { background_image } : {}),
+        nested_events: (nested_events || []).map((item, index) => ({
           date: item.date,
           title: item.title,
           description: item.description,
           order: index,
+          timeline_event_id: id
         }))
       };
-      return updateTimelineEvent(apiData);
+      
+      // Remove undefined values before sending to the API
+      const cleanData = Object.fromEntries(
+        Object.entries(apiData).filter(([_, v]) => v !== undefined)
+      ) as UpdateTimelineEventDto;
+      
+      return updateTimelineEvent(cleanData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
@@ -358,23 +357,27 @@ export default function TimelineEventForm({
     }
   };
 
-  const onSubmit: SubmitHandler<FormValues> = async (formData) => {
+  const onSubmit: SubmitHandler<FormValues> = (data) => {
     setIsUploading(true);
     
-    try {
-      if (event) {
-        updateTimelineEventMutation({ ...formData, id: event.id });
-      } else {
-        createTimelineEventMutation(formData);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast({
-        title: 'Error',
-        description: 'An error occurred while saving the timeline event',
-        variant: 'destructive',
+    if (event) {
+      updateTimelineEventMutation({ 
+        ...data, 
+        id: event.id,
+        nested_events: data.nested_events?.map((item, index) => ({
+          ...item,
+          order: index,
+          timeline_event_id: event.id
+        })) || []
       });
-      setIsUploading(false);
+    } else {
+      createTimelineEventMutation({
+        ...data,
+        nested_events: data.nested_events?.map((item, index) => ({
+          ...item,
+          order: index
+        })) || []
+      });
     }
   };
 

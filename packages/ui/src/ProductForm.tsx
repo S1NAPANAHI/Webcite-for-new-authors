@@ -25,7 +25,7 @@ const productSchema = z.object({
       type: z.enum(['work', 'chapter']),
       id: z.string().min(1, 'Content ID is required'),
     })
-  ).default([]),
+  ),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;

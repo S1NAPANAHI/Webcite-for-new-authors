@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
 import { Input } from '@zoroaster/ui';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders, fetchPages, WikiPage, Database, Folder } from '@zoroaster/shared';
+import { supabase, fetchFolders, fetchPages, WikiPage, Database, Folder, WikiSectionView } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiEditor } from '@zoroaster/ui';
 import { SortableFolderTree } from '@zoroaster/ui';
@@ -509,7 +509,7 @@ export function WikiManager() {
                 className="flex-1 justify-center bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
                 onClick={() => setShowNewFolderInput(!showNewFolderInput)}
               >
-                <Folder size={14} className="mr-2" />
+                <FolderIcon size={14} className="mr-2" />
                 New Folder
               </Button>
             </div>

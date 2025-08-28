@@ -7,13 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../badge';
 import { LoadingSkeleton } from '../../LoadingSkeleton';
 import { useToast } from '../../use-toast';
-import { 
-  fetchTimelineEvents, 
-  deleteTimelineEvent, 
+import { TimelineEvent } from '@zoroaster/shared';
+import {
+  fetchTimelineEvents,
+  deleteTimelineEvent,
   toggleTimelineEventPublishStatus,
-  reorderTimelineEvents,
-  TimelineEvent
-} from '@zoroaster/shared/timeline';
+  reorderTimelineEvents
+} from '../../api/timeline';
 import TimelineEventForm from './TimelineEventForm';
 import { ConfirmDialog } from '../common/ConfirmDialog';
 import { useSortable } from '@dnd-kit/sortable';
@@ -55,7 +55,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
       className={isDragging ? 'bg-gray-100 dark:bg-gray-800' : ''}
       {...attributes}
     >
-      {children(listeners, isDragging)}
+      {children({ attributes, listeners, isDragging })}
     </tr>
   );
 };
@@ -70,67 +70,67 @@ const TimelineManager: React.FC = () => {
   const [isReordering, setIsReordering] = useState(false);
   const [events, setEvents] = useState<TimelineEvent[]>([]);
 
-  // const { data, isLoading, error, refetch } = useQuery({
-  //   queryKey: ['timelineEvents', { showUnpublished }],
-  //   queryFn: () => fetchTimelineEvents({ includeUnpublished: true }),
-  // });
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['timelineEvents', { showUnpublished }],
+    queryFn: () => fetchTimelineEvents({ includeUnpublished: true }),
+  });
 
-  // const deleteMutation = useMutation({
-  //   mutationFn: deleteTimelineEvent,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-  //     toast({
-  //       title: 'Success',
-  //       description: 'Timeline event deleted successfully',
-  //     });
-  //   },
-  //   onError: (error) => {
-  //     toast({
-  //       title: 'Error',
-  //       description: error.message,
-  //       variant: 'destructive',
-  //     });
-  //   },
-  // });
+  const deleteMutation = useMutation({
+    mutationFn: deleteTimelineEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+      toast({
+        title: 'Success',
+        description: 'Timeline event deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
-  // const togglePublishMutation = useMutation({
-  //   mutationFn: ({ id, isPublished }: { id: string; isPublished: boolean }) =>
-  //     toggleTimelineEventPublishStatus(id, !isPublished),
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-  //     toast({
-  //       title: 'Success',
-  //       description: 'Timeline event status updated',
-  //     });
-  //   },
-  //   onError: (error) => {
-  //     toast({
-  //       title: 'Error',
-  //       description: error.message,
-  //       variant: 'destructive',
-  //     });
-  //   },
-  // });
+  const togglePublishMutation = useMutation({
+    mutationFn: ({ id, isPublished }: { id: string; isPublished: boolean }) =>
+      toggleTimelineEventPublishStatus(id, !isPublished),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+      toast({
+        title: 'Success',
+        description: 'Timeline event status updated',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
-  // const reorderMutation = useMutation({
-  //   mutationFn: reorderTimelineEvents,
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-  //     toast({
-  //       title: 'Success',
-  //       description: 'Timeline events reordered successfully',
-  //     });
-  //   },
-  //   onError: (error) => {
-  //     toast({
-  //       title: 'Error',
-  //       description: error.message,
-  //       variant: 'destructive',
-  //     });
-  //     // Revert to the previous state on error
-  //     refetch();
-  //   },
-  // });
+  const reorderMutation = useMutation({
+    mutationFn: reorderTimelineEvents,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+      toast({
+        title: 'Success',
+        description: 'Timeline events reordered successfully',
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+      // Revert to the previous state on error
+      refetch();
+    },
+  });
 
   useEffect(() => {
     // if (data?.data) {

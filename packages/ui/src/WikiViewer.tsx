@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@zoroaster/ui';
 import { Menu, Search, X, ChevronRight, ChevronDown, BookOpen, Folder as FolderIcon, File } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
-import { WikiPage, Folder, WikiSectionView } from '@zoroaster/shared/wiki'; // Import types from shared
+import { WikiPage, Folder, WikiSectionView } from '@zoroaster/shared'; // Import types from shared
 
 type ContentBlock = { // This type is still needed for renderContentBlock
   id: string;

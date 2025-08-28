@@ -137,11 +137,12 @@ export function WikiManager() {
       if (pageError) throw pageError;
 
       // Insert initial content block (section)
-      const initialSection: WikiSectionView = {
+      const initialSection = {
         id: `section-${Date.now()}`,
-        title: 'Introduction',
-        type: 'paragraph' as Database["public"]["Enums"]["content_block_type"], // Explicitly cast to enum type
+        type: 'paragraph' as Database["public"]["Enums"]["content_block_type"],
         content: '',
+        page_id: newWikiPage.id,
+        position: 0,
       };
 
       const { error: contentBlockError } = await supabase

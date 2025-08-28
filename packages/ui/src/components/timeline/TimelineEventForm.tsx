@@ -41,7 +41,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   details: z.string().optional(),
   background_image: z.string().optional(),
-  is_published: z.boolean().default(false),
+  is_published: z.boolean().optional().default(false),
   nested_events: z.array(nestedEventSchema).optional(),
 });
 

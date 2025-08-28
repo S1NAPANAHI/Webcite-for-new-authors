@@ -323,8 +323,8 @@ const TimelineManager: React.FC = () => {
                           {event.description}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={event.published ? 'default' : 'outline'}>
-                            {event.published ? 'Published' : 'Draft'}
+                          <Badge variant={event.is_published ? 'default' : 'outline'}>
+                            {event.is_published ? 'Published' : 'Draft'}
                           </Badge>
                         </TableCell>
                         <TableCell>

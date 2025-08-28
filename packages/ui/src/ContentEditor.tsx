@@ -73,9 +73,9 @@ export function ContentEditor<T extends ContentItem>({
           title: '',
           content: '',
           slug: '',
-          author_id: '',
-          excerpt: '',
-          featured_image: '',
+          author_id: undefined,
+          excerpt: undefined,
+          featured_image: undefined,
           tags: [],
           category_id: undefined,
         } as FormData<T>;
@@ -86,7 +86,7 @@ export function ContentEditor<T extends ContentItem>({
           description: '',
           price: 0,
           category: 'digital',
-          image_url: '',
+          image_url: undefined,
           stock_quantity: 0,
           sku: undefined,
         } as FormData<T>;
@@ -96,7 +96,7 @@ export function ContentEditor<T extends ContentItem>({
           title: '',
           description: '',
           file_url: '',
-          file_type: '',
+          file_type: undefined,
           file_size: 0,
           category: 'tutorial',
           thumbnail_url: undefined,
@@ -110,7 +110,7 @@ export function ContentEditor<T extends ContentItem>({
           backstory: '',
           image_url: '',
           birth_date: undefined,
-          death_date: undefined,
+          death_date: null,
           species: undefined,
           occupation: undefined,
           relationships: undefined,
@@ -121,7 +121,8 @@ export function ContentEditor<T extends ContentItem>({
           title: '',
           date: '',
           era: 'ancient',
-          description: ''
+          description: '',
+          is_published: false,
         } as FormData<T>;
       case 'betaUsers':
         return {

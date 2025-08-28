@@ -7,24 +7,11 @@ import { Folder, File, GripVertical, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@zoroaster/ui';
 import { cn } from '@zoroaster/shared';
 
-type Folder = {
-  id: string;
-  name: string;
-  parent_id: string | null;
-  slug: string;
-  created_at: string;
-  updated_at: string;
-};
+import { Folder as SharedFolder, WikiPage } from '@zoroaster/shared';
 
-type Page = {
-  id: string;
-  title: string;
-  slug: string;
-  folder_id: string | null;
-  content: any;
-  created_at: string;
-  updated_at: string;
-};
+type Folder = SharedFolder;
+
+type Page = WikiPage;
 
 type SortableFolderTreeProps = {
   folders: Folder[];

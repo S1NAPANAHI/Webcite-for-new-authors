@@ -33,7 +33,8 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
         }
 
         // Check if user has ANY active subscription
-        const orCondition = `current_period_end.gte.${new Date().toISOString()},current_period_end.is.null`;
+        const now = new Date().toISOString();
+        const orCondition = `current_period_end.gte.${now},current_period_end.is.null`;
         const { data: subscriptions, error: subError } = await supabase
           .from('subscriptions')
           .select('id') // Just need to know if there's an active subscription

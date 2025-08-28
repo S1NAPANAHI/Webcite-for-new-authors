@@ -43,7 +43,7 @@ export interface WikiPage {
   seo_description?: string;
   seo_keywords?: string[];
   category?: Tables<'wiki_categories'> | null;
-  user?: Tables<'profiles'> | null;
+  user?: Tables<'profiles'> | null | { error: true } | string;
   sections?: WikiSectionView[];
 }
 
@@ -116,13 +116,9 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
   const query = supabase
     .from('wiki_pages')
     .select(`
-      .select(`
-          .select(`
       id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count,
-      category:wiki_categories (*),
-      user:profiles (*)
-    `)
-    `)
+      category(*),
+      user(*)
     `)
     .eq(isUuid ? 'id' : 'slug', identifier);
 

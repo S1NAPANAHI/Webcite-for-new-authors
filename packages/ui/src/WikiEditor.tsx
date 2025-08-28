@@ -12,16 +12,7 @@ import { Tag } from './components/ui/tag';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-interface WikiPageWithSections extends Omit<WikiPage, 'sections'> {
-  sections: (WikiSectionView & { content: string })[];
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  folder_id: string | null;
-  view_count: number;
-  is_published: boolean;
-  category_id: string | null;
-}
+
 
 interface QuillEditorProps {
   value: string;
@@ -115,27 +106,38 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   
-  const [page, setPage] = useState<WikiPageWithSections>(initialData || {
-    id: '',
-    title: '',
-    slug: '',
-    sections: [{
-      id: 'section-1',
-      title: 'Introduction',
+  const [page, setPage] = useState<WikiPageWithSections>(() => {
+    if (initialData) return initialData;
+    
+    return {
+      id: '',
+      title: '',
+      slug: '',
+      excerpt: '',
       content: '',
-      type: 'paragraph',
-      page_id: '',
-      position: 0,
+      seo_title: '',
+      seo_description: '',
+      seo_keywords: [],
+      sections: [{
+        id: 'section-1',
+        title: 'Introduction',
+        content: '',
+        type: 'paragraph',
+        page_id: '',
+        position: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      } as WikiSectionView & { content: string }],
+      category_id: null,
+      is_published: false,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    } as WikiSectionView & { content: string }],
-    category_id: null,
-    is_published: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    created_by: '',
-    folder_id: null,
-    view_count: 0,
+      updated_at: new Date().toISOString(),
+      created_by: '',
+      folder_id: null,
+      view_count: 0,
+      category: null,
+      user: null,
+    } as WikiPageWithSections;
   });
 
   const [newKeyword, setNewKeyword] = useState('');
@@ -170,7 +172,12 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
       const data = await fetchSharedWikiPage(pageId);
       
       if (data) {
-        setPage(data);
+        // Ensure sections is always an array
+        const pageWithSections: WikiPageWithSections = {
+          ...data,
+          sections: data.sections || []
+        };
+        setPage(pageWithSections);
         
         // Set selected category if exists
         if (data.category) {
@@ -380,7 +387,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         // Save sections here...
         
         // Prepare the updated page data with all required fields
-        const updatedPage: WikiPage = {
+        const updatedPage: WikiPageWithSections = {
           ...resultPage,
           title: page.title,
           slug: page.slug,

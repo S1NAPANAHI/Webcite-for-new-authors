@@ -8,8 +8,11 @@ import { toast } from 'sonner';
 import { WikiEditor } from '@zoroaster/ui';
 import { SortableFolderTree } from '@zoroaster/ui';
 
-
-
+interface ReorderedItem {
+  id: string;
+  data?: { order_index?: number };
+  children?: ReorderedItem[];
+}
 
 export function WikiManager() {
   const { folderId } = useParams();
@@ -167,30 +170,54 @@ export function WikiManager() {
     }
   };
 
+  // Handle editing a page
+  const handleEditPage = (page: WikiPage) => {
+    setEditingPage(page.id);
+    setSelectedPage(page.id);
+    // You might want to open a modal or form to edit the page details
+    // For now, we'll just select the page and the editor will handle the rest
+  };
+
+  // Handle deleting a page
   const handleDeletePage = async (pageId: string) => {
     if (!confirm('Are you sure you want to delete this page? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
-      const { error } = await supabase
+      setIsLoading(true);
+      
+      // First delete the page content blocks
+      const { error: contentError } = await supabase
+        .from('wiki_content_blocks')
+        .delete()
+        .eq('page_id', pageId);
+
+      if (contentError) throw contentError;
+
+      // Then delete the page itself
+      const { error: pageError } = await supabase
         .from('wiki_pages')
         .delete()
         .eq('id', pageId);
+
+      if (pageError) throw pageError;
+
+      // Update local state
+      setPages(prev => prev.filter(p => p.id !== pageId));
       
-      if (error) throw error;
-      
-      setPages(prev => prev.filter(page => page.id !== pageId));
-      
+      // If the deleted page was selected, clear the selection
       if (selectedPage === pageId) {
         setSelectedPage(null);
         setEditingPage(null);
       }
-      
+
       toast.success('Page deleted successfully');
     } catch (error) {
       console.error('Error deleting page:', error);
       toast.error('Failed to delete page');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -279,35 +306,44 @@ export function WikiManager() {
     }
   };
 
-  const handleReorder = async (reorderedItems: any[]) => {
+  const handleReorder = async (reorderedItems: ReorderedItem[]) => {
     try {
       setIsLoading(true);
       
-      // Update the order of items in the database
-      const updates = reorderedItems.map((item, index) => {
-        return item.type === 'folder' 
-          ? supabase
-              .from('wiki_folders')
-              .update({}) // Removed order_index update
-              .eq('id', item.id)
-          : supabase
-              .from('wiki_pages')
-              .update({}) // Removed order_index update
-              .eq('id', item.id);
+      // Flatten the tree structure to get all items with their new order
+      const updateItems: Array<{ id: string; order_index: number }> = [];
+      
+      const processItems = (items: ReorderedItem[], parentId: string | null = null) => {
+        items.forEach((item, index) => {
+          updateItems.push({
+            id: item.id,
+            order_index: index,
+            ...(parentId && { parent_id: parentId })
+          });
+          
+          if (item.children && item.children.length > 0) {
+            processItems(item.children, item.id);
+          }
+        });
+      };
+      
+      processItems(reorderedItems);
+      
+      // Update the order in the database
+      const { error } = await supabase.rpc('update_folder_order', {
+        items: updateItems
       });
       
-      await Promise.all(updates);
+      if (error) throw error;
       
-      // Refresh the data
-      await Promise.all([
-        fetchFolders(),
-        fetchPages()
-      ]);
-      
-      toast.success('Order updated successfully');
+      // Refetch the folders to update the UI
+      await fetchFolders();
+      toast.success('Folder order updated successfully');
     } catch (error) {
-      console.error('Error reordering items:', error);
-      toast.error('Failed to update order');
+      console.error('Error reordering folders:', error);
+      toast.error('Failed to update folder order');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -369,89 +405,45 @@ export function WikiManager() {
     navigate(`/account/admin/wiki/folder/${folderId}`);
   };
 
-  // Handle editing a page
-  const handleEditPage = (pageId: string) => {
-    setSelectedPage(pageId);
-    setEditingPage(pageId);
-  };
-
   // Update the folder tree building logic
   const folderTree = useMemo(() => {
-    const folderMap = new Map<string, any>();
-    const rootItems: any[] = [];
+    const folderMap = new Map<string, Folder & { children: Folder[] }>();
+    const rootItems: Array<Folder & { children: Folder[] }> = [];
     
     // First pass: create map of all folders
     folders.forEach(folder => {
-      const folderItem = {
-        id: folder.id,
-        type: 'folder' as const,
-        name: folder.name,
-        parentId: folder.parent_id,
-        data: folder,
-        children: []
-      };
+      folderMap.set(folder.id, { ...folder, children: [] });
+    });
+    
+    // Second pass: build the tree structure
+    folders.forEach(folder => {
+      const folderItem = folderMap.get(folder.id);
+      if (!folderItem) return;
       
-      folderMap.set(folder.id, folderItem);
-      
-      // If it's a root folder or we're in the current folder's context, add to root items
-      if (!folder.parent_id || folder.parent_id === folderId) {
+      if (folder.parent_id && folderMap.has(folder.parent_id)) {
+        const parent = folderMap.get(folder.parent_id);
+        if (parent) {
+          parent.children.push(folderItem);
+        }
+      } else {
         rootItems.push(folderItem);
       }
     });
     
-    // Second pass: build the hierarchy
-    folderMap.forEach(folder => {
-      if (folder.parentId && folderMap.has(folder.parentId)) {
-        const parent = folderMap.get(folder.parentId);
-        if (!parent.children) {
-          parent.children = [];
-        }
-        // Only add if we're in the right context
-        if (!folderId || folder.parentId === folderId) {
-          parent.children.push(folder);
-        }
-      }
-    });
-    
-    // Add pages to their respective folders or root
-    pages.forEach(page => {
-      const pageItem = {
-        id: page.id,
-        type: 'page' as const,
-        name: page.title,
-        parentId: page.folder_id,
-        data: page
-      };
-      
-      if (page.folder_id) {
-        const parent = folderMap.get(page.folder_id);
-        if (parent) {
-          if (!parent.children) {
-            parent.children = [];
-          }
-          // Only add if we're in the right context
-          if (!folderId || page.folder_id === folderId) {
-            parent.children.push(pageItem);
-          }
-        } else if (!folderId) {
-          // If parent folder doesn't exist but we're at root, add to root
-          rootItems.push(pageItem);
-        }
-      } else if (!folderId) {
-        // Add to root if no folder_id and we're at root
-        rootItems.push(pageItem);
-      }
-    });
-    
     // Sort items by order_index
-    const sortItems = (items: any[]) => {
-      if (!items) return [];
+    const sortItems = <T extends { data?: { order_index?: number } }>(items: T[]): T[] => {
       return [...items].sort((a, b) => 
         (a.data?.order_index ?? 0) - (b.data?.order_index ?? 0)
       );
     };
     
-    const sortRecursive = (items: any[]) => {
+    interface SortableItem {
+      data?: { order_index?: number };
+      children?: SortableItem[];
+      [key: string]: any;
+    }
+    
+    const sortRecursive = (items: SortableItem[]): SortableItem[] => {
       const sorted = sortItems(items);
       return sorted.map(item => ({
         ...item,
@@ -460,7 +452,7 @@ export function WikiManager() {
     };
     
     return sortRecursive(rootItems);
-  }, [folders, pages, folderId]);
+  }, [folders, folderId]);
 
   const currentFolder = folders.find(f => f.id === folderId);
   const currentPage = pages.find(p => p.id === selectedPage);
@@ -592,6 +584,12 @@ export function WikiManager() {
       <div className="flex-1 overflow-y-auto p-6">
         {currentPage ? (
           <WikiEditor 
+            id={currentPage.id}
+            onUpdatePage={(updatedPage) => {
+              setPages(prev => 
+                prev.map(p => p.id === updatedPage.id ? updatedPage : p)
+              );
+            }}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">

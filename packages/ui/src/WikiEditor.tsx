@@ -67,8 +67,13 @@ const formats = [
 
 import { WikiPage, WikiSectionView, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
 
-export function WikiEditor() {
-  const { id } = useParams<{ id?: string }>();
+interface WikiEditorProps {
+  id?: string;
+  onUpdatePage?: (page: WikiPage) => void;
+}
+
+export function WikiEditor({ id, onUpdatePage }: WikiEditorProps) {
+  const { id: urlId } = useParams<{ id?: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
@@ -98,11 +103,14 @@ export function WikiEditor() {
   const [newKeyword, setNewKeyword] = useState('');
 
   useEffect(() => {
+    const pageId = id || urlId; // Use the prop id if available, otherwise fall back to urlId
     fetchCategories();
-    if (id) {
-      fetchWikiPage();
+    if (pageId) {
+      fetchWikiPage(pageId);
+    } else {
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, urlId]);
 
   const fetchCategories = async () => {
     try {
@@ -119,12 +127,9 @@ export function WikiEditor() {
     }
   };
 
-  const fetchWikiPage = async () => {
+  const fetchWikiPage = async (pageId: string) => {
     try {
-      if (!id) { // Ensure id exists for fetching a specific page
-        throw new Error('Page ID is missing.');
-      }
-      const data = await fetchSharedWikiPage(id); // Use the shared function
+      const data = await fetchSharedWikiPage(pageId); // Use the shared function
       
       if (data) {
         setPage(data); // The shared function already returns a WikiPage with sections and SEO fields
@@ -331,12 +336,38 @@ export function WikiEditor() {
         }
       }
 
-      // If this was a new page, redirect to edit page
-      if (!id && resultPage) {
-        navigate(`/account/admin/wiki/edit/${resultPage.id}`, { replace: true });
+      // After saving the page, call onUpdatePage with the updated page data
+      if (resultPage) {
+        // Save sections here...
+        
+        // Prepare the updated page data with all required fields
+        const updatedPage: WikiPage = {
+          ...resultPage,
+          title: page.title,
+          slug: page.slug,
+          excerpt: page.excerpt || null,
+          is_published: page.is_published,
+          seo_title: page.seo_title || null,
+          seo_description: page.seo_description || null,
+          seo_keywords: page.seo_keywords || [],
+          category_id: page.category_id || null,
+          category: selectedCategory || null,
+          sections: page.sections || [],
+          created_at: resultPage.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Include any other required fields from the WikiPage type
+        };
+        
+        // Call the onUpdatePage callback if provided
+        if (onUpdatePage) {
+          onUpdatePage(updatedPage);
+        }
+        
+        // If this was a new page, navigate to its edit URL
+        if (!id) {
+          navigate(`/account/admin/wiki/page/${resultPage.id}`);
+        }
       }
-
-      return resultPage;
     } catch (error: any) {
       console.error('Error saving wiki page:', error);
       
@@ -503,14 +534,18 @@ export function WikiEditor() {
   );
 
   const renderSectionContent = (section: WikiSectionView) => {
+    const handleContentChange = (content: string) => {
+      updateSection(section.id, { content });
+    };
+
     switch (section.type) {
       case 'text':
         return (
           <div className="mt-4">
             <Editor
               value={section.content || ''}
-              onChange={(content) => updateSection(section.id, { content })}
-              theme="snow" // Pass theme
+              onChange={handleContentChange}
+              theme="snow"
               modules={modules}
               formats={formats}
               className="min-h-[300px]"

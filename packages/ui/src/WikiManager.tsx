@@ -127,7 +127,7 @@ export function WikiManager() {
     }
   };
 
-  // Update the page creation handler to work at any level
+  // Update the page creation handler to properly type the page data and handle the response
   const handleCreatePage = async (e: React.MouseEvent<HTMLButtonElement>, folderId?: string) => {
     e.preventDefault();
     try {
@@ -145,23 +145,42 @@ export function WikiManager() {
             content: '',
             folder_id: folderId || null,
             is_published: false,
-            created_by: user?.id,
-            excerpt: ''
+            created_by: user.id,
+            excerpt: '',
+            slug: 'new-page-' + Date.now(),
+            seo_title: 'New Page',
+            seo_description: '',
+            seo_keywords: [],
+            view_count: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            category_id: null
           }
         ])
         .select('*')
-        .single();
+        .single<WikiPage>();
 
       if (error) throw error;
       
-      // Refresh pages
-      await fetchPages();
+      // Update local state with the new page
+      setPages(prev => [...prev, {
+        ...page,
+        sections: []
+      }]);
+      
+      // Select the new page for editing
+      if (page) {
+        setSelectedPage(page.id);
+        setEditingPage(page.id);
+      }
+      
       setNewPageName('');
       setShowNewPageInput(false);
       
+      toast.success('Page created successfully');
     } catch (error) {
       console.error('Error creating page:', error);
-      toast.error('Failed to create page');
+      toast.error(error instanceof Error ? error.message : 'Failed to create page');
     }
   };
 

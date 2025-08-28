@@ -170,25 +170,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
       const data = await fetchSharedWikiPage(pageId);
       
       if (data) {
-        // Convert WikiPage to WikiPageWithSections
-        const pageWithSections: WikiPageWithSections = {
-          ...data,
-          sections: data.sections?.map(section => ({
-            ...section,
-            content: section.content || ''
-          })) || [],
-          content: data.content || '',
-          excerpt: data.excerpt || '',
-          created_at: data.created_at || new Date().toISOString(),
-          updated_at: data.updated_at || new Date().toISOString(),
-          created_by: data.created_by || '',
-          folder_id: data.folder_id || null,
-          view_count: data.view_count || 0,
-          is_published: data.is_published || false,
-          category_id: data.category_id || ''
-        };
-        
-        setPage(pageWithSections);
+        setPage(data);
         
         // Set selected category if exists
         if (data.category) {

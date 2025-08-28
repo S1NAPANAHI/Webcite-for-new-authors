@@ -42,6 +42,9 @@ export interface WikiPage {
   seo_title?: string;
   seo_description?: string;
   seo_keywords?: string[];
+  category?: Tables<'wiki_categories'> | null;
+  user?: Tables<'profiles'> | null;
+  sections?: WikiSectionView[];
 }
 
 export const fetchPages = async (): Promise<WikiPage[]> => {

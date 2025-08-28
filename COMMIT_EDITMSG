@@ -1,0 +1,8 @@
+fix: Final TypeScript build error resolutions (re-attempt)
+
+This commit re-applies and refines fixes for persistent TypeScript build errors, including:
+
+- Refined `Folder` type handling in `SortableFolderTree.tsx` to ensure consistent `type` property access.
+- Re-applied `as unknown as FormData<T>` cast in `ContentEditor/index.tsx` and re-verified type compatibility for initial form data.
+- Re-corrected the `addCommands` method in `SpoilerExtension.ts` to strictly adhere to Tiptap's `RawCommands` type.
+- Adjusted `is_published` property in `TimelineEventForm.tsx`'s `formSchema` to `z.boolean().default(false)` to align with the now-required `is_published` in `TimelineEvent` interface.

@@ -1,8 +1,16 @@
-import { Mark } from '@tiptap/core';
+import { Mark, mergeAttributes } from '@tiptap/core';
 import { markInputRule, markPasteRule } from '@tiptap/core';
 
-const inputRegex = /(?:^|\s)((?:\\|\\)((?:[^|]+))(?:\\S*\\|\\))$/;
-const pasteRegex = /(?:^|\s)((?:\\|\\)((?:[^|]+))(?:\\S*\\|\\))/g;
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    spoiler: {
+      toggleSpoiler: () => ReturnType;
+    };
+  }
+}
+
+const inputRegex = /(?:^|\s)((?:\\|\\)((?:[^|]+))(:?\\S*\\|\\))$/;
+const pasteRegex = /(?:^|\s)((?:\\|\\)((?:[^|]+))(:?\\S*\\|\\))/g;
 
 export const Spoiler = Mark.create({
   name: 'spoiler',
@@ -10,7 +18,7 @@ export const Spoiler = Mark.create({
   addOptions() {
     return {
       HTMLAttributes: {
-        class: 'spoiler', // Add a class for styling
+        class: 'spoiler',
       },
     };
   },
@@ -18,26 +26,26 @@ export const Spoiler = Mark.create({
   parseHTML() {
     return [
       {
-        tag: 'span.spoiler', // Parse <span> with class "spoiler"
+        tag: 'span.spoiler',
       },
     ];
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['span', HTMLAttributes, 0];
+    return ['span', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
   },
 
   addCommands() {
     return {
-      toggleSpoiler: ({ commands }) => {
-        return commands.toggleMark(this.type.name);
+      toggleSpoiler: () => ({ commands }) => {
+        return commands.toggleMark(this.name);
       },
-    };
+    } as const;
   },
 
   addKeyboardShortcuts() {
     return {
-      'Mod-Shift-x': () => (this.editor.commands as any).toggleSpoiler(),
+      'Mod-Shift-x': () => this.editor.commands.toggleSpoiler(),
     };
   },
 

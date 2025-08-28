@@ -8,21 +8,35 @@ import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import { WikiPage, Folder, WikiSectionView } from '@zoroaster/shared'; // Import types from shared
 
-type ContentBlock = { // This type is still needed for renderContentBlock
+type ContentBlock = {
   id: string;
   type: string;
   content: any;
+};
+
+// Define a discriminated union type for search results
+type SearchResultItem = 
+  | (WikiPage & { type: 'page' })
+  | (Folder & { type: 'folder' });
+
+// Helper type guard functions
+const isWikiPage = (item: WikiPage | Folder): item is WikiPage => {
+  return 'title' in item;
+};
+
+const isFolder = (item: WikiPage | Folder): item is Folder => {
+  return 'name' in item && 'children' in item;
 };
 
 export function WikiViewer() {
   const { folderSlug, pageSlug } = useParams();
   const navigate = useNavigate();
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [pages, setPages] = useState<WikiPage[]>([]); // Changed to WikiPage[]
-  const [currentPage, setCurrentPage] = useState<WikiPage | null>(null); // Changed to WikiPage | null
+  const [pages, setPages] = useState<WikiPage[]>([]); 
+  const [currentPage, setCurrentPage] = useState<WikiPage | null>(null); 
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<(WikiPage | Folder)[]>([]); // Changed to WikiPage | Folder
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]); 
   const [isSearching, setIsSearching] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
@@ -47,20 +61,20 @@ export function WikiViewer() {
         // Fetch all pages
         const { data: pagesData, error: pagesError } = await supabase
           .from('wiki_pages')
-          .select('*, sections:wiki_content_blocks(*)') // Select sections as well
+          .select('*, sections:wiki_content_blocks(*)') 
           .order('title');
         
         if (pagesError) throw pagesError;
         
         setFolders(foldersData || []);
-        setPages(pagesData as WikiPage[] || []); // Cast pagesData to WikiPage[]
+        setPages(pagesData as WikiPage[] || []); 
         
         // If we have a page slug, load that page
         if (pageSlug) {
-          const page = (pagesData as WikiPage[])?.find(p => p.slug === pageSlug); // Cast pagesData
+          const page = (pagesData as WikiPage[])?.find(p => p.slug === pageSlug); 
           if (page) {
             setCurrentPage(page);
-            generateToc(page.sections); // Changed from page.content to page.sections
+            generateToc(page.sections); 
           }
         }
         
@@ -101,14 +115,14 @@ export function WikiViewer() {
   };
 
   // Generate table of contents from page content
-  const generateToc = (sections?: WikiSectionView[]) => { // Changed to WikiSectionView[]
+  const generateToc = (sections?: WikiSectionView[]) => { 
     if (!sections) return [];
     
     const headers = sections
       .filter(block => block.type.startsWith('heading_'))
       .map(block => ({
         id: `heading-${block.id}`,
-        text: (block.content as any)?.text || '', // Cast to any to access text property
+        text: (block.content as any)?.text || '', 
         level: parseInt(block.type.split('_')[1])
       }));
     
@@ -116,17 +130,17 @@ export function WikiViewer() {
   };
 
   // Render content blocks
-  const renderContentBlock = (block: WikiSectionView) => { // Changed to WikiSectionView
+  const renderContentBlock = (block: WikiSectionView) => { 
     switch (block.type) {
       case 'heading_1':
       case 'heading_2':
       case 'heading_3':
         const level = parseInt(block.type.split('_')[1]);
         const Tag = `h${level}` as keyof JSX.IntrinsicElements;
-        return <Tag id={`heading-${block.id}`} className="mt-6 mb-4 font-semibold">{(block.content as any)?.text}</Tag>; // Cast to any
+        return <Tag id={`heading-${block.id}`} className="mt-6 mb-4 font-semibold">{(block.content as any)?.text}</Tag>; 
       
       case 'paragraph':
-        return <p className="mb-4 leading-relaxed">{(block.content as any)?.text}</p>; // Cast to any
+        return <p className="mb-4 leading-relaxed">{(block.content as any)?.text}</p>; 
         
       case 'bullet_list':
         return (
@@ -149,14 +163,14 @@ export function WikiViewer() {
       case 'quote':
         return (
           <blockquote className="border-l-4 border-gray-300 pl-4 py-1 my-4 text-gray-600 italic">
-            {(block.content as any)?.text} // Cast to any
+            {(block.content as any)?.text} 
           </blockquote>
         );
         
       case 'code':
         return (
           <pre className="bg-gray-100 p-4 rounded-md my-4 overflow-x-auto">
-            <code>{(block.content as any)?.code}</code> // Cast to any
+            <code>{(block.content as any)?.code}</code> 
           </pre>
         );
         
@@ -164,12 +178,12 @@ export function WikiViewer() {
         return (
           <div className="my-6">
             <img 
-              src={(block.content as any)?.url} // Cast to any
-              alt={(block.content as any)?.alt || ''} // Cast to any
+              src={(block.content as any)?.url} 
+              alt={(block.content as any)?.alt || ''} 
               className="max-w-full h-auto rounded-md"
             />
-            {(block.content as any)?.caption && ( // Cast to any
-              <p className="text-sm text-gray-500 text-center mt-2">{(block.content as any).caption}</p> // Cast to any
+            {(block.content as any)?.caption && ( 
+              <p className="text-sm text-gray-500 text-center mt-2">{(block.content as any).caption}</p> 
             )}
           </div>
         );
@@ -235,8 +249,8 @@ export function WikiViewer() {
         // Search in wiki_pages (title and excerpt)
         const { data: pagesData, error: pagesError } = await supabase
           .from('wiki_pages')
-          .select('id, title, slug, folder_id') // Select only necessary fields
-          .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`); // Search title and excerpt
+          .select('id, title, slug, folder_id') 
+          .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`); 
         
         if (pagesError) throw pagesError;
 
@@ -244,7 +258,7 @@ export function WikiViewer() {
         const { data: contentBlocksData, error: contentBlocksError } = await supabase
           .from('wiki_content_blocks')
           .select('page_id, content')
-          .ilike('content->>text', `%${query}%`); // Search within content JSONB field
+          .ilike('content->>text', `%${query}%`); 
         
         if (contentBlocksError) throw contentBlocksError;
 
@@ -269,8 +283,8 @@ export function WikiViewer() {
         
         // Combine and deduplicate results
         const results = [
-          ...(combinedPages || []).map(p => ({ ...p, type: 'page' as const })),
-          ...(foldersData || []).map(f => ({ ...f, type: 'folder' as const }))
+          ...(combinedPages || []).map(p => ({ ...p, type: 'page' as const }) as SearchResultItem),
+          ...(foldersData || []).map(f => ({ ...f, type: 'folder' as const }) as SearchResultItem)
         ];
         
         setSearchResults(results);
@@ -287,7 +301,7 @@ export function WikiViewer() {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, [searchQuery, pages]); // Added 'pages' to dependency array
+  }, [searchQuery, pages]); 
 
   // Clear search when navigating
   useEffect(() => {
@@ -353,22 +367,22 @@ export function WikiViewer() {
                   <Link
                     key={`${result.type}-${result.id}`}
                     to={result.type === 'page' 
-                      ? `/wiki/${(result as WikiPage).folder_id ? `${(result as WikiPage).folder_id}/` : ''}${(result as WikiPage).slug}`
-                      : `/wiki/folder/${(result as Folder).id}`}
+                      ? `/wiki/${result.folder_id ? `${result.folder_id}/` : ''}${result.slug}`
+                      : `/wiki/folder/${result.id}`}
                     className="flex items-center px-2 py-1.5 text-sm rounded hover:bg-accent"
                     onClick={() => setSearchQuery('')}
                   >
                     {result.type === 'page' ? (
                       <File size={12} className="mr-2 text-blue-500 flex-shrink-0" />
                     ) : (
-                      <Folder size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
+                      <FolderIcon size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
                     )}
                     <span className="truncate">
-                      {(result as WikiPage).title || (result as Folder).name}
+                      {result.type === 'page' ? result.title : result.name}
                     </span>
-                    {result.type === 'page' && (result as WikiPage).folder_id && (
+                    {result.type === 'page' && result.folder_id && (
                       <span className="ml-2 text-xs text-muted-foreground truncate">
-                        in {folders.find(f => f.id === (result as WikiPage).folder_id)?.name || 'unknown'}
+                        in {folders.find(f => f.id === result.folder_id)?.name || 'unknown'}
                       </span>
                     )}
                   </Link>

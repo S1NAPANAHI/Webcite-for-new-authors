@@ -18,7 +18,7 @@ export const fetchFolders = async (): Promise<Folder[]> => {
 export type WikiSectionView = {
   id: string;
   title: string;
-  content: any;
+  content: string;
   type: Enums<'content_block_type'>;
   order_index?: number;
   created_at?: string;
@@ -27,6 +27,7 @@ export type WikiSectionView = {
 };
 
 export interface WikiPage extends Tables<'wiki_pages'> {
+  content?: string;
   sections?: WikiSectionView[];
   category?: Tables<'wiki_categories'> | null;
   user?: Tables<'profiles'> | null | any;

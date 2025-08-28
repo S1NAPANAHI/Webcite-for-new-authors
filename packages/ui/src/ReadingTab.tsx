@@ -41,7 +41,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
           .eq('user_id', user.id)
           .eq('is_active', true)
           .lte('start_date', new Date().toISOString())
-          .or(orCondition) as any;
+          .or(orCondition);
 
         if (subError) {
           throw subError;

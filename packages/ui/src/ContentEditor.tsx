@@ -61,79 +61,86 @@ export function ContentEditor<T extends ContentItem>({
     if (item) {
       // If we have an existing item, use its values
       const { id, created_at, updated_at, created_by, ...rest } = item;
-      return rest as FormData<T>;
+      return rest as unknown as FormData<T>;
     }
 
-    // Default values based on content type
-    switch (contentType) {
-      case 'posts':
-      case 'pages':
-        return {
-          status: 'draft',
-          title: '',
-          content: '',
-          slug: '',
-          author_id: undefined,
-          excerpt: undefined,
-          featured_image: undefined,
-          tags: [],
-          category_id: undefined,
-        } as FormData<T>;
-      case 'storeItems':
-        return {
-          status: 'active', // Default status for storeItems
-          name: '',
-          description: '',
-          price: 0,
-          category: 'digital',
-          image_url: undefined,
-          stock_quantity: 0,
-          sku: undefined,
-        } as FormData<T>;
-      case 'libraryItems':
-        return {
-          status: 'draft',
-          title: '',
-          description: '',
-          file_url: '',
-          file_type: undefined,
-          file_size: 0,
-          category: 'tutorial',
-          thumbnail_url: undefined,
-        } as FormData<T>;
-      case 'characters':
-        return {
-          status: 'draft',
-          name: '',
-          description: '',
-          role: '',
-          backstory: '',
-          image_url: '',
-          birth_date: undefined,
-          death_date: null,
-          species: undefined,
-          occupation: undefined,
-          relationships: undefined,
-        } as FormData<T>;
-      case 'timelineEvents':
-        return {
-          status: 'draft',
-          title: '',
-          date: '',
-          era: 'ancient',
-          description: '',
-          is_published: false,
-        } as FormData<T>;
-      case 'betaUsers':
-        return {
-          status: 'pending',
-          name: '',
-          email: '',
-          message: ''
-        } as FormData<T>;
-      default:
-        throw new Error(`Unsupported content type: ${contentType}`);
-    }
+    // Create a type-safe default form data object based on content type
+    const defaultData = (() => {
+      switch (contentType) {
+        case 'posts':
+        case 'pages':
+          return {
+            status: 'draft' as const,
+            title: '',
+            content: '',
+            slug: '',
+            author_id: undefined,
+            excerpt: undefined,
+            featured_image: undefined,
+            tags: [],
+            category_id: undefined,
+          };
+        case 'storeItems':
+          return {
+            status: 'active' as const,
+            name: '',
+            description: '',
+            price: 0,
+            category: 'digital' as const,
+            image_url: undefined,
+            stock_quantity: 0,
+            sku: undefined,
+          };
+        case 'libraryItems':
+          return {
+            status: 'draft' as const,
+            title: '',
+            description: '',
+            file_url: '',
+            file_type: undefined,
+            file_size: 0,
+            category: 'tutorial' as const,
+            thumbnail_url: undefined,
+          };
+        case 'characters':
+          return {
+            status: 'draft' as const,
+            name: '',
+            description: '',
+            role: '',
+            backstory: '',
+            image_url: '',
+            birth_date: undefined,
+            death_date: undefined,
+            species: undefined,
+            occupation: undefined,
+            relationships: undefined,
+          };
+        case 'timelineEvents':
+          return {
+            status: 'draft' as const,
+            title: '',
+            date: '',
+            era: 'ancient' as const,
+            description: '',
+            is_published: false,
+            details: null,
+            background_image: null,
+            nested_events: [],
+          };
+        case 'betaUsers':
+          return {
+            status: 'pending' as const,
+            name: '',
+            email: '',
+            message: ''
+          };
+        default:
+          throw new Error(`Unsupported content type: ${contentType}`);
+      }
+    })();
+
+    return defaultData as unknown as FormData<T>;
   }
 
   const handleSubmit = useCallback(() => {

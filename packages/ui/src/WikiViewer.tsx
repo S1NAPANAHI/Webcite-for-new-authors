@@ -24,7 +24,7 @@ const MenuComponent = ({ children }: { children: React.ReactNode }) => (
   <div className="menu">{children}</div>
 );
 
-interface WikiPage extends Omit<SharedWikiPage, 'sections'> {
+interface WikiPage extends Omit<SharedWikiPage, 'sections' | 'view_count' | 'excerpt'> {
   id: string;
   title: string;
   slug: string;
@@ -36,8 +36,8 @@ interface WikiPage extends Omit<SharedWikiPage, 'sections'> {
   is_published: boolean;
   sections?: WikiSectionView[];
   content?: string;
-  excerpt?: string | null;
-  view_count?: number | null;
+  excerpt: string | null;
+  view_count: number | null;
 }
 
 interface Folder extends Omit<SharedFolder, 'children'> {
@@ -54,12 +54,26 @@ interface Folder extends Omit<SharedFolder, 'children'> {
 
 // Define a discriminated union type for search results
 type SearchResultItem = 
-  | (WikiPage & { resultType: 'page' })
-  | (Folder & { resultType: 'folder' });
+  | (Omit<WikiPage, 'view_count'> & { 
+      resultType: 'page'; 
+      view_count?: number | null;
+      sections: WikiSectionView[];
+      content?: string;
+      excerpt: string | null;
+    })
+  | (Folder & { 
+      resultType: 'folder';
+    });
 
 // Helper type guard functions
-const isWikiPage = (item: SearchResultItem): item is (WikiPage & { resultType: 'page' }) => {
-  return item.resultType === 'page' && 'title' in item;
+const isWikiPage = (item: SearchResultItem): item is (Omit<WikiPage, 'view_count'> & { 
+  resultType: 'page'; 
+  view_count?: number | null;
+  sections: WikiSectionView[];
+  content?: string;
+  excerpt: string | null;
+}) => {
+  return item.resultType === 'page';
 };
 
 const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'folder' }) => {
@@ -125,11 +139,16 @@ export function WikiViewer() {
         ...page,
         resultType: 'page' as const,
         sections: [],
+        content: page.content || '',
+        excerpt: page.excerpt || null,
         is_published: page.is_published ?? true,
         category_id: page.category_id ?? null,
+        folder_id: page.folder_id ?? null,
         created_at: page.created_at || new Date().toISOString(),
         updated_at: page.updated_at || new Date().toISOString(),
-        created_by: page.created_by || ''
+        created_by: page.created_by || '',
+        view_count: page.view_count || 0,
+        slug: page.slug || ''
       }));
       
       setSearchResults(results);
@@ -281,7 +300,7 @@ export function WikiViewer() {
       <div key={folder.id} className="pl-2">
         <div className="flex items-center py-1 px-2 rounded hover:bg-accent cursor-pointer">
           <ChevronRight size={16} className="mr-1 text-muted-foreground" />
-          <Folder size={14} className="mr-2 text-blue-500" />
+          <FolderIcon size={14} className="mr-2 text-blue-500" />
           <span className="text-sm">{folder.name}</span>
         </div>
         
@@ -301,7 +320,7 @@ export function WikiViewer() {
                 to={`/wiki/${folder.slug}/${page.slug}`}
                 className={`flex items-center py-1 px-2 rounded text-sm ${pageSlug === page.slug ? 'bg-accent font-medium' : 'text-muted-foreground hover:bg-accent'}`}
               >
-                <File size={12} className="mr-2 text-gray-500" />
+                <FileIcon size={12} className="mr-2 text-gray-500" />
                 <span className="truncate">{page.title}</span>
               </Link>
             ))}

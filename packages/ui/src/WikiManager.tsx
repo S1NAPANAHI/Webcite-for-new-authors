@@ -128,8 +128,7 @@ export function WikiManager() {
   };
 
   // Update the page creation handler to properly type the page data and handle the response
-  const handleCreatePage = async (e: React.MouseEvent<HTMLButtonElement>, folderId?: string) => {
-    e.preventDefault();
+  const handleCreatePage = async (folderId?: string) => {
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) {
@@ -531,7 +530,7 @@ export function WikiManager() {
                 variant="outline" 
                 size="sm" 
                 className="flex-1 justify-center bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
-                onClick={(e) => handleCreatePage(e, folderId)}
+                onClick={() => handleCreatePage(folderId)}
               >
                 <Plus size={14} className="mr-2" />
                 New Page
@@ -574,13 +573,13 @@ export function WikiManager() {
                   autoFocus
                   value={newPageName}
                   onChange={(e) => setNewPageName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreatePage(e, folderId)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCreatePage(folderId); }}
                   placeholder="Page title"
                   className="h-8 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
                 <Button 
                   size="sm" 
-                  onClick={(e) => handleCreatePage(e, folderId)}
+                  onClick={() => handleCreatePage(folderId)}
                   disabled={!newPageName.trim()}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
@@ -639,7 +638,7 @@ export function WikiManager() {
                 : `Select a page from the sidebar or create a new one.`}
             </p>
             <Button 
-              onClick={(e) => handleCreatePage(e, folderId)}
+              onClick={() => handleCreatePage(folderId)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />

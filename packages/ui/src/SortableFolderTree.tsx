@@ -1,35 +1,75 @@
-import React, { useMemo } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core/dist/types';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { Folder, File, GripVertical, Edit, Trash2 } from 'lucide-react';
-import { Button } from '@zoroaster/ui';
-import { cn } from '@zoroaster/shared';
+import { useMemo } from 'react';
+import * as React from 'react';
+import { Button } from './button';
+import { Folder, File, Edit, Trash2 } from 'lucide-react';
+import { cn } from './lib';
 
-import { Folder as SharedFolder, WikiPage } from '@zoroaster/shared';
+type Folder = {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+};
 
-type Folder = SharedFolder;
-
-type Page = WikiPage;
+type Page = {
+  id: string;
+  title: string;
+  slug: string;
+  folder_id: string | null;
+  category_id: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  is_published: boolean;
+  excerpt?: string | null;
+  view_count: number | null;
+  content?: string;
+};
 
 type SortableFolderTreeProps = {
   folders: Folder[];
   pages: Page[];
   selectedFolder?: string | null;
-  selectedPage?: string | null;
+  selectedPage: string;
   onSelect: (folderId: string) => void;
   onPageSelect: (pageId: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onEditFolder: (folder: Folder) => void;
-  onDeletePage: (pageId: string) => void;
-  onEditPage: (pageId: string) => void;
-  onMoveItem: (itemId: string, folderId: string | null) => void;
+  onMoveItem?: (itemId: string, folderId: string | null) => void; // Made optional since it's not used
 };
 
-type FolderTreeItem = (Folder & { type: 'folder'; children: FolderTreeItem[]; pages: PageTreeItem[]; }) | (Page & { type: 'page' });
+interface FolderTreeItem {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  is_published?: boolean;
+  type: 'folder';
+  children: FolderTreeItem[];
+  pages: PageTreeItem[];
+}
 
-type PageTreeItem = Page & { type: 'page' };
+interface PageTreeItem {
+  id: string;
+  title: string;
+  slug: string;
+  folder_id: string | null;
+  category_id: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  is_published: boolean;
+  excerpt?: string | null;
+  view_count: number | null;
+  content?: string;
+  type: 'page';
+}
 
 export function SortableFolderTree({
   folders,
@@ -40,34 +80,22 @@ export function SortableFolderTree({
   onPageSelect,
   onDeleteFolder,
   onEditFolder,
-  onDeletePage,
-  onEditPage,
-  onMoveItem,
+  // onMoveItem is not used but kept in props for future use
 }: SortableFolderTreeProps) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
-  // Build the folder tree structure
-  const folderTree: FolderTreeItem[] = useMemo(() => {
+  const folderTree: (FolderTreeItem | PageTreeItem)[] = useMemo(() => {
     const folderMap = new Map<string, FolderTreeItem>();
     const rootItems: FolderTreeItem[] = [];
 
     // First pass: create map of folders
     folders.forEach(folder => {
-      folderMap.set(folder.id, {
+      const folderItem: FolderTreeItem = {
         ...folder,
         children: [],
         pages: [],
-        type: 'folder',
-      });
+        type: 'folder'
+      };
+      folderMap.set(folder.id, folderItem);
     });
 
     // Second pass: build tree
@@ -84,16 +112,22 @@ export function SortableFolderTree({
     });
 
     // Add pages to their respective folders
+    const rootPages: PageTreeItem[] = [];
     pages.forEach(page => {
       const pageItem: PageTreeItem = {
         id: page.id,
-        type: 'page',
         title: page.title,
         slug: page.slug,
         folder_id: page.folder_id,
-        content: page.content, // Ensure content is included if it exists on Page
+        category_id: page.category_id,
         created_at: page.created_at,
         updated_at: page.updated_at,
+        created_by: page.created_by,
+        is_published: page.is_published || false,
+        excerpt: page.excerpt || null,
+        view_count: page.view_count || 0,
+        type: 'page',
+        content: (page as any).content, // Use type assertion since content might exist
       };
 
       if (page.folder_id && folderMap.has(page.folder_id)) {
@@ -103,79 +137,54 @@ export function SortableFolderTree({
         }
       } else if (!page.folder_id) {
         // Add to root pages if no folder
-        rootItems.push(pageItem);
+        rootPages.push(pageItem);
       }
     });
 
-    return rootItems;
+    // Return both folders and pages at the root level
+    return [...rootItems, ...rootPages] as const;
   }, [folders, pages]);
 
-  const renderFolder = (folder: FolderTreeItem, depth = 0) => {
-    if (folder.type === 'page') {
-      // This case should ideally not happen if folderTree is correctly structured
-      // but as a fallback, render it as a page item
+  const renderItem = (item: FolderTreeItem | PageTreeItem, depth = 0): JSX.Element | null => {
+    if (!item) return null;
+    
+    if (item.type === 'page') {
       return (
         <div 
-          key={folder.id}
+          key={item.id}
           className={cn(
-            'flex items-center justify-between p-2 rounded-md cursor-pointer',
-            selectedPage === folder.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+            'flex items-center px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800',
+            selectedPage === item.id && 'bg-blue-50 dark:bg-blue-900/30',
           )}
-          onClick={() => onPageSelect(folder.id)}
+          onClick={() => onPageSelect(item.id)}
         >
-          <div className="flex items-center space-x-2 flex-1 min-w-0">
-            <File className="h-4 w-4 text-gray-500" />
-            <span className="truncate">{folder.title}</span>
-          </div>
-          <div className="flex space-x-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditPage(folder.id);
-              }}
-            >
-              <Edit className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-red-500 hover:text-red-600"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeletePage(folder.id);
-              }}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          </div>
+          <File className="h-4 w-4 mr-2 text-gray-500" />
+          <span className="truncate">{item.title}</span>
         </div>
       );
     }
 
     return (
-      <div key={folder.id} className="space-y-1">
+      <div key={item.id} className="space-y-1">
         <div 
           className={cn(
             'flex items-center justify-between p-2 rounded-md cursor-pointer',
-            selectedFolder === folder.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+            selectedFolder === item.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
           )}
-          onClick={() => onSelect(folder.id)}
+          onClick={() => onSelect(item.id)}
         >
           <div className="flex items-center space-x-2 flex-1 min-w-0">
             <Folder className="h-4 w-4 text-blue-500" />
-            <span className="truncate">{folder.name}</span>
+            <span className="truncate">{item.name}</span>
           </div>
           <div className="flex space-x-1">
             <Button
               variant="ghost"
               size="icon"
               className="h-6 w-6"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
-                onEditFolder(folder);
+                onEditFolder(item);
               }}
             >
               <Edit className="h-3.5 w-3.5" />
@@ -184,9 +193,9 @@ export function SortableFolderTree({
               variant="ghost"
               size="icon"
               className="h-6 w-6 text-red-500 hover:text-red-600"
-              onClick={(e) => {
+              onClick={(e: React.MouseEvent) => {
                 e.stopPropagation();
-                onDeleteFolder(folder.id);
+                onDeleteFolder(item.id);
               }}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -194,104 +203,29 @@ export function SortableFolderTree({
           </div>
         </div>
         
-        {folder.children.length > 0 && (
+        {item.children.length > 0 && (
           <div className="pl-4 border-l border-gray-200 dark:border-gray-700">
-            {folder.children.map((child: FolderTreeItem) => renderFolder(child, depth + 1))}
+            {item.children.map((child: FolderTreeItem) => renderItem(child, depth + 1))}
           </div>
         )}
         
-        {folder.pages.length > 0 && (
+        {item.pages.length > 0 && (
           <div className="pl-4">
-            {folder.pages.map((page: PageTreeItem) => (
-              <div 
-                key={page.id}
-                className={cn(
-                  'flex items-center justify-between p-2 rounded-md cursor-pointer',
-                  selectedPage === page.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                )}
-                onClick={() => onPageSelect(page.id)}
-              >
-                <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <File className="h-4 w-4 text-gray-500" />
-                  <span className="truncate">{page.title}</span>
-                </div>
-                <div className="flex space-x-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEditPage(page.id);
-                    }}
-                  >
-                    <Edit className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-red-500 hover:text-red-600"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeletePage(page.id);
-                    }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+            {item.pages.map((page: PageTreeItem) => renderItem(page, depth + 1))}
           </div>
         )}
       </div>
     );
   };
 
+  // Render the folder tree
   return (
     <div className="space-y-1">
-      {folderTree.map((item) => 
-        item.type === 'page' ? (
-          <div 
-            key={item.id}
-            className={cn(
-              'flex items-center justify-between p-2 rounded-md cursor-pointer',
-              selectedPage === item.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-            )}
-            onClick={() => onPageSelect(item.id)}
-          >
-            <div className="flex items-center space-x-2 flex-1 min-w-0">
-              <File className="h-4 w-4 text-gray-500" />
-              <span className="truncate">{item.title}</span>
-            </div>
-            <div className="flex space-x-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditPage(item.id);
-                }}
-              >
-                <Edit className="h-3.5 w-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-red-500 hover:text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeletePage(item.id);
-                }}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-        ) : (
-          renderFolder(item)
-        )
-      )}
+      {folderTree.map((item) => (
+        <div key={item.id}>
+          {renderItem(item, 0)}
+        </div>
+      ))}
     </div>
   );
 }

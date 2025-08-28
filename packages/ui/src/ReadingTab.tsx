@@ -45,7 +45,7 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
 
         query = query.or(`current_period_end.gte.${now},current_period_end.is.null`);
 
-        const { data: subscriptions, error: subError }: PostgrestResponse<{ id: string }> = await query;
+        const { data: subscriptions, error: subError } = await query as any;
 
         if (subError) {
           throw subError;

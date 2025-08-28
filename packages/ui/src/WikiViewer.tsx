@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@zoroaster/ui';
 import { Menu, Search, X, ChevronRight, ChevronDown, BookOpen, Folder as FolderIcon, File } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
-import { WikiPage, Folder, WikiSectionView } from '@zoroaster/shared'; // Import types from shared
+import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
 
-type ContentBlock = {
-  id: string;
-  type: string;
-  content: any;
-};
+interface WikiPage extends SharedWikiPage {
+  sections?: any[];
+}
+
+interface Folder extends SharedFolder {
+  children?: any[];
+}
 
 // Define a discriminated union type for search results
 type SearchResultItem = 

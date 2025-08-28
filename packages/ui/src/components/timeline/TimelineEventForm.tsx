@@ -42,7 +42,7 @@ const formSchema = z.object({
   details: z.string().optional(),
   background_image: z.string().optional(),
   is_published: z.boolean().default(false),
-  nested_events: z.array(nestedEventSchema).optional(),
+  nested_events: z.array(nestedEventSchema).default([]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -168,14 +168,13 @@ export default function TimelineEventForm({
   onOpenChange,
   event,
   onSuccess,
-}) {
+}: TimelineEventFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
-  const isEdit = !!event;
-  const defaultValues: Partial<FormValues> = {
+  const defaultValues: FormValues = {
+    date: '',
     title: '',
     description: '',
     details: '',
@@ -250,7 +249,7 @@ export default function TimelineEventForm({
       });
     },
     onSettled: () => {
-      setIsSubmitting(false);
+      setIsUploading(false);
     },
   });
 
@@ -273,7 +272,7 @@ export default function TimelineEventForm({
       });
     },
     onSettled: () => {
-      setIsSubmitting(false);
+      setIsUploading(false);
     },
   });
 
@@ -289,56 +288,55 @@ export default function TimelineEventForm({
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     try {
-      setIsSubmitting(true);
-      
-      // Prepare the data for submission
-      const submissionData: CreateTimelineEventDto = {
-        title: data.title,
-        description: data.description,
-        details: data.details,
-        date: data.date,
-        background_image: data.background_image,
-        is_published: data.is_published,
-        nested_events: data.nested_events?.map((event, index) => ({
-          ...event,
-          order: index,
-        })),
-      };
-
       if (event) {
-        await updateTimelineEvent(event.id, {
-          ...submissionData,
+        const updateData: UpdateTimelineEventDto = {
+          ...data,
           id: event.id,
+          nested_events: data.nested_events.map((item, index) => ({
+            ...item,
+            order: index,
+          })),
+        };
+        await updateTimelineEvent(updateData);
+        toast({
+          title: 'Event updated',
+          description: 'The timeline event has been updated successfully.',
         });
       } else {
-        await createTimelineEvent(submissionData);
+        const createData: CreateTimelineEventDto = {
+          ...data,
+          nested_events: data.nested_events.map((item, index) => ({
+            ...item,
+            order: index,
+          })),
+        };
+        await createTimelineEvent(createData);
+        toast({
+          title: 'Event created',
+          description: 'The timeline event has been created successfully.',
+        });
       }
-
-      toast({
-        title: 'Success',
-        description: `Timeline event ${event ? 'updated' : 'created'} successfully.`,
-      });
-
+      
       onSuccess();
+      onOpenChange(false);
+      queryClient.invalidateQueries(['timelineEvents']);
     } catch (error) {
       console.error('Error saving timeline event:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save timeline event. Please try again.',
+        description: 'Failed to save the timeline event. Please try again.',
         variant: 'destructive',
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const handleImageUpload = (url: string) => {
     setValue('background_image', url);
-    setIsImageUploading(false);
+    setIsUploading(false);
   };
 
   const handleImageUploadStart = () => {
-    setIsImageUploading(true);
+    setIsUploading(true);
   };
 
   const handleImageUploadError = (error: string) => {
@@ -347,7 +345,7 @@ export default function TimelineEventForm({
       description: error,
       variant: 'destructive',
     });
-    setIsImageUploading(false);
+    setIsUploading(false);
   };
 
   const backgroundImage = watch('background_image');
@@ -361,7 +359,7 @@ export default function TimelineEventForm({
         <div className="flex-1 overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle>
-              {isEdit ? 'Edit Timeline Event' : 'Create New Timeline Event'}
+              {event ? 'Edit Timeline Event' : 'Create New Timeline Event'}
             </DialogTitle>
           </DialogHeader>
 
@@ -442,7 +440,7 @@ export default function TimelineEventForm({
                       onStart={handleImageUploadStart}
                     >
                       <div className="flex flex-col items-center justify-center h-28 border-2 border-dashed rounded-md p-4 text-center cursor-pointer hover:bg-accent/50 transition-colors">
-                        {isImageUploading ? (
+                        {isUploading ? (
                           <div className="animate-pulse text-sm">Uploading...</div>
                         ) : (
                           <>
@@ -505,7 +503,7 @@ export default function TimelineEventForm({
                     date: '',
                     title: '',
                     description: '',
-                    order: 0, // Add missing order property
+                    order: 0,
                   })
                 }
               >
@@ -554,41 +552,11 @@ export default function TimelineEventForm({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  {isEdit ? 'Updating...' : 'Creating...'}
-
-                </>
-              ) : isEdit ? (
-                'Update Event'
-              ) : (
-                'Create Event'
-              )}
+            <Button type="submit">
+              {event ? 'Update' : 'Create'} Event
             </Button>
           </DialogFooter>
           </form>
@@ -600,12 +568,11 @@ export default function TimelineEventForm({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" form="timeline-event-form" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : isEdit ? 'Update Event' : 'Create Event'}
+            <Button type="submit" form="timeline-event-form">
+              {event ? 'Update' : 'Create'} Event
             </Button>
           </div>
         </div>

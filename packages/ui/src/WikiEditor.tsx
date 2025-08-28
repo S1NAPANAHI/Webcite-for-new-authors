@@ -134,9 +134,6 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     } as WikiSectionView & { content: string }],
     category_id: null,
     is_published: false,
-    seo_title: '',
-    seo_description: '',
-    seo_keywords: [],
     excerpt: '',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -328,9 +325,6 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         slug: page.slug.trim(),
         category_id: page.category_id || null,
         is_published: page.is_published,
-        seo_title: page.seo_title?.trim() || null,
-        seo_description: page.seo_description?.trim() || null,
-        seo_keywords: page.seo_keywords || [],
         updated_at: new Date().toISOString(),
       };
 
@@ -414,9 +408,6 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
           slug: page.slug,
           excerpt: page.excerpt || null,
           is_published: page.is_published,
-          seo_title: page.seo_title || null,
-          seo_description: page.seo_description || null,
-          seo_keywords: page.seo_keywords || [],
           category_id: page.category_id || null,
           category: selectedCategory || null,
           sections: page.sections || [],
@@ -881,79 +872,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>SEO Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="seo_title">SEO Title</Label>
-                  <Input
-                    id="seo_title"
-                    name="seo_title"
-                    value={page.seo_title}
-                    onChange={handleInputChange}
-                    placeholder="SEO Title (60 characters max)"
-                    maxLength={60}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {page.seo_title.length}/60 characters
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="seo_description">Meta Description</Label>
-                  <Textarea
-                    id="seo_description"
-                    name="seo_description"
-                    value={page.seo_description}
-                    onChange={handleInputChange}
-                    placeholder="A brief description of the page for search engines (160 characters max)"
-                    rows={3}
-                    maxLength={160}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {page.seo_description?.length || 0}/160 characters
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Keywords</Label>
-                  <div className="flex space-x-2">
-                    <Input
-                      value={newKeyword}
-                      onChange={(e) => setNewKeyword(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
-                      placeholder="Add a keyword"
-                    />
-                    <Button 
-                      type="button" 
-                      variant="outline"
-                      onClick={handleAddKeyword}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  
-                  {page.seo_keywords.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {page.seo_keywords.map((keyword) => (
-                        <Badge key={keyword} variant="secondary" className="flex items-center">
-                          {keyword}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveKeyword(keyword)}
-                            className="ml-1 hover:text-destructive"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            
           </div>
         </div>
       </form>

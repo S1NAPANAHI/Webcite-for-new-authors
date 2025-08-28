@@ -39,9 +39,8 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
           .select('id')
           .eq('user_id', user.id)
           .eq('is_active', true)
-          .filter('start_date <=', now)
-          .or('current_period_end >=', now)
-          .or('current_period_end =', null);
+          .lte('start_date', now)
+          .or(`current_period_end.gte.${now},current_period_end.is.null`);
 
         if (subError) {
           throw subError;

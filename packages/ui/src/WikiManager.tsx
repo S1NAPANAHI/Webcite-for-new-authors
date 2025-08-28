@@ -345,16 +345,18 @@ export function WikiManager() {
     try {
       setIsLoading(true);
       
-      // Flatten the tree structure to get all items with their new order
-      const updateItems: Array<{ id: string; order_index: number }> = [];
+      const updateItems: (Folder & { order_index: number; parent_id: string | null })[] = [];
       
       const processItems = (items: ReorderedItem[], parentId: string | null = null) => {
         items.forEach((item, index) => {
-          updateItems.push({
-            id: item.id,
-            order_index: index,
-            ...(parentId && { parent_id: parentId })
-          });
+          const folder = folders.find(f => f.id === item.id);
+          if (folder) {
+            updateItems.push({
+              ...folder,
+              order_index: index,
+              parent_id: parentId,
+            });
+          }
           
           if (item.children && item.children.length > 0) {
             processItems(item.children, item.id);
@@ -363,11 +365,14 @@ export function WikiManager() {
       };
       
       processItems(reorderedItems);
+
+      // We need to remove the 'children' property from the objects before upserting
+      const itemsToUpsert = updateItems.map(({ children, ...rest }) => rest);
       
       // Update the order in the database using a direct update instead of RPC
       const { error } = await supabase
         .from('wiki_folders')
-        .upsert(updateItems, { onConflict: 'id' });
+        .upsert(itemsToUpsert, { onConflict: 'id' });
       
       if (error) throw error;
       

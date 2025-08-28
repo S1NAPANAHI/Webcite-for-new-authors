@@ -24,88 +24,45 @@ const MenuComponent = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Define WikiSectionView first since it's used in WikiPage
-interface WikiSectionView {
-  id: string;
-  type: 'heading_1' | 'heading_2' | 'heading_3' | 'paragraph' | 'bullet_list' | 'ordered_list' | 'image' | 'table' | 'quote' | 'code' | 'divider';
-  content: string;
-  title?: string;
-  page_id?: string;
-  position?: number;
-  created_at?: string;
-  updated_at?: string;
-}
+import type { WikiPage as SharedWikiPage, Folder as SharedFolder, WikiSectionView } from '@zoroaster/shared';
 
-interface WikiPage {
-  id: string;
-  title: string;
-  slug: string;
-  folder_id: string | null;
-  category_id: string | null;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  is_published: boolean;
-  sections: WikiSectionView[];
-  content: string;
-  excerpt: string | null;
-  view_count: number | null;
-  seo_title?: string | null;
-  seo_description?: string | null;
-  seo_keywords?: string[] | null;
-  [key: string]: any; // For any additional properties that might exist
-}
+// Define Menu component
+const Menu = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
+  <div className={`menu ${className}`}>{children}</div>
+);
 
-interface Folder extends Omit<SharedFolder, 'children'> {
-  id: string;
-  name: string;
-  parent_id: string | null;
-  slug: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
+// Define MenuItem component
+const MenuItem = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
+  <div className="menu-item" onClick={onClick}>
+    {children}
+  </div>
+);
+
+// Define Menu component if not available
+const MenuComponent = ({ children }: { children: React.ReactNode }) => (
+  <div className="menu">{children}</div>
+);
+
+// Re-define local types based on shared types
+interface Folder extends SharedFolder {
   children?: Folder[];
-  is_published?: boolean;
 }
 
-// Define a discriminated union type for search results
 type SearchResultItem = 
-  | (Omit<WikiPage, 'view_count'> & { 
-      resultType: 'page'; 
-      view_count?: number | null;
-      sections: WikiSectionView[];
-      content: string;
-      excerpt: string | null;
-    })
-  | (Folder & { 
-      resultType: 'folder';
-    });
+  | (SharedWikiPage & { resultType: 'page' })
+  | (Folder & { resultType: 'folder' });
 
 // Helper type guard functions
-const isWikiPage = (item: SearchResultItem): item is (Omit<WikiPage, 'view_count'> & { 
-  resultType: 'page'; 
-  view_count?: number | null;
-  sections: WikiSectionView[];
-  content: string;
-  excerpt: string | null;
-}) => {
+const isWikiPage = (item: SearchResultItem): item is SharedWikiPage & { resultType: 'page' } => {
   return item.resultType === 'page';
 };
 
-const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'folder' }) => {
-  return item.resultType === 'folder' && 'name' in item && 'id' in item;
+const isFolder = (item: SearchResultItem): item is Folder & { resultType: 'folder' } => {
+  return item.resultType === 'folder';
 };
 
 type WikiViewerProps = {
-  page: WikiPage & {
-    content: string;
-    sections?: Array<{
-      id: string;
-      title: string;
-      content: string;
-      order_index: number;
-      type: string;
-    }>;
-  };
+  page: SharedWikiPage;
   onEdit?: () => void;
 };
 
@@ -571,7 +528,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       {page.sections?.length ? (
         <div className="space-y-6">
           {page.sections
-            .sort((a, b) => a.order_index - b.order_index)
+            ?.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
             .map((section) => (
               <div key={section.id} className="section">
                 {section.title && (

@@ -18,7 +18,7 @@ export const fetchFolders = async (): Promise<Folder[]> => {
 export type WikiSectionView = {
   id: string;
   title: string;
-  content: string;
+  content: any;
   type: Enums<'content_block_type'>;
   order_index?: number;
   created_at?: string;

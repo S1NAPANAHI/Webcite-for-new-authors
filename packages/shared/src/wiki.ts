@@ -30,9 +30,6 @@ export interface WikiPage extends Tables<'wiki_pages'> {
   sections?: WikiSectionView[];
   category?: Tables<'wiki_categories'> | null;
   user?: Tables<'profiles'> | null | any;
-  seo_title?: string;
-  seo_description?: string;
-  seo_keywords?: string[];
 }
 
 export const fetchPages = async (): Promise<WikiPage[]> => {
@@ -104,7 +101,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
   const query = supabase
     .from('wiki_pages')
     .select(`
-      id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count, seo_title, seo_description, seo_keywords,
+      id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count,
       category:wiki_categories (*),
       user:profiles (*)
     `)

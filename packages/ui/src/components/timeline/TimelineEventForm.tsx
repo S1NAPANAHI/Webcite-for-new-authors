@@ -11,15 +11,24 @@ import { Textarea } from '../../textarea';
 import { Label } from '../../label';
 import { Switch } from '../../switch';
 import { useToast } from '../../use-toast';
-import { TimelineEvent } from '@zoroaster/shared';
+import { TimelineEvent, NestedEvent } from '@zoroaster/shared';
 import {
   createTimelineEvent,
   updateTimelineEvent
 } from '../../api/timeline';
-import {
-  CreateTimelineEventDto,
-  UpdateTimelineEventDto
-} from '../../types/timeline';
+
+type CreateTimelineEventDto = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at'> & {
+  details?: string | null;
+  background_image?: string | null;
+  nested_events?: Array<Omit<NestedEvent, 'id'>>;
+};
+
+type UpdateTimelineEventDto = Partial<Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at'>> & { 
+  id: string;
+  details?: string | null;
+  background_image?: string | null;
+  nested_events?: Array<Omit<NestedEvent, 'id'>>;
+};
 import { ImageUpload } from '../common/ImageUpload';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -45,7 +54,9 @@ const formSchema = z.object({
   nested_events: z.array(nestedEventSchema).default([]),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at' | 'created_by'> & {
+  nested_events: Array<Omit<NestedEvent, 'id'>>;
+};
 
 interface SortableNestedEventProps {
   id: string;
@@ -163,6 +174,16 @@ interface TimelineEventFormProps {
   onSuccess: () => void;
 }
 
+const defaultValues: FormValues = {
+  date: '',
+  title: '',
+  description: '',
+  era: 'modern',
+  details: '',
+  background_image: '',
+  is_published: false,
+  nested_events: [],};
+
 export default function TimelineEventForm({
   open,
   onOpenChange,
@@ -173,16 +194,6 @@ export default function TimelineEventForm({
   const queryClient = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   
-  const defaultValues: FormValues = {
-    date: '',
-    title: '',
-    description: '',
-    details: '',
-    background_image: '',
-    is_published: false,
-    nested_events: [],
-  };
-
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues,
@@ -197,6 +208,29 @@ export default function TimelineEventForm({
     watch,
     formState: { errors },
   } = form;
+  
+  useEffect(() => {
+    if (event) {
+      reset({
+        title: event.title,
+        description: event.description,
+        details: event.details || '',
+        date: event.date,
+        era: event.era || 'modern',
+        background_image: event.background_image || '',
+        is_published: event.is_published,
+        nested_events: event.nested_events?.map(ne => ({
+          date: ne.date,
+          title: ne.title,
+          description: ne.description,
+          order: ne.order || 0
+        })) || [],
+      });
+    } else {
+      reset(defaultValues);
+    }
+  }, [event, reset]);
+
 
   const { fields, append, remove, move } = useFieldArray({
     control,
@@ -215,24 +249,27 @@ export default function TimelineEventForm({
     })
   );
 
-  useEffect(() => {
-    if (event) {
-      reset({
-        title: event.title,
-        description: event.description,
-        details: event.details || '',
-        date: event.date,
-        background_image: event.background_image || '',
-        is_published: event.is_published,
-        nested_events: event.nested_events || [],
-      });
-    } else {
-      reset(defaultValues);
-    }
-  }, [event, reset]);
 
-  const createMutation = useMutation({
-    mutationFn: (data: CreateTimelineEventDto) => createTimelineEvent(data),
+  const { mutate: createTimelineEventMutation } = useMutation({
+    mutationFn: (data: CreateTimelineEventDto) => {
+      // Convert to API-compatible format
+      const apiData: any = {
+        title: data.title,
+        description: data.description,
+        details: data.details || undefined,
+        date: data.date,
+        era: data.era,
+        background_image: data.background_image || undefined,
+        is_published: data.is_published,
+        nested_events: (data.nested_events || []).map((item, index) => ({
+          date: item.date,
+          title: item.title,
+          description: item.description,
+          order: index,
+        }))
+      };
+      return createTimelineEvent(apiData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
       toast({
@@ -253,9 +290,27 @@ export default function TimelineEventForm({
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateTimelineEventDto }) =>
-      updateTimelineEvent(id, data),
+  const { mutate: updateTimelineEventMutation } = useMutation({
+    mutationFn: ({ id, ...data }: UpdateTimelineEventDto) => {
+      // Convert to API-compatible format
+      const apiData: any = {
+        title: data.title,
+        description: data.description,
+        details: data.details || undefined,
+        date: data.date,
+        era: data.era,
+        background_image: data.background_image || undefined,
+        is_published: data.is_published,
+        nested_events: (data.nested_events || []).map((item, index) => ({
+          date: item.date,
+          title: item.title,
+          description: item.description,
+          order: index,
+          id: item.id
+        }))
+      };
+      return updateTimelineEvent(id, apiData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
       toast({
@@ -286,47 +341,52 @@ export default function TimelineEventForm({
     }
   };
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+  const onSubmit: SubmitHandler<FormValues> = async (formData) => {
+    setIsUploading(true);
+    
     try {
       if (event) {
+        // For update
         const updateData: UpdateTimelineEventDto = {
-          ...data,
           id: event.id,
-          nested_events: data.nested_events.map((item, index) => ({
-            ...item,
-            order: index,
-          })),
+          title: formData.title,
+          description: formData.description,
+          details: formData.details,
+          date: formData.date,
+          era: formData.era,
+          background_image: formData.background_image,
+          is_published: formData.is_published,
+          nested_events: formData.nested_events
         };
-        await updateTimelineEvent(updateData);
-        toast({
-          title: 'Event updated',
-          description: 'The timeline event has been updated successfully.',
-        });
+        
+        await updateTimelineEventMutation(updateData);
       } else {
+        // For create
         const createData: CreateTimelineEventDto = {
-          ...data,
-          nested_events: data.nested_events.map((item, index) => ({
-            ...item,
-            order: index,
-          })),
+          title: formData.title,
+          description: formData.description,
+          details: formData.details,
+          date: formData.date,
+          era: formData.era,
+          background_image: formData.background_image,
+          is_published: formData.is_published,
+          nested_events: formData.nested_events
         };
-        await createTimelineEvent(createData);
-        toast({
-          title: 'Event created',
-          description: 'The timeline event has been created successfully.',
-        });
+        
+        await createTimelineEventMutation(createData);
       }
       
       onSuccess();
       onOpenChange(false);
-      queryClient.invalidateQueries(['timelineEvents']);
     } catch (error) {
-      console.error('Error saving timeline event:', error);
+      console.error('Error submitting timeline event:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save the timeline event. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to save timeline event',
         variant: 'destructive',
       });
+    } finally {
+      setIsUploading(false);
     }
   };
 

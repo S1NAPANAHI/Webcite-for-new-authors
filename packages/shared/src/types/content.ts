@@ -59,12 +59,23 @@ export interface Character extends BaseContent {
   relationships?: Record<string, string>;
 }
 
+export interface NestedEvent {
+  id?: string;
+  date: string;
+  title: string;
+  description: string;
+  order?: number;
+}
+
 export interface TimelineEvent extends BaseContent {
   title: string;
   date: string;
   era: 'ancient' | 'medieval' | 'modern' | 'future';
   description: string;
+  details?: string | null;
+  background_image?: string | null;
   is_published: boolean;
+  nested_events?: NestedEvent[];
 }
 
 export interface BetaUser extends BaseContent {

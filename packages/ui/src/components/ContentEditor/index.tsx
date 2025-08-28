@@ -55,12 +55,12 @@ export function ContentEditor<T extends ContentItem>({
         return {
           status: 'draft',
           title: '',
-          content: '',
+          content: undefined,
           slug: '',
           author_id: undefined,
           excerpt: undefined,
           featured_image: undefined,
-          tags: [],
+          tags: [] as string[],
           category_id: undefined,
         } as unknown as FormData<T>;
       case 'storeItems':

@@ -59,7 +59,11 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       // Search in wiki_pages (title and excerpt)
       const { data: pagesData, error: pagesError } = await supabase
         .from('wiki_pages')
-        .select('*')
+        .select(`
+          *,
+          category:wiki_categories(*),
+          user:profiles(*)
+        `)
         .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`);
         
       if (pagesError) throw pagesError;
@@ -67,9 +71,9 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       const results: SearchResultItem[] = (pagesData || []).map(page => ({
         ...page,
         resultType: 'page' as const,
-        sections: [],
+        sections: page.sections || [],
         content: page.content || '',
-        excerpt: page.excerpt || null,
+        excerpt: page.excerpt || '',
         is_published: page.is_published ?? true,
         category_id: page.category_id ?? null,
         folder_id: page.folder_id ?? null,
@@ -77,7 +81,12 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         updated_at: page.updated_at || new Date().toISOString(),
         created_by: page.created_by || '',
         view_count: page.view_count || 0,
-        slug: page.slug || ''
+        slug: page.slug || '',
+        seo_title: page.seo_title || null,
+        seo_description: page.seo_description || null,
+        seo_keywords: page.seo_keywords || [],
+        category: page.category || null,
+        user: page.user || null
       }));
       
       setSearchResults(results);

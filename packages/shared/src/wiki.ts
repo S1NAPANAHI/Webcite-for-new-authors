@@ -26,10 +26,22 @@ export type WikiSectionView = {
   page_id?: string;
 };
 
-export interface WikiPage extends Tables<'wiki_pages'> {
-  sections?: WikiSectionView[];
-  category?: Tables<'wiki_categories'> | null;
-  user?: Tables<'profiles'> | null | any;
+export interface WikiPage {
+  id: string;
+  created_at: string;
+  created_by: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  folder_id: string;
+  is_published: boolean;
+  category_id: string;
+  view_count: number;
+  updated_at: string;
+  content?: string;
+  seo_title?: string;
+  seo_description?: string;
+  seo_keywords?: string[];
 }
 
 export const fetchPages = async (): Promise<WikiPage[]> => {
@@ -101,9 +113,13 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
   const query = supabase
     .from('wiki_pages')
     .select(`
+      .select(`
+          .select(`
       id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count,
       category:wiki_categories (*),
       user:profiles (*)
+    `)
+    `)
     `)
     .eq(isUuid ? 'id' : 'slug', identifier);
 

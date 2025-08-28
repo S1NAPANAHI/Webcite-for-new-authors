@@ -1,72 +1,101 @@
-import React, { useState, useEffect, useRef, Suspense, forwardRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, forwardRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared';
-import { Button } from '@zoroaster/ui';
+import { Button, Input, Textarea, Label, Switch } from '@zoroaster/ui';
 import { toast } from 'sonner';
-import { Input } from '@zoroaster/ui';
-import { Textarea } from '@zoroaster/ui';
-import { Label } from '@zoroaster/ui';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@zoroaster/ui';
-import { Switch } from '@zoroaster/ui';
-import { Save, Loader2, ArrowLeft, Eye } from 'lucide-react';
+import { Save, Loader2, ArrowLeft, Eye, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
 import { Badge } from './components/ui/badge';
 import { Tag } from './components/ui/tag';
 
-// Import ReactQuill
+// Import ReactQuill with proper typing
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 interface WikiPageWithSections extends WikiPage {
   sections: (WikiSectionView & { content: string })[];
   content: string;
+  excerpt?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  folder_id: string | null;
+  view_count: number;
+  is_published: boolean;
+  category_id: string;
 }
 
-interface QuillEditorProps extends React.ComponentProps<typeof ReactQuill> {
+interface QuillEditorProps {
   value: string;
   onChange: (content: string) => void;
+  placeholder?: string;
+  readOnly?: boolean;
+  theme?: string;
+  modules?: Record<string, any>;
+  formats?: string[];
+  className?: string;
 }
 
-const QuillEditor = forwardRef<ReactQuill, QuillEditorProps>(({ value, onChange, ...props }, ref) => {
+const QuillEditor = forwardRef<typeof ReactQuill, QuillEditorProps>(({ 
+  value, 
+  onChange, 
+  theme = 'snow',
+  modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['link', 'image'],
+      ['clean']
+    ]
+  },
+  formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'link', 'image'
+  ],
+  ...props 
+}, ref) => {
   const handleChange = (content: string) => {
-    onChange(content);
+    try {
+      if (onChange) {
+        onChange(content);
+      }
+    } catch (error) {
+      console.error('Error in handleChange:', error);
+    }
   };
 
   return (
-    <Suspense fallback={<div>Loading editor...</div>}>
+    <div className="mt-4">
       <ReactQuill
-        ref={ref}
+        ref={ref as any}
+        theme={theme}
         value={value}
         onChange={handleChange}
+        modules={{
+          toolbar: [
+            [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+            ['link', 'image'],
+            ['clean']
+          ]
+        }}
+        formats={[
+          'header',
+          'bold', 'italic', 'underline', 'strike',
+          'list', 'bullet',
+          'link', 'image'
+        ]}
         {...props}
       />
-    </Suspense>
+    </div>
   );
 });
 
 QuillEditor.displayName = 'QuillEditor';
-
-// Quill modules configuration
-const modules = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-    ['link', 'image'],
-    ['clean']
-  ],
-  clipboard: {
-    matchVisual: false,
-  },
-};
-
-// Quill editor formats
-const formats = [
-  'header',
-  'bold', 'italic', 'underline', 'strike',
-  'list',
-  'link', 'image'
-];
 
 import { WikiPage, WikiSectionView, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
 
@@ -108,6 +137,12 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     seo_title: '',
     seo_description: '',
     seo_keywords: [],
+    excerpt: '',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    created_by: '',
+    folder_id: null,
+    view_count: 0,
   });
 
   const [newKeyword, setNewKeyword] = useState('');
@@ -535,50 +570,100 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     </div>
   );
 
-  const Editor = ({ value, onChange, theme, modules, formats, className }: QuillEditorProps) => (
-    <QuillEditor
-      theme={theme}
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      className={className}
-    />
-  );
-
   const renderSectionContent = (section: WikiSectionView) => {
     const handleContentChange = (content: string) => {
       updateSection(section.id, { content });
     };
 
+    const editorModules = {
+      toolbar: [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        ['link', 'image'],
+        ['clean']
+      ]
+    };
+
+    const editorFormats = [
+      'header',
+      'bold', 'italic', 'underline', 'strike',
+      'list', 'bullet',
+      'link', 'image'
+    ];
+
     switch (section.type) {
-      case 'text':
+      case 'heading_1':
+      case 'heading_2':
+      case 'heading_3':
+      case 'paragraph':
+      case 'bullet_list':
+      case 'ordered_list':
         return (
           <div className="mt-4">
-            <Editor
+            <ReactQuill
               value={section.content || ''}
               onChange={handleContentChange}
               theme="snow"
-              modules={modules}
-              formats={formats}
-              className="min-h-[300px]"
+              modules={editorModules}
+              formats={editorFormats}
+              className="min-h-[100px]"
             />
           </div>
         );
       case 'quote':
         return (
-          <div>
-            <Textarea
+          <div className="mt-4 border-l-4 border-gray-300 pl-4 italic">
+            <ReactQuill
               value={section.content || ''}
-              onChange={(e) => updateSection(section.id, { content: e.target.value })}
-              placeholder="Enter quote..."
-              rows={3}
+              onChange={handleContentChange}
+              theme="snow"
+              modules={editorModules}
+              formats={editorFormats}
+              className="min-h-[100px]"
             />
           </div>
         );
-      // Add other section type editors as needed
+      case 'code':
+        return (
+          <div className="mt-4 bg-gray-100 p-4 rounded-md font-mono text-sm">
+            <Textarea
+              value={section.content || ''}
+              onChange={(e) => updateSection(section.id, { content: e.target.value })}
+              placeholder="Enter code..."
+              rows={6}
+              className="font-mono"
+            />
+          </div>
+        );
+      case 'divider':
+        return <div className="my-6 border-t border-gray-200"></div>;
+      case 'image':
+        return (
+          <div className="mt-4">
+            <Input
+              type="text"
+              value={section.content || ''}
+              onChange={(e) => updateSection(section.id, { content: e.target.value })}
+              placeholder="Enter image URL..."
+            />
+            {section.content && (
+              <div className="mt-2">
+                <img 
+                  src={section.content} 
+                  alt="Section content" 
+                  className="max-w-full h-auto rounded-md"
+                />
+              </div>
+            )}
+          </div>
+        );
       default:
-        return <div>Unsupported section type</div>;
+        return (
+          <div className="mt-4 text-gray-500 italic">
+            Unsupported section type: {section.type}
+          </div>
+        );
     }
   };
 

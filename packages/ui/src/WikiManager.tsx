@@ -63,13 +63,13 @@ export function WikiManager() {
         if (pagesError) throw pagesError;
         
         // Transform the data to match WikiPageWithSections
-        const formattedPages = (pagesData || []).map(page => ({
+        const formattedPages = (pagesData || []).map((page: any) => ({
           ...page,
           sections: (page.sections || []).map((section: any) => ({
             ...section,
             content: section.content || ''
           }))
-        })) as WikiPageWithSections[];
+        }));
         
         setFolders(foldersData || []);
         setPages(formattedPages);
@@ -128,90 +128,62 @@ export function WikiManager() {
   };
 
   // Update the page creation handler to work at any level
-  const handleCreatePage = async () => {
+  const handleCreatePage = async (folderId?: string) => {
     if (!newPageName.trim()) return;
     
     try {
       const user = (await supabase.auth.getUser()).data.user;
-      if (!user) throw new Error('You must be logged in to create a page');
+      if (!user) {
+        toast.error('You must be logged in to create a page');
+        return;
+      }
       
-      // Prepare page data for wiki_pages table
-      const pageDataToInsert = {
+      const newPage: Omit<WikiPage, 'id' | 'created_at' | 'updated_at'> = {
         title: newPageName.trim(),
-        slug: newPageName.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
-        folder_id: folderId || null,
+        slug: newPageName.trim().toLowerCase().replace(/\s+/g, '-'),
+        content: '',
+        excerpt: '',
         is_published: false,
-        created_by: user.id, // Add created_by
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        view_count: 0, // Default view count
+        view_count: 0,
+        category_id: '',
+        folder_id: folderId || null,
+        created_by: user.id,
+        seo_title: '',
+        seo_description: '',
+        seo_keywords: []
       };
       
-      const { data: newWikiPage, error: pageError } = await supabase
-        .from('wiki_pages') // Correct table name
-        .insert([pageDataToInsert])
+      const { data, error } = await supabase
+        .from('wiki_pages')
+        .insert(newPage)
         .select()
         .single();
+        
+      if (error) throw error;
       
-      if (pageError) throw pageError;
-
-      // Insert initial content block (section)
-      const initialSection: WikiSectionView = {
-        id: `section-${Date.now()}`,
-        title: 'Untitled Section',
-        type: 'paragraph',
+      // Create initial section
+      const initialSection = {
+        title: 'Introduction',
         content: '',
-        page_id: newWikiPage.id,
-        position: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        page_title: newWikiPage.title,
-        page_slug: newWikiPage.slug,
-        category_id: newWikiPage.category_id || null,
-        category_name: null,
-        category_slug: null,
-        category_description: null,
-        category_icon: null,
-        category_color: null,
-        category_order: 0,
-        category_created_at: new Date().toISOString(),
-        category_updated_at: new Date().toISOString(),
-        is_published: newWikiPage.is_published || false,
-        seo_title: newWikiPage.seo_title || null,
-        seo_description: newWikiPage.seo_description || null,
-        seo_keywords: newWikiPage.seo_keywords || [],
-        created_by: newWikiPage.created_by || null,
-        updated_by: newWikiPage.updated_by || null,
-        view_count: 0,
-        version: 1
+        order_index: 0,
+        page_id: data.id,
+        type: 'paragraph' as const
       };
-
-      const { error: contentBlockError } = await supabase
-        .from('wiki_content_blocks')
-        .insert([initialSection]);
-
-      if (contentBlockError) throw contentBlockError;
       
-      // Update local state with proper typing
-      const newPageWithSections: WikiPageWithSections = {
-        ...newWikiPage,
-        sections: [{
-          ...initialSection,
-          content: initialSection.content || ''
-        }]
-      };
-      setPages(prev => [...prev, newPageWithSections]);
+      const { error: sectionError } = await supabase
+        .from('wiki_sections')
+        .insert(initialSection);
+        
+      if (sectionError) throw sectionError;
+      
+      // Refresh pages
+      await fetchPages();
       setNewPageName('');
       setShowNewPageInput(false);
       
-      // Select the new page
-      setSelectedPage(newWikiPage.id);
-      setEditingPage(newWikiPage.id);
-      
-      toast.success('Page created successfully');
     } catch (error) {
       console.error('Error creating page:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create page');
+      toast.error('Failed to create page');
     }
   };
 

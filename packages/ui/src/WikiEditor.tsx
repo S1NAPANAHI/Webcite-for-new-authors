@@ -14,8 +14,6 @@ import 'react-quill-new/dist/quill.snow.css';
 
 interface WikiPageWithSections extends Omit<WikiPage, 'sections'> {
   sections: (WikiSectionView & { content: string })[];
-  content: string;
-  excerpt: string;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -121,7 +119,6 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     id: '',
     title: '',
     slug: '',
-    content: '',
     sections: [{
       id: 'section-1',
       title: 'Introduction',
@@ -134,7 +131,6 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     } as WikiSectionView & { content: string }],
     category_id: null,
     is_published: false,
-    excerpt: '',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     created_by: '',

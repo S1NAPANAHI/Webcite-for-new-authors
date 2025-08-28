@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Button } from '@zoroaster/ui';
-import { X, BookOpen, File as FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight } from 'lucide-react';
-import { Input } from '@zoroaster/ui/input';
+import { Button, Input } from '@zoroaster/ui';
+import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
@@ -34,8 +33,8 @@ interface WikiPage extends Omit<SharedWikiPage, 'sections' | 'view_count' | 'exc
   updated_at: string;
   created_by: string;
   is_published: boolean;
-  sections?: WikiSectionView[];
-  content?: string;
+  sections: WikiSectionView[];
+  content: string;
   excerpt: string | null;
   view_count: number | null;
 }
@@ -58,7 +57,7 @@ type SearchResultItem =
       resultType: 'page'; 
       view_count?: number | null;
       sections: WikiSectionView[];
-      content?: string;
+      content: string;
       excerpt: string | null;
     })
   | (Folder & { 
@@ -70,7 +69,7 @@ const isWikiPage = (item: SearchResultItem): item is (Omit<WikiPage, 'view_count
   resultType: 'page'; 
   view_count?: number | null;
   sections: WikiSectionView[];
-  content?: string;
+  content: string;
   excerpt: string | null;
 }) => {
   return item.resultType === 'page';
@@ -376,180 +375,180 @@ export function WikiViewer() {
       {/* Left Sidebar - Navigation */}
       {leftSidebarOpen && (
         <div className="w-64 bg-card border-r border-border flex flex-col">
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold flex items-center">
-                <BookOpen size={16} className="mr-2" />
-                Wiki
-              </h2>
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold flex items-center">
+              <BookOpen size={16} className="mr-2" />
+              Wiki
+            </h2>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6"
+            onClick={() => setLeftSidebarOpen(false)}
+          >
+            <X size={16} />
+          </Button>
+        </div>
+        
+        <div className="relative">
+          <Search size={16} className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search wiki..."
+            className="w-full pl-8 h-8 text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto p-2">
+        {loading ? (
+          <div className="text-center py-8 text-muted-foreground">Loading...</div>
+        ) : (
+          renderFolderTree(buildFolderTree(folders as Folder[]))
+        )}
+      </div>
+      
+      {/* Search results */}
+      {searchQuery && (
+        <div className="mt-2 border-t border-border pt-2">
+          <div className="text-xs font-medium text-muted-foreground mb-2 px-2">
+            {isSearching ? 'Searching...' : `Found ${searchResults.length} results`}
+          </div>
+          
+          {!isSearching && searchResults.length === 0 ? (
+            <div className="text-xs text-muted-foreground px-2 py-1">
+              No results found for "{searchQuery}"
+            </div>
+          ) : (
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {searchResults.map((result) => (
+                <Link
+                  key={`${result.resultType}-${result.id}`}
+                  to={result.resultType === 'page' 
+                    ? `/wiki/${result.folder_id ? `${result.folder_id}/` : ''}${result.slug}`
+                    : `/wiki/folder/${result.id}`}
+                  className="flex items-center px-2 py-1.5 text-sm rounded hover:bg-accent"
+                  onClick={() => setSearchQuery('')}
+                >
+                  {result.resultType === 'page' ? (
+                    <FileIcon size={12} className="mr-2 text-blue-500 flex-shrink-0" />
+                  ) : (
+                    <FolderIcon size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {result.resultType === 'page' ? result.title : result.name}
+                  </span>
+                  {result.resultType === 'page' && result.folder_id && (
+                    <span className="ml-2 text-xs text-muted-foreground truncate">
+                      in {folders.find(f => f.id === result.folder_id)?.name || 'unknown'}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+    )}
+      
+    {/* Main Content */}
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Top Bar */}
+      <header className="h-14 border-b border-border flex items-center px-4">
+        {!leftSidebarOpen && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="mr-2"
+            onClick={() => setLeftSidebarOpen(true)}
+          >
+            <Menu size={18} />
+          </Button>
+        )}
+        
+        <div className="flex-1">
+          <h1 className="font-semibold">
+            {currentPage?.title || 'Welcome to the Wiki'}
+          </h1>
+        </div>
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
+        >
+          <Menu size={18} />
+        </Button>
+      </header>
+      
+      {/* Page Content */}
+      <main 
+        ref={contentRef}
+        className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full"
+      >
+        {currentPage ? (
+          <article className="prose max-w-none">
+            {currentPage.sections?.map((block: WikiSectionView) => (
+              <div key={block.id}>
+                {renderContentBlock(block)}
+              </div>
+            ))}
+            
+            <div className="mt-12 pt-6 border-t border-border text-sm text-muted-foreground">
+              Last updated: {new Date(currentPage.updated_at).toLocaleDateString()}
+            </div>
+          </article>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
+            <BookOpen size={48} className="mb-4 text-muted-foreground/50" />
+            <h2 className="text-xl font-medium mb-2">Welcome to the Wiki</h2>
+            <p className="max-w-md">Select a page from the sidebar or create a new one to get started.</p>
+          </div>
+        )}
+      </main>
+    </div>
+      
+    {/* Right Sidebar - Table of Contents */}
+    {rightSidebarOpen && (
+      <div className="w-64 border-l border-border bg-card overflow-y-auto">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium">Table of Contents</h3>
             <Button 
               variant="ghost" 
               size="icon" 
               className="h-6 w-6"
-              onClick={() => setLeftSidebarOpen(false)}
+              onClick={() => setRightSidebarOpen(false)}
             >
               <X size={16} />
             </Button>
           </div>
-          
-          <div className="relative">
-            <Search size={16} className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search wiki..."
-              className="w-full pl-8 h-8 text-sm"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-2">
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">Loading...</div>
-          ) : (
-            renderFolderTree(buildFolderTree(folders as Folder[]))
-          )}
-        </div>
-        
-        {/* Search results */}
-        {searchQuery && (
-          <div className="mt-2 border-t border-border pt-2">
-            <div className="text-xs font-medium text-muted-foreground mb-2 px-2">
-              {isSearching ? 'Searching...' : `Found ${searchResults.length} results`}
-            </div>
-            
-            {!isSearching && searchResults.length === 0 ? (
-              <div className="text-xs text-muted-foreground px-2 py-1">
-                No results found for "{searchQuery}"
-              </div>
-            ) : (
-              <div className="space-y-1 max-h-60 overflow-y-auto">
-                {searchResults.map((result) => (
-                  <Link
-                    key={`${result.resultType}-${result.id}`}
-                    to={result.resultType === 'page' 
-                      ? `/wiki/${result.folder_id ? `${result.folder_id}/` : ''}${result.slug}`
-                      : `/wiki/folder/${result.id}`}
-                    className="flex items-center px-2 py-1.5 text-sm rounded hover:bg-accent"
-                    onClick={() => setSearchQuery('')}
-                  >
-                    {result.resultType === 'page' ? (
-                      <File size={12} className="mr-2 text-blue-500 flex-shrink-0" />
-                    ) : (
-                      <FolderIcon size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
-                    )}
-                    <span className="truncate">
-                      {result.resultType === 'page' ? result.title : result.name}
-                    </span>
-                    {result.resultType === 'page' && result.folder_id && (
-                      <span className="ml-2 text-xs text-muted-foreground truncate">
-                        in {folders.find(f => f.id === result.folder_id)?.name || 'unknown'}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      )}
-      
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <header className="h-14 border-b border-border flex items-center px-4">
-          {!leftSidebarOpen && (
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="mr-2"
-              onClick={() => setLeftSidebarOpen(true)}
-            >
-              <Menu size={18} />
-            </Button>
-          )}
-          
-          <div className="flex-1">
-            <h1 className="font-semibold">
-              {currentPage?.title || 'Welcome to the Wiki'}
-            </h1>
-          </div>
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-          >
-            <Menu size={18} />
-          </Button>
-        </header>
-        
-        {/* Page Content */}
-        <main 
-          ref={contentRef}
-          className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full"
-        >
-          {currentPage ? (
-            <article className="prose max-w-none">
-              {currentPage.sections?.map((block: WikiSectionView) => (
-                <div key={block.id}>
-                  {renderContentBlock(block)}
-                </div>
+        <div className="p-4">
+          {toc.length > 0 ? (
+            <nav className="space-y-1">
+              {toc.map((item, index) => (
+                <a
+                  key={index}
+                  href={`#${item.id}`}
+                  className={`block py-1 text-sm ${item.level === 1 ? 'font-medium' : 'text-muted-foreground'} hover:text-foreground`}
+                  style={{ marginLeft: `${(item.level - 1) * 8}px` }}
+                >
+                  {item.text}
+                </a>
               ))}
-              
-              <div className="mt-12 pt-6 border-t border-border text-sm text-muted-foreground">
-                Last updated: {new Date(currentPage.updated_at).toLocaleDateString()}
-              </div>
-            </article>
+            </nav>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground">
-              <BookOpen size={48} className="mb-4 text-muted-foreground/50" />
-              <h2 className="text-xl font-medium mb-2">Welcome to the Wiki</h2>
-              <p className="max-w-md">Select a page from the sidebar or create a new one to get started.</p>
-            </div>
+            <p className="text-sm text-muted-foreground">No headings found</p>
           )}
-        </main>
-      </div>
-      
-      {/* Right Sidebar - Table of Contents */}
-      {rightSidebarOpen && (
-        <div className="w-64 border-l border-border bg-card overflow-y-auto">
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">Table of Contents</h3>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-6 w-6"
-                onClick={() => setRightSidebarOpen(false)}
-              >
-                <X size={16} />
-              </Button>
-            </div>
-          </div>
-          
-          <div className="p-4">
-            {toc.length > 0 ? (
-              <nav className="space-y-1">
-                {toc.map((item, index) => (
-                  <a
-                    key={index}
-                    href={`#${item.id}`}
-                    className={`block py-1 text-sm ${item.level === 1 ? 'font-medium' : 'text-muted-foreground'} hover:text-foreground`}
-                    style={{ marginLeft: `${(item.level - 1) * 8}px` }}
-                  >
-                    {item.text}
-                  </a>
-                ))}
-              </nav>
-            ) : (
-              <p className="text-sm text-muted-foreground">No headings found</p>
-            )}
-          </div>
         </div>
-      )}
-    </div>
+      </div>
+    )}
+  </div>
   );
 }

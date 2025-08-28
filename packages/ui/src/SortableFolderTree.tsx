@@ -38,7 +38,9 @@ type SortableFolderTreeProps = {
   onPageSelect: (pageId: string) => void;
   onDeleteFolder: (folderId: string) => void;
   onEditFolder: (folder: Folder) => void;
-  onMoveItem?: (itemId: string, folderId: string | null) => void; // Made optional since it's not used
+  onDeletePage: (pageId: string) => void;
+  onEditPage: (page: Page) => void;
+  onMoveItem?: (itemId: string, folderId: string | null) => void;
 };
 
 interface FolderTreeItem {
@@ -80,6 +82,8 @@ export function SortableFolderTree({
   onPageSelect,
   onDeleteFolder,
   onEditFolder,
+  onDeletePage,
+  onEditPage,
   // onMoveItem is not used but kept in props for future use
 }: SortableFolderTreeProps) {
 

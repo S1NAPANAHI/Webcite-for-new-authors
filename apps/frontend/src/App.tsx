@@ -40,6 +40,7 @@ import {
   ViewNDAPage,
   BetaFeedbackPage
 } from '@zoroaster/ui';
+import { WikiPage as WikiPageType } from '@zoroaster/shared';  // Import the type
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import BetaApplicationsManager from './admin/BetaApplicationsManager';
 import Timelines from './pages/Timelines';
@@ -55,7 +56,7 @@ import ProfileDashboard from './pages/ProfileDashboard'; // New Profile Dashboar
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = React.useState<WikiPage | null>(null);
+  const [currentPage, setCurrentPage] = React.useState<WikiPageType | null>(null);
   const params = useParams();
 
   const fetchPage = async (slug: string) => {

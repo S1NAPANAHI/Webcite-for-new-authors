@@ -364,10 +364,10 @@ export function WikiManager() {
       
       processItems(reorderedItems);
       
-      // Update the order in the database
-      const { error } = await supabase.rpc('update_folder_order', {
-        items: updateItems
-      });
+      // Update the order in the database using a direct update instead of RPC
+      const { error } = await supabase
+        .from('wiki_folders')
+        .upsert(updateItems, { onConflict: 'id' });
       
       if (error) throw error;
       

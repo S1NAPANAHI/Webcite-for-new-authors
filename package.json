@@ -6,6 +6,7 @@
     "packages/*"
   ],
   "scripts": {
+    "type-check": "tsc --noEmit -p .",
     "dev": "pnpm --filter frontend dev",
     "build": "pnpm install && pnpm --filter frontend build",
     "start": "pnpm --filter frontend start",

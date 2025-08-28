@@ -12,17 +12,17 @@ import { Tag } from './components/ui/tag';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-interface WikiPageWithSections extends Omit<WikiPage, 'excerpt'> {
+interface WikiPageWithSections extends Omit<WikiPage, 'sections'> {
   sections: (WikiSectionView & { content: string })[];
   content: string;
-  excerpt?: string;
+  excerpt: string;
   created_at: string;
   updated_at: string;
   created_by: string;
   folder_id: string | null;
   view_count: number;
   is_published: boolean;
-  category_id: string;
+  category_id: string | null;
 }
 
 interface QuillEditorProps {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button, Input } from '@zoroaster/ui';
-import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight } from 'lucide-react';
+import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight, Edit } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
@@ -94,7 +94,15 @@ const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'fold
   return item.resultType === 'folder' && 'name' in item && 'id' in item;
 };
 
-export function WikiViewer() {
+type WikiViewerProps = {
+  page: WikiPage & {
+    content?: string;
+    sections?: WikiSectionView[];
+  };
+  onEdit?: () => void;
+};
+
+export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   const { folderSlug, pageSlug } = useParams<{ folderSlug?: string; pageSlug?: string }>();
   const [pages, setPages] = useState<WikiPage[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -109,6 +117,7 @@ export function WikiViewer() {
   const searchTimeoutRef = useRef<number | null>(null);
   const contentRef = useRef<HTMLElement>(null);
 
+  const content = page.content || '';
 
   // Handle search functionality
   const handleSearch = async (query: string) => {
@@ -460,7 +469,7 @@ export function WikiViewer() {
             className="mr-2"
             onClick={() => setLeftSidebarOpen(true)}
           >
-            <Menu size={18} />
+            <MenuIcon size={18} />
           </Button>
         )}
         
@@ -475,7 +484,7 @@ export function WikiViewer() {
           size="icon" 
           onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
         >
-          <Menu size={18} />
+          <MenuIcon size={18} />
         </Button>
       </header>
       
@@ -543,6 +552,27 @@ export function WikiViewer() {
         </div>
       </div>
     )}
+    
+    {/* WikiViewer component */}
+    <div className="prose max-w-none">
+      <div className="flex justify-between items-center mb-6">
+        <h1>{page.title}</h1>
+        {onEdit && (
+          <Button variant="outline" onClick={onEdit}>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+        )}
+      </div>
+      
+      {/* Use the content with proper type checking */}
+      <div dangerouslySetInnerHTML={{ __html: content }} />
+      
+      {/* Update Menu usage */}
+      <div className="mt-4">
+        <MenuIcon className="h-5 w-5" />
+      </div>
+    </div>
   </div>
   );
 }

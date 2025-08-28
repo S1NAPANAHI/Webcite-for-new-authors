@@ -2177,7 +2177,7 @@ packages:
       react-hook-form: ^7.55.0
     dependencies:
       '@standard-schema/utils': 0.3.0
-      react-hook-form: 7.62.0(react@18.3.1)
+      react-hook-form: 7.62.0(react@19.1.1)
     dev: false
 
   /@humanfs/core@0.19.1:

@@ -1,4 +1,4 @@
-{{ ... }}
+// Shared TypeScript type definitions
 
 export interface WikiPage {
   id: string;
@@ -29,5 +29,3 @@ export interface WikiSectionView {
   created_at: string;
   updated_at: string;
 }
-
-{{ ... }}

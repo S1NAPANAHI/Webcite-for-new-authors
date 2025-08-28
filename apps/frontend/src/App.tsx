@@ -40,7 +40,7 @@ import {
   ViewNDAPage,
   BetaFeedbackPage
 } from '@zoroaster/ui';
-import { WikiPage as WikiPageType } from '@zoroaster/shared';  // Import the type
+import { WikiPage as WikiPageType, fetchWikiPage } from '@zoroaster/shared';  // Import the type
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import BetaApplicationsManager from './admin/BetaApplicationsManager';
 import Timelines from './pages/Timelines';
@@ -59,20 +59,9 @@ const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState<WikiPageType | null>(null);
   const params = useParams();
 
-  const fetchPage = async (slug: string) => {
-    const { data, error } = await supabase
-      .from('wiki_pages')
-      .select('*')
-      .eq('slug', slug)
-      .single();
-    
-    if (error) throw error;
-    return data;
-  };
-
   React.useEffect(() => {
     if (params.pageSlug) {
-      fetchPage(params.pageSlug).then(setCurrentPage);
+      fetchWikiPage(params.pageSlug).then(setCurrentPage);
     }
   }, [params.pageSlug]);
 

@@ -62,7 +62,7 @@ export function ContentEditor<T extends ContentItem>({
           featured_image: undefined,
           tags: [],
           category_id: undefined,
-        } as FormData<T>;
+        } as unknown as FormData<T>;
       case 'storeItems':
         return {
           status: 'active', // Default status for storeItems
@@ -73,7 +73,7 @@ export function ContentEditor<T extends ContentItem>({
           image_url: undefined,
           stock_quantity: 0,
           sku: undefined,
-        } as FormData<T>;
+        } as unknown as FormData<T>;
       case 'libraryItems':
         return {
           status: 'draft',
@@ -84,7 +84,7 @@ export function ContentEditor<T extends ContentItem>({
           file_size: 0,
           category: 'tutorial',
           thumbnail_url: undefined,
-        } as FormData<T>;
+        } as unknown as FormData<T>;
       case 'characters':
         return {
           status: 'draft',
@@ -98,7 +98,7 @@ export function ContentEditor<T extends ContentItem>({
           species: undefined,
           occupation: undefined,
           relationships: undefined,
-        } as FormData<T>;
+        } as unknown as FormData<T>;
       case 'timelineEvents': // Add this case
         return {
           status: 'draft',
@@ -107,14 +107,14 @@ export function ContentEditor<T extends ContentItem>({
           era: 'ancient',
           description: '',
           is_published: false,
-        } as FormData<T>;
+        } as unknown as FormData<T>;
       case 'betaUsers': // Add this case
         return {
           status: 'pending',
           name: '',
           email: '',
           message: ''
-        } as FormData<T>;
+        } as unknown as FormData<T>;
       default:
         throw new Error(`Unsupported content type: ${contentType}`);
     }

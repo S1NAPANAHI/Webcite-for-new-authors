@@ -4,44 +4,7 @@ import { Button, Input } from '@zoroaster/ui';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight, Edit } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
-import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
-
-// Define Menu component
-const Menu = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`menu ${className}`}>{children}</div>
-);
-
-// Define MenuItem component
-const MenuItem = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-  <div className="menu-item" onClick={onClick}>
-    {children}
-  </div>
-);
-
-// Define Menu component if not available
-const MenuComponent = ({ children }: { children: React.ReactNode }) => (
-  <div className="menu">{children}</div>
-);
-
-// Define WikiSectionView first since it's used in WikiPage
 import type { WikiPage as SharedWikiPage, Folder as SharedFolder, WikiSectionView } from '@zoroaster/shared';
-
-// Define Menu component
-const Menu = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`menu ${className}`}>{children}</div>
-);
-
-// Define MenuItem component
-const MenuItem = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-  <div className="menu-item" onClick={onClick}>
-    {children}
-  </div>
-);
-
-// Define Menu component if not available
-const MenuComponent = ({ children }: { children: React.ReactNode }) => (
-  <div className="menu">{children}</div>
-);
 
 // Re-define local types based on shared types
 interface Folder extends SharedFolder {
@@ -68,9 +31,9 @@ type WikiViewerProps = {
 
 export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   const { folderSlug, pageSlug } = useParams<{ folderSlug?: string; pageSlug?: string }>();
-  const [pages, setPages] = useState<WikiPage[]>([]);
+  const [pages, setPages] = useState<SharedWikiPage[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [currentPage, setCurrentPage] = useState<WikiPage | null>(null);
+  const [currentPage, setCurrentPage] = useState<SharedWikiPage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -140,7 +103,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         
         if (pagesError) throw pagesError;
         
-        setPages((pagesData as WikiPage[]) || []);
+        setPages((pagesData as SharedWikiPage[]) || []);
         
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -551,3 +514,6 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   </div>
   );
 }
+
+
+export default WikiViewer;

@@ -17,6 +17,44 @@ import {
   updateTimelineEvent
 } from '../../api/timeline';
 
+const nestedEventSchema = z.object({
+  id: z.string().optional(),
+  date: z.string().min(1, 'Date is required'),
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  order: z.number().default(0).optional(),
+  timeline_event_id: z.string().optional(),
+});
+
+const formSchema = z.object({
+  date: z.string().min(1, 'Date is required'),
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().min(1, 'Description is required'),
+  details: z.string().optional(),
+  background_image: z.string().optional().nullable(),
+  is_published: z.boolean().default(false),
+  era: z.enum(['ancient', 'medieval', 'modern', 'future']).default('ancient'),
+  nested_events: z.array(nestedEventSchema).default([]),
+});
+
+type FormValues = {
+  date: string;
+  title: string;
+  description: string;
+  details?: string | null;
+  background_image?: string | null;
+  is_published: boolean;
+  era: 'ancient' | 'medieval' | 'modern' | 'future';
+  nested_events: Array<{
+    id?: string;
+    date: string;
+    title: string;
+    description: string;
+    order?: number;
+    timeline_event_id?: string;
+  }>;
+};
+
 type CreateTimelineEventDto = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at'> & {
   details?: string | null;
   background_image?: string | null;
@@ -29,6 +67,7 @@ type UpdateTimelineEventDto = Partial<Omit<TimelineEvent, 'id' | 'status' | 'cre
   background_image?: string | null;
   nested_events?: Array<Omit<NestedEvent, 'id'>>;
 };
+
 import { ImageUpload } from '../common/ImageUpload';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -36,26 +75,15 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 
-const nestedEventSchema = z.object({
-  id: z.string().optional(),
-  date: z.string().min(1, 'Date is required'),
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  order: z.number().default(0),
-});
-
-const formSchema = z.object({
-  date: z.string().min(1, 'Date is required'),
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
-  details: z.string().optional(),
-  background_image: z.string().optional(),
-  is_published: z.boolean().default(false),
-  nested_events: z.array(nestedEventSchema).default([]),
-});
-
-type FormValues = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at' | 'created_by'> & {
-  nested_events: Array<Omit<NestedEvent, 'id'>>;
+const defaultValues: FormValues = {
+  date: '',
+  title: '',
+  description: '',
+  details: '',
+  background_image: null,
+  is_published: false,
+  era: 'ancient',
+  nested_events: [],
 };
 
 interface SortableNestedEventProps {
@@ -174,16 +202,6 @@ interface TimelineEventFormProps {
   onSuccess: () => void;
 }
 
-const defaultValues: FormValues = {
-  date: '',
-  title: '',
-  description: '',
-  era: 'modern',
-  details: '',
-  background_image: '',
-  is_published: false,
-  nested_events: [],};
-
 export default function TimelineEventForm({
   open,
   onOpenChange,
@@ -216,7 +234,7 @@ export default function TimelineEventForm({
         description: event.description,
         details: event.details || '',
         date: event.date,
-        era: event.era || 'modern',
+        era: event.era || 'ancient',
         background_image: event.background_image || '',
         is_published: event.is_published,
         nested_events: event.nested_events?.map(ne => ({
@@ -251,15 +269,14 @@ export default function TimelineEventForm({
 
 
   const { mutate: createTimelineEventMutation } = useMutation({
-    mutationFn: (data: CreateTimelineEventDto) => {
-      // Convert to API-compatible format
-      const apiData: any = {
+    mutationFn: (data: FormValues) => {
+      const apiData: CreateTimelineEventDto = {
         title: data.title,
         description: data.description,
-        details: data.details || undefined,
+        details: data.details || null,
         date: data.date,
         era: data.era,
-        background_image: data.background_image || undefined,
+        background_image: data.background_image || null,
         is_published: data.is_published,
         nested_events: (data.nested_events || []).map((item, index) => ({
           date: item.date,
@@ -278,7 +295,7 @@ export default function TimelineEventForm({
       });
       onSuccess();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: error.message,
@@ -291,25 +308,25 @@ export default function TimelineEventForm({
   });
 
   const { mutate: updateTimelineEventMutation } = useMutation({
-    mutationFn: ({ id, ...data }: UpdateTimelineEventDto) => {
-      // Convert to API-compatible format
-      const apiData: any = {
+    mutationFn: (data: FormValues & { id: string }) => {
+      const apiData: UpdateTimelineEventDto = {
+        id: data.id,
         title: data.title,
         description: data.description,
-        details: data.details || undefined,
+        details: data.details || null,
         date: data.date,
         era: data.era,
-        background_image: data.background_image || undefined,
+        background_image: data.background_image || null,
         is_published: data.is_published,
         nested_events: (data.nested_events || []).map((item, index) => ({
+          id: item.id,
           date: item.date,
           title: item.title,
           description: item.description,
           order: index,
-          id: item.id
         }))
       };
-      return updateTimelineEvent(id, apiData);
+      return updateTimelineEvent(apiData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
@@ -319,7 +336,7 @@ export default function TimelineEventForm({
       });
       onSuccess();
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: 'Error',
         description: error.message,
@@ -346,46 +363,17 @@ export default function TimelineEventForm({
     
     try {
       if (event) {
-        // For update
-        const updateData: UpdateTimelineEventDto = {
-          id: event.id,
-          title: formData.title,
-          description: formData.description,
-          details: formData.details,
-          date: formData.date,
-          era: formData.era,
-          background_image: formData.background_image,
-          is_published: formData.is_published,
-          nested_events: formData.nested_events
-        };
-        
-        await updateTimelineEventMutation(updateData);
+        updateTimelineEventMutation({ ...formData, id: event.id });
       } else {
-        // For create
-        const createData: CreateTimelineEventDto = {
-          title: formData.title,
-          description: formData.description,
-          details: formData.details,
-          date: formData.date,
-          era: formData.era,
-          background_image: formData.background_image,
-          is_published: formData.is_published,
-          nested_events: formData.nested_events
-        };
-        
-        await createTimelineEventMutation(createData);
+        createTimelineEventMutation(formData);
       }
-      
-      onSuccess();
-      onOpenChange(false);
     } catch (error) {
-      console.error('Error submitting timeline event:', error);
+      console.error('Error submitting form:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to save timeline event',
+        description: 'An error occurred while saving the timeline event',
         variant: 'destructive',
       });
-    } finally {
       setIsUploading(false);
     }
   };
@@ -547,6 +535,25 @@ export default function TimelineEventForm({
                 <Label htmlFor="is_published" className="!mt-0">
                   {watch('is_published') ? 'Published' : 'Draft'}
                 </Label>
+              </div>
+
+              <div>
+                <Label htmlFor="era">Era *</Label>
+                <select
+                  id="era"
+                  {...register('era')}
+                  className="w-full p-2 border rounded-md focus:ring-accent focus:border-accent"
+                >
+                  <option value="ancient">Ancient</option>
+                  <option value="medieval">Medieval</option>
+                  <option value="modern">Modern</option>
+                  <option value="future">Future</option>
+                </select>
+                {errors.era && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.era.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -105,7 +105,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
   const query = supabase
     .from('wiki_pages')
     .select(`
-      *,
+      id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count, content, seo_title, seo_description, seo_keywords,
       category:wiki_categories (*),
       user:profiles (*)
     `)

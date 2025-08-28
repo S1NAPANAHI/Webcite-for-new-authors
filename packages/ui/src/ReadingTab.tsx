@@ -36,13 +36,16 @@ const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {
 
         // Check if user has ANY active subscription
         const now = new Date().toISOString();
-        const { data: subscriptions, error: subError }: PostgrestResponse<{ id: string }> = await supabase
+        let query = supabase
           .from('subscriptions')
           .select('id')
           .eq('user_id', user.id)
           .eq('is_active', true)
-          .lte('start_date', now)
-          .or(`current_period_end.gte.${now},current_period_end.is.null`);
+          .lte('start_date', now);
+
+        query = query.or(`current_period_end.gte.${now},current_period_end.is.null`);
+
+        const { data: subscriptions, error: subError }: PostgrestResponse<{ id: string }> = await query;
 
         if (subError) {
           throw subError;

@@ -1,29 +1,34 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
-import { Input } from '@zoroaster/ui';
-import { Card, CardContent, CardHeader, CardTitle } from '@zoroaster/ui';
-import { Menu, Search, X, ChevronRight, ChevronDown, BookOpen, Folder as FolderIcon, File } from 'lucide-react';
+import { X, BookOpen } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
-import { WikiSectionView } from './components/wiki/WikiSectionView';
 
 interface WikiPage extends Omit<SharedWikiPage, 'sections'> {
-  sections?: any[];
+  id: string;
   title: string;
   slug: string;
   folder_id: string;
+  category_id?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  is_published: boolean;
+  sections?: any[];
 }
 
 interface Folder extends Omit<SharedFolder, 'children'> {
-  children?: any[];
+  id: string;
   name: string;
   parent_id: string | null;
   slug: string;
   created_at: string;
   updated_at: string;
   created_by: string;
+  children?: Folder[];
+  is_published?: boolean;
 }
 
 // Define a discriminated union type for search results
@@ -32,29 +37,64 @@ type SearchResultItem =
   | (Folder & { resultType: 'folder' });
 
 // Helper type guard functions
-const isWikiPage = (item: SearchResultItem): item is WikiPage & { resultType: 'page' } => {
-  return 'title' in item && 'sections' in item && item.resultType === 'page';
+const isWikiPage = (item: SearchResultItem): item is (WikiPage & { resultType: 'page' }) => {
+  return item.resultType === 'page' && 'title' in item;
 };
 
-const isFolder = (item: SearchResultItem): item is Folder & { resultType: 'folder' } => {
-  return 'name' in item && 'children' in item && 'id' in item && item.resultType === 'folder';
+const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'folder' }) => {
+  return item.resultType === 'folder' && 'name' in item && 'id' in item;
 };
 
 export function WikiViewer() {
-  const { folderSlug, pageSlug } = useParams();
-  const navigate = useNavigate();
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [pages, setPages] = useState<WikiPage[]>([]); 
-  const [currentPage, setCurrentPage] = useState<WikiPage | null>(null); 
-  const [loading, setLoading] = useState(true);
+  const { folderSlug, pageSlug } = useParams<{ folderSlug?: string; pageSlug?: string }>();
+  const [pages, setPages] = useState<WikiPage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]); 
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
-  const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [toc, setToc] = useState<Array<{id: string, text: string, level: number}>>([]);
+  const searchTimeoutRef = useRef<number | null>(null);
+
+
+  // Handle search functionality
+  const handleSearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      
+      // Search in wiki_pages (title and excerpt)
+      const { data: pagesData, error: pagesError } = await supabase
+        .from('wiki_pages')
+        .select('*')
+        .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`);
+        
+      if (pagesError) throw pagesError;
+      
+      const results: SearchResultItem[] = (pagesData || []).map(page => ({
+        ...page,
+        resultType: 'page' as const,
+        sections: [],
+        is_published: page.is_published ?? true,
+        category_id: page.category_id ?? null,
+        created_at: page.created_at || new Date().toISOString(),
+        updated_at: page.updated_at || new Date().toISOString(),
+        created_by: page.created_by || ''
+      }));
+      
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Search error:', error);
+      toast.error('Failed to perform search');
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   // Fetch all folders and pages
   useEffect(() => {
@@ -62,37 +102,19 @@ export function WikiViewer() {
       try {
         setLoading(true);
         
-        // Fetch all folders
-        const { data: foldersData, error: foldersError } = await supabase
-          .from('wiki_folders')
-          .select('*')
-          .order('name');
-        
-        if (foldersError) throw foldersError;
-        
         // Fetch all pages
         const { data: pagesData, error: pagesError } = await supabase
           .from('wiki_pages')
-          .select('*, sections:wiki_content_blocks(*)') 
+          .select('*')
           .order('title');
         
         if (pagesError) throw pagesError;
         
-        setFolders(foldersData || []);
-        setPages(pagesData as WikiPage[] || []); 
-        
-        // If we have a page slug, load that page
-        if (pageSlug) {
-          const page = (pagesData as WikiPage[])?.find(p => p.slug === pageSlug); 
-          if (page) {
-            setCurrentPage(page);
-            generateToc(page.sections); 
-          }
-        }
+        setPages((pagesData as WikiPage[]) || []);
         
       } catch (error) {
-        console.error('Error fetching wiki data:', error);
-        toast.error('Failed to load wiki content');
+        console.error('Error fetching data:', error);
+        toast.error('Failed to load wiki pages');
       } finally {
         setLoading(false);
       }
@@ -241,88 +263,41 @@ export function WikiViewer() {
     ));
   };
 
-  // Search functionality
+  // Search functionality with debounce
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
+    const search = async () => {
+      if (!searchQuery.trim()) {
+        setSearchResults([]);
+        return;
+      }
 
-    setIsSearching(true);
-    
-    // Debounce search
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true);
+      
       try {
-        const query = searchQuery.trim().toLowerCase();
-        
-        // Search in wiki_pages (title and excerpt)
-        const { data: pagesData, error: pagesError } = await supabase
-          .from('wiki_pages')
-          .select('id, title, slug, folder_id') 
-          .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`); 
-        
-        if (pagesError) throw pagesError;
-
-        // Search in wiki_content_blocks (content)
-        const { data: contentBlocksData, error: contentBlocksError } = await supabase
-          .from('wiki_content_blocks')
-          .select('page_id, content')
-          .ilike('content->>text', `%${query}%`); 
-        
-        if (contentBlocksError) throw contentBlocksError;
-
-        // Get unique page_ids from content block search
-        const pageIdsFromContent = new Set(contentBlocksData?.map(cb => cb.page_id));
-
-        // Filter pagesData to include pages found in content blocks
-        const pagesFromContent = pages.filter(p => pageIdsFromContent.has(p.id));
-
-        // Combine pages found by title/excerpt and pages found by content, deduplicate
-        const combinedPages = [...(pagesData || []), ...pagesFromContent].filter((page, index, self) =>
-          index === self.findIndex((p) => p.id === page.id)
-        );
-
-        // Search in folders
-        const { data: foldersData, error: foldersError } = await supabase
-          .from('wiki_folders')
-          .select('*')
-          .ilike('name', `%${query}%`);
-        
-        if (foldersError) throw foldersError;
-        
-        // Combine and deduplicate results
-        const results: SearchResultItem[] = [
-          ...(combinedPages || []).map(p => ({
-            ...p,
-            resultType: 'page' as const,
-            sections: p.sections || [] // Ensure sections is always an array
-          })),
-          ...(foldersData || []).map(f => ({
-            ...f,
-            resultType: 'folder' as const,
-            children: f.children || [] // Ensure children is always an array
-          }))
-        ];
-        
-        setSearchResults(results);
+        await handleSearch(searchQuery);
       } catch (error) {
         console.error('Search error:', error);
         toast.error('Failed to perform search');
       } finally {
         setIsSearching(false);
       }
-    }, 300);
+    };
+
+    if (searchTimeoutRef.current !== null) {
+      window.clearTimeout(searchTimeoutRef.current);
+      searchTimeoutRef.current = null;
+    }
+
+    const timer = window.setTimeout(search, 500);
+    searchTimeoutRef.current = timer;
 
     return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+      if (searchTimeoutRef.current !== null) {
+        window.clearTimeout(searchTimeoutRef.current);
+        searchTimeoutRef.current = null;
       }
     };
-  }, [searchQuery, pages]); 
+  }, [searchQuery]);
 
   // Clear search when navigating
   useEffect(() => {
@@ -335,12 +310,12 @@ export function WikiViewer() {
       {/* Left Sidebar - Navigation */}
       {leftSidebarOpen && (
         <div className="w-64 bg-card border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold flex items-center">
-              <BookOpen size={16} className="mr-2" />
-              Wiki
-            </h2>
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold flex items-center">
+                <BookOpen size={16} className="mr-2" />
+                Wiki
+              </h2>
             <Button 
               variant="ghost" 
               size="icon" 

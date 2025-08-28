@@ -1,22 +1,43 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@zoroaster/ui';
-import { X, BookOpen } from 'lucide-react';
+import { X, BookOpen, File as FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight } from 'lucide-react';
+import { Input } from '@zoroaster/ui/input';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
+
+// Define Menu component
+const Menu = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
+  <div className={`menu ${className}`}>{children}</div>
+);
+
+// Define MenuItem component
+const MenuItem = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
+  <div className="menu-item" onClick={onClick}>
+    {children}
+  </div>
+);
+
+// Define Menu component if not available
+const MenuComponent = ({ children }: { children: React.ReactNode }) => (
+  <div className="menu">{children}</div>
+);
 
 interface WikiPage extends Omit<SharedWikiPage, 'sections'> {
   id: string;
   title: string;
   slug: string;
-  folder_id: string;
-  category_id?: string;
+  folder_id: string | null;
+  category_id: string | null;
   created_at: string;
   updated_at: string;
   created_by: string;
   is_published: boolean;
-  sections?: any[];
+  sections?: WikiSectionView[];
+  content?: string;
+  excerpt?: string | null;
+  view_count?: number | null;
 }
 
 interface Folder extends Omit<SharedFolder, 'children'> {
@@ -45,9 +66,32 @@ const isFolder = (item: SearchResultItem): item is (Folder & { resultType: 'fold
   return item.resultType === 'folder' && 'name' in item && 'id' in item;
 };
 
+// Define WikiSectionView interface
+interface WikiSectionView {
+  id: string;
+  type: 'heading_1' | 'heading_2' | 'heading_3' | 'paragraph' | 'bullet_list' | 'ordered_list' | 'image' | 'table' | 'quote' | 'code' | 'divider';
+  content: {
+    text?: string;
+    items?: string[];
+    url?: string;
+    alt?: string;
+    caption?: string;
+    language?: string;
+    rows?: any[][];
+    align?: string[];
+  };
+  title?: string;
+  page_id?: string;
+  position?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export function WikiViewer() {
   const { folderSlug, pageSlug } = useParams<{ folderSlug?: string; pageSlug?: string }>();
   const [pages, setPages] = useState<WikiPage[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [currentPage, setCurrentPage] = useState<WikiPage | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -56,6 +100,7 @@ export function WikiViewer() {
   const [loading, setLoading] = useState(true);
   const [toc, setToc] = useState<Array<{id: string, text: string, level: number}>>([]);
   const searchTimeoutRef = useRef<number | null>(null);
+  const contentRef = useRef<HTMLElement>(null);
 
 
   // Handle search functionality
@@ -165,7 +210,9 @@ export function WikiViewer() {
   };
 
   // Render content blocks
-  const renderContentBlock = (block: WikiSectionView) => { 
+  const renderContentBlock = (block: any) => {
+    if (!block) return null;
+    
     switch (block.type) {
       case 'heading_1':
       case 'heading_2':

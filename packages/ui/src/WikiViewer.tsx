@@ -16,16 +16,16 @@ type ContentBlock = {
 
 // Define a discriminated union type for search results
 type SearchResultItem = 
-  | (WikiPage & { type: 'page' })
-  | (Folder & { type: 'folder' });
+  | (WikiPage & { resultType: 'page' })
+  | (Folder & { resultType: 'folder' });
 
 // Helper type guard functions
-const isWikiPage = (item: WikiPage | Folder): item is WikiPage => {
-  return 'title' in item;
+const isWikiPage = (item: SearchResultItem): item is WikiPage & { resultType: 'page' } => {
+  return 'title' in item && 'sections' in item && item.resultType === 'page';
 };
 
-const isFolder = (item: WikiPage | Folder): item is Folder => {
-  return 'name' in item && 'children' in item;
+const isFolder = (item: SearchResultItem): item is Folder & { resultType: 'folder' } => {
+  return 'name' in item && 'children' in item && 'id' in item && item.resultType === 'folder';
 };
 
 export function WikiViewer() {
@@ -115,16 +115,17 @@ export function WikiViewer() {
   };
 
   // Generate table of contents from page content
-  const generateToc = (sections?: WikiSectionView[]) => { 
-    if (!sections) return [];
-    
+  const generateToc = (sections: WikiSectionView[] = []) => { 
     const headers = sections
-      .filter(block => block.type.startsWith('heading_'))
-      .map(block => ({
-        id: `heading-${block.id}`,
-        text: (block.content as any)?.text || '', 
-        level: parseInt(block.type.split('_')[1])
-      }));
+      .filter(block => block?.type?.startsWith?.('heading_'))
+      .map(block => {
+        const level = parseInt(block.type.split('_')[1] || '1');
+        return {
+          id: `heading-${block.id}`,
+          text: (block.content as any)?.text || '', 
+          level: isNaN(level) ? 1 : level
+        };
+      });
     
     setToc(headers);
   };
@@ -282,9 +283,17 @@ export function WikiViewer() {
         if (foldersError) throw foldersError;
         
         // Combine and deduplicate results
-        const results = [
-          ...(combinedPages || []).map(p => ({ ...p, type: 'page' as const }) as SearchResultItem),
-          ...(foldersData || []).map(f => ({ ...f, type: 'folder' as const }) as SearchResultItem)
+        const results: SearchResultItem[] = [
+          ...(combinedPages || []).map(p => ({
+            ...p,
+            resultType: 'page' as const,
+            sections: p.sections || [] // Ensure sections is always an array
+          })),
+          ...(foldersData || []).map(f => ({
+            ...f,
+            resultType: 'folder' as const,
+            children: f.children || [] // Ensure children is always an array
+          }))
         ];
         
         setSearchResults(results);
@@ -365,22 +374,22 @@ export function WikiViewer() {
               <div className="space-y-1 max-h-60 overflow-y-auto">
                 {searchResults.map((result) => (
                   <Link
-                    key={`${result.type}-${result.id}`}
-                    to={result.type === 'page' 
+                    key={`${result.resultType}-${result.id}`}
+                    to={result.resultType === 'page' 
                       ? `/wiki/${result.folder_id ? `${result.folder_id}/` : ''}${result.slug}`
                       : `/wiki/folder/${result.id}`}
                     className="flex items-center px-2 py-1.5 text-sm rounded hover:bg-accent"
                     onClick={() => setSearchQuery('')}
                   >
-                    {result.type === 'page' ? (
+                    {result.resultType === 'page' ? (
                       <File size={12} className="mr-2 text-blue-500 flex-shrink-0" />
                     ) : (
                       <FolderIcon size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
                     )}
                     <span className="truncate">
-                      {result.type === 'page' ? result.title : result.name}
+                      {result.resultType === 'page' ? result.title : result.name}
                     </span>
-                    {result.type === 'page' && result.folder_id && (
+                    {result.resultType === 'page' && result.folder_id && (
                       <span className="ml-2 text-xs text-muted-foreground truncate">
                         in {folders.find(f => f.id === result.folder_id)?.name || 'unknown'}
                       </span>

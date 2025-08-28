@@ -9,10 +9,10 @@ import { Badge } from './components/ui/badge';
 import { Tag } from './components/ui/tag';
 
 // Import ReactQuill with proper typing
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
-interface WikiPageWithSections extends WikiPage {
+interface WikiPageWithSections extends Omit<WikiPage, 'excerpt'> {
   sections: (WikiSectionView & { content: string })[];
   content: string;
   excerpt?: string;

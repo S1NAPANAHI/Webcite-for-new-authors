@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useParams } from 'react-router-dom';
 import { 
   Layout, 
   HomePage,
@@ -55,6 +55,26 @@ import ProfileDashboard from './pages/ProfileDashboard'; // New Profile Dashboar
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 
 const App: React.FC = () => {
+  const [currentPage, setCurrentPage] = React.useState<WikiPage | null>(null);
+  const params = useParams();
+
+  const fetchPage = async (slug: string) => {
+    const { data, error } = await supabase
+      .from('wiki_pages')
+      .select('*')
+      .eq('slug', slug)
+      .single();
+    
+    if (error) throw error;
+    return data;
+  };
+
+  React.useEffect(() => {
+    if (params.pageSlug) {
+      fetchPage(params.pageSlug).then(setCurrentPage);
+    }
+  }, [params.pageSlug]);
+
   return (
     <CartProvider>
       <AuthProvider>
@@ -73,9 +93,9 @@ const App: React.FC = () => {
             
             {/* Wiki Routes */}
             <Route path="/wiki">
-              <Route index element={<WikiViewer />} />
-              <Route path=":folderSlug" element={<WikiViewer />} />
-              <Route path=":folderSlug/:pageSlug" element={<WikiViewer />} />
+              <Route index element={currentPage ? <WikiViewer page={currentPage} /> : <div>Loading...</div>} />
+              <Route path=":folderSlug" element={currentPage ? <WikiViewer page={currentPage} /> : <div>Loading...</div>} />
+              <Route path=":folderSlug/:pageSlug" element={currentPage ? <WikiViewer page={currentPage} /> : <div>Loading...</div>} />
             </Route>
             
             <Route path="/timelines" element={<Timelines />} />

@@ -128,9 +128,8 @@ export function WikiManager() {
   };
 
   // Update the page creation handler to work at any level
-  const handleCreatePage = async (folderId?: string) => {
-    if (!newPageName.trim()) return;
-    
+  const handleCreatePage = async (e: React.MouseEvent<HTMLButtonElement>, folderId?: string) => {
+    e.preventDefault();
     try {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) {
@@ -138,43 +137,22 @@ export function WikiManager() {
         return;
       }
       
-      const newPage: Omit<WikiPage, 'id' | 'created_at' | 'updated_at'> = {
-        title: newPageName.trim(),
-        slug: newPageName.trim().toLowerCase().replace(/\s+/g, '-'),
-        content: '',
-        excerpt: '',
-        is_published: false,
-        view_count: 0,
-        category_id: '',
-        folder_id: folderId || null,
-        created_by: user.id,
-        seo_title: '',
-        seo_description: '',
-        seo_keywords: []
-      };
-      
-      const { data, error } = await supabase
+      const { data: page, error } = await supabase
         .from('wiki_pages')
-        .insert(newPage)
-        .select()
+        .insert([
+          { 
+            title: 'New Page',
+            content: '',
+            folder_id: folderId || null,
+            is_published: false,
+            created_by: user?.id,
+            excerpt: ''
+          }
+        ])
+        .select('*')
         .single();
-        
+
       if (error) throw error;
-      
-      // Create initial section
-      const initialSection = {
-        title: 'Introduction',
-        content: '',
-        order_index: 0,
-        page_id: data.id,
-        type: 'paragraph' as const
-      };
-      
-      const { error: sectionError } = await supabase
-        .from('wiki_sections')
-        .insert(initialSection);
-        
-      if (sectionError) throw sectionError;
       
       // Refresh pages
       await fetchPages();
@@ -529,7 +507,7 @@ export function WikiManager() {
                 variant="outline" 
                 size="sm" 
                 className="flex-1 justify-center bg-white dark:bg-gray-700 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-600"
-                onClick={() => setShowNewPageInput(!showNewPageInput)}
+                onClick={(e) => handleCreatePage(e, folderId)}
               >
                 <Plus size={14} className="mr-2" />
                 New Page
@@ -572,13 +550,13 @@ export function WikiManager() {
                   autoFocus
                   value={newPageName}
                   onChange={(e) => setNewPageName(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleCreatePage()}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreatePage(e, folderId)}
                   placeholder="Page title"
                   className="h-8 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
                 <Button 
                   size="sm" 
-                  onClick={handleCreatePage}
+                  onClick={(e) => handleCreatePage(e, folderId)}
                   disabled={!newPageName.trim()}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
@@ -637,7 +615,7 @@ export function WikiManager() {
                 : `Select a page from the sidebar or create a new one.`}
             </p>
             <Button 
-              onClick={() => setShowNewPageInput(true)}
+              onClick={(e) => handleCreatePage(e, folderId)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />

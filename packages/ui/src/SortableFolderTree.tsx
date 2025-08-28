@@ -4,30 +4,7 @@ import { Button } from './button';
 import { Folder, File, Edit, Trash2 } from 'lucide-react';
 import { cn } from './lib';
 
-type WikiFolder = {
-  id: string;
-  name: string;
-  parent_id: string | null;
-  slug: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-};
-
-type WikiPage = {
-  id: string;
-  title: string;
-  slug: string;
-  folder_id: string | null;
-  category_id: string | null;
-  created_at: string;
-  updated_at: string;
-  created_by: string | null;
-  is_published: boolean;
-  excerpt?: string | null;
-  view_count: number | null;
-  content?: string;
-};
+import { WikiPage, WikiFolder } from '@zoroaster/shared';
 
 type SortableFolderTreeProps = {
   folders: WikiFolder[];

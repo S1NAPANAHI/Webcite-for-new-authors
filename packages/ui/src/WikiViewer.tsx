@@ -7,13 +7,23 @@ import { Menu, Search, X, ChevronRight, ChevronDown, BookOpen, Folder as FolderI
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
 import type { WikiPage as SharedWikiPage, Folder as SharedFolder } from '@zoroaster/shared';
+import { WikiSectionView } from './components/wiki/WikiSectionView';
 
-interface WikiPage extends SharedWikiPage {
+interface WikiPage extends Omit<SharedWikiPage, 'sections'> {
   sections?: any[];
+  title: string;
+  slug: string;
+  folder_id: string;
 }
 
-interface Folder extends SharedFolder {
+interface Folder extends Omit<SharedFolder, 'children'> {
   children?: any[];
+  name: string;
+  parent_id: string | null;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
 }
 
 // Define a discriminated union type for search results

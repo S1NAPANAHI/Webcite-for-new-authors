@@ -137,7 +137,7 @@ export default function WikiAdmin() {
           title: newPageName.trim(),
           slug: newPageName.trim().toLowerCase().replace(/\s+/g, '-'),
           folder_id: folderId,
-          content: []
+          content: '',
         }])
         .select()
         .single();

@@ -15,7 +15,6 @@ import {
   AccountPage, 
   BlogPage, 
   NotFoundPage, 
-  LoginPage, 
   BetaPortalPage, 
   BetaApplicationStatusPage, 
   WorkReaderPage, 
@@ -40,7 +39,8 @@ import {
   ViewNDAPage,
   BetaFeedbackPage
 } from '@zoroaster/ui';
-import { WikiPage as WikiPageType, fetchWikiPage } from '@zoroaster/shared';  // Import the type
+import { LoginPage } from '@zoroaster/ui';
+import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';  // Import the type
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import BetaApplicationsManager from './admin/BetaApplicationsManager';
 import Timelines from './pages/Timelines';
@@ -49,14 +49,14 @@ import BetaApplication from './components/BetaApplication/BetaApplication'; // I
 import { CartProvider, AuthProvider } from '@zoroaster/shared';
 
 import StorePage from './pages/StorePage'; // This one is local
-import WikiPage from './pages/WikiPage'; // This one is local
+import LocalWikiPage from './pages/WikiPage'; // This one is local
 import BlogPostPage from './pages/BlogPostPage'; // This one is local
 import GenericPage from './pages/GenericPage'; // This one is local
 import ProfileDashboard from './pages/ProfileDashboard'; // New Profile Dashboard
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = React.useState<WikiPageType | null>(null);
+  const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
   const params = useParams();
 
   React.useEffect(() => {

@@ -4,19 +4,23 @@ import { Button, Input } from '@zoroaster/ui';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight, Edit } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';
-import type { WikiPage as SharedWikiPage, Folder as SharedFolder, WikiSectionView } from '@zoroaster/shared';
+import { WikiPage, WikiSectionView, WikiCategory, WikiPageWithSections, Tables } from '@zoroaster/shared';
 
 // Re-define local types based on shared types
-interface Folder extends SharedFolder {
+interface Folder {
+  id: string;
+  name: string;
+  parent_id: string | null;
   children?: Folder[];
+  slug?: string; // Add slug property
 }
 
 type SearchResultItem = 
-  | (SharedWikiPage & { resultType: 'page' })
+  | (WikiPageWithSections & { resultType: 'page' })
   | (Folder & { resultType: 'folder' });
 
 // Helper type guard functions
-const isWikiPage = (item: SearchResultItem): item is SharedWikiPage & { resultType: 'page' } => {
+const isWikiPage = (item: SearchResultItem): item is WikiPageWithSections & { resultType: 'page' } => {
   return item.resultType === 'page';
 };
 
@@ -24,16 +28,16 @@ const isFolder = (item: SearchResultItem): item is Folder & { resultType: 'folde
   return item.resultType === 'folder';
 };
 
-type WikiViewerProps = {
-  page: SharedWikiPage;
+interface WikiViewerProps {
+  page: WikiPageWithSections;
   onEdit?: () => void;
-};
+}
 
 export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   const { folderSlug, pageSlug } = useParams<{ folderSlug?: string; pageSlug?: string }>();
-  const [pages, setPages] = useState<SharedWikiPage[]>([]);
+  const [pages, setPages] = useState<WikiPageWithSections[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [currentPage, setCurrentPage] = useState<SharedWikiPage | null>(null);
+  const [currentPage, setCurrentPage] = useState<WikiPageWithSections | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -55,40 +59,54 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
 
     try {
       setIsSearching(true);
-      
+
       // Search in wiki_pages (title and excerpt)
       const { data: pagesData, error: pagesError } = await supabase
         .from('wiki_pages')
         .select(`
           *,
+          content, seo_title, seo_description, seo_keywords, sections,
           category:wiki_categories(*),
           user:profiles(*)
         `)
         .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`);
-        
+
       if (pagesError) throw pagesError;
-      
-      const results: SearchResultItem[] = (pagesData || []).map(page => ({
-        ...page,
-        resultType: 'page' as const,
-        sections: page.sections || [],
-        content: page.content || '',
-        excerpt: page.excerpt || '',
-        is_published: page.is_published ?? true,
-        category_id: page.category_id ?? null,
-        folder_id: page.folder_id ?? null,
-        created_at: page.created_at || new Date().toISOString(),
-        updated_at: page.updated_at || new Date().toISOString(),
-        created_by: page.created_by || '',
-        view_count: page.view_count || 0,
-        slug: page.slug || '',
-        seo_title: page.seo_title || null,
-        seo_description: page.seo_description || null,
-        seo_keywords: page.seo_keywords || [],
-        category: page.category || null,
-        user: page.user || null
-      }));
-      
+
+      const results: SearchResultItem[] = (pagesData || []).map((page: any) => {
+        // Explicitly handle user and category types
+        let userProfile: Tables<'profiles'> | null = null;
+        if (page.user && typeof page.user === 'object' && !('error' in page.user)) {
+            userProfile = page.user as Tables<'profiles'>;
+        }
+
+        let pageCategory: Tables<'wiki_categories'> | null = null;
+        if (page.category && typeof page.category === 'object' && !('error' in page.category)) {
+            pageCategory = page.category as Tables<'wiki_categories'>;
+        }
+
+        return {
+          ...page,
+          resultType: 'page' as const,
+          sections: page.sections || [],
+          content: page.content || '',
+          excerpt: page.excerpt || '',
+          is_published: page.is_published ?? true,
+          category_id: page.category_id ?? null,
+          folder_id: page.folder_id ?? null,
+          created_at: page.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: page.created_by || '',
+          view_count: page.view_count || 0,
+          slug: page.slug || '',
+          seo_title: page.seo_title || null,
+          seo_description: page.seo_description || null,
+          seo_keywords: page.seo_keywords || [],
+          category: pageCategory, // Assign the correctly typed category
+          user: userProfile,     // Assign the correctly typed user
+        } as WikiPageWithSections & { resultType: 'page' };
+      });
+
       setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
@@ -103,17 +121,42 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch all pages
         const { data: pagesData, error: pagesError } = await supabase
           .from('wiki_pages')
-          .select('*')
+          .select('*, content, seo_title, seo_description, seo_keywords, sections, category:wiki_categories(*), user:profiles(*)') // Include these fields
           .order('title');
-        
+
         if (pagesError) throw pagesError;
-        
-        setPages((pagesData as SharedWikiPage[]) || []);
-        
+
+        // Explicitly handle user and category for each page
+        const processedPages: WikiPageWithSections[] = (pagesData || []).map((page: any) => {
+            let userProfile: Tables<'profiles'> | null = null;
+            if (page.user && typeof page.user === 'object' && !('error' in page.user)) {
+                userProfile = page.user as Tables<'profiles'>;
+            }
+
+            let pageCategory: Tables<'wiki_categories'> | null = null;
+            if (page.category && typeof page.category === 'object' && !('error' in page.category)) {
+                pageCategory = page.category as Tables<'wiki_categories'>;
+            }
+
+            return {
+                ...page,
+                sections: page.sections || [],
+                content: page.content || '',
+                seo_title: page.seo_title || '',
+                seo_description: page.seo_description || '',
+                seo_keywords: page.seo_keywords || [],
+                category: pageCategory,
+                user: userProfile,
+                resultType: 'page', // Add resultType here
+            } as WikiPageWithSections;
+        });
+
+        setPages(processedPages);
+
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load wiki pages');
@@ -121,7 +164,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [pageSlug]);
 
@@ -129,12 +172,12 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   const buildFolderTree = (folders: Folder[]): Folder[] => {
     const folderMap = new Map<string, Folder>();
     const rootFolders: Folder[] = [];
-    
+
     // First pass: create map of all folders
     folders.forEach(folder => {
       folderMap.set(folder.id, { ...folder, children: [] });
     });
-    
+
     // Second pass: build tree structure
     folderMap.forEach(folder => {
       if (folder.parent_id && folderMap.has(folder.parent_id)) {
@@ -146,7 +189,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         rootFolders.push(folder);
       }
     });
-    
+
     return rootFolders;
   };
 
@@ -162,14 +205,14 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
           level: isNaN(level) ? 1 : level
         };
       });
-    
+
     setToc(headers);
   };
 
   // Render content blocks
   const renderContentBlock = (block: any) => {
     if (!block) return null;
-    
+
     switch (block.type) {
       case 'heading_1':
       case 'heading_2':
@@ -177,7 +220,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         const level = parseInt(block.type.split('_')[1]);
         const Tag = `h${level}` as keyof JSX.IntrinsicElements;
         return <Tag id={`heading-${block.id}`} className="mt-6 mb-4 font-semibold">{(block.content as any)?.text}</Tag>; 
-      
+
       case 'paragraph':
         return <p className="mb-4 leading-relaxed">{(block.content as any)?.text}</p>; 
         
@@ -189,7 +232,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
             ))}
           </ul>
         );
-        
+
       case 'ordered_list':
         return (
           <ol className="list-decimal pl-6 mb-4 space-y-1">
@@ -198,21 +241,21 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
             ))}
           </ol>
         );
-        
+
       case 'quote':
         return (
           <blockquote className="border-l-4 border-gray-300 pl-4 py-1 my-4 text-gray-600 italic">
             {(block.content as any)?.text} 
           </blockquote>
         );
-        
+
       case 'code':
         return (
           <pre className="bg-gray-100 p-4 rounded-md my-4 overflow-x-auto">
             <code>{(block.content as any)?.code}</code> 
           </pre>
         );
-        
+
       case 'image':
         return (
           <div className="my-6">
@@ -226,7 +269,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
             )}
           </div>
         );
-        
+
       default:
         return null;
     }
@@ -241,13 +284,13 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
           <FolderIcon size={14} className="mr-2 text-blue-500" />
           <span className="text-sm">{folder.name}</span>
         </div>
-        
+
         {folder.children && folder.children.length > 0 && (
           <div className="pl-4 border-l border-border ml-1">
             {renderFolderTree(folder.children, level + 1)}
           </div>
         )}
-        
+
         {/* Show pages in this folder */}
         <div className="pl-6">
           {pages
@@ -276,7 +319,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       }
 
       setIsSearching(true);
-      
+
       try {
         await handleSearch(searchQuery);
       } catch (error) {
@@ -333,7 +376,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
             <X size={16} />
           </Button>
         </div>
-        
+
         <div className="relative">
           <Search size={16} className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -345,7 +388,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
           />
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto p-2">
         {loading ? (
           <div className="text-center py-8 text-muted-foreground">Loading...</div>
@@ -353,14 +396,14 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
           renderFolderTree(buildFolderTree(folders as Folder[]))
         )}
       </div>
-      
+
       {/* Search results */}
       {searchQuery && (
         <div className="mt-2 border-t border-border pt-2">
           <div className="text-xs font-medium text-muted-foreground mb-2 px-2">
             {isSearching ? 'Searching...' : `Found ${searchResults.length} results`}
           </div>
-          
+
           {!isSearching && searchResults.length === 0 ? (
             <div className="text-xs text-muted-foreground px-2 py-1">
               No results found for "{searchQuery}"
@@ -376,19 +419,17 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
                   className="flex items-center px-2 py-1.5 text-sm rounded hover:bg-accent"
                   onClick={() => setSearchQuery('')}
                 >
-                  {result.resultType === 'page' ? (
-                    <FileIcon size={12} className="mr-2 text-blue-500 flex-shrink-0" />
-                  ) : (
-                    <FolderIcon size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
-                  )}
-                  <span className="truncate">
-                    {result.resultType === 'page' ? result.title : result.name}
-                  </span>
-                  {result.resultType === 'page' && result.folder_id && (
-                    <span className="ml-2 text-xs text-muted-foreground truncate">
-                      in {folders.find(f => f.id === result.folder_id)?.name || 'unknown'}
-                    </span>
-                  )}
+                  {isWikiPage(result) ? (
+                    <div className="flex items-center">
+                      <FileIcon className="h-4 w-4 mr-2 text-gray-500" />
+                      <span>{result.title}</span>
+                    </div>
+                  ) : isFolder(result) ? (
+                    <div className="flex items-center">
+                      <FolderIcon className="h-4 w-4 mr-2 text-yellow-500" />
+                      <span>{result.name}</span>
+                    </div>
+                  ) : null}
                 </Link>
               ))}
             </div>
@@ -397,7 +438,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       )}
     </div>
     )}
-      
+
     {/* Main Content */}
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Top Bar */}
@@ -412,13 +453,13 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
             <MenuIcon size={18} />
           </Button>
         )}
-        
+
         <div className="flex-1">
           <h1 className="font-semibold">
             {currentPage?.title || 'Welcome to the Wiki'}
           </h1>
         </div>
-        
+
         <Button 
           variant="ghost" 
           size="icon" 
@@ -427,7 +468,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
           <MenuIcon size={18} />
         </Button>
       </header>
-      
+
       {/* Page Content */}
       <main 
         ref={contentRef}
@@ -440,7 +481,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
                 {renderContentBlock(block)}
               </div>
             ))}
-            
+
             <div className="mt-12 pt-6 border-t border-border text-sm text-muted-foreground">
               Last updated: {new Date(currentPage.updated_at).toLocaleDateString()}
             </div>
@@ -454,7 +495,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         )}
       </main>
     </div>
-      
+
     {/* Right Sidebar - Table of Contents */}
     {rightSidebarOpen && (
       <div className="w-64 border-l border-border bg-card overflow-y-auto">
@@ -471,7 +512,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
             </Button>
           </div>
         </div>
-        
+
         <div className="p-4">
           {toc.length > 0 ? (
             <nav className="space-y-1">
@@ -492,11 +533,11 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         </div>
       </div>
     )}
-    
+
     {/* WikiViewer component */}
     <div className="prose dark:prose-invert max-w-none">
       <h1>{page.title}</h1>
-      
+
       {page.sections?.length ? (
         <div className="space-y-6">
           {page.sections
@@ -523,6 +564,5 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   </div>
   );
 }
-
 
 export default WikiViewer;

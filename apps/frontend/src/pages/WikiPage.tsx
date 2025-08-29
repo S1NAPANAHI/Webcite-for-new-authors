@@ -102,8 +102,11 @@ const WikiPage: React.FC = () => {
     };
 
     const renderSection = (section: WikiSection) => {
-        // ... render logic for different section types
-        return <div>{section.content}</div>;
+        const contentHtml = section.content;
+        if (contentHtml) {
+            return <div dangerouslySetInnerHTML={{ __html: contentHtml }} />;
+        }
+        return null;
     };
 
     return (

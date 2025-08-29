@@ -1,6 +1,15 @@
 import { supabase } from './supabaseClient';
-import { Tables, Enums } from './database.types';
+import { Tables, Enums, Json, TablesInsert } from './database.types';
 import { v4 as uuidv4 } from 'uuid';
+
+interface SupabaseSelectError {
+  error: true;
+}
+
+export type WikiPageQueryResult = Tables<'wiki_pages'> & {
+  user: Tables<'profiles'> | SupabaseSelectError | null;
+  category: Tables<'wiki_categories'> | SupabaseSelectError | null;
+};
 
 export type Folder = Tables<'wiki_folders'> & {
   children?: Folder[];
@@ -18,7 +27,7 @@ export const fetchFolders = async (): Promise<Folder[]> => {
 export type WikiSectionView = {
   id: string;
   title: string;
-  content: any;
+  content: Json | null;
   type: Enums<'content_block_type'>;
   order_index?: number;
   created_at?: string;
@@ -29,46 +38,71 @@ export type WikiSectionView = {
 export interface WikiPage {
   id: string;
   created_at: string;
-  created_by: string;
+  created_by: string | null;
   title: string;
   slug: string;
-  excerpt: string;
-  folder_id: string;
-  is_published: boolean;
-  category_id: string;
-  view_count: number;
+  excerpt: string | null;
+  folder_id: string | null;
+  is_published: boolean | null;
+  category_id: string | null;
+  view_count: number | null;
   updated_at: string;
-  content?: string;
-  seo_title?: string;
-  seo_description?: string;
-  seo_keywords?: string[];
-  category?: Tables<'wiki_categories'> | null;
-  user?: Tables<'profiles'> | null | { error: true } | string;
+  content?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_keywords?: string[] | null;
+  category: Tables<'wiki_categories'> | null;
+  user: Tables<'profiles'> | null;
   sections?: WikiSectionView[];
 }
 
-export const fetchPages = async (): Promise<WikiPage[]> => {
-    const { data, error } = await supabase
-        .from('wiki_pages')
-        .select('*, category:wiki_categories(*), user:profiles(*)')
-        .order('title');
-    if (error) throw error;
+export interface WikiPageWithSections extends WikiPage {
+  sections: WikiSectionView[];
+}
 
-    type SupabasePageData = (Tables<'wiki_pages'> & {
-        category: Tables<'wiki_categories'> | null;
-        user: Tables<'profiles'> | null | { error: true } | string; // Be very explicit about possible user types
-    })[];
+export const fetchPages = async (): Promise<WikiPageWithSections[]> => {
+  const { data, error } = await supabase
+    .from('wiki_pages')
+    .select(`
+          id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count,
+          content, seo_title, seo_description, seo_keywords,
+          category:wiki_categories(*),
+          user:profiles(*)
+        `)
+    .order('title');
 
-    const pages = (data as SupabasePageData) || []; // Cast to unknown first, then any[]
+  if (error) throw error;
 
-    for (const page of pages) {
-        // Explicitly check if page.user is an error object and set to null
-        if (page.user && typeof page.user === 'object' && 'error' in page.user) {
-            page.user = null;
-        }
-    }
+  const rawPages = data as WikiPageQueryResult[];
 
-    return pages as WikiPage[];
+  const wikiPagesWithSections: WikiPageWithSections[] = rawPages.map((page) => {
+    const userValue: Tables<'profiles'> | null = (page.user && 'error' in page.user) ? null : page.user as Tables<'profiles'> | null;
+    const categoryValue: Tables<'wiki_categories'> | null = (page.category && 'error' in page.category) ? null : page.category as Tables<'wiki_categories'> | null;
+
+    const wikiPage: WikiPageWithSections = {
+      id: page.id,
+      created_at: page.created_at,
+      created_by: page.created_by,
+      title: page.title,
+      slug: page.slug,
+      excerpt: page.excerpt,
+      folder_id: page.folder_id,
+      is_published: page.is_published,
+      category_id: page.category_id,
+      view_count: page.view_count,
+      updated_at: page.updated_at,
+      content: page.content || '',
+      seo_title: page.seo_title || '',
+      seo_description: page.seo_description || '',
+      seo_keywords: page.seo_keywords || [],
+            sections: [],
+            category: categoryValue,
+            user: userValue,
+        };
+    return wikiPage;
+  });
+
+  return wikiPagesWithSections;
 };
 
 export interface WikiCategory extends Tables<'wiki_categories'> {
@@ -91,7 +125,7 @@ export type WikiMedia = Tables<'wiki_media'>;
 export interface FetchWikiPagesOptions {
   search?: string;
   categoryId?: string;
-  tagId?: string;
+  _tagId?: string;
   isPublished?: boolean;
   sortBy?: 'title' | 'created_at' | 'updated_at' | 'view_count' | 'relevance';
   sortOrder?: 'asc' | 'desc';
@@ -110,19 +144,20 @@ export interface PaginatedResult<T> {
 /**
  * Fetch a single wiki page by ID or slug
  */
-export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null> => {
+export const fetchWikiPage = async (identifier: string): Promise<WikiPageWithSections | null> => {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
 
   const query = supabase
     .from('wiki_pages')
     .select(`
       id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count,
+      content, seo_title, seo_description, seo_keywords,
       category(*),
       user(*)
     `)
     .eq(isUuid ? 'id' : 'slug', identifier);
 
-  const { data: page, error } = await query.single();
+  const { data: page, error } = await query.single() as { data: any, error: any };
 
   if (error) {
     console.error('Error fetching wiki page:', error);
@@ -131,8 +166,12 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
 
   if (page) {
     // Explicitly check if page.user is an error object and set to null
-    if (page.user !== null && (typeof page.user === 'string' || (typeof page.user === 'object' && 'error' in page.user))) {
+    if (page.user && typeof page.user === 'object' && 'error' in page.user) {
       page.user = null;
+    }
+    // Explicitly check if page.category is an error object and set to null
+    if (page.category && typeof page.category === 'object' && 'error' in page.category) {
+      page.category = null;
     }
 
     const { data: contentBlocks, error: contentError } = await supabase
@@ -146,7 +185,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
       throw new Error('Failed to fetch wiki content');
     }
 
-    (page as WikiPage).sections = contentBlocks?.map(block => ({
+    const sections = contentBlocks?.map(block => ({
       id: block.id,
       type: block.type,
       content: block.content,
@@ -154,9 +193,22 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
     })) || [];
 
     await supabase.rpc('increment_wiki_page_views', { page_id: page.id });
+
+    // Construct WikiPageWithSections
+    const fullPage: WikiPageWithSections = {
+      ...page,
+      sections: sections,
+      content: page.content || '',
+      seo_title: page.seo_title || '',
+      seo_description: page.seo_description || '',
+      seo_keywords: page.seo_keywords || [],
+      category: page.category,
+      user: page.user,
+    };
+    return fullPage;
   }
 
-  return page as unknown as WikiPage;
+  return null;
 };
 
 /**
@@ -165,7 +217,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPage | null
 export const fetchWikiPages = async ({
   search,
   categoryId,
-  tagId,
+  _tagId,
   isPublished = true,
   sortBy = 'updated_at',
   sortOrder = 'desc',
@@ -200,23 +252,32 @@ export const fetchWikiPages = async ({
   // Apply pagination
   query = query.range(from, to);
 
-  const { data: pages, error, count } = await query;
+  const { data, error, count } = await query;
 
   if (error) {
     console.error('Error fetching wiki pages:', error);
     throw new Error('Failed to fetch wiki pages');
   }
 
-  const wikiPages = (pages as WikiPage[]) || [];
+  const rawWikiPages = data as WikiPageQueryResult[];
+
+  const wikiPages: WikiPage[] = rawWikiPages.map((page) => {
+    const userValue: Tables<'profiles'> | null = (page.user && 'error' in page.user) ? null : page.user as Tables<'profiles'> | null;
+    const categoryValue: Tables<'wiki_categories'> | null = (page.category && 'error' in page.category) ? null : page.category as Tables<'wiki_categories'> | null;
+
+    return {
+      ...page,
+      user: userValue,
+      category: categoryValue,
+      content: page.content || null,
+      seo_title: page.seo_title || null,
+      seo_description: page.seo_description || null,
+      seo_keywords: page.seo_keywords || null,
+      sections: [],
+    };
+  });
 
   if (wikiPages.length > 0) {
-    for (const p of wikiPages) {
-      // Explicitly check if p.user is an error object and set to null
-      if (p.user !== null && (typeof p.user === 'string' || (typeof p.user === 'object' && 'error' in p.user))) {
-        p.user = null;
-      }
-    }
-
     const pageIds = wikiPages.map(p => p.id);
     const { data: contentBlocks, error: contentError } = await supabase
       .from('wiki_content_blocks')
@@ -235,7 +296,7 @@ export const fetchWikiPages = async ({
         id: block.id,
         type: block.type,
         content: block.content,
-        title: '', // Title is not stored in content blocks
+        title: '',
       };
       if (!pageSectionsMap.has(block.page_id)) {
         pageSectionsMap.set(block.page_id, []);
@@ -291,23 +352,17 @@ export const createWikiPage = async (pageData: {
       folder_id: pageData.folder_id,
     }])
     .select('*, category:wiki_categories(*), user:profiles(*)')
-    .single();
+    .single() as { data: any, error: any };
 
   if (error) {
     console.error('Error creating wiki page:', error);
     throw new Error('Failed to create wiki page');
   }
 
-  const newPage = page as unknown as WikiPage;
-
-  // Add this block:
-  if (newPage.user !== null && (typeof newPage.user === 'string' || (typeof newPage.user === 'object' && 'error' in newPage.user))) {
-    newPage.user = null;
-  }
-
-  if (newPage && pageData.sections && pageData.sections.length > 0) {
-    const contentBlocksToInsert = pageData.sections.map((section, index) => ({
-      page_id: newPage.id,
+  
+    if (page && pageData.sections && pageData.sections.length > 0) {
+        const contentBlocksToInsert: TablesInsert<'wiki_content_blocks'>[] = pageData.sections.map((section, index) => ({
+      page_id: page.id,
       type: section.type,
       content: section.content,
       position: index,
@@ -321,12 +376,32 @@ export const createWikiPage = async (pageData: {
     if (contentError) {
       console.error('Error creating wiki content blocks:', contentError);
       // Optionally, you might want to delete the page if content creation fails
-      await supabase.from('wiki_pages').delete().eq('id', newPage.id);
+      await supabase.from('wiki_pages').delete().eq('id', page.id);
       throw new Error('Failed to create wiki content blocks');
     }
   }
 
-  return { ...newPage, sections: pageData.sections } as unknown as WikiPage;
+  const newWikiPage: WikiPage = {
+    id: page.id,
+    created_at: page.created_at,
+    created_by: page.created_by,
+    title: page.title,
+    slug: page.slug,
+    excerpt: page.excerpt,
+    folder_id: page.folder_id,
+    is_published: page.is_published,
+    category_id: page.category_id,
+    view_count: page.view_count,
+    updated_at: page.updated_at,
+    content: page.content,
+    seo_title: page.seo_title,
+    seo_description: page.seo_description,
+    seo_keywords: page.seo_keywords,
+    category: page.category,
+    user: page.user,
+    sections: pageData.sections,
+  };
+  return newWikiPage;
 };
 
 /**
@@ -357,25 +432,19 @@ export const updateWikiPage = async (
     .update(updateData)
     .eq('id', id)
     .select('*, category:wiki_categories(*), user:profiles(*)')
-    .single();
+    .single() as { data: any, error: any };
 
   if (error) {
     console.error('Error updating wiki page:', error);
     throw new Error('Failed to update wiki page');
   }
-  const updatedPage = page as unknown as WikiPage;
-
-  // Add this block:
-  if (updatedPage.user !== null && (typeof updatedPage.user === 'string' || (typeof updatedPage.user === 'object' && 'error' in updatedPage.user))) {
-    updatedPage.user = null;
-  }
-
-  if (updatedPage && incomingSections) {
+  
+    if (page && incomingSections) {
     // Delete existing content blocks
     const { error: deleteError } = await supabase
       .from('wiki_content_blocks')
       .delete()
-      .eq('page_id', updatedPage.id);
+      .eq('page_id', page.id);
 
     if (deleteError) {
       console.error('Error deleting old wiki content blocks:', deleteError);
@@ -384,12 +453,12 @@ export const updateWikiPage = async (
 
     // Insert new content blocks
     if (incomingSections.length > 0) {
-      const contentBlocksToInsert = incomingSections.map((section, index) => ({
-        page_id: updatedPage.id,
+      const contentBlocksToInsert: TablesInsert<'wiki_content_blocks'>[] = incomingSections.map((section, index) => ({
+        page_id: page.id,
         type: section.type,
-        content: section.content,
+        content: section.content as any,
         position: index,
-        created_by: updatedPage.created_by,
+        created_by: page.created_by,
       }));
 
       const { error: insertError } = await supabase
@@ -403,7 +472,27 @@ export const updateWikiPage = async (
     }
   }
 
-  return { ...updatedPage, sections: incomingSections } as unknown as WikiPage;
+  const updatedWikiPage: WikiPage = {
+    id: page.id,
+    created_at: page.created_at,
+    created_by: page.created_by,
+    title: page.title,
+    slug: page.slug,
+    excerpt: page.excerpt,
+    folder_id: page.folder_id,
+    is_published: page.is_published,
+    category_id: page.category_id,
+    view_count: page.view_count,
+    updated_at: page.updated_at,
+    content: page.content,
+    seo_title: page.seo_title,
+    seo_description: page.seo_description,
+    seo_keywords: page.seo_keywords,
+    category: page.category,
+    user: page.user,
+    sections: incomingSections,
+  };
+  return updatedWikiPage;
 };
 
 
@@ -536,7 +625,7 @@ export const uploadWikiMedia = async (
   const fileName = `${uuidv4()}.${fileExt}`;
   const filePath = `wiki/${fileName}`;
 
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  const { data: _uploadData, error: uploadError } = await supabase.storage
     .from('media')
     .upload(filePath, file);
 
@@ -545,7 +634,7 @@ export const uploadWikiMedia = async (
     throw new Error('Failed to upload file');
   }
 
-  const { data: { publicUrl } } = supabase.storage
+  const { data: { publicUrl: _publicUrl } } = supabase.storage
     .from('media')
     .getPublicUrl(filePath);
 

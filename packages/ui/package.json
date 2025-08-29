@@ -4,7 +4,8 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
-    "type-check": "tsc --noEmit -p tsconfig.json"
+    "type-check": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

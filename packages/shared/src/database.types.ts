@@ -669,7 +669,7 @@ export type Database = {
           id: string
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
-          username: string | null
+          username: string | null | null
           website: string | null
         }
         Insert: {
@@ -1363,12 +1363,16 @@ export type Database = {
       wiki_pages: {
         Row: {
           category_id: string | null
+          content: string | null
           created_at: string
           created_by: string | null
           excerpt: string | null
           folder_id: string | null
           id: string
           is_published: boolean | null
+          seo_description: string | null
+          seo_keywords: string[] | null
+          seo_title: string | null
           slug: string
           title: string
           updated_at: string
@@ -1376,12 +1380,16 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          content?: string | null
           created_at?: string
           created_by?: string | null
           excerpt?: string | null
           folder_id?: string | null
           id?: string
           is_published?: boolean | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
           slug: string
           title: string
           updated_at?: string
@@ -1389,12 +1397,16 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          content?: string | null
           created_at?: string
           created_by?: string | null
           excerpt?: string | null
           folder_id?: string | null
           id?: string
           is_published?: boolean | null
+          seo_description?: string | null
+          seo_keywords?: string[] | null
+          seo_title?: string | null
           slug?: string
           title?: string
           updated_at?: string

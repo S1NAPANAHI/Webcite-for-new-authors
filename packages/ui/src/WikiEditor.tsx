@@ -86,11 +86,19 @@ const QuillEditor = forwardRef<typeof ReactQuill, QuillEditorProps>(({
 
 QuillEditor.displayName = 'QuillEditor';
 
-import { WikiPage, WikiSectionView, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
+import { WikiPage, WikiSectionView, WikiPageWithSections, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories, Tables } from '@zoroaster/shared';
+
+interface LocalWikiCategory extends Tables<'wiki_categories'> {
+  page_count?: number;
+}
+
+function isWikiCategory(obj: any): obj is LocalWikiCategory {
+  return obj && typeof obj === 'object' && !('error' in obj) && 'id' in obj && 'name' in obj;
+}
 
 interface WikiEditorProps {
   id?: string;
-  onUpdatePage?: (page: WikiPage) => void;
+  onUpdatePage?: (page: WikiPageWithSections) => void;
   initialData?: WikiPageWithSections;
 }
 
@@ -99,45 +107,42 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
-  const [categories, setCategories] = useState<WikiCategory[]>([]);
+  const [categories, setCategories] = useState<LocalWikiCategory[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCategorySearch, setShowCategorySearch] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<WikiCategory | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<LocalWikiCategory | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   
   const [page, setPage] = useState<WikiPageWithSections>(() => {
-    if (initialData) return initialData;
+    if (initialData) {
+      return {
+        ...initialData,
+        category: initialData.category || null,
+        user: initialData.user || null,
+      };
+    }
     
     return {
       id: '',
       title: '',
       slug: '',
-      excerpt: '',
+      excerpt: null,
       content: '',
-      seo_title: '',
-      seo_description: '',
+      seo_title: null,
+      seo_description: null,
       seo_keywords: [],
-      sections: [{
-        id: 'section-1',
-        title: 'Introduction',
-        content: '',
-        type: 'paragraph',
-        page_id: '',
-        position: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      } as WikiSectionView & { content: string }],
+      sections: [],
       category_id: null,
       is_published: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      created_by: '',
+      created_by: null,
       folder_id: null,
-      view_count: 0,
+      view_count: null,
       category: null,
       user: null,
-    } as WikiPageWithSections;
+    };
   });
 
   const [newKeyword, setNewKeyword] = useState('');
@@ -181,7 +186,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         
         // Set selected category if exists
         if (data.category) {
-          setSelectedCategory(data.category);
+          setSelectedCategory(data.category as LocalWikiCategory);
         }
       } else {
         throw new Error('Wiki page not found.');
@@ -249,7 +254,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     }));
   };
 
-  const handleSelectCategory = (category: WikiCategory) => {
+  const handleSelectCategory = (category: LocalWikiCategory) => {
     setSelectedCategory(category);
     setPage(prev => ({ ...prev, category_id: category.id }));
     setShowCategorySearch(false);
@@ -325,7 +330,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
           .single();
 
         if (error) throw error;
-        if (data) { resultPage = data; } else { throw new Error('Page data not found after update.'); }
+        if (data) { resultPage = data as WikiPage; } else { throw new Error('Page data not found after update.'); }
         toast.success('Wiki page updated successfully');
 
         // Delete existing content blocks for update
@@ -352,8 +357,8 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
               
             },
           ])
-          .select()
-          .single();
+          .select('*, user:profiles(*), category:wiki_categories(*)')
+          .single<WikiPage>();
 
         if (error) throw error;
         if (data) { resultPage = data; } else { throw new Error('Page data not found after creation.'); }
@@ -365,7 +370,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         const contentBlocksToInsert = page.sections.map((section, index) => ({
           page_id: resultPage.id,
           type: section.type,
-          content: section.content, // Assuming content is already in the correct format (jsonb)
+          content: section.content as any, // Assuming content is already in the correct format (jsonb)
           position: index,
           created_by: user!.id, // Assign created_by for content blocks
         }));
@@ -386,6 +391,12 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
       if (resultPage) {
         // Save sections here...
         
+        // Explicitly handle the user property from resultPage
+        let userProfile: Tables<'profiles'> | null = null;
+        if (resultPage.user && typeof resultPage.user === 'object' && !('error' in resultPage.user)) {
+            userProfile = resultPage.user as Tables<'profiles'>;
+        }
+
         // Prepare the updated page data with all required fields
         const updatedPage: WikiPageWithSections = {
           ...resultPage,
@@ -394,11 +405,11 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
           excerpt: page.excerpt || null,
           is_published: page.is_published,
           category_id: page.category_id || null,
-          category: selectedCategory || null,
+          category: selectedCategory as WikiCategory || null,
           sections: page.sections || [],
           created_at: resultPage.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          // Include any other required fields from the WikiPage type
+          user: userProfile, // Assign the correctly typed user
         };
         
         // Call the onUpdatePage callback if provided
@@ -480,12 +491,23 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         .select()
         .single();
 
-      if (error) throw error;
-      
+      if (error) {
+        console.error('Error creating category:', error);
+        throw new Error('Failed to create category');
+      }
+
+      if (data === null) { // Explicitly check for null
+        console.error('No data returned after creating category, but no error was thrown.');
+        toast.error('Failed to create category: No data received.');
+        return;
+      }
+
+      const newCategory: LocalWikiCategory = data as Tables<'wiki_categories'> as LocalWikiCategory;
+
       // Add the new category to the list
-      setCategories(prev => [...prev, data]);
+      setCategories(prev => [...prev, newCategory]);
       // Select the new category
-      handleSelectCategory(data);
+      handleSelectCategory(newCategory);
       setNewCategoryName('');
       setIsCreatingNewCategory(false);
       toast.success('Category created successfully');
@@ -565,7 +587,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
     </div>
   );
 
-  const renderSectionContent = (section: WikiSectionView) => {
+  const renderSectionContent = (section: WikiSectionView): any => {
     const handleContentChange = (content: string) => {
       updateSection(section.id, { content });
     };
@@ -596,26 +618,20 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
       case 'ordered_list':
         return (
           <div className="mt-4">
-            <ReactQuill
-              value={section.content || ''}
+            <QuillEditor
+              value={section.content as string || ''}
               onChange={handleContentChange}
-              theme="snow"
-              modules={editorModules}
-              formats={editorFormats}
-              className="min-h-[100px]"
+              placeholder="Start writing..."
             />
           </div>
         );
       case 'quote':
         return (
           <div className="mt-4 border-l-4 border-gray-300 pl-4 italic">
-            <ReactQuill
-              value={section.content || ''}
+            <QuillEditor
+              value={section.content as string || ''}
               onChange={handleContentChange}
-              theme="snow"
-              modules={editorModules}
-              formats={editorFormats}
-              className="min-h-[100px]"
+              placeholder="Start writing..."
             />
           </div>
         );
@@ -623,7 +639,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         return (
           <div className="mt-4 bg-gray-100 p-4 rounded-md font-mono text-sm">
             <Textarea
-              value={section.content || ''}
+              value={section.content as string || ''}
               onChange={(e) => updateSection(section.id, { content: e.target.value })}
               placeholder="Enter code..."
               rows={6}
@@ -638,14 +654,14 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
           <div className="mt-4">
             <Input
               type="text"
-              value={section.content || ''}
+              value={section.content as string || ''}
               onChange={(e) => updateSection(section.id, { content: e.target.value })}
               placeholder="Enter image URL..."
             />
             {section.content && (
               <div className="mt-2">
                 <img 
-                  src={section.content} 
+                  src={section.content as string} 
                   alt="Section content" 
                   className="max-w-full h-auto rounded-md"
                 />

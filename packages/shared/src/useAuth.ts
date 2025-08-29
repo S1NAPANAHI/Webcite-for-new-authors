@@ -54,7 +54,7 @@ export const useAuth = (): AuthState => {
             setUserProfile(profile as UserProfile);
             const adminRoles = ['admin', 'super_admin'];
             const userRole = profile.role?.toLowerCase();
-            const isUserAdmin = userRole && adminRoles.includes(userRole);
+            const isUserAdmin = Boolean(userRole && adminRoles.includes(userRole));
             setIsAdmin(isUserAdmin);
              console.log('🔑 [useAuth] Role check:', {
               userId: profile.id,
@@ -83,8 +83,8 @@ export const useAuth = (): AuthState => {
     fetchSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('🔄 [useAuth] Auth state changed, event:', event);
+      (_event, _session) => {
+        console.log('🔄 [useAuth] Auth state changed, event:', _event);
         fetchSessionAndProfile();
       }
     );

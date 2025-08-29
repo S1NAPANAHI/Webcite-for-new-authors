@@ -9,7 +9,7 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
+    
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -18,8 +18,9 @@
     /* Paths */
     "baseUrl": ".",
     "paths": {
-      "@zoroaster/shared": ["../shared/src"],
-      "@zoroaster/shared/*": ["../shared/src/*"],
+      "@zoroaster/ui": ["./dist"],
+      "@zoroaster/shared": ["../shared/dist"],
+      "@zoroaster/shared/*": ["../shared/dist/*"],
       "@/*": ["./src/*"],
       "@/lib/*": ["./src/lib/*"]
     },
@@ -30,6 +31,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"],
+  "include": ["src", "src/index.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

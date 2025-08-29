@@ -3,7 +3,7 @@ export * from './src/database.types';
 export * from './src/supabase.d';
 export * from './src/wiki';
 export * from './src/supabaseClient';
-export * from './src/AuthContext.tsx';
+export * from './src/AuthContext';
 export * from './src/CartContext';
 export * from './src/userStats';
 export * from './src/profile';

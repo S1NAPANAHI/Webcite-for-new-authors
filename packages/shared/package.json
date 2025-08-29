@@ -12,6 +12,7 @@
   },
   "scripts": {
     "generate-types": "supabase gen types typescript --local > src/database.types.ts",
+    "build": "tsc -p tsconfig.json",
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

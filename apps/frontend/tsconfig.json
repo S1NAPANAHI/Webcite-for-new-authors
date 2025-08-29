@@ -4,8 +4,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@zoroaster/ui": ["../../packages/ui"],
-      "@zoroaster/shared": ["../../packages/shared"]
+      "@zoroaster/ui": ["../../packages/ui/src"],
+      "@zoroaster/shared": ["../../packages/shared/src"]
     }
   },
   "references": [

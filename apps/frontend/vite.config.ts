@@ -10,16 +10,13 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
 
   return {
-    plugins: [react({
-      babel: {
-        plugins: ['@babel/plugin-transform-typescript', { allowNamespaces: true }],
-      },
-    })],
+    plugins: [react()],
     resolve: {
       alias: [
         { find: '@', replacement: path.resolve(__dirname, './src') },
         { find: '@zoroaster/ui', replacement: path.resolve(__dirname, '../../packages/ui/src') },
-        { find: '@zoroaster/shared', replacement: path.resolve(__dirname, '../../packages/shared/src') },
+        { find: '@zoroaster/ui/LoginPage', replacement: path.resolve(__dirname, '../../packages/ui/src/LoginPage.tsx') },
+        { find: '@zoroaster/shared', replacement: path.resolve(__dirname, '../../packages/shared/index.ts') },
         { find: 'lexical', replacement: path.resolve(__dirname, 'node_modules/lexical') },
         { find: '@lexical/react', replacement: path.resolve(__dirname, 'node_modules/@lexical/react') },
         { find: 'quill', replacement: path.resolve(__dirname, 'node_modules/quill') },

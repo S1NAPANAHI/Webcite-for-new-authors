@@ -5,8 +5,8 @@ import { Session, User } from '@supabase/supabase-js';
 // UserProfile type definition
 interface UserProfile {
   id: string;
-  username: string;
-  display_name: string;
+  username: string | null;
+  display_name: string | null;
   bio?: string;
   location?: string;
   favorite_genre?: string;
@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user || null);
         setIsLoading(false);
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (error) throw error;
         
-        setUserProfile(profile);
+        setUserProfile(profile as UserProfile);
         setIsAdmin(!!(profile?.role === 'admin' || profile?.role === 'super_admin'));
       } catch (error) {
         console.error('Error fetching user profile:', error);

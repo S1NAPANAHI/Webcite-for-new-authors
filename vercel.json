@@ -12,8 +12,8 @@
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "buildCommand": "npm install && npm run build --workspace=frontend",
-  "installCommand": "npm install",
+  "buildCommand": "pnpm --filter ui build && pnpm --filter frontend build",
+  "installCommand": "pnpm install --frozen-lockfile",
   "regions": ["iad1"],
   "env": {
     "NODE_VERSION": "18.17.1",

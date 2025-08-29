@@ -50,3 +50,4 @@ export const Spoiler = Mark.create({
         ];
     },
 });
+//# sourceMappingURL=SpoilerExtension.js.map

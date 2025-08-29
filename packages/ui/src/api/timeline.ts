@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase.js';
 import { 
   TimelineEvent, 
   TimelineNestedEvent, 
@@ -6,7 +6,7 @@ import {
   UpdateTimelineEventDto,
   ReorderTimelineEventDto,
   TimelineEventListResponse
-} from '../types/timeline';
+} from '../types/timeline.js';
 
 const TABLE_NAME = 'timeline_events';
 const NESTED_TABLE_NAME = 'timeline_nested_events';

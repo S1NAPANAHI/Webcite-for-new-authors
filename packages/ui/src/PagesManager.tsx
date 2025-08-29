@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
-import { ContentEditor } from '@zoroaster/ui';
-import { ContentTable } from '@zoroaster/ui';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { ContentEditor } from './ContentEditor';
+import { ContentTable } from './ContentTable';
 import { Page, ContentStatus } from '@zoroaster/shared/types/content'; // Import Page and ContentStatus
 
 // --- Supabase Data Functions ---

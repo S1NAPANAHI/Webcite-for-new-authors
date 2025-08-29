@@ -9,3 +9,4 @@ interface ConfirmDialogProps {
 }
 export declare function ConfirmDialog({ open, onOpenChange, onConfirm, title, description, confirmText, cancelText, }: ConfirmDialogProps): import("react/jsx-runtime").JSX.Element;
 export {};
+//# sourceMappingURL=ConfirmDialog.d.ts.map

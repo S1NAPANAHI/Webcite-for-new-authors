@@ -11,7 +11,7 @@ import { Switch } from './switch';
 import { Loader2, X, Plus, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './alert';
 import { toast } from 'sonner';
-import type { Product } from '@zoroaster/shared';
+import type { Product } from '../../packages/shared/src/product.js';
 
 // Define validation schema
 const productSchema = z.object({

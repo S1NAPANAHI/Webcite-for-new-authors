@@ -1,4 +1,4 @@
-import { TimelineEvent, CreateTimelineEventDto, UpdateTimelineEventDto, ReorderTimelineEventDto, TimelineEventListResponse } from '../types/timeline';
+import { TimelineEvent, CreateTimelineEventDto, UpdateTimelineEventDto, ReorderTimelineEventDto, TimelineEventListResponse } from '../types/timeline.js';
 export declare const fetchTimelineEvents: ({ page, limit, includeUnpublished, }?: {
     page?: number;
     limit?: number;
@@ -10,3 +10,4 @@ export declare const updateTimelineEvent: (id: string, eventData: UpdateTimeline
 export declare const deleteTimelineEvent: (id: string) => Promise<void>;
 export declare const reorderTimelineEvents: (reorderData: ReorderTimelineEventDto[]) => Promise<void>;
 export declare const toggleTimelineEventPublishStatus: (id: string, isPublished: boolean) => Promise<TimelineEvent>;
+//# sourceMappingURL=timeline.d.ts.map

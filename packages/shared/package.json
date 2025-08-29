@@ -1,17 +1,78 @@
 {
   "name": "@zoroaster/shared",
   "version": "1.0.0",
-  "main": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./index.ts",
-    "./supabaseClient": "./src/supabaseClient.js",
-    "./supabaseAdminClient": "./src/supabaseAdminClient.js",
-    "./profile": "./src/profile.ts",
-    "./types/content": "./src/types/content.ts"
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./profile": {
+      "import": "./dist/profile.js",
+      "require": "./dist/profile.js",
+      "types": "./dist/profile.d.ts"
+    },
+    "./supabaseClient": {
+      "import": "./dist/supabaseClient.js",
+      "require": "./dist/supabaseClient.js",
+      "types": "./dist/supabaseClient.d.ts"
+    },
+    "./supabaseAdminClient": {
+      "import": "./dist/supabaseAdminClient.js",
+      "require": "./dist/supabaseAdminClient.js",
+      "types": "./dist/supabaseAdminClient.d.ts"
+    },
+    "./types/content": {
+      "import": "./dist/types/content.js",
+      "require": "./dist/types/content.js",
+      "types": "./dist/types/content.d.ts"
+    },
+    "./AuthContext": {
+      "import": "./dist/AuthContext.js",
+      "require": "./dist/AuthContext.js",
+      "types": "./dist/AuthContext.d.ts"
+    },
+    "./CartContext": {
+      "import": "./dist/CartContext.js",
+      "require": "./dist/CartContext.js",
+      "types": "./dist/CartContext.d.ts"
+    },
+    "./userStats": {
+      "import": "./dist/userStats.js",
+      "require": "./dist/userStats.js",
+      "types": "./dist/userStats.d.ts"
+    },
+    "./subscription": {
+      "import": "./dist/subscription.js",
+      "require": "./dist/subscription.js",
+      "types": "./dist/subscription.d.ts"
+    },
+    "./product": {
+      "import": "./dist/product.js",
+      "require": "./dist/product.js",
+      "types": "./dist/product.d.ts"
+    },
+    "./wiki": {
+      "import": "./dist/wiki.js",
+      "require": "./dist/wiki.js",
+      "types": "./dist/wiki.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils.js",
+      "require": "./dist/utils.js",
+      "types": "./dist/utils.d.ts"
+    },
+    "./database.types": {
+      "import": "./dist/database.types.js",
+      "require": "./dist/database.types.js",
+      "types": "./dist/database.types.d.ts"
+    }
   },
+  "files": ["dist"],
   "scripts": {
-    "generate-types": "supabase gen types typescript --local > src/database.types.ts",
+    "generate-types": "supabase gen types typescript --project-id opukvvmumyegtkukqint > src/database.types.ts",
     "build": "tsc -p tsconfig.json",
     "type-check": "tsc --noEmit -p tsconfig.json"
   },

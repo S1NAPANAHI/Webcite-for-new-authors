@@ -1,7 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Button, Input } from '@zoroaster/ui';
+import { Button } from './button'
+import { Input } from './input';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { toast } from 'sonner';

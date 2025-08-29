@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 const ReadingTab = ({ userProfile }) => {
     const [chapters, setChapters] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -102,3 +102,4 @@ const ReadingTab = ({ userProfile }) => {
     return (_jsxs("div", { className: "p-4", children: [_jsx("h2", { className: "text-2xl font-semibold mb-4", children: "Your Chapters" }), _jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", children: chapters.map((chapter) => (_jsxs("div", { className: "bg-background-dark p-4 rounded-lg shadow-md", children: [_jsx("h3", { className: "text-xl font-medium text-primary", children: chapter.title }), _jsxs("p", { className: "text-text-light", children: ["Chapter ", chapter.chapter_number] }), _jsxs("p", { className: "text-text-light text-sm", children: ["Work ID: ", chapter.work_id] }), _jsx("button", { className: "mt-4 bg-primary hover:bg-primary-dark text-white font-bold py-2 px-4 rounded", onClick: () => handleReadChapter(chapter.id), children: "Read Chapter" })] }, chapter.id))) })] }));
 };
 export { ReadingTab };
+//# sourceMappingURL=ReadingTab.js.map

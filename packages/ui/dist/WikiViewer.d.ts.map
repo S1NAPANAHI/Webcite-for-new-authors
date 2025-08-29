@@ -1,0 +1,1 @@
+{"version":3,"file":"WikiViewer.d.ts","sourceRoot":"","sources":["../src/WikiViewer.tsx"],"names":[],"mappings":"AAOA,OAAO,EAA2C,oBAAoB,EAAU,MAAM,mCAAmC,CAAC;AAwB1H,UAAU,eAAe;IACvB,IAAI,EAAE,oBAAoB,CAAC;IAC3B,MAAM,CAAC,EAAE,MAAM,IAAI,CAAC;CACrB;AAED,wBAAgB,UAAU,CAAC,EAAE,IAAI,EAAE,MAAM,EAAE,EAAE,eAAe,2CAkhB3D;AAED,eAAe,UAAU,CAAC"}

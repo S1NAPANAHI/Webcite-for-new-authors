@@ -8,3 +8,4 @@ export declare function useToast(): {
     toast: ({ title, description, variant }: ToastProps) => void;
 };
 export {};
+//# sourceMappingURL=use-toast.d.ts.map

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import styles from './HomePage.module.css';
 import { Link } from 'react-router-dom';
 

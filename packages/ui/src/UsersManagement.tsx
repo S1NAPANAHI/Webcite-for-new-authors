@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 
 // Mock supabase client for demonstration
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 
 export const UsersManagement = () => {
   // State management

@@ -5,3 +5,4 @@ import { type ClassValue } from 'clsx';
  * @returns A single string of combined class names
  */
 export declare function cn(...inputs: ClassValue[]): string;
+//# sourceMappingURL=utils.d.ts.map

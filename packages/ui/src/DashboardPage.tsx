@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
-import { AdminLayout } from '@zoroaster/ui';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { AdminLayout } from './AdminLayout';
 import {
   Users,
   DollarSign,

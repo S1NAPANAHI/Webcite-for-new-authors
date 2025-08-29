@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { Plus, Edit3, Trash2, Search } from 'lucide-react';
 // --- Supabase Data Functions ---
 const fetchWorks = async () => {
@@ -137,3 +137,4 @@ export const WorksManager = () => {
                                                             setIsEditing(true);
                                                         }, className: "p-1 text-gray-500 hover:text-blue-600", children: _jsx(Edit3, { className: "w-4 h-4" }) }), _jsx("button", { onClick: () => handleDeleteWork(work.id), className: "p-1 text-gray-500 hover:text-red-600", children: _jsx(Trash2, { className: "w-4 h-4" }) })] }) })] }, work.id))) })] }) })] })) }));
 };
+//# sourceMappingURL=WorksManager.js.map

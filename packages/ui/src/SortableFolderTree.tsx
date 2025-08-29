@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 import * as React from 'react';
 import { Button } from './button';
 import { Folder, File, Edit, Trash2 } from 'lucide-react';
-import { cn } from './lib';
+import { cn } from './lib/utils.js';
 
-import { WikiPage, Folder as WikiFolder } from '@zoroaster/shared';
+import { WikiPage, Folder as WikiFolder } from '../../packages/shared/src/wiki';
 
 type SortableFolderTreeProps = {
   folders: WikiFolder[];

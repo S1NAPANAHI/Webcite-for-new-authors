@@ -1,0 +1,1 @@
+{"version":3,"file":"SpoilerExtension.d.ts","sourceRoot":"","sources":["../../src/components/SpoilerExtension.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAmB,MAAM,cAAc,CAAC;AAGrD,OAAO,QAAQ,cAAc,CAAC;IAC5B,UAAU,QAAQ,CAAC,UAAU;QAC3B,OAAO,EAAE;YACP,aAAa,EAAE,MAAM,UAAU,CAAC;SACjC,CAAC;KACH;CACF;AAKD,eAAO,MAAM,OAAO,gBAsDlB,CAAC"}

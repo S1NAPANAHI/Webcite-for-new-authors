@@ -1,4 +1,4 @@
-import { WikiPage, Folder as WikiFolder } from '@zoroaster/shared';
+import { WikiPage, Folder as WikiFolder } from '../../packages/shared/src/wiki';
 type SortableFolderTreeProps = {
     folders: WikiFolder[];
     pages: WikiPage[];
@@ -14,3 +14,4 @@ type SortableFolderTreeProps = {
 };
 export declare function SortableFolderTree({ folders, pages, selectedFolder, selectedPage, onSelect, onPageSelect, onDeleteFolder, onEditFolder, onDeletePage, onEditPage, }: SortableFolderTreeProps): import("react/jsx-runtime").JSX.Element;
 export {};
+//# sourceMappingURL=SortableFolderTree.d.ts.map

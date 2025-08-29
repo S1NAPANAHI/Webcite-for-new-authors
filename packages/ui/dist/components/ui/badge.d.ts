@@ -7,3 +7,4 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, Varian
 }
 declare function Badge({ className, variant, ...props }: BadgeProps): import("react/jsx-runtime").JSX.Element;
 export { Badge, badgeVariants };
+//# sourceMappingURL=badge.d.ts.map

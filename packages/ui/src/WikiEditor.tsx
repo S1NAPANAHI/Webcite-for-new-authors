@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef, forwardRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '@zoroaster/shared';
-import { Button, Input, Textarea, Label, Switch } from '@zoroaster/ui';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { Button } from './button'
+import { Input } from './input'
+import { Textarea } from './textarea'
+import { Label } from './label'
+import { Switch } from './switch';
 import { toast } from 'sonner';
 import { Save, Loader2, ArrowLeft, Eye, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';
@@ -86,7 +90,7 @@ const QuillEditor = forwardRef<typeof ReactQuill, QuillEditorProps>(({
 
 QuillEditor.displayName = 'QuillEditor';
 
-import { WikiPage, WikiSectionView, WikiPageWithSections, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories, Tables } from '@zoroaster/shared';
+import { WikiPage, WikiSectionView, WikiPageWithSections, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories, Tables } from '../../packages/shared/src/wiki';
 
 interface LocalWikiCategory extends Tables<'wiki_categories'> {
   page_count?: number;

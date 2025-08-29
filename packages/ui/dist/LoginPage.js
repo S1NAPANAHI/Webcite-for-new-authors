@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { useNavigate, Link } from 'react-router-dom';
 import './LoginPage.css';
 const LoginPage = () => {
@@ -112,3 +112,4 @@ const LoginPage = () => {
                                     }, placeholder: "Create a strong password", required: true, disabled: loading }), passwordStrength && (_jsxs("div", { className: `password-strength ${passwordStrength.className}`, children: ["Password strength: ", passwordStrength.text] }))] }), _jsxs("div", { className: "form-group", children: [_jsx("label", { htmlFor: "confirmPassword", children: "Confirm Password" }), _jsx("input", { type: "password", id: "confirmPassword", value: confirmPassword, onChange: (e) => setConfirmPassword(e.target.value), placeholder: "Re-enter your password", required: true, disabled: loading })] }), _jsx("button", { type: "submit", className: "btn primary", disabled: loading, children: loading ? 'Creating account...' : 'Create Account' })] })), _jsx("div", { className: "auth-divider", children: _jsx("span", { children: "or continue with" }) }), _jsxs("div", { className: "social-logins", children: [_jsx("button", { type: "button", className: "btn social google", onClick: () => showMessage('Google login is not yet implemented', 'info'), disabled: loading, children: "Google" }), _jsx("button", { type: "button", className: "btn social github", onClick: () => showMessage('GitHub login is not yet implemented', 'info'), disabled: loading, children: "GitHub" })] }), _jsx("div", { className: "auth-footer", children: activeTab === 'login' ? (_jsxs(_Fragment, { children: ["Don't have an account?", ' ', _jsx("button", { type: "button", className: "text-link", onClick: () => setActiveTab('signup'), children: "Sign up" })] })) : (_jsxs(_Fragment, { children: ["Already have an account?", ' ', _jsx("button", { type: "button", className: "text-link", onClick: () => setActiveTab('login'), children: "Sign in" })] })) })] }) }));
 };
 export default LoginPage;
+//# sourceMappingURL=LoginPage.js.map

@@ -5,3 +5,4 @@ interface AchievementsTabProps {
 }
 export declare const AchievementsTab: React.FC<AchievementsTabProps>;
 export {};
+//# sourceMappingURL=AchievementsTab.d.ts.map

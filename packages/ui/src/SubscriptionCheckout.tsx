@@ -6,7 +6,7 @@ import { ShoppingCart, CreditCard, Calendar, Download, Crown, CheckCircle, Alert
 // Load Stripe outside of component to avoid recreating on every render
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key_here');
 
-import type { Product } from '@zoroaster/shared';
+import type { Product } from '../../packages/shared/src/product.js';
 
 interface StripeCheckoutProps {
   product: {

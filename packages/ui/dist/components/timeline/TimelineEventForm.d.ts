@@ -1,4 +1,4 @@
-import { TimelineEvent } from '@zoroaster/shared';
+import { TimelineEvent } from '../../../../packages/shared/src/types/timeline';
 interface TimelineEventFormProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -7,3 +7,4 @@ interface TimelineEventFormProps {
 }
 export default function TimelineEventForm({ open, onOpenChange, event, onSuccess, }: TimelineEventFormProps): import("react/jsx-runtime").JSX.Element;
 export {};
+//# sourceMappingURL=TimelineEventForm.d.ts.map

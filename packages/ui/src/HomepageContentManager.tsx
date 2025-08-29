@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
-import { useToast } from '@zoroaster/ui';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { useToast } from './use-toast';
 
   const toastInstance = useToast();
 

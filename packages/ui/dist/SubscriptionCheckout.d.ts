@@ -15,3 +15,4 @@ interface StripeCheckoutProps {
 }
 declare const SubscriptionCheckout: React.FC<StripeCheckoutProps>;
 export { SubscriptionCheckout };
+//# sourceMappingURL=SubscriptionCheckout.d.ts.map

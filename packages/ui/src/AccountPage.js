@@ -6,10 +6,10 @@ import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as 
 // Import sub-components for tabs
 import { OverviewTab } from './OverviewTab';
 import { ProfileTab } from './ProfileTab';
-import { ReadingTab } from '@zoroaster/ui';
-import { AchievementsTab } from '@zoroaster/ui';
-import { PreferencesTab } from '@zoroaster/ui';
-import { SecurityTab } from '@zoroaster/ui';
+import { ReadingTab } from './ReadingTab';
+import { AchievementsTab } from './AchievementsTab';
+import { PreferencesTab } from './PreferencesTab';
+import { SecurityTab } from './SecurityTab';
 export const AccountPage = () => {
     const { user, userProfile: authUserProfile, isLoading: loading, isAuthenticated } = useAuth(); // Use useAuth hook
     const [activeTab, setActiveTab] = useState('overview');

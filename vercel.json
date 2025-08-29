@@ -12,8 +12,8 @@
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "buildCommand": "pnpm --filter ui build && pnpm --filter frontend build",
-  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
   "regions": ["iad1"],
   "env": {
     "NODE_VERSION": "18.17.1",

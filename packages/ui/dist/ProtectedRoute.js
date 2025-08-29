@@ -23,3 +23,4 @@ export const ProtectedRoute = ({ children }) => {
     // Fallback, should not happen with defined statuses
     return _jsx(Navigate, { to: "/", replace: true });
 };
+//# sourceMappingURL=ProtectedRoute.js.map

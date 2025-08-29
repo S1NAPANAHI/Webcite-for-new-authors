@@ -7,3 +7,4 @@ export declare const uploadFile: (bucket: string, filePath: string, file: File, 
     fullPath: string;
 }>;
 export declare const deleteFile: (bucket: string, filePath: string) => Promise<import("@supabase/storage-js").FileObject[]>;
+//# sourceMappingURL=supabase.d.ts.map

@@ -21,17 +21,10 @@ export const fetchPages = async () => {
         .order('title');
     if (error)
         throw error;
-    const wikiPagesWithSections = (data || []).map((page) => {
-        const rawUser = page.user;
-        let userValue = null;
-        if (rawUser && typeof rawUser === 'object' && !('error' in rawUser)) {
-            userValue = rawUser;
-        }
-        const rawCategory = page.category;
-        let categoryValue = null;
-        if (rawCategory && typeof rawCategory === 'object' && !('error' in rawCategory)) {
-            categoryValue = rawCategory;
-        }
+    const rawPages = data;
+    const wikiPagesWithSections = rawPages.map((page) => {
+        const userValue = (page.user && 'error' in page.user) ? null : page.user;
+        const categoryValue = (page.category && 'error' in page.category) ? null : page.category;
         const wikiPage = {
             id: page.id,
             created_at: page.created_at,
@@ -48,7 +41,7 @@ export const fetchPages = async () => {
             seo_title: page.seo_title || '',
             seo_description: page.seo_description || '',
             seo_keywords: page.seo_keywords || [],
-            sections: page.sections || [],
+            sections: [],
             category: categoryValue,
             user: userValue,
         };
@@ -118,7 +111,7 @@ export const fetchWikiPage = async (identifier) => {
 /**
  * Fetch multiple wiki pages with filtering and pagination
  */
-export const fetchWikiPages = async ({ search, categoryId, _tagId, isPublished = true, sortBy = 'updated_at', sortOrder = 'desc', page = 1, pageSize = 10, } = {}) => {
+export const fetchWikiPages = async ({ search, categoryId, isPublished = true, sortBy = 'updated_at', sortOrder = 'desc', page = 1, pageSize = 10, } = {}) => {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
     let query = supabase
@@ -140,12 +133,26 @@ export const fetchWikiPages = async ({ search, categoryId, _tagId, isPublished =
     query = query.order(sortBy, { ascending: sortOrder === 'asc' });
     // Apply pagination
     query = query.range(from, to);
-    const { data: pages, error, count } = await query;
+    const { data, error, count } = await query;
     if (error) {
         console.error('Error fetching wiki pages:', error);
         throw new Error('Failed to fetch wiki pages');
     }
-    const wikiPages = pages || [];
+    const rawWikiPages = data;
+    const wikiPages = rawWikiPages.map((page) => {
+        const userValue = (page.user && 'error' in page.user) ? null : page.user;
+        const categoryValue = (page.category && 'error' in page.category) ? null : page.category;
+        return {
+            ...page,
+            user: userValue,
+            category: categoryValue,
+            content: page.content || null,
+            seo_title: page.seo_title || null,
+            seo_description: page.seo_description || null,
+            seo_keywords: page.seo_keywords || null,
+            sections: [],
+        };
+    });
     if (wikiPages.length > 0) {
         const pageIds = wikiPages.map(p => p.id);
         const { data: contentBlocks, error: contentError } = await supabase
@@ -163,7 +170,7 @@ export const fetchWikiPages = async ({ search, categoryId, _tagId, isPublished =
                 id: block.id,
                 type: block.type,
                 content: block.content,
-                title: '', // Title is not stored in content blocks
+                title: '',
             };
             if (!pageSectionsMap.has(block.page_id)) {
                 pageSectionsMap.set(block.page_id, []);

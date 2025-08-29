@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { Link } from 'react-router-dom';
 
 // Define the type for our posts (should match the one in PostsManager.tsx)

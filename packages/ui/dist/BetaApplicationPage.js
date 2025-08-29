@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import applicationConfig from './beta_reader_application_system.json';
+import applicationConfig from './beta_reader_application_system.json' with { type: 'json' };
 const config = applicationConfig;
 export const BetaApplicationPage = () => {
     const [currentStageIndex, setCurrentStageIndex] = useState(0);
@@ -168,3 +168,4 @@ export const BetaApplicationPage = () => {
     }
     return (_jsxs("div", { className: "container mx-auto p-4 bg-background-light text-textLight rounded-lg shadow-lg my-8", children: [_jsx("h1", { className: "text-4xl font-bold mb-6 text-primary text-center hero-title-glow", children: "Beta Program Application" }), _jsx("div", { className: "w-full bg-grayMedium rounded-full h-2.5 mb-4", children: _jsx("div", { className: "bg-primary h-2.5 rounded-full transition-all duration-500 ease-in-out", style: { width: `${((currentStageIndex + 1) / totalStages) * 100}%` } }) }), _jsxs("p", { className: "text-center text-base text-grayDark mb-6", children: ["Stage ", currentStageIndex + 1, " of ", totalStages, ": ", currentStage.title] }), _jsxs("form", { onSubmit: (e) => { e.preventDefault(); handleNext(); }, className: "space-y-6", children: [_jsxs("section", { className: "p-6 bg-background-light rounded-lg shadow-md border border-borderColorLight", children: [_jsx("h2", { className: "text-3xl font-semibold mb-4 text-textLight", children: currentStage.title }), _jsx("p", { className: "text-lg text-grayDark mb-4", children: currentStage.description }), currentStage.questions.map(renderQuestion)] }), _jsxs("div", { className: "flex justify-between mt-6", children: [currentStageIndex > 0 && (_jsx("button", { type: "button", onClick: handlePrevious, className: "btn-glow text-white p-3 rounded-md font-semibold active:scale-95 active:shadow-inner cursor-pointer transition duration-300 ease-in-out", children: "Previous" })), _jsx("button", { type: "submit", className: "btn-glow text-white p-3 rounded-md font-semibold active:scale-95 active:shadow-inner cursor-pointer transition duration-300 ease-in-out ml-auto", children: currentStageIndex === totalStages - 1 ? 'Submit Application' : 'Next' })] })] })] }));
 };
+//# sourceMappingURL=BetaApplicationPage.js.map

@@ -1,5 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared/supabaseClient';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+
+interface User {
+  id: string;
+  email: string;
+  profile?: {
+    display_name?: string;
+    role?: string;
+  };
+  subscriptions: Array<{
+    status: string;
+    subscription_type: string;
+    start_date?: string;
+    current_period_end?: string;
+  }>;
+  created_at?: string;
+  last_sign_in?: string;
+}
 
 export const AdminUploadPage = () => {
   const [title, setTitle] = useState('');
@@ -7,19 +24,19 @@ export const AdminUploadPage = () => {
   const [description, setDescription] = useState('');
   const [releaseDate, setReleaseDate] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState(''); // Assuming URL for cover image
-  const [epubFile, setEpubFile] = useState(null);
-  const [pdfFile, setPdfFile] = useState(null);
-  const [mobiFile, setMobiFile] = useState(null);
+  const [epubFile, setEpubFile] = useState<File | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [mobiFile, setMobiFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [users, setUsers] = useState([]); // New state for users
+  const [users, setUsers] = useState<User[]>([]); // New state for users
   const [usersLoading, setUsersLoading] = useState(true); // New state for users loading
-  const [usersError, setUsersError] = useState(null); // New state for users error
+  const [usersError, setUsersError] = useState<string | null>(null); // New state for users error
 
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [subscriptionType, setSubscriptionType] = useState('');
   const [isActive, setIsActive] = useState(false);
   const [startDate, setStartDate] = useState('');
@@ -48,7 +65,7 @@ export const AdminUploadPage = () => {
       }
 
       const data = await response.json();
-      setUsers(data.users);
+      setUsers(data.users as User[]);
     } catch (err) {
       console.error('Error fetching users:', err instanceof Error ? err.message : err);
       setUsersError('Failed to load users: ' + (err instanceof Error ? err.message : 'Unknown error'));
@@ -62,7 +79,7 @@ export const AdminUploadPage = () => {
     fetchUsers();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage('');
     setError('');
@@ -129,7 +146,7 @@ export const AdminUploadPage = () => {
     }
   };
 
-  const openSubscriptionModal = (user) => {
+  const openSubscriptionModal = (user: User) => {
     setSelectedUser(user);
     // Pre-fill form if user has an existing subscription
     const activeSub = user.subscriptions.find(sub => sub.status === 'active' || sub.status === 'trialing');
@@ -153,7 +170,7 @@ export const AdminUploadPage = () => {
     setSelectedUser(null);
   };
 
-  const handleSubscriptionSubmit = async (e) => {
+  const handleSubscriptionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
 
@@ -260,7 +277,7 @@ export const AdminUploadPage = () => {
             <input
               type="file"
               id="epubFileInput"
-              onChange={(e) => setEpubFile(e.target.files[0])}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEpubFile(e.target.files?.[0] || null)}
               accept=".epub"
               style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
             />
@@ -270,7 +287,7 @@ export const AdminUploadPage = () => {
             <input
               type="file"
               id="pdfFileInput"
-              onChange={(e) => setPdfFile(e.target.files[0])}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPdfFile(e.target.files?.[0] || null)}
               accept=".pdf"
               style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
             />
@@ -280,7 +297,7 @@ export const AdminUploadPage = () => {
             <input
               type="file"
               id="mobiFileInput"
-              onChange={(e) => setMobiFile(e.target.files[0])}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMobiFile(e.target.files?.[0] || null)}
               accept=".mobi"
               style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
             />
@@ -378,4 +395,3 @@ export const AdminUploadPage = () => {
     </div>
   );
 };
-

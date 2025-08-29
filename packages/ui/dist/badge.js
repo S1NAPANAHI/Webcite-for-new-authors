@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import * as React from "react";
-import { cn } from '@zoroaster/shared';
+import { cn } from '../../packages/shared/src/utils.js';
 const variantClasses = {
     default: "bg-primary text-primary-foreground hover:bg-primary/80 border-transparent",
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent",
@@ -13,3 +13,4 @@ const Badge = React.forwardRef(({ className, variant = "default", ...props }, re
 });
 Badge.displayName = "Badge";
 export { Badge };
+//# sourceMappingURL=badge.js.map

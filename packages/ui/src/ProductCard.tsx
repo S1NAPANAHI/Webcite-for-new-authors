@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Download, Crown, Star, Eye, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { SubscriptionCheckout } from './SubscriptionCheckout';
-import { useCart, Product } from '@zoroaster/shared';
+import { useCart } from '../../packages/shared/src/CartContext.js';
+import { Product } from '../../packages/shared/src/product.js';
 
 
 

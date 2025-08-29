@@ -1,13 +1,13 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@zoroaster/ui';
-import { Input } from '@zoroaster/ui';
+import { Button } from './button';
+import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders } from '@zoroaster/shared';
+import { supabase, fetchFolders } from '../../packages/shared/src/supabaseClient.js';
 import { toast } from 'sonner';
-import { WikiEditor } from '@zoroaster/ui';
-import { SortableFolderTree } from '@zoroaster/ui';
+import { WikiEditor } from './WikiEditor';
+import { SortableFolderTree } from './SortableFolderTree';
 export function WikiManager() {
     const { folderId } = useParams();
     const navigate = useNavigate();
@@ -425,3 +425,4 @@ export function WikiManager() {
                                         setEditingFolderName('');
                                     }, children: "Cancel" }), _jsx(Button, { onClick: handleUpdateFolder, disabled: !editingFolderName.trim(), className: "bg-blue-600 hover:bg-blue-700 text-white", children: "Save Changes" })] })] }) }))] }));
 }
+//# sourceMappingURL=WikiManager.js.map

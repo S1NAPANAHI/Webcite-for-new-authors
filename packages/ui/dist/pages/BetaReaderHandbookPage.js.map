@@ -1,0 +1,1 @@
+{"version":3,"file":"BetaReaderHandbookPage.js","sourceRoot":"","sources":["../../src/pages/BetaReaderHandbookPage.tsx"],"names":[],"mappings":";AACA,OAAO,cAAc,MAAM,8BAA8B,CAAC;AAE1D,MAAM,sBAAsB,GAAa,GAAG,EAAE;IAC5C,OAAO,CACL,eAAK,SAAS,EAAC,6BAA6B,aAC1C,aAAI,SAAS,EAAC,yBAAyB,qCAA0B,EACjE,KAAC,cAAc,IAAC,QAAQ,EAAC,0GAA0G,GAAG,IAClI,CACP,CAAC;AACJ,CAAC,CAAC;AAEF,eAAe,sBAAsB,CAAC"}

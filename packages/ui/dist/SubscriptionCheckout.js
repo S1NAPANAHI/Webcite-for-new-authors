@@ -80,3 +80,4 @@ const SubscriptionCheckout = (props) => {
     return (_jsx(Elements, { stripe: stripePromise, children: _jsx(CheckoutForm, { ...props }) }));
 };
 export { SubscriptionCheckout };
+//# sourceMappingURL=SubscriptionCheckout.js.map

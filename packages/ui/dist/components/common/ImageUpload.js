@@ -89,3 +89,4 @@ export const ImageUpload = ({ folder, onUpload, onError, onStart, children, acce
     return (_jsxs("div", { onClick: handleClick, onDragOver: handleDragOver, onDragLeave: handleDragLeave, onDrop: handleDrop, className: `relative ${isUploading ? 'opacity-50 pointer-events-none' : ''} ${isDragging ? 'ring-2 ring-primary ring-offset-2' : ''}`, children: [_jsx("input", { type: "file", ref: fileInputRef, onChange: handleFileChange, className: "hidden", accept: accept }), children] }));
 };
 export default ImageUpload;
+//# sourceMappingURL=ImageUpload.js.map

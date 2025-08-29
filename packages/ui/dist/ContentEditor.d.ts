@@ -8,3 +8,4 @@ interface ContentEditorProps<T extends ContentItem> {
 }
 export declare function ContentEditor<T extends ContentItem>({ item, contentType, onSave, onCancel }: ContentEditorProps<T>): import("react/jsx-runtime").JSX.Element;
 export {};
+//# sourceMappingURL=ContentEditor.d.ts.map

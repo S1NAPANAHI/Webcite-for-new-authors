@@ -9,3 +9,4 @@ export interface ImageUploadProps {
 }
 export declare const ImageUpload: React.FC<ImageUploadProps>;
 export default ImageUpload;
+//# sourceMappingURL=ImageUpload.d.ts.map

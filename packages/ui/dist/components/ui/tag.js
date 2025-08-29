@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { cva } from "class-variance-authority";
-import { cn } from "../../lib/utils";
+import { cn } from '../../../../packages/shared/src/utils';
 const tagVariants = cva("inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
     variants: {
         variant: {
@@ -18,3 +18,4 @@ function Tag({ className, variant, ...props }) {
     return (_jsx("div", { className: cn(tagVariants({ variant }), className), ...props }));
 }
 export { Tag, tagVariants };
+//# sourceMappingURL=tag.js.map

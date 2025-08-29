@@ -1,8 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
-import { useAuth } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { useAuth } from '../../packages/shared/src/AuthContext';
 import { XCircle, Info, Star } from 'lucide-react';
 // --- Supabase Data Functions ---
 const fetchAllWorks = async () => {
@@ -143,3 +143,4 @@ export const LibraryPage = () => {
                             return (_jsx(WorkCard, { work: work, userLibraryItem: userLibraryItem, queryClient: queryClient }, work.id));
                         }) }) }) })] }));
 };
+//# sourceMappingURL=LibraryPage.js.map

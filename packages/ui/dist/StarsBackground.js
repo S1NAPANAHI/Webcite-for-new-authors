@@ -39,3 +39,4 @@ const StarsBackground = () => {
     return (_jsx("div", { ref: starsRef, className: "stars fixed top-0 left-0 w-full h-full pointer-events-none -z-10", children: " " }));
 };
 export { StarsBackground };
+//# sourceMappingURL=StarsBackground.js.map

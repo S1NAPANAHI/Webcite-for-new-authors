@@ -125,7 +125,7 @@ export type WikiMedia = Tables<'wiki_media'>;
 export interface FetchWikiPagesOptions {
   search?: string;
   categoryId?: string;
-  _tagId?: string;
+  
   isPublished?: boolean;
   sortBy?: 'title' | 'created_at' | 'updated_at' | 'view_count' | 'relevance';
   sortOrder?: 'asc' | 'desc';
@@ -217,7 +217,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPageWithSec
 export const fetchWikiPages = async ({
   search,
   categoryId,
-  _tagId,
+  
   isPublished = true,
   sortBy = 'updated_at',
   sortOrder = 'desc',

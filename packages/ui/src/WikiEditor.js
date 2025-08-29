@@ -2,7 +2,11 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared';
-import { Button, Input, Textarea, Label, Switch } from '@zoroaster/ui';
+import { Button } from './button'
+import { Input } from './input'
+import { Textarea } from './textarea'
+import { Label } from './label'
+import { Switch } from './switch';
 import { toast } from 'sonner';
 import { Save, Loader2, ArrowLeft, Eye, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from './components/ui/card';

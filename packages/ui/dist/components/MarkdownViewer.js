@@ -35,3 +35,4 @@ const MarkdownViewer = ({ filePath }) => {
     return (_jsx("div", { className: "prose lg:prose-lg max-w-none", dangerouslySetInnerHTML: { __html: content } }));
 };
 export default MarkdownViewer;
+//# sourceMappingURL=MarkdownViewer.js.map

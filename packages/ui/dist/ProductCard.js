@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState } from 'react';
 import { ShoppingCart, Crown, Plus } from 'lucide-react';
 import { SubscriptionCheckout } from './SubscriptionCheckout';
-import { useCart } from '@zoroaster/shared';
+import { useCart } from '../../packages/shared/src/CartContext.js';
 export const ProductCard = ({ product, onPurchase, showCheckout = false }) => {
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const [showSample, setShowSample] = useState(false);
@@ -64,3 +64,4 @@ export const ProductCard = ({ product, onPurchase, showCheckout = false }) => {
                                 is_subscription: (product.product_type === 'chapter_pass' || product.product_type === 'arc_pass')
                             }, onSuccess: handleCheckoutSuccess, onCancel: handleCheckoutCancel })] }) }))] }));
 };
+//# sourceMappingURL=ProductCard.js.map

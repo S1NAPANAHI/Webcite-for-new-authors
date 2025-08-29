@@ -5,3 +5,4 @@ interface PreferencesTabProps {
 }
 export declare const PreferencesTab: React.FC<PreferencesTabProps>;
 export {};
+//# sourceMappingURL=PreferencesTab.d.ts.map

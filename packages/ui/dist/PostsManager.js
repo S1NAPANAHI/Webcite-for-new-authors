@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import toast from 'react-hot-toast'; // Import toast
 import { Plus, Edit3, Trash2, Eye, Search, Save, X } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
@@ -129,3 +129,4 @@ export const PostsManager = () => {
                                                             setIsEditing(true);
                                                         }, className: "p-1 text-gray-500 hover:text-blue-600", children: _jsx(Edit3, { className: "w-4 h-4" }) }), _jsx("button", { className: "p-1 text-gray-500 hover:text-green-600", children: _jsx(Eye, { className: "w-4 h-4" }) }), _jsx("button", { onClick: () => handleDeletePost(post.id), className: "p-1 text-gray-500 hover:text-red-600", children: _jsx(Trash2, { className: "w-4 h-4" }) })] }) })] }, post.id))) })] }) })] })) }));
 };
+//# sourceMappingURL=PostsManager.js.map

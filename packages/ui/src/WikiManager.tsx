@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@zoroaster/ui';
-import { Input } from '@zoroaster/ui';
+import { Button } from './button';
+import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories } from '@zoroaster/shared';
-import { supabase, fetchFolders, fetchPages, Database, Folder } from '@zoroaster/shared';
+import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories } from '../../packages/shared/src/wiki.js';
+import { supabase, fetchFolders, fetchPages, Database, Folder } from '../../packages/shared/src/supabaseClient.js';
 import { toast } from 'sonner';
-import { WikiEditor } from '@zoroaster/ui';
-import { SortableFolderTree } from '@zoroaster/ui';
+import { WikiEditor } from './WikiEditor';
+import { SortableFolderTree } from './SortableFolderTree';
 
 type WikiPageWithSections = WikiPage & {
   sections: (WikiSectionView & { content: string })[];

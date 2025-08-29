@@ -116,3 +116,4 @@ const BetaFeedbackForm = () => {
                                         }) })), quickTake && (_jsxs("p", { className: "text-gray-700 mb-3 italic", children: ["\"", quickTake, "\""] })), publicReview && (_jsx("p", { className: "text-gray-700 mb-3", children: publicReview })), allowSpoilers && spoilerContent && renderSpoilerContent(spoilerContent, 'main')] })) : (_jsx("p", { className: "text-gray-500 italic", children: "Fill out the form above to see your review preview..." }))] }), _jsxs("div", { className: "text-center col-span-2", children: [" ", _jsxs(Button, { type: "submit", className: "bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors flex items-center gap-2 mx-auto", children: [_jsx(Send, { className: "w-5 h-5" }), "Submit Beta Reader Feedback"] })] })] })] }));
 };
 export default BetaFeedbackForm;
+//# sourceMappingURL=BetaFeedbackForm.js.map

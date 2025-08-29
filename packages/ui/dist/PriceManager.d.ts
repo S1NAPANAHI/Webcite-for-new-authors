@@ -1,0 +1,3 @@
+import React from 'react';
+export declare const PriceManager: React.FC;
+export default PriceManager;

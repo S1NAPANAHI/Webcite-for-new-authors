@@ -1,0 +1,43 @@
+import React from 'react';
+type Work = {
+    id: string;
+    title: string;
+    type: 'book' | 'volume' | 'saga' | 'arc' | 'issue';
+    parent_id?: string;
+    order_in_parent?: number;
+    description?: string;
+    status: 'planning' | 'writing' | 'editing' | 'published' | 'on_hold';
+    progress_percentage?: number;
+    release_date?: string;
+    estimated_release?: string;
+    cover_image_url?: string;
+    sample_url?: string;
+    sample_content?: string;
+    is_purchasable?: boolean;
+    is_featured?: boolean;
+    word_count?: number;
+    target_word_count?: number;
+    rating?: number;
+    reviews_count?: number;
+    epub_url?: string | null;
+    pdf_url?: string | null;
+    mobi_url?: string | null;
+};
+type UserLibraryItem = {
+    id: string;
+    user_id: string;
+    product_id: string;
+    purchased_at: string;
+    status: string;
+    product_title: string;
+    product_description?: string;
+    product_type: 'single_issue' | 'bundle' | 'chapter_pass' | 'arc_pass';
+    work_id?: string;
+};
+export declare const WorkCard: React.FC<{
+    work: Work;
+    userLibraryItem?: UserLibraryItem;
+    queryClient: any;
+}>;
+export declare const LibraryPage: React.FC;
+export {};

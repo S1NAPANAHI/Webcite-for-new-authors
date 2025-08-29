@@ -2,8 +2,8 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared';
-import { ContentEditor } from '@zoroaster/ui';
-import { ContentTable } from '@zoroaster/ui';
+import { ContentEditor } from './ContentEditor';
+import { ContentTable } from './ContentTable';
 // --- Supabase Data Functions ---
 const fetchPages = async () => {
     const { data, error } = await supabase.from('pages').select('*');

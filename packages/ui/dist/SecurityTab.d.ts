@@ -5,3 +5,4 @@ interface SecurityTabProps {
 }
 export declare const SecurityTab: React.FC<SecurityTabProps>;
 export {};
+//# sourceMappingURL=SecurityTab.d.ts.map

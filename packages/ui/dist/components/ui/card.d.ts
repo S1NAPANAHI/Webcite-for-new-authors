@@ -6,3 +6,4 @@ declare const CardDescription: React.ForwardRefExoticComponent<React.HTMLAttribu
 declare const CardContent: React.ForwardRefExoticComponent<React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>>;
 declare const CardFooter: React.ForwardRefExoticComponent<React.HTMLAttributes<HTMLDivElement> & React.RefAttributes<HTMLDivElement>>;
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+//# sourceMappingURL=card.d.ts.map

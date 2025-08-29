@@ -41,3 +41,4 @@ export declare const WorkCard: React.FC<{
 }>;
 export declare const LibraryPage: React.FC;
 export {};
+//# sourceMappingURL=LibraryPage.d.ts.map

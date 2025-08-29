@@ -8,7 +8,9 @@
   "scripts": {
     "type-check": "tsc --noEmit -p .",
     "dev": "pnpm --filter frontend dev",
-    "build": "pnpm install && pnpm --filter ui build && pnpm --filter frontend build",
+    "build": "pnpm -r build",
+    "build:ui": "pnpm --filter @zoroaster/ui build",
+    "build:frontend": "pnpm --filter frontend build",
     "start": "pnpm --filter frontend start",
     "lint": "pnpm --filter frontend lint",
     "vercel-build": "pnpm install && pnpm --filter frontend build",

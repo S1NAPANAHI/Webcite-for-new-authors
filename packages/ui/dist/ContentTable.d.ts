@@ -16,3 +16,4 @@ interface ContentTableProps {
 }
 export declare const ContentTable: React.FC<ContentTableProps>;
 export {};
+//# sourceMappingURL=ContentTable.d.ts.map

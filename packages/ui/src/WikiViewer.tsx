@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Button, Input } from '@zoroaster/ui';
+import { Button } from './button'
+import { Input } from './input';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight, Edit } from 'lucide-react';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { toast } from 'sonner';
-import { WikiPage, WikiSectionView, WikiCategory, WikiPageWithSections, Tables } from '@zoroaster/shared';
+import { WikiPage, WikiSectionView, WikiCategory, WikiPageWithSections, Tables } from '../../packages/shared/src/wiki.js';
 
 // Re-define local types based on shared types
 interface Folder {

@@ -1,7 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { cn, useAuth, supabase } from '@zoroaster/shared';
+import { cn } from '../../packages/shared/src/utils.js';
+import { useAuth } from '../../packages/shared/src/AuthContext.js';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { LayoutDashboard, FileText, Store, BookOpen, Settings, Users, Upload, ChevronLeft, ChevronRight, LogOut, Calendar } from 'lucide-react';
 const navigation = [
     { name: 'Dashboard', href: '/account/admin', icon: LayoutDashboard },
@@ -40,3 +42,4 @@ export const AdminLayout = () => {
                                             : 'hover:bg-gray-100 dark:hover:bg-gray-700', isCollapsed ? 'justify-center' : 'space-x-3'), children: [_jsx(item.icon, { size: 20, className: "flex-shrink-0" }), !isCollapsed && _jsx("span", { children: item.name })] }) }, item.name))) }) }), _jsx("div", { className: "p-4 border-t border-gray-200 dark:border-gray-700", children: _jsxs("div", { className: cn("flex items-center", isCollapsed ? 'justify-center' : 'justify-between'), children: [!isCollapsed && (_jsxs("div", { className: "flex items-center space-x-3", children: [_jsx("div", { className: "w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold", children: userProfile?.display_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() }), _jsxs("div", { children: [_jsx("p", { className: "text-sm font-medium truncate max-w-[140px]", children: userProfile?.display_name || 'Admin User' }), _jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400 truncate max-w-[140px]", children: user?.email })] })] })), _jsx("button", { onClick: handleLogout, className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700", title: "Sign out", children: _jsx(LogOut, { size: 18 }) })] }) })] }) }), _jsx("div", { className: cn('transition-all duration-300 min-h-screen', isCollapsed ? 'lg:ml-0' : 'lg:ml-64', 'ml-0 w-full'), children: _jsx("div", { className: "w-full max-w-[2000px] mx-auto px-4 py-6", children: _jsx("div", { className: "bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 md:p-6", children: _jsx(Outlet, {}) }) }) })] }));
 };
 export default AdminLayout;
+//# sourceMappingURL=AdminLayout.js.map

@@ -1,15 +1,16 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { supabase, useAuth } from '@zoroaster/shared'; // Import useAuth
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { useAuth } from '../../packages/shared/src/AuthContext.js'; // Import useAuth
 import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as UserIcon, Bookmark, Clock, Star, Lock } from 'lucide-react';
 // Import sub-components for tabs
-import { OverviewTab } from './OverviewTab';
-import { ProfileTab } from './ProfileTab';
-import { ReadingTab } from '@zoroaster/ui';
-import { AchievementsTab } from '@zoroaster/ui';
-import { PreferencesTab } from '@zoroaster/ui';
-import { SecurityTab } from '@zoroaster/ui';
+import { OverviewTab } from './OverviewTab.js';
+import { ProfileTab } from './ProfileTab.js';
+import { ReadingTab } from './ReadingTab.js';
+import { AchievementsTab } from './AchievementsTab.js';
+import { PreferencesTab } from './PreferencesTab.js';
+import { SecurityTab } from './SecurityTab.js';
 export const AccountPage = () => {
     const { user, userProfile: authUserProfile, isLoading: loading, isAuthenticated } = useAuth(); // Use useAuth hook
     const [activeTab, setActiveTab] = useState('overview');
@@ -102,3 +103,4 @@ export const AccountPage = () => {
                                                                 ? 'bg-primary/10 text-primary'
                                                                 : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'}`, children: [_jsxs("div", { className: "flex items-center", children: [_jsx("span", { className: "mr-3", children: tab.icon }), tab.name] }), _jsx(ChevronRight, { size: 16, className: "text-gray-500" })] }) }, tab.id))), userProfile.role === 'admin' && (_jsx("li", { children: _jsxs("a", { href: "/admin", className: "w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-amber-400 rounded-lg hover:bg-amber-900/20 transition-colors", children: [_jsxs("div", { className: "flex items-center", children: [_jsx(Shield, { size: 18, className: "mr-3" }), "Admin Dashboard"] }), _jsx(ChevronRight, { size: 16 })] }) }))] }) })] }), activeTab === 'overview' && (_jsxs("div", { className: "mt-6 bg-background-light/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800", children: [_jsx("h3", { className: "text-sm font-medium text-gray-400 mb-4", children: "YOUR STATS" }), _jsx("div", { className: "space-y-4", children: stats.map((stat, index) => (_jsxs("div", { className: "flex items-center", children: [_jsx("div", { className: "flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary", children: stat.icon }), _jsxs("div", { className: "ml-3", children: [_jsx("p", { className: "text-sm font-medium text-gray-300", children: stat.label }), _jsx("p", { className: "text-lg font-semibold text-white", children: stat.value })] })] }, index))) })] }))] }), _jsx("main", { className: "flex-1", children: _jsx("div", { className: "bg-background-light/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden", children: _jsx("div", { className: "p-6", children: tabs.find(tab => tab.id === activeTab)?.component }) }) })] }) })] }));
 };
+//# sourceMappingURL=AccountPage.js.map

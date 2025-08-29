@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from "react";
 import { cva } from "class-variance-authority";
 import { AlertCircle, CheckCircle2, Info, XCircle } from "lucide-react";
-import { cn } from "./lib/utils";
+import { cn } from './lib/utils.js';
 const alertVariants = cva("relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:h-4 [&>svg]:w-4", {
     variants: {
         variant: {
@@ -37,3 +37,4 @@ const AlertWithIcon = React.forwardRef(({ className, variant = "default", childr
 });
 AlertWithIcon.displayName = "AlertWithIcon";
 export { Alert, AlertTitle, AlertDescription, AlertWithIcon };
+//# sourceMappingURL=alert.js.map

@@ -46,3 +46,4 @@ export const deleteFile = async (bucket, filePath) => {
     }
     return data;
 };
+//# sourceMappingURL=supabase.js.map

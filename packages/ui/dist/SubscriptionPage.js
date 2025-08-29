@@ -1,8 +1,8 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
-import { useAuth } from '@zoroaster/shared';
+import { useAuth } from '../../packages/shared/src/AuthContext.js';
 import { BookOpen, Clock, Star, CheckCircle, ArrowRight, Crown, Zap, Heart } from 'lucide-react';
-import { SubscriptionCheckout } from '@zoroaster/ui';
+import { SubscriptionCheckout } from './SubscriptionCheckout';
 import { motion } from 'framer-motion';
 export const SubscriptionPage = () => {
     const { isAuthenticated } = useAuth();
@@ -99,3 +99,4 @@ export const SubscriptionPage = () => {
                 }, onCancel: handleCheckoutClose, onSuccess: handleCheckoutSuccess }))] }));
 };
 export default SubscriptionPage;
+//# sourceMappingURL=SubscriptionPage.js.map

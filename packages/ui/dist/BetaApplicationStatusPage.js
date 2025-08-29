@@ -30,3 +30,4 @@ export const BetaApplicationStatusPage = () => {
     }
     return (_jsxs("div", { className: "p-4 text-center", children: [_jsx("h1", { className: "text-3xl font-bold mb-4", children: "Beta Application Status" }), _jsxs("div", { className: `p-6 rounded-lg shadow-md ${statusColor} bg-white`, children: [_jsx("p", { className: "text-lg font-semibold mb-4", children: statusMessage }), actionLink && _jsx("p", { className: "mt-4", children: actionLink })] })] }));
 };
+//# sourceMappingURL=BetaApplicationStatusPage.js.map

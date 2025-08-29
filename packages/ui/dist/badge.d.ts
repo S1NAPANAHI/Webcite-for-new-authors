@@ -4,3 +4,4 @@ declare const Badge: React.ForwardRefExoticComponent<React.HTMLAttributes<HTMLDi
     variant?: BadgeVariant;
 } & React.RefAttributes<HTMLDivElement>>;
 export { Badge };
+//# sourceMappingURL=badge.d.ts.map

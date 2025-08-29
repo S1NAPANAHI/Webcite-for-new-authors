@@ -1,5 +1,5 @@
 import React from 'react';
-import { Product } from '@zoroaster/shared';
+import { Product } from '../../packages/shared/src/product.js';
 interface ProductCardProps {
     product: Product;
     onPurchase?: (productId: string) => void;
@@ -7,3 +7,4 @@ interface ProductCardProps {
 }
 export declare const ProductCard: React.FC<ProductCardProps>;
 export {};
+//# sourceMappingURL=ProductCard.d.ts.map

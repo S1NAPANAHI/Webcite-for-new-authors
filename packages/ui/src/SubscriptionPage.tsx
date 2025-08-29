@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useAuth } from '@zoroaster/shared';
+import { useAuth } from '../../packages/shared/src/AuthContext.js';
 import { BookOpen, Clock, Star, CheckCircle, ArrowRight, Crown, Zap, Heart, Users } from 'lucide-react';
-import { SubscriptionCheckout } from '@zoroaster/ui';
+import { SubscriptionCheckout } from './SubscriptionCheckout';
 import { motion } from 'framer-motion';
 
 interface SubscriptionPlan {

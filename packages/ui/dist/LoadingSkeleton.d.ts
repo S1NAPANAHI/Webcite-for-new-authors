@@ -6,3 +6,4 @@ interface LoadingSkeletonProps {
 }
 declare const LoadingSkeleton: React.FC<LoadingSkeletonProps>;
 export { LoadingSkeleton };
+//# sourceMappingURL=LoadingSkeleton.d.ts.map

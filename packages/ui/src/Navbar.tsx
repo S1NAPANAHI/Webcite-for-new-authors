@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { supabase } from '@zoroaster/shared';
-import { CartIcon } from '@zoroaster/ui';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { CartIcon } from './CartIcon';
 import styles from './Navbar.module.css';
 import ThemeToggle from './components/ui/ThemeToggle';
 import { Search } from 'lucide-react'; // Import Search icon

@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import * as React from "react";
-import { cn } from '@zoroaster/shared';
+import { cn } from '../../packages/shared/src/utils.js';
 const Table = React.forwardRef(({ className, ...props }, ref) => (_jsx("div", { className: "w-full overflow-auto", children: _jsx("table", { ref: ref, className: cn("w-full caption-bottom text-sm", className), ...props }) })));
 Table.displayName = "Table";
 const TableHeader = React.forwardRef(({ className, ...props }, ref) => (_jsx("thead", { ref: ref, className: cn("[&_tr]:border-b", className), ...props })));
@@ -18,3 +18,4 @@ TableCell.displayName = "TableCell";
 const TableCaption = React.forwardRef(({ className, ...props }, ref) => (_jsx("caption", { ref: ref, className: cn("mt-4 text-sm text-muted-foreground", className), ...props })));
 TableCaption.displayName = "TableCaption";
 export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption, };
+//# sourceMappingURL=table.js.map

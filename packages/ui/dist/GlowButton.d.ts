@@ -10,3 +10,4 @@ interface GlowButtonProps {
 }
 declare const GlowButton: ({ children, icon: Icon, variant, className, onClick, type }: GlowButtonProps) => import("react/jsx-runtime").JSX.Element;
 export { GlowButton };
+//# sourceMappingURL=GlowButton.d.ts.map

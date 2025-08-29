@@ -4,3 +4,4 @@ interface MarkdownViewerProps {
 }
 declare const MarkdownViewer: React.FC<MarkdownViewerProps>;
 export default MarkdownViewer;
+//# sourceMappingURL=MarkdownViewer.d.ts.map

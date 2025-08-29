@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import applicationConfig from './beta_reader_application_system.json';
+import applicationConfig from './beta_reader_application_system.json' with { type: 'json' };
 
 interface Question {
   id: string;

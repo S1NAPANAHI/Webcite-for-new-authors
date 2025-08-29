@@ -7,3 +7,4 @@ export interface TagProps extends React.HTMLAttributes<HTMLDivElement>, VariantP
 }
 declare function Tag({ className, variant, ...props }: TagProps): import("react/jsx-runtime").JSX.Element;
 export { Tag, tagVariants };
+//# sourceMappingURL=tag.d.ts.map

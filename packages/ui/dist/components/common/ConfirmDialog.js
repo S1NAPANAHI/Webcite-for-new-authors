@@ -4,3 +4,4 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export function ConfirmDialog({ open, onOpenChange, onConfirm, title, description, confirmText = 'Confirm', cancelText = 'Cancel', }) {
     return (_jsx(AlertDialog, { open: open, onOpenChange: onOpenChange, children: _jsxs(AlertDialogContent, { children: [_jsxs(AlertDialogHeader, { children: [_jsx(AlertDialogTitle, { children: title }), _jsx(AlertDialogDescription, { children: description })] }), _jsxs(AlertDialogFooter, { children: [_jsx(AlertDialogCancel, { children: cancelText }), _jsx(AlertDialogAction, { asChild: true, children: _jsx(Button, { variant: "destructive", onClick: onConfirm, children: confirmText }) })] })] }) }));
 }
+//# sourceMappingURL=ConfirmDialog.js.map

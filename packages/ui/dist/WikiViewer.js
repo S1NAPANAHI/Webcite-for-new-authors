@@ -1,9 +1,10 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Button, Input } from '@zoroaster/ui';
+import { Button } from './button';
+import { Input } from './input';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight } from 'lucide-react';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { toast } from 'sonner';
 // Helper type guard functions
 const isWikiPage = (item) => {
@@ -250,3 +251,4 @@ export function WikiViewer({ page, onEdit }) {
                             .map((section) => (_jsxs("div", { className: "section", children: [section.title && (_jsx("h2", { className: "text-2xl font-semibold mb-2", children: section.title })), _jsx("div", { className: "prose dark:prose-invert max-w-none", dangerouslySetInnerHTML: { __html: section.content || '' } })] }, section.id))) })) : (_jsx("div", { className: "prose dark:prose-invert max-w-none", dangerouslySetInnerHTML: { __html: page.excerpt || '' } }))] })] }));
 }
 export default WikiViewer;
+//# sourceMappingURL=WikiViewer.js.map

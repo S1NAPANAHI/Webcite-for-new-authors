@@ -20,3 +20,4 @@ const MagicalParticles = () => {
             } }, particle.id))) }));
 };
 export { MagicalParticles };
+//# sourceMappingURL=MagicalParticles.js.map

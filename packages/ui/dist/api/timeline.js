@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '../lib/supabase.js';
 const TABLE_NAME = 'timeline_events';
 const NESTED_TABLE_NAME = 'timeline_nested_events';
 export const fetchTimelineEvents = async ({ page = 1, limit = 10, includeUnpublished = false, } = {}) => {
@@ -164,3 +164,4 @@ export const toggleTimelineEventPublishStatus = async (id, isPublished) => {
     }
     return data;
 };
+//# sourceMappingURL=timeline.js.map

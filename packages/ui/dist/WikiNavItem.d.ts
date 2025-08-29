@@ -13,3 +13,4 @@ export interface WikiNavItemProps {
     onClick?: (slug: string) => void;
 }
 export declare const WikiNavItem: React.FC<WikiNavItemProps>;
+//# sourceMappingURL=WikiNavItem.d.ts.map

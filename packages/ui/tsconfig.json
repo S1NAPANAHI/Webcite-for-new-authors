@@ -1,37 +1,17 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "target": "es2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"],
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": false,
+    "composite": true,
     "declaration": true,
-    "outDir": "./dist",
-    "jsx": "react-jsx",
-
-    /* Paths */
+    "declarationMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "@zoroaster/shared": ["../shared/dist"],
-      "@zoroaster/shared/*": ["../shared/dist/*"],
-      "@/*": ["./src/*"],
-      "@/lib/*": ["./src/lib/*"]
-    },
-    
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+      "@zoroaster/shared": ["../../packages/shared/src"],
+      "@zoroaster/shared/*": ["../../packages/shared/src/*"]
+    }
   },
-  "include": ["src", "src/index.ts"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src/**/*", "src/**/*.json"],
+  "exclude": ["node_modules", "dist"]
 }

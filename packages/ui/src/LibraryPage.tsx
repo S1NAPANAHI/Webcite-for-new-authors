@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared';
-import { useAuth } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { useAuth } from '../../packages/shared/src/AuthContext';
 import { XCircle, Info, Star } from 'lucide-react';
 // import './LibraryPage.css'; // Import the external CSS file
 

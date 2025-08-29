@@ -4,3 +4,4 @@ interface OverviewTabProps {
 }
 export declare const OverviewTab: React.FC<OverviewTabProps>;
 export default OverviewTab;
+//# sourceMappingURL=OverviewTab.d.ts.map

@@ -6,3 +6,4 @@ export declare const WorkEditor: ({ work, onSave, onCancel, allWorks }: {
     allWorks: any;
 }) => import("react/jsx-runtime").JSX.Element;
 export declare const WorksManager: React.FC;
+//# sourceMappingURL=WorksManager.d.ts.map

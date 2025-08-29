@@ -11,7 +11,7 @@ import { Textarea } from '../../textarea';
 import { Label } from '../../label';
 import { Switch } from '../../switch';
 import { useToast } from '../../use-toast';
-import { TimelineEvent, NestedEvent } from '@zoroaster/shared';
+import { TimelineEvent, NestedEvent } from '../../../../packages/shared/src/types/timeline';
 import {
   createTimelineEvent,
   updateTimelineEvent

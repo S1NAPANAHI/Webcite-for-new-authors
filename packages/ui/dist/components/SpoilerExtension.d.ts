@@ -7,3 +7,4 @@ declare module '@tiptap/core' {
     }
 }
 export declare const Spoiler: Mark<any, any>;
+//# sourceMappingURL=SpoilerExtension.d.ts.map

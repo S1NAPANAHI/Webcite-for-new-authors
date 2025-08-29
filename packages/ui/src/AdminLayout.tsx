@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { cn, useAuth, supabase } from '@zoroaster/shared';
+import { cn } from '../../packages/shared/src/utils.js';
+import { useAuth } from '../../packages/shared/src/AuthContext.js';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import {
   LayoutDashboard,
   FileText,

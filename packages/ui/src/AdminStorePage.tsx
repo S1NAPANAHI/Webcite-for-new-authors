@@ -1,12 +1,12 @@
 import React, { Suspense } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs';
-import { ProductManager } from './ProductManager';
-import { Skeleton } from './skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from './card';
-import { Button } from './button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './tabs.js';
+import { ProductManager } from './ProductManager.js';
+import { Skeleton } from './skeleton.js';
+import { Card, CardContent, CardHeader, CardTitle } from './card.js';
+import { Button } from './button.js';
 
 // Lazy load the price manager component for better performance
-const PriceManager = React.lazy(() => import('./PriceManager'));
+const PriceManager = React.lazy(() => import('./PriceManager.js'));
 
 // Loading skeleton for tabs
 const TabSkeleton = () => (

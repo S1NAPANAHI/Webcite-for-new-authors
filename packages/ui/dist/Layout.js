@@ -5,3 +5,4 @@ import { Footer } from './Footer';
 export const Layout = () => {
     return (_jsxs("div", { className: "zr-root", children: [_jsx(Navbar, {}), _jsx("main", { children: _jsx(Outlet, {}) }), _jsx(Footer, {})] }));
 };
+//# sourceMappingURL=Layout.js.map

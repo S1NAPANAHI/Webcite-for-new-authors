@@ -11,3 +11,4 @@ interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 declare const AlertWithIcon: React.ForwardRefExoticComponent<AlertProps & React.RefAttributes<HTMLDivElement>>;
 export { Alert, AlertTitle, AlertDescription, AlertWithIcon };
+//# sourceMappingURL=alert.d.ts.map

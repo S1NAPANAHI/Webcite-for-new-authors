@@ -191,3 +191,4 @@ const TimelineManager = () => {
                 } }), _jsx(ConfirmDialog, { open: !!eventToDelete, onOpenChange: (open) => !open && setEventToDelete(null), onConfirm: confirmDelete, title: "Delete Timeline Event", description: "Are you sure you want to delete this timeline event? This action cannot be undone.", confirmText: "Delete", cancelText: "Cancel" })] }));
 };
 export { TimelineManager };
+//# sourceMappingURL=TimelineManager.js.map

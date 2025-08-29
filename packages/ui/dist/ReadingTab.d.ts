@@ -5,3 +5,4 @@ interface ReadingTabProps {
 }
 declare const ReadingTab: React.FC<ReadingTabProps>;
 export { ReadingTab };
+//# sourceMappingURL=ReadingTab.d.ts.map

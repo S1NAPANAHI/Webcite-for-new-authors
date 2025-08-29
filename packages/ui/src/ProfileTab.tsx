@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, UserProfile } from '@zoroaster/shared'; // Import UserProfile
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { UserProfile } from '../../packages/shared/src/profile.js'; // Import UserProfile
 
 interface ProfileTabProps {
   userProfile: UserProfile; // Use the imported UserProfile type

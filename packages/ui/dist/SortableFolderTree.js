@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useMemo } from 'react';
 import { Button } from './button';
 import { Folder, File, Edit, Trash2 } from 'lucide-react';
-import { cn } from './lib';
+import { cn } from './lib/utils.js';
 export function SortableFolderTree({ folders, pages, selectedFolder, selectedPage, onSelect, onPageSelect, onDeleteFolder, onEditFolder, onDeletePage, onEditPage,
 // onMoveItem is not used but kept in props for future use
  }) {
@@ -81,3 +81,4 @@ export function SortableFolderTree({ folders, pages, selectedFolder, selectedPag
     // Render the folder tree
     return (_jsx("div", { className: "space-y-1", children: folderTree.map((item) => (_jsx("div", { children: renderItem(item, 0) }, item.id))) }));
 }
+//# sourceMappingURL=SortableFolderTree.js.map

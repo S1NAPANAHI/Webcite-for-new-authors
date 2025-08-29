@@ -1,15 +1,12 @@
 {
-  "files": [],
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@zoroaster/ui": ["../../packages/ui/src"],
-      "@zoroaster/shared": ["../../packages/shared/src"]
-    }
+    "composite": true,
+    "outDir": "dist"
   },
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+    { "path": "../../packages/ui" }
+  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../badge';
 import { LoadingSkeleton } from '../../LoadingSkeleton';
 import { useToast } from '../../use-toast';
-import { TimelineEvent } from '@zoroaster/shared';
+import { TimelineEvent } from '../../../../packages/shared/src/types/timeline';
 import {
   fetchTimelineEvents,
   deleteTimelineEvent,

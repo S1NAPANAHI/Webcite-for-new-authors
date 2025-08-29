@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { UserProfile } from '@zoroaster/shared/profile'; // Import UserProfile
 
 import { PostgrestResponse } from '@supabase/supabase-js';

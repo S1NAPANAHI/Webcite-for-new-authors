@@ -1,13 +1,13 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@zoroaster/ui';
-import { Input } from '@zoroaster/ui';
+import { Button } from './button';
+import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
 import { supabase, fetchFolders } from '@zoroaster/shared';
 import { toast } from 'sonner';
-import { WikiEditor } from '@zoroaster/ui';
-import { SortableFolderTree } from '@zoroaster/ui';
+import { WikiEditor } from './WikiEditor';
+import { SortableFolderTree } from './SortableFolderTree';
 export function WikiManager() {
     const { folderId } = useParams();
     const navigate = useNavigate();

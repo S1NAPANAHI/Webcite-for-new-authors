@@ -1,4 +1,11 @@
-import { Tables, Enums } from './database.types';
+import { Tables, Enums, Json } from './database.types';
+interface SupabaseSelectError {
+    error: true;
+}
+export type WikiPageQueryResult = Tables<'wiki_pages'> & {
+    user: Tables<'profiles'> | SupabaseSelectError | null;
+    category: Tables<'wiki_categories'> | SupabaseSelectError | null;
+};
 export type Folder = Tables<'wiki_folders'> & {
     children?: Folder[];
 };
@@ -6,7 +13,7 @@ export declare const fetchFolders: () => Promise<Folder[]>;
 export type WikiSectionView = {
     id: string;
     title: string;
-    content: any;
+    content: Json | null;
     type: Enums<'content_block_type'>;
     order_index?: number;
     created_at?: string;
@@ -35,12 +42,6 @@ export interface WikiPage {
 }
 export interface WikiPageWithSections extends WikiPage {
     sections: WikiSectionView[];
-    content?: string | null;
-    seo_title?: string | null;
-    seo_description?: string | null;
-    seo_keywords?: string[] | null;
-    category: Tables<'wiki_categories'> | null;
-    user: Tables<'profiles'> | null;
 }
 export declare const fetchPages: () => Promise<WikiPageWithSections[]>;
 export interface WikiCategory extends Tables<'wiki_categories'> {
@@ -60,7 +61,6 @@ export type WikiMedia = Tables<'wiki_media'>;
 export interface FetchWikiPagesOptions {
     search?: string;
     categoryId?: string;
-    _tagId?: string;
     isPublished?: boolean;
     sortBy?: 'title' | 'created_at' | 'updated_at' | 'view_count' | 'relevance';
     sortOrder?: 'asc' | 'desc';
@@ -81,7 +81,7 @@ export declare const fetchWikiPage: (identifier: string) => Promise<WikiPageWith
 /**
  * Fetch multiple wiki pages with filtering and pagination
  */
-export declare const fetchWikiPages: ({ search, categoryId, _tagId, isPublished, sortBy, sortOrder, page, pageSize, }?: FetchWikiPagesOptions) => Promise<PaginatedResult<WikiPage>>;
+export declare const fetchWikiPages: ({ search, categoryId, isPublished, sortBy, sortOrder, page, pageSize, }?: FetchWikiPagesOptions) => Promise<PaginatedResult<WikiPage>>;
 /**
  * Create a new wiki page
  */
@@ -160,3 +160,4 @@ export declare const getCategoryUrl: (category: {
 export declare const getTagUrl: (tag: {
     id: string;
 }) => string;
+export {};

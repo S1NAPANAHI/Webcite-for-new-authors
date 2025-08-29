@@ -12,13 +12,14 @@
     
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
+    "declaration": true,
+    "outDir": "./dist",
     "jsx": "react-jsx",
 
     /* Paths */
     "baseUrl": ".",
     "paths": {
-      "@zoroaster/ui": ["./dist"],
       "@zoroaster/shared": ["../shared/dist"],
       "@zoroaster/shared/*": ["../shared/dist/*"],
       "@/*": ["./src/*"],

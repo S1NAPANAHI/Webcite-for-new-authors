@@ -295,7 +295,7 @@ export function WikiManager() {
     }
   };
 
-  const handleDeleteFolder = async (folderId: string) => {
+  const handleDeleteFolder = async (deletedFolderId: string) => {
     if (!confirm('Are you sure you want to delete this folder and all its contents? This action cannot be undone.')) {
       return;
     }
@@ -307,7 +307,7 @@ export function WikiManager() {
       const { error } = await supabase
         .from('wiki_folders')
         .delete()
-        .eq('id', folderId);
+        .eq('id', deletedFolderId);
       
       if (error) throw error;
       
@@ -323,12 +323,13 @@ export function WikiManager() {
         }, []);
       };
       
-      setFolders(prev => deleteFolderAndChildren(prev, folderId));
+      setFolders(prev => deleteFolderAndChildren(prev, deletedFolderId));
       
       // If we're currently viewing the deleted folder or its children, navigate up
-      if (folderId === targetId || folders.some(f => f.parent_id === targetId && f.id === targetId)) {
-        const parentFolder = folders.find(f => f.id === targetId)?.parent_id;
-        navigate(parentFolder ? `/account/admin/wiki/folder/${parentFolder ?? ''}` : '/account/admin/wiki');
+      const currentFolderFromUrl = folderId; // This is from useParams
+      if (currentFolderFromUrl === deletedFolderId || folders.some(f => f.parent_id === deletedFolderId && f.id === currentFolderFromUrl)) {
+        const parentFolder = folders.find(f => f.id === deletedFolderId)?.parent_id;
+        navigate(parentFolder ? `/account/admin/wiki/folder/${parentFolder}` : '/account/admin/wiki');
       }
       
       toast.success('Folder and its contents deleted successfully');
@@ -600,8 +601,8 @@ export function WikiManager() {
                 <SortableFolderTree
                   folders={folders}
                   pages={pages}
-                  selectedFolder={folderId}
-                  selectedPage={selectedPage}
+                  selectedFolder={folderId || undefined}
+                  selectedPage={selectedPage || undefined}
                   onSelect={handleFolderClick}
                   onPageSelect={(pageId) => {
                     setSelectedPage(pageId);

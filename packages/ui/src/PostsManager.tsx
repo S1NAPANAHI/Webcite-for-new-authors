@@ -141,7 +141,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onCancel }
           {/* Note: Posts must be set to 'published' to be visible on the public blog. */}
           <select
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value as 'draft' | 'published' | 'archived' })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="draft">Draft</option>

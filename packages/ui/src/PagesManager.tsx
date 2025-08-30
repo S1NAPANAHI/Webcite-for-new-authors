@@ -106,7 +106,7 @@ export const PagesManager: React.FC = () => {
     <div className="space-y-6">
       {isEditing ? (
         <ContentEditor
-          item={editingPage}
+          item={editingPage || undefined}
           contentType="pages"
           onSave={handleSavePage}
           onCancel={() => {
@@ -122,7 +122,7 @@ export const PagesManager: React.FC = () => {
           columns={columns}
           createActionLabel="New Page"
           onEdit={(item) => {
-            setEditingPage(item ?? undefined);
+            setEditingPage(item || null);
             setIsEditing(true);
           }}
           onDelete={handleDeletePage}

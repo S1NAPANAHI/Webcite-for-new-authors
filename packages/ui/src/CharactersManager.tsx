@@ -59,7 +59,7 @@ export const CharacterEditor: React.FC<CharacterEditorProps> = ({ character, onS
     name: character?.name || '',
     title: character?.title || '',
     description: character?.description || '',
-    traits: character?.traits.join(', ') || '',
+    traits: character?.traits?.join(', ') || '',
     image_url: character?.image_url || '',
     silhouette_url: character?.silhouette_url || '',
   });
@@ -69,7 +69,11 @@ export const CharacterEditor: React.FC<CharacterEditorProps> = ({ character, onS
       ...formData,
       traits: formData.traits.split(',').map((trait: string) => trait.trim()).filter((trait: string) => trait !== ''),
     };
-    onSave({ ...character, ...characterData, id: character?.id });
+    if (character) {
+      onSave({ ...character, ...characterData });
+    } else {
+      onSave(characterData as Character);
+    }
   };
 
   return (

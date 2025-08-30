@@ -1,10 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProfile = void 0;
-const supabaseClient_1 = require("./supabaseClient");
-const getProfile = async (userId) => {
+import { supabase } from './supabaseClient';
+export const getProfile = async (userId) => {
     try {
-        const { data, error } = await supabaseClient_1.supabase
+        const { data, error } = await supabase
             .from('profiles')
             .select('*, user_stats(*)') // Select all from profiles and join user_stats
             .eq('id', userId)
@@ -19,4 +16,3 @@ const getProfile = async (userId) => {
         throw error;
     }
 };
-exports.getProfile = getProfile;

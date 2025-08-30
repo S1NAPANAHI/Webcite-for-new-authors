@@ -1,9 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSubscription = void 0;
-const supabaseClient_1 = require("./supabaseClient");
-const getSubscription = async (userId) => {
-    const { data, error } = await supabaseClient_1.supabase
+import { supabase } from './supabaseClient';
+export const getSubscription = async (userId) => {
+    const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', userId)
@@ -14,4 +11,3 @@ const getSubscription = async (userId) => {
     }
     return data;
 };
-exports.getSubscription = getSubscription;

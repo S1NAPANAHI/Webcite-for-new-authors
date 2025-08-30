@@ -1,7 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.supabase = void 0;
-const supabase_js_1 = require("@supabase/supabase-js");
+import { createClient } from '@supabase/supabase-js';
 // Check if we're in the browser environment
 const isBrowser = typeof window !== 'undefined';
 // Get environment variables with fallbacks
@@ -27,7 +24,7 @@ if ((!supabaseUrl || !supabaseAnonKey) && isBrowser) {
 let supabase;
 try {
     // Create the Supabase client with minimal configuration
-    exports.supabase = supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey, {
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
             persistSession: true,
             autoRefreshToken: true,
@@ -45,4 +42,5 @@ catch (error) {
     console.error('Error initializing Supabase client:', error);
     throw error;
 }
-exports.default = supabase;
+export { supabase };
+export default supabase;

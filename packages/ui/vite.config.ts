@@ -8,6 +8,8 @@ export default defineConfig({
     react(),
     dts({
       insertTypesEntry: true,
+      // Explicitly include only the src directory of the UI package
+      include: [resolve(__dirname, 'src')],
     }),
   ],
   build: {

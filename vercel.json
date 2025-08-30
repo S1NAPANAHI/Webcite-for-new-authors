@@ -38,9 +38,12 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "apps/backend/server.js"
+      "dest": "apps/backend/dist/server.js"
     },
-    { "src": "/(.*)", "dest": "/apps/frontend/dist/index.html" }
+    {
+      "src": "/(.*)",
+      "dest": "apps/frontend/dist/index.html"
+    }
   ],
   
   "installCommand": "pnpm install",

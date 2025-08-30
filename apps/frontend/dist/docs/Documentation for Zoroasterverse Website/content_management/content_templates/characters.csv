@@ -1,0 +1,7 @@
+#tags: #feature/worldbuilding #doctype/template #status/approved
+
+CharacterID (slug),Name (public‑safe),FirstAppearanceWorkID,POV (Y/N),ArcTags (comma‑sep),SpoilerSeverity (Low|Medium|High),OwnershipLocks (WorkIDs that elevate details, comma‑sep),CapsuleMinimal (short, non‑spoiler bio),CapsuleStandard (reveals canon tied to owned Works),CapsuleFull (all canon including branches/endings),Relations (CharacterIDs, abstract where needed),TimelineLinks (EventIDs, abstracted labels),BranchTags (abstract route labels; e.g., “Silent Accord”)
+
+CH‑LYRA,Lyra,S1‑I1‑STD,Y,“Foundations,City”,Medium,“S1‑I1‑STD,S1‑I1‑DLX”,“An analyst drawn into the City’s fragile balance.”,“Lyra’s first mission tests loyalties as hidden accords surface.”,“Lyra’s choices diverge under Silent Accord vs Iron Vow.”,“CH‑MAREN (ally, early), CH‑ADEM (rival, hinted)”,“EV‑MARKET‑STANDOFF, EV‑HALL‑SUMMIT”,“Silent Accord, Iron Vow”
+CH‑MAREN,Maren,S1‑I1‑STD,N,“Foundations”,Low,S1‑I1‑STD,“Logistics lead with a network of favors.”,“Connects Lyra to key intermediaries.”,“Reveals leverage tactics under Veiled Tide.”,“CH‑LYRA (ally), CH‑ADEM (neutral)”,EV‑MARKET‑STANDOFF,“Veiled Tide”
+CH‑ADEM,Adem,S1‑I1‑STD,N,“City,Conflict”,High,“S1‑I1‑STD,S1‑I2‑STD”,“A figure operating at the edge of official channels.”,“His alignment varies based on early choices.”,“Ending alignment reveals in Full mode.”,“CH‑LYRA (rival), CH‑MAREN (neutral)”,EV‑HALL‑SUMMIT,“Iron Vow, Broken Oath”

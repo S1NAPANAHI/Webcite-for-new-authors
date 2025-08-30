@@ -1,0 +1,42 @@
+/* Wiki Page Styles */
+
+.wiki-nav-item {
+  margin-bottom: 4px;
+}
+
+.wiki-nav-item .nav-link {
+  display: block;
+  padding: 8px 12px;
+  text-decoration: none;
+  color: #374151;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.wiki-nav-item .nav-link:hover {
+  background-color: #f3f4f6;
+}
+
+.wiki-nav-item.active .nav-link {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.wiki-nav-item .nav-toggle {
+  float: right;
+  font-size: 12px;
+}
+
+.wiki-nav-item .nav-children {
+  margin-left: 16px;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 8px;
+}
+
+.nav-link.category {
+  font-weight: 600;
+}
+
+.nav-link.page {
+  font-weight: 400;
+}

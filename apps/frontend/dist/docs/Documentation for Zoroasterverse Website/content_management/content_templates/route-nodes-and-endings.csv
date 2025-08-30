@@ -1,0 +1,7 @@
+#tags: #feature/worldbuilding #doctype/template #status/approved
+
+NodeID (slug),NodeLabelPublic (abstract, non‑spoiler; e.g., “Gatehouse Choice”),Arc/Era,Prerequisites (tags or prior nodes),BranchOptions (abstract labels, comma‑sep),SpoilerSeverity (Low|Medium|High),OwnershipLocks (WorkIDs),CapsuleMinimal (vague description),CapsuleStandard (owned‑content reveal),CapsuleFull (explicit decision dynamics),EndingID (if terminal; else blank),EndingCategory (e.g., “Reprieve”, “Severance”),EndingLabelPublic (abstract)
+
+NODE‑GATE,Gatehouse Crossroads,Foundations,“Reached EV‑MARKET‑STANDOFF”,“Silent Accord, Iron Vow”,Medium,S1‑I1‑STD,“A choice at the threshold changes how allies respond.”,“Standard reveals who’s impacted if you own Issue1.”,“Full clarifies which path strengthens which faction.”,,
+NODE‑PARLEY,Parley or Pressure,Foundations,“After NODE‑GATE”,“Veiled Tide, Broken Oath”,High,“S1‑I1‑STD,S1‑I2‑STD”,“A negotiation shifts tone.”,“Standard surfaces the cost of pressure.”,“Full names the concession or breach.”,END‑REPRIEVE,“Reprieve”,“Quiet Truce”
+END‑REPRIEVE,,Foundations,“After NODE‑PARLEY”,,High,S1‑I2‑STD,“An uneasy calm.”,“Standard hints who stands down.”,“Full details the terms and long‑tail effects.”,END‑REPRIEVE,“Reprieve”,“Quiet Truce”

@@ -79,9 +79,4 @@
     "@types/react-dom": "^19.1.7",
     "typescript": "^5.0.0"
   }
-},
-  "peerDependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
 }

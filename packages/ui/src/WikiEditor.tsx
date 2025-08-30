@@ -278,62 +278,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
       .trim();
   };
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value;
-    setPage(prev => ({
-      ...prev,
-      title,
-      slug: generateSlug(title),
-      seo_title: prev.seo_title || title,
-    }));
-  };
-
-    const handleAddKeyword = () => {
-    if (newKeyword.trim() && !(page.seo_keywords ?? []).includes(newKeyword.trim())) {
-      setPage(prev => ({
-        ...prev,
-        seo_keywords: [...(prev.seo_keywords ?? []), newKeyword.trim()],
-      }));
-      setNewKeyword('');
-    }
-  };
-
-  const handleRemoveKeyword = (keyword: string) => {
-    setPage(prev => ({
-      ...prev,
-      seo_keywords: (prev.seo_keywords ?? []).filter(k => k !== keyword),
-    }));
-  };
-
-  const handleSelectCategory = (category: LocalWikiCategory) => {
-    setSelectedCategory(category);
-    setPage(prev => ({ ...prev, category_id: category.id }));
-    setShowCategorySearch(false);
-  };
-
-  const handleRemoveCategory = () => {
-    setSelectedCategory(null);
-    setPage(prev => ({ ...prev, category_id: null }));
-  };
-
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/--+/g, '-') // Replace multiple hyphens with single
-      .trim();
-  };
-
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const title = e.target.value;
-    setPage(prev => ({
-      ...prev,
-      title,
-      slug: generateSlug(title),
-      seo_title: prev.seo_title || title,
-    }));
-  };
+  
 
   const handleSave = async () => {
     setSaving(true);
@@ -930,8 +875,6 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
       </form>
     </div>
   );
-}
-
 
   const handlePublishToggle = async () => {
     const newStatus = !page.is_published;

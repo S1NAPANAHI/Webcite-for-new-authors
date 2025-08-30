@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Link } from 'react-router-dom';
+import styles from './HomePage.module.css';
 
 // --- TYPE DEFINITIONS ---
 type HomepageContentItem = {

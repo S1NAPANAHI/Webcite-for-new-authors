@@ -1,0 +1,174 @@
+you see this video loop on my home page, it looks uselsess now but I have an idea for it a text scroll animation or maybe a calander or an animation of fast spinning numbers when you click on it and it stops on a number and that is the prophesy of the day
+That actually sounds like a fun way to give that fire loop some real presence instead of just sitting there smoldering for decoration.
+
+Here are a few ways you could turn it into an interactive or thematic feature without losing the vibe of your page:
+
+🔥 Prophecy Spinner
+
+Overlay a circular dial of numbers over the fire.
+
+On click, numbers spin rapidly, slowing down with a little easing until it lands on “today’s prophecy.”
+
+You could tie each number to a short fortune, Zoroastrian quote, or whimsical prediction that appears above the flames.
+
+🗓 Flame Calendar
+
+The loop stays burning in the background while days of the month fade in/out in front of it.
+
+On hover, the day’s text could glow brighter or rise from the fire like embers.
+
+Could even double as an “On This Day” history snippet tied to Zoroastrian heritage.
+
+📜 Scrolling Text Ritual
+
+Long, slow-scrolling affirmations, blessings, or philosophical lines drift upwards through the flames.
+
+Subtle animation can give the illusion the words are heat-warped as they pass over the fire.
+
+If you like, I can mock up a concept flow for the prophecy spinner with suggested CSS/JS triggers so you can visualize how it would behave when clicked. That could help you pick the idea with the most “spark” for your site.
+
+sure
+Perfect — let’s give your homepage fire loop some real magic with a “Prophecy Spinner” flow you can tweak to match your site’s style.
+
+🔮 Prophecy Spinner – Concept Flow
+1. Idle State
+
+The fire loop plays normally in the background.
+
+A semi-transparent circular overlay with faint numbers (1–30 or 1–12) sits centered over the flames.
+
+Numbers slowly drift or shimmer as if heated by rising air.
+
+2. Interaction Trigger
+
+User clicks or taps anywhere on the overlay.
+
+Numbers immediately blur & spin rapidly, accompanied by a soft crackling or whooshing sound.
+
+Flame intensity subtly brightens for extra drama.
+
+3. Spin & Slow Down
+
+Spinner uses easing (ease-out) to decelerate over 2–3 seconds.
+
+Slight “bounce” effect when it stops for tactile satisfaction.
+
+Optional: sparks burst from the center when the final number is chosen.
+
+4. Reveal the Prophecy
+
+Fade in a short “fortune” or “prophecy of the day” above the number.
+
+Text appears with a heat-distortion shader or light wobble, to look as if it’s shimmering in the air.
+
+Fortune could pull from a set JSON or API so it changes daily.
+
+5. Reset / Replay
+
+After 5–10 seconds, prophecy fades out and the spinner returns to idle state, ready for the next click.
+
+🎨 Quick Implementation Hints
+HTML: <canvas> for spinner or an absolutely positioned div with rotating text.
+
+CSS: transform: rotate() with transition-timing-function: ease-out for spin slowdown; filter: blur() during high-speed spin for realism.
+
+JS: Use requestAnimationFrame() or CSS animations for rotation, then trigger fortune reveal with a timeout based on spin duration.
+
+If you’d like, I can put together a minimal HTML/CSS/JS snippet so you can drop it on your Zoroasterverse homepage and have a fully working prototype. That way you can start testing animations right inside the fire basin loop. Would you like me to prepare that next?
+
+sure
+Alright Sina — here’s a plug‑and‑play starter prototype for your 🔮 Prophecy Spinner that you can drop straight over your fire basin loop and tweak as you like.
+
+📜 Minimal HTML / CSS / JS Snippet
+html
+<!-- HTML -->
+<div class="prophecy-container">
+  <video autoplay muted loop class="fire-bg">
+    <source src="fire-loop.mp4" type="video/mp4">
+  </video>
+
+  <div class="spinner" id="spinner">
+    <div class="numbers">
+      <!-- Create numbers dynamically in JS -->
+    </div>
+  </div>
+
+  <div class="prophecy" id="prophecy"></div>
+</div>
+css
+/* CSS */
+.prophecy-container {
+  position: relative;
+  width: 600px; /* adjust to your fire video size */
+  height: 400px;
+  overflow: hidden;
+}
+
+.fire-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.numbers {
+  font-size: 2rem;
+  color: gold;
+  text-shadow: 0 0 10px #ffcc66;
+  animation: idleGlow 3s infinite alternate;
+}
+
+@keyframes idleGlow {
+  from { text-shadow: 0 0 10px #ffcc66; }
+  to { text-shadow: 0 0 20px #ffcc66; }
+}
+
+.prophecy {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #fff7e6;
+  text-shadow: 0 0 8px #ffcc66;
+}
+javascript
+// JS
+const spinner = document.getElementById('spinner');
+const numbersEl = spinner.querySelector('.numbers');
+const prophecyEl = document.getElementById('prophecy');
+
+const fortunes = [
+  "A spark of change is on its way.",
+  "Guard your tongue; your words shape fate.",
+  "Your path will soon cross with opportunity.",
+  "Today is a day for bold action.",
+  "Patience is the ember that outlasts the flame."
+];
+
+// Populate numbers 1–12
+let numbers = Array.from({length: 12}, (_, i) => i + 1);
+numbersEl.textContent = numbers.join("  ");
+
+spinner.addEventListener('click', () => {
+  let spins = Math.floor(Math.random() * 12) + 12; // 12–24 rotations
+  let finalNum = numbers[Math.floor(Math.random() * numbers.length)];
+
+  numbersEl.style.transition = "transform 3s ease-out";
+  numbersEl.style.transform = `rotate(${spins * 30}deg)`;
+
+  setTimeout(() => {

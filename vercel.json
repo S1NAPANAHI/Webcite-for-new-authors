@@ -10,7 +10,7 @@
     }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/(.*)", "dest": "/apps/frontend/dist/index.html" }
   ],
   "buildCommand": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && cd apps/frontend && pnpm build",
   "installCommand": "pnpm install",

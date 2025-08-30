@@ -42,7 +42,7 @@
     },
     { "src": "/(.*)", "dest": "/apps/frontend/dist/index.html" }
   ],
-  "buildCommand": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && cd apps/frontend && pnpm build",
+  "buildCommand": "pnpm --filter @zoroaster/backend build && pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && cd apps/frontend && pnpm build",
   "installCommand": "pnpm install",
   "regions": ["iad1"],
   "env": {

@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from './button';
 import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { supabase, fetchFolders } from '../../packages/shared/src/supabaseClient.js';
+import { supabase, fetchFolders } from '@zoroaster/shared/supabaseClient';
 import { toast } from 'sonner';
 import { WikiEditor } from './WikiEditor';
 import { SortableFolderTree } from './SortableFolderTree';

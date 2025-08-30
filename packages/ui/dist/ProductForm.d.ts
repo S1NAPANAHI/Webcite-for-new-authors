@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Product } from '../../packages/shared/src/product.js';
+import type { Product } from '@zoroaster/shared/product';
 interface ProductFormProps {
     product?: Product | null;
     onSave: (data: Partial<Product>) => void;

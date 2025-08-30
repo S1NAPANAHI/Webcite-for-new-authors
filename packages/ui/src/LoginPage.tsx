@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import './LoginPage.css';
 

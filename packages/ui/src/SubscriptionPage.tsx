@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../packages/shared/src/AuthContext.js';
+import { useAuth } from '@zoroaster/shared/AuthContext';
 import { BookOpen, Clock, Star, CheckCircle, ArrowRight, Crown, Zap, Heart, Users } from 'lucide-react';
 import { SubscriptionCheckout } from './SubscriptionCheckout';
 import { motion } from 'framer-motion';

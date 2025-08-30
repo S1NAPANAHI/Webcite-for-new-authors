@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "ESNext",
     "useDefineForClassFields": true,
     "lib": ["es2020", "dom", "dom.iterable"],
-    "module": "es2020",
+    "module": "NodeNext",
     "skipLibCheck": true,
 
     /* Bundler mode */
-    "moduleResolution": "bundler",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "noEmit": false,
     "declaration": true,

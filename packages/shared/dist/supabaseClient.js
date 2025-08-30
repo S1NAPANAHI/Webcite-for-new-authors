@@ -1,20 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.supabase = void 0;
+const supabase_js_1 = require("@supabase/supabase-js");
 // Check if we're in the browser environment
 const isBrowser = typeof window !== 'undefined';
-// Safe access to Vite env without TypeScript complaining in non-Vite contexts
-const viteEnv = (() => {
-    try {
-        return isBrowser ? import.meta?.env : undefined;
-    }
-    catch {
-        return undefined;
-    }
-})();
 // Get environment variables with fallbacks
-const supabaseUrl = process.env.VITE_SUPABASE_URL || viteEnv?.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || viteEnv?.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
 // Debug log to check if environment variables are loaded
-if (process.env.VITE_DEBUG === 'true' || viteEnv?.VITE_DEBUG === 'true') {
+if (process.env.VITE_DEBUG === 'true') {
     console.log('Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
     console.log('Supabase Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
 }
@@ -33,7 +27,7 @@ if ((!supabaseUrl || !supabaseAnonKey) && isBrowser) {
 let supabase;
 try {
     // Create the Supabase client with minimal configuration
-    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    exports.supabase = supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey, {
         auth: {
             persistSession: true,
             autoRefreshToken: true,
@@ -42,7 +36,7 @@ try {
         }
     });
     // Log initialization in development
-    const isDev = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development') || (!!viteEnv?.DEV);
+    const isDev = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
     if (isDev && isBrowser) {
         console.log('Supabase client initialized with URL:', supabaseUrl);
     }
@@ -51,5 +45,4 @@ catch (error) {
     console.error('Error initializing Supabase client:', error);
     throw error;
 }
-export { supabase };
-export default supabase;
+exports.default = supabase;

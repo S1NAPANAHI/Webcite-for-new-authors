@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCart } from '../../packages/shared/src/CartContext.js';
+import { useCart } from '@zoroaster/shared/CartContext';
 import { ShoppingCart, ArrowLeft, CreditCard, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 

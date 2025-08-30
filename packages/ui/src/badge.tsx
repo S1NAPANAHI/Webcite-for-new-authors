@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from '../../packages/shared/src/utils.js';
+import { cn } from '@zoroaster/shared/utils';
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "success"
 

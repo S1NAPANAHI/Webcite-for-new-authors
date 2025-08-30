@@ -1,4 +1,4 @@
-import { TimelineEvent } from '../../../../packages/shared/src/types/timeline';
+import { TimelineEvent } from '@zoroaster/shared/types/timeline';
 interface TimelineEventFormProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;

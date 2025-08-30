@@ -2,7 +2,7 @@ import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 
-import { cn } from '../../packages/shared/src/utils.js';
+import { cn } from '@zoroaster/shared/utils';
 
 const Dialog = DialogPrimitive.Root
 

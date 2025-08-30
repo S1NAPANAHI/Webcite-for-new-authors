@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Users, DollarSign, Eye, CheckSquare, LineChart, PieChart, List, AlertCircle, Inbox, } from 'lucide-react';
 import { ResponsiveContainer, LineChart as RechartsLineChart, PieChart as RechartsPieChart, Line, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, } from 'recharts';
 // --- Data Fetching Functions ---

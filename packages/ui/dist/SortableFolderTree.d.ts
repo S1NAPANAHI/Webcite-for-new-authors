@@ -1,4 +1,4 @@
-import { WikiPage, Folder as WikiFolder } from '../../packages/shared/src/wiki';
+import { WikiPage, Folder as WikiFolder } from '@zoroaster/shared/wiki';
 type SortableFolderTreeProps = {
     folders: WikiFolder[];
     pages: WikiPage[];

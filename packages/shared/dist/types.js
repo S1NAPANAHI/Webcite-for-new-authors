@@ -1,2 +1,3 @@
+"use strict";
 // Shared TypeScript type definitions
-export {};
+Object.defineProperty(exports, "__esModule", { value: true });

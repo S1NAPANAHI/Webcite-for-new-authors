@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState } from 'react';
 import { ShoppingCart, X, Trash2, Plus, Minus } from 'lucide-react';
-import { useCart } from '../../packages/shared/src/CartContext.js';
+import { useCart } from '@zoroaster/shared/CartContext';
 import { useNavigate } from 'react-router-dom';
 export const CartIcon = () => {
     const { state, removeItem, updateQuantity, clearCart } = useCart();

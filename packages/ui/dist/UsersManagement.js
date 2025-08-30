@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, UserPlus, Edit2, Eye, Calendar, Mail, User, Crown, Clock, AlertCircle, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 // Mock supabase client for demonstration
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 export const UsersManagement = () => {
     // State management
     const [users, setUsers] = useState([]);

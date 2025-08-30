@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { CartIcon } from './CartIcon';
 import styles from './Navbar.module.css';
 import ThemeToggle from './components/ui/ThemeToggle';

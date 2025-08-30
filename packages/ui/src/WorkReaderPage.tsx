@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '../../packages/shared/src/supabaseClient.js'; // Assuming you use Supabase for auth
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 interface ContentUrls {
   epub?: string;

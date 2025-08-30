@@ -77,3 +77,4 @@ export interface BetaUser extends BaseContent {
 export type ContentItem = Post | Page | StoreItem | LibraryItem | Character | TimelineEvent | BetaUser;
 export type ContentType = 'posts' | 'pages' | 'storeItems' | 'libraryItems' | 'characters' | 'timelineEvents' | 'betaUsers';
 export type FormData<T extends ContentItem> = Omit<T, 'id' | 'created_at' | 'updated_at' | 'created_by'>;
+//# sourceMappingURL=content.d.ts.map

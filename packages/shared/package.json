@@ -17,11 +17,6 @@
       "require": "./dist/supabaseClient.js",
       "types": "./dist/supabaseClient.d.ts"
     },
-    "./supabaseAdminClient": {
-      "import": "./dist/supabaseAdminClient.js",
-      "require": "./dist/supabaseAdminClient.js",
-      "types": "./dist/supabaseAdminClient.d.ts"
-    },
     "./types/content": {
       "import": "./dist/types/content.js",
       "require": "./dist/types/content.js",

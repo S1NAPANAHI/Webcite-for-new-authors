@@ -161,3 +161,4 @@ export declare const getCategoryUrl: (category: {
 export declare const getTagUrl: (tag: {
     id: string;
 }) => string;
+//# sourceMappingURL=wiki.d.ts.map

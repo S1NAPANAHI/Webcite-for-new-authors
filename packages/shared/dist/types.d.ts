@@ -26,3 +26,4 @@ export interface WikiSectionView {
     created_at: string;
     updated_at: string;
 }
+//# sourceMappingURL=types.d.ts.map

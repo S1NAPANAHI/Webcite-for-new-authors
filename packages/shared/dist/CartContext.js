@@ -1,8 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.CartProvider = exports.useCart = void 0;
-const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = require("react");
+import { jsx as _jsx } from "react/jsx-runtime";
+import { createContext, useContext, useReducer } from 'react';
 const initialState = {
     items: [],
     total: 0,
@@ -52,17 +49,16 @@ const cartReducer = (state, action) => {
             return state;
     }
 };
-const CartContext = (0, react_1.createContext)(undefined);
-const useCart = () => {
-    const context = (0, react_1.useContext)(CartContext);
+const CartContext = createContext(undefined);
+export const useCart = () => {
+    const context = useContext(CartContext);
     if (context === undefined) {
         throw new Error('useCart must be used within a CartProvider');
     }
     return context;
 };
-exports.useCart = useCart;
-const CartProvider = ({ children }) => {
-    const [state, dispatch] = (0, react_1.useReducer)(cartReducer, initialState);
+export const CartProvider = ({ children }) => {
+    const [state, dispatch] = useReducer(cartReducer, initialState);
     const addItem = (item) => {
         dispatch({ type: 'ADD_ITEM', payload: { ...item, quantity: 1 } });
     };
@@ -91,6 +87,5 @@ const CartProvider = ({ children }) => {
         clearCart,
         isInCart,
     };
-    return (0, jsx_runtime_1.jsx)(CartContext.Provider, { value: value, children: children });
+    return _jsx(CartContext.Provider, { value: value, children: children });
 };
-exports.CartProvider = CartProvider;

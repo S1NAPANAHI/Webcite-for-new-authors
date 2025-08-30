@@ -1,25 +1,22 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.useAuth = exports.AuthProvider = void 0;
-const jsx_runtime_1 = require("react/jsx-runtime");
-const react_1 = require("react");
-const supabaseClient_1 = require("./supabaseClient"); // Assuming supabase is exported from here
-const AuthContext = (0, react_1.createContext)(undefined);
-const AuthProvider = ({ children }) => {
-    const [user, setUser] = (0, react_1.useState)(null);
-    const [session, setSession] = (0, react_1.useState)(null);
-    const [userProfile, setUserProfile] = (0, react_1.useState)(null);
-    const [isAdmin, setIsAdmin] = (0, react_1.useState)(false);
-    const [isAuthenticated, setIsAuthenticated] = (0, react_1.useState)(false);
-    const [isLoading, setIsLoading] = (0, react_1.useState)(true);
-    (0, react_1.useEffect)(() => {
-        const { data: authListener } = supabaseClient_1.supabase.auth.onAuthStateChange(async (_event, session) => {
+import { jsx as _jsx } from "react/jsx-runtime";
+import { createContext, useState, useEffect, useContext } from 'react';
+import { supabase } from './supabaseClient'; // Assuming supabase is exported from here
+const AuthContext = createContext(undefined);
+export const AuthProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [session, setSession] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    useEffect(() => {
+        const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
             setUser(session?.user || null);
             setIsLoading(false);
         });
         // Initial session check
-        supabaseClient_1.supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user || null);
             setIsLoading(false);
@@ -29,10 +26,10 @@ const AuthProvider = ({ children }) => {
         };
     }, []);
     // Fetch user profile when user changes
-    (0, react_1.useEffect)(() => {
+    useEffect(() => {
         const fetchUserProfile = async (userId) => {
             try {
-                const { data: profile, error } = await supabaseClient_1.supabase
+                const { data: profile, error } = await supabase
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
@@ -58,7 +55,7 @@ const AuthProvider = ({ children }) => {
             setIsAuthenticated(false);
         }
     }, [user]);
-    return ((0, jsx_runtime_1.jsx)(AuthContext.Provider, { value: {
+    return (_jsx(AuthContext.Provider, { value: {
             user,
             session,
             userProfile,
@@ -67,12 +64,10 @@ const AuthProvider = ({ children }) => {
             isLoading
         }, children: children }));
 };
-exports.AuthProvider = AuthProvider;
-const useAuth = () => {
-    const context = (0, react_1.useContext)(AuthContext);
+export const useAuth = () => {
+    const context = useContext(AuthContext);
     if (context === undefined) {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
 };
-exports.useAuth = useAuth;

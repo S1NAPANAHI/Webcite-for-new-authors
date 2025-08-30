@@ -428,7 +428,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
                   ) : isFolder(result) ? (
                     <div className="flex items-center">
                       <FolderIcon className="h-4 w-4 mr-2 text-yellow-500" />
-                      <span>{result.name}</span>
+                      <span>{(result as Folder).name}</span>
                     </div>
                   ) : null}
                 </Link>

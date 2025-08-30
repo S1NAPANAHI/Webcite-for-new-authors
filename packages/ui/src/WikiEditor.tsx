@@ -93,6 +93,8 @@ QuillEditor.displayName = 'QuillEditor';
 import { WikiPage, WikiSectionView, WikiPageWithSections, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories, Tables } from '@zoroaster/shared/wiki';
 
 interface LocalWikiCategory extends Tables<'wiki_categories'> {
+  id: string;
+  name: string;
   page_count?: number;
 }
 

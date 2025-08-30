@@ -42,7 +42,7 @@
     },
     { "src": "/(.*)", "dest": "/apps/frontend/dist/index.html" }
   ],
-  "buildCommand": "bash build.sh",
+  
   "installCommand": "pnpm install",
   "regions": ["iad1"],
   "env": {

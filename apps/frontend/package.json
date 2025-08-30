@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm build:deps && tsc -b && vite build",
-    "build:deps": "pnpm --filter @zoroaster/ui build",
+    "build:deps": "pnpm --filter @zoroaster/shared --filter @zoroaster/ui build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-types": "supabase gen types typescript --project-id opukvvmumyegtkukqint > src/lib/database.types.ts"
@@ -50,8 +50,8 @@
     "lexical": "^0.16.0",
     "lucide-react": "^0.400.0",
     "quill": "^2.0.3",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.62.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.8.1",

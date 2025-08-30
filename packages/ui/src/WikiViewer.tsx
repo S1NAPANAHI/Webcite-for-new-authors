@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from './button'
 import { Input } from './input';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight, Edit } from 'lucide-react';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { toast } from 'sonner';
 import { WikiPage, WikiSectionView, WikiCategory, WikiPageWithSections, Tables } from '@zoroaster/shared/wiki';
 

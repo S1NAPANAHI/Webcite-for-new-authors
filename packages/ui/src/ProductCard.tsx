@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingCart, Download, Crown, Star, Eye, ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { SubscriptionCheckout } from './SubscriptionCheckout';
 import { useCart } from '@zoroaster/shared/CartContext';
-import { Product } from '../../packages/shared/src/product.js';
+import { Product } from '@zoroaster/shared/product';
 
 
 

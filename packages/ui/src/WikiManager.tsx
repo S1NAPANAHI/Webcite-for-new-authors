@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from './button';
 import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories } from '../../packages/shared/src/wiki.js';
+import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories } from '@zoroaster/shared/wiki';
 import { supabase, fetchFolders, fetchPages, Database, Folder } from '@zoroaster/shared/supabaseClient';
 import { toast } from 'sonner';
 import { WikiEditor } from './WikiEditor';

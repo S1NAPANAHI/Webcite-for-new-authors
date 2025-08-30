@@ -90,7 +90,7 @@ const QuillEditor = forwardRef<typeof ReactQuill, QuillEditorProps>(({
 
 QuillEditor.displayName = 'QuillEditor';
 
-import { WikiPage, WikiSectionView, WikiPageWithSections, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories, Tables } from '../../packages/shared/src/wiki';
+import { WikiPage, WikiSectionView, WikiPageWithSections, WikiCategory, fetchWikiPage as fetchSharedWikiPage, fetchCategories as fetchSharedCategories, Tables } from '@zoroaster/shared/wiki';
 
 interface LocalWikiCategory extends Tables<'wiki_categories'> {
   page_count?: number;

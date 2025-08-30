@@ -33,7 +33,7 @@ export const CharacterEditor = ({ character, onSave, onCancel }) => {
         name: character?.name || '',
         title: character?.title || '',
         description: character?.description || '',
-        traits: character?.traits.join(', ') || '',
+        traits: character?.traits?.join(', ') || '',
         image_url: character?.image_url || '',
         silhouette_url: character?.silhouette_url || '',
     });
@@ -42,7 +42,12 @@ export const CharacterEditor = ({ character, onSave, onCancel }) => {
             ...formData,
             traits: formData.traits.split(',').map((trait) => trait.trim()).filter((trait) => trait !== ''),
         };
-        onSave({ ...character, ...characterData, id: character?.id });
+        if (character) {
+            onSave({ ...character, ...characterData });
+        }
+        else {
+            onSave(characterData);
+        }
     };
     return (_jsxs("div", { className: "bg-white rounded-lg shadow-sm border p-6 mb-6", children: [_jsx("h2", { className: "text-2xl font-bold text-gray-900 mb-4", children: character ? 'Edit Character' : 'Create New Character' }), _jsxs("form", { onSubmit: (e) => { e.preventDefault(); handleSubmit(); }, children: [_jsxs("div", { className: "mb-4", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Name" }), _jsx("input", { type: "text", value: formData.name, onChange: (e) => setFormData({ ...formData, name: e.target.value }), className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500", required: true })] }), _jsxs("div", { className: "mb-4", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Title" }), _jsx("input", { type: "text", value: formData.title, onChange: (e) => setFormData({ ...formData, title: e.target.value }), className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" })] }), _jsxs("div", { className: "mb-4", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Description" }), _jsx("textarea", { value: formData.description, onChange: (e) => setFormData({ ...formData, description: e.target.value }), className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32" })] }), _jsxs("div", { className: "mb-4", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Traits (comma-separated)" }), _jsx("input", { type: "text", value: formData.traits, onChange: (e) => setFormData({ ...formData, traits: e.target.value }), className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" })] }), _jsxs("div", { className: "mb-4", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Image URL" }), _jsx("input", { type: "url", value: formData.image_url, onChange: (e) => setFormData({ ...formData, image_url: e.target.value }), className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" })] }), _jsxs("div", { className: "mb-4", children: [_jsx("label", { className: "block text-sm font-medium text-gray-700 mb-2", children: "Silhouette URL (Optional)" }), _jsx("input", { type: "url", value: formData.silhouette_url, onChange: (e) => setFormData({ ...formData, silhouette_url: e.target.value }), className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" })] }), _jsxs("div", { className: "flex gap-3", children: [_jsx("button", { type: "submit", className: "bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors", children: "Save Character" }), _jsx("button", { type: "button", onClick: onCancel, className: "bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors", children: "Cancel" })] })] })] }));
 };

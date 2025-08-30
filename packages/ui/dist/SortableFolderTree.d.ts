@@ -3,7 +3,7 @@ type SortableFolderTreeProps = {
     folders: WikiFolder[];
     pages: WikiPage[];
     selectedFolder?: string | null;
-    selectedPage: string;
+    selectedPage?: string;
     onSelect: (folderId: string) => void;
     onPageSelect: (pageId: string) => void;
     onDeleteFolder: (folderId: string) => void;

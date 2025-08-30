@@ -89,11 +89,11 @@ export const PagesManager = () => {
         return _jsx("div", { children: "Loading pages..." });
     if (isError)
         return _jsxs("div", { children: ["Error loading pages: ", error?.message] });
-    return (_jsx("div", { className: "space-y-6", children: isEditing ? (_jsx(ContentEditor, { item: editingPage, contentType: "pages", onSave: handleSavePage, onCancel: () => {
+    return (_jsx("div", { className: "space-y-6", children: isEditing ? (_jsx(ContentEditor, { item: editingPage || undefined, contentType: "pages", onSave: handleSavePage, onCancel: () => {
                 setIsEditing(false);
                 setEditingPage(null);
             } })) : (_jsx(ContentTable, { contentType: "pages", items: pages || [], title: "Website Pages", columns: columns, createActionLabel: "New Page", onEdit: (item) => {
-                setEditingPage(item ?? undefined);
+                setEditingPage(item || null);
                 setIsEditing(true);
             }, onDelete: handleDeletePage, onCreateNew: () => {
                 setEditingPage(null);

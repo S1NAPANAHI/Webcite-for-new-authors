@@ -28,7 +28,6 @@ const deleteWork = async (id) => {
     if (error)
         throw new Error(error.message);
 };
-// --- Work Editor Component ---
 export const WorkEditor = ({ work, onSave, onCancel, allWorks }) => {
     const [formData, setFormData] = useState({
         title: work?.title || '',
@@ -37,26 +36,28 @@ export const WorkEditor = ({ work, onSave, onCancel, allWorks }) => {
         order_in_parent: work?.order_in_parent || '',
         description: work?.description || '',
         status: work?.status || 'planning',
-        progress_percentage: work?.progress_percentage || 0,
+        progress_percentage: work?.progress_percentage?.toString() || '',
         release_date: work?.release_date || '',
         estimated_release: work?.estimated_release || '',
         cover_image_url: work?.cover_image_url || '',
         sample_content: work?.sample_content || '',
         is_purchasable: work?.is_purchasable ?? true,
         is_featured: work?.is_featured ?? false,
-        word_count: work?.word_count || '',
-        target_word_count: work?.target_word_count || '',
+        word_count: work?.word_count?.toString() || '',
+        target_word_count: work?.target_word_count?.toString() || '',
     });
     const handleSubmit = () => {
         onSave({
             ...work,
             ...formData,
-            parent_id: formData.parent_id === '' ? null : formData.parent_id, // Convert empty string to null for UUID
+            parent_id: formData.parent_id === '' ? undefined : formData.parent_id, // Convert empty string to undefined for UUID
             order_in_parent: formData.order_in_parent ? Number(formData.order_in_parent) : undefined,
             progress_percentage: formData.progress_percentage ? Number(formData.progress_percentage) : undefined,
             word_count: formData.word_count ? Number(formData.word_count) : undefined,
             target_word_count: formData.target_word_count ? Number(formData.target_word_count) : undefined,
-            id: work?.id // Ensure ID is passed for updates
+            id: work?.id || '', // Ensure ID is passed for updates
+            created_at: work?.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString()
         });
     };
     const parentWorks = allWorks.filter(w => w.id !== work?.id); // Exclude self from parent options

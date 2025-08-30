@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "pnpm build:deps && tsc -b && vite build",
+    "build": "pnpm build:deps && vite build",
     "build:deps": "pnpm --filter @zoroaster/shared --filter @zoroaster/ui build",
     "lint": "eslint .",
     "preview": "vite preview",

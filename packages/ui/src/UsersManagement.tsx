@@ -1,17 +1,39 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
-  Search, Filter, UserPlus, Edit2, Eye, Calendar, Mail, User, Crown, Clock, 
+  Search, Filter, UserPlus, Edit2, Eye, Calendar, Mail, User as UserIcon, Crown, Clock, 
   AlertCircle, CheckCircle, XCircle, Trash2
 } from 'lucide-react';
 
 // Mock supabase client for demonstration
 import { supabase } from '@zoroaster/shared/supabaseClient';
 
+interface UserProfile {
+  display_name: string;
+}
+
+interface Subscription {
+  status: string;
+  plan_id: string;
+  current_period_start: string;
+  current_period_end: string;
+  is_active: boolean;
+}
+
+interface User {
+  id: string;
+  email: string;
+  profile: UserProfile | null;
+  role: string;
+  subscriptions: Subscription[];
+  created_at: string;
+  last_sign_in: string | null;
+}
+
 export const UsersManagement = () => {
   // State management
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   
   
   // Modal states
@@ -19,9 +41,9 @@ export const UsersManagement = () => {
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   
   // Form states for subscription management
   const [planId, setPlanId] = useState('');
@@ -59,13 +81,13 @@ export const UsersManagement = () => {
   
 
   // ---------- Helpers (define BEFORE memos so they are available) ----------
-  function getUserStatus(user) {
+  function getUserStatus(user: User) {
         if (!user.subscriptions || user.subscriptions.length === 0) return 'No Subscription';
         const hasActive = user.subscriptions.some(sub => sub.status === 'active' || sub.status === 'trialing');
         return hasActive ? 'Active' : 'Inactive';
       }
 
-  function getStatusIcon(status) {
+  function getStatusIcon(status: string) {
     switch (status) {
       case 'Active': return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'Inactive': return <XCircle className="w-4 h-4 text-red-500" />;
@@ -73,7 +95,7 @@ export const UsersManagement = () => {
     }
   }
 
-  function getRoleColor(role) {
+  function getRoleColor(role: string) {
     switch (role) {
       case 'admin': return 'bg-purple-100 text-purple-800';
       case 'user': return 'bg-blue-100 text-blue-800';
@@ -81,7 +103,7 @@ export const UsersManagement = () => {
     }
   }
 
-  function formatDate(value) {
+  function formatDate(value: string | null | undefined) {
     if (!value) return '—';
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return '—';
@@ -138,7 +160,7 @@ export const UsersManagement = () => {
 
   // Filter and search logic
   const filteredUsers = useMemo(() => {
-    const filtered = users.filter(user => {
+    const filtered = users.filter((user: User) => {
       const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           (user.profile?.display_name || '').toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRole = !filterRole || user.role === filterRole;
@@ -149,9 +171,9 @@ export const UsersManagement = () => {
     });
 
     // Sort users
-    filtered.sort((a, b) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
+    filtered.sort((a: User, b: User) => {
+      let aValue: any = a[sortBy as keyof User];
+      let bValue: any = b[sortBy as keyof User];
       
       if (sortBy === 'display_name') {
         aValue = a.profile?.display_name || '';
@@ -193,7 +215,7 @@ export const UsersManagement = () => {
     setShowAddUserModal(false);
   };
 
-  const openSubscriptionModal = (user) => {
+  const openSubscriptionModal = (user: User) => {
     setSelectedUser(user);
     const activeSub = user.subscriptions?.find(sub => sub.is_active);
 
@@ -220,7 +242,7 @@ export const UsersManagement = () => {
     setSubscriptionLoading(false);
   };
 
-  const openUserDetailsModal = (user) => {
+  const openUserDetailsModal = (user: User) => {
     setSelectedUserForDetails(user);
     setUserDetailsMessage('');
     setUserDetailsError('');
@@ -233,7 +255,7 @@ export const UsersManagement = () => {
     setUserDetailsLoading(false);
   };
 
-  const openDeleteConfirmModal = (user) => {
+  const openDeleteConfirmModal = (user: User) => {
     setUserToDelete(user);
     setShowDeleteConfirmModal(true);
   };
@@ -244,7 +266,7 @@ export const UsersManagement = () => {
   };
 
   // Form handlers
-  const handleAddUser = async (e) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddUserLoading(true);
     setAddUserMessage('');
@@ -272,7 +294,7 @@ export const UsersManagement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -299,7 +321,7 @@ export const UsersManagement = () => {
 
   
 
-  const handleSubscriptionSubmit = async (e) => {
+  const handleSubscriptionSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUser) return;
 
@@ -327,7 +349,7 @@ export const UsersManagement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -352,7 +374,7 @@ export const UsersManagement = () => {
     }
   };
 
-  const handleUserDetailsSubmit = async (e) => {
+  const handleUserDetailsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUserForDetails) return;
 
@@ -361,9 +383,9 @@ export const UsersManagement = () => {
     setUserDetailsError('');
 
     try {
-      const formData = new FormData(e.target);
-      const displayName = formData.get('displayName');
-      const role = formData.get('role');
+      const formData = new FormData(e.target as HTMLFormElement);
+      const displayName = formData.get('displayName') as string;
+      const role = formData.get('role') as string;
 
       const payload = {
         action: 'changeRole', // Reusing changeRole action for simplicity, as it updates role and display_name
@@ -376,7 +398,7 @@ export const UsersManagement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -414,7 +436,7 @@ export const UsersManagement = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session.access_token}`,
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -438,7 +460,7 @@ export const UsersManagement = () => {
     }
   };
 
-  const handleSort = (field) => {
+  const handleSort = (field: string) => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -449,12 +471,12 @@ export const UsersManagement = () => {
   };
 
   // Pagination handlers
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
 
-  const handleItemsPerPageChange = (newItemsPerPage) => {
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1);
   };
@@ -516,7 +538,7 @@ export const UsersManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center">
-              <User className="w-8 h-8 text-blue-500" />
+              <UserIcon className="w-8 h-8 text-blue-500" />
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-500">Total Users</p>
                 <p className="text-2xl font-bold text-gray-900">{users.length}</p>
@@ -645,7 +667,7 @@ export const UsersManagement = () => {
                     onClick={() => handleSort('display_name')}
                   >
                     <div className="flex items-center space-x-1">
-                      <User className="w-4 h-4" />
+                      <UserIcon className="w-4 h-4" />
                       <span>Display Name</span>
                       {sortBy === 'display_name' && (
                         <span className="text-blue-500">
@@ -702,7 +724,7 @@ export const UsersManagement = () => {
                     <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">No users found.</td>
                   </tr>
                 )}
-                {paginatedUsers.map((user) => {
+                {paginatedUsers.map((user: User) => {
                   const userStatus = getUserStatus(user);
                   return (
                     <tr key={user.id} className="hover:bg-gray-50 transition-colors">
@@ -710,7 +732,7 @@ export const UsersManagement = () => {
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-8 w-8">
                             <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
-                              <User className="w-4 h-4 text-gray-500" />
+                              <UserIcon className="w-4 h-4 text-gray-500" />
                             </div>
                           </div>
                           <div className="ml-3">
@@ -1045,5 +1067,3 @@ export const UsersManagement = () => {
     </div>
   );
 };
-
-

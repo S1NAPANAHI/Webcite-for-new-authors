@@ -20,3 +20,4 @@ export interface TimelineEvent {
     created_at?: string;
     updated_at?: string;
 }
+//# sourceMappingURL=timeline.d.ts.map

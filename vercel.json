@@ -7,9 +7,18 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "apps/backend/package.json",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["dist/**", "node_modules/**"] }
     }
   ],
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "apps/backend/server.js"
+    },
     { "src": "/(.*)", "dest": "/apps/frontend/dist/index.html" }
   ],
   "buildCommand": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && cd apps/frontend && pnpm build",

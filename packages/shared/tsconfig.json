@@ -7,7 +7,7 @@
     "skipLibCheck": true,
     "composite": true,
 
-    /* Bundler mode */
+    /* Module Resolution */
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,

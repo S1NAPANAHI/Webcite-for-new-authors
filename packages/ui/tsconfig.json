@@ -7,7 +7,12 @@
     "outDir": "dist",
     "rootDir": "src",
     "baseUrl": ".",
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "strict": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
   "include": ["src/**/*", "src/**/*.json", "src/vite-env.d.ts"],
   "exclude": ["node_modules", "dist"],

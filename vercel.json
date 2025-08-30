@@ -5,14 +5,14 @@
       "src": "apps/frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": ".next"
+        "distDir": "dist"
       }
     }
   ],
   "routes": [
     { "src": "/(.*)", "dest": "/$1" }
   ],
-  "buildCommand": "pnpm build",
+  "buildCommand": "cd apps/frontend && pnpm build",
   "installCommand": "pnpm install",
   "regions": ["iad1"],
   "env": {

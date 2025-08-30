@@ -28,7 +28,6 @@ const deleteCharacter = async (id) => {
     if (error)
         throw new Error(error.message);
 };
-// --- Character Editor Component ---
 export const CharacterEditor = ({ character, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
         name: character?.name || '',

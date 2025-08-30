@@ -1,5 +1,5 @@
 import 'react-quill-new/dist/quill.snow.css';
-import { WikiPageWithSections } from '../../packages/shared/src/wiki';
+import { WikiPageWithSections } from '@zoroaster/shared/wiki';
 interface WikiEditorProps {
     id?: string;
     onUpdatePage?: (page: WikiPageWithSections) => void;

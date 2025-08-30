@@ -42,7 +42,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 // Extend the TimelineEvent type to include our form fields
 type TimelineEventFormData = Omit<TimelineEvent, 'id' | 'status' | 'created_at' | 'updated_at' | 'background_image'> & {
-  details?: string | null;
+  details?: string;
   background_image?: string; // API expects string or undefined, not null
   nested_events?: Array<Omit<NestedEvent, 'id' | 'timeline_event_id'>>;
 };
@@ -51,7 +51,7 @@ type UpdateTimelineEventDto = Partial<Omit<TimelineEvent, 'id' | 'status' | 'cre
   id: string;
   details?: string | null;
   background_image?: string | null;
-  nested_events?: Array<Omit<NestedEvent, 'id'>>;
+  nested_events?: NestedEvent[];
 };
 
 import { ImageUpload } from '../common/ImageUpload';

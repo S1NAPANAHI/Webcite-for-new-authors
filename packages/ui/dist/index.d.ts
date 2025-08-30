@@ -1,7 +1,12 @@
-export * from './components/ui';
 export * from './components/common';
 export { default as LoginPage } from './LoginPage';
 export { AccountPage } from './AccountPage';
+export { ReadingTab } from './ReadingTab';
+export { AchievementsTab } from './AchievementsTab';
+export { PreferencesTab } from './PreferencesTab';
+export { SecurityTab } from './SecurityTab';
+export { ProfileTab } from './ProfileTab';
+export { OverviewTab } from './OverviewTab';
 export { default as AdminLayout } from './AdminLayout';
 export { AdminProtectedRoute } from './AdminProtectedRoute';
 export * from './lib/utils';
@@ -19,5 +24,4 @@ export * from './alert-dialog';
 export * from './dialog';
 export * from './switch';
 export * from './table';
-export * from './theme';
 //# sourceMappingURL=index.d.ts.map

@@ -37,7 +37,6 @@ const deletePost = async (id) => {
     if (error)
         throw new Error(error.message);
 };
-// --- Post Editor Component ---
 export const PostEditor = ({ post, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
         title: post?.title || '',

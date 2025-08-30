@@ -59,7 +59,13 @@ const deletePost = async (id: string): Promise<void> => {
 };
 
 // --- Post Editor Component ---
-export const PostEditor = ({ post, onSave, onCancel }) => {
+interface PostEditorProps {
+  post: Post | null;
+  onSave: (post: Post) => void;
+  onCancel: () => void;
+}
+
+export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     title: post?.title || '',
     content: post?.content || '',

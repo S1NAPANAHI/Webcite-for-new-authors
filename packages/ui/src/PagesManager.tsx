@@ -95,8 +95,8 @@ export const PagesManager: React.FC = () => {
         </span>
       )
     },
-    { key: 'created_at', label: 'Created At', render: (item: Page) => new Date(item.created_at).toLocaleDateString() },
-    { key: 'updated_at', label: 'Last Updated', render: (item: Page) => new Date(item.updated_at).toLocaleDateString() },
+    { key: 'created_at', label: 'Created At', render: (item: Page) => new Date(item.created_at ?? '').toLocaleDateString() },
+    { key: 'updated_at', label: 'Last Updated', render: (item: Page) => new Date(item.updated_at ?? '').toLocaleDateString() },
   ];
 
   if (isLoading) return <div>Loading pages...</div>;
@@ -122,7 +122,7 @@ export const PagesManager: React.FC = () => {
           columns={columns}
           createActionLabel="New Page"
           onEdit={(item) => {
-            setEditingPage(item);
+            setEditingPage(item ?? undefined);
             setIsEditing(true);
           }}
           onDelete={handleDeletePage}

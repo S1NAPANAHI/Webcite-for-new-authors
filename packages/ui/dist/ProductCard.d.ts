@@ -1,5 +1,5 @@
 import React from 'react';
-import { Product } from '../../packages/shared/src/product.js';
+import { Product } from '@zoroaster/shared/product';
 interface ProductCardProps {
     product: Product;
     onPurchase?: (productId: string) => void;

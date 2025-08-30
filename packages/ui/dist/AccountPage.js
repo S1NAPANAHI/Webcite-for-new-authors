@@ -1,16 +1,16 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
-import { useAuth } from '../../packages/shared/src/AuthContext.js'; // Import useAuth
+import { supabase } from '@zoroaster/shared/supabaseClient';
+import { useAuth } from '@zoroaster/shared/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as UserIcon, Bookmark, Clock, Star, Lock } from 'lucide-react';
 // Import sub-components for tabs
 import { OverviewTab } from './OverviewTab.js';
 import { ProfileTab } from './ProfileTab.js';
-import { ReadingTab } from './ReadingTab.js';
-import { AchievementsTab } from './AchievementsTab.js';
-import { PreferencesTab } from './PreferencesTab.js';
-import { SecurityTab } from './SecurityTab.js';
+import { ReadingTab } from '@zoroaster/ui';
+import { AchievementsTab } from '@zoroaster/ui';
+import { PreferencesTab } from '@zoroaster/ui';
+import { SecurityTab } from '@zoroaster/ui';
 export const AccountPage = () => {
     const { user, userProfile: authUserProfile, isLoading: loading, isAuthenticated } = useAuth(); // Use useAuth hook
     const [activeTab, setActiveTab] = useState('overview');

@@ -8,9 +8,10 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "@zoroaster/shared": ["../../packages/shared/src"],
-      "@zoroaster/shared/*": ["../../packages/shared/src/*"]
-    }
+      "@zoroaster/shared": ["../../packages/shared/dist"],
+      "@zoroaster/shared/*": ["../../packages/shared/dist/*"]
+    },
+    "types": ["vite/client"]
   },
   "include": ["src/**/*", "src/**/*.json"],
   "exclude": ["node_modules", "dist"]

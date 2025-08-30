@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 interface User {
   id: string;

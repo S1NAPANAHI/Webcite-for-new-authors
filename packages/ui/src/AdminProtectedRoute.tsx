@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 export const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);

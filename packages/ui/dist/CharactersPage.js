@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 // Async function to fetch characters from Supabase
 const fetchCharacters = async () => {
     const { data, error } = await supabase.from('characters').select('*').order('created_at', { ascending: true });

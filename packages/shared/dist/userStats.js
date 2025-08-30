@@ -1,12 +1,15 @@
-import { supabase } from './supabaseClient';
-export const initializeUserStats = async (userId) => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getUserStats = exports.initializeUserStats = void 0;
+const supabaseClient_1 = require("./supabaseClient");
+const initializeUserStats = async (userId) => {
     const defaultStats = {
         books_read: 0,
         reading_hours: 0,
         achievements: 0,
         currently_reading: 'None',
     };
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient_1.supabase
         .from('user_stats')
         .upsert({ user_id: userId, ...defaultStats }, { onConflict: 'user_id' })
         .select('*')
@@ -17,16 +20,17 @@ export const initializeUserStats = async (userId) => {
     }
     return data;
 };
-export const getUserStats = async (userId) => {
+exports.initializeUserStats = initializeUserStats;
+const getUserStats = async (userId) => {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient_1.supabase
             .from('user_stats')
             .select('*')
             .eq('user_id', userId)
             .maybeSingle();
         // If no row exists yet, initialize it
         if (!data && (!error || error.code === 'PGRST116')) {
-            return initializeUserStats(userId);
+            return (0, exports.initializeUserStats)(userId);
         }
         if (error)
             throw error;
@@ -37,3 +41,4 @@ export const getUserStats = async (userId) => {
         throw error;
     }
 };
+exports.getUserStats = getUserStats;

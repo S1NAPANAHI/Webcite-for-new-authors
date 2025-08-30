@@ -1,4 +1,4 @@
-import { WikiPageWithSections } from '../../packages/shared/src/wiki.js';
+import { WikiPageWithSections } from '@zoroaster/shared/wiki';
 interface WikiViewerProps {
     page: WikiPageWithSections;
     onEdit?: () => void;

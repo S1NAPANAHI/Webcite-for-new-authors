@@ -1,7 +1,7 @@
 import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import styles from './HomePage.module.css';
 import { Link } from 'react-router-dom';
 // --- DATA FETCHING FUNCTIONS ---

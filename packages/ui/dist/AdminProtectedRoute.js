@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 export const AdminProtectedRoute = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [authState, setAuthState] = useState({ isAuthenticated: false, isAdmin: false });

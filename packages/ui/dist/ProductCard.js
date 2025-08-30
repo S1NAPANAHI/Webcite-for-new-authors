@@ -2,7 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState } from 'react';
 import { ShoppingCart, Crown, Plus } from 'lucide-react';
 import { SubscriptionCheckout } from './SubscriptionCheckout';
-import { useCart } from '../../packages/shared/src/CartContext.js';
+import { useCart } from '@zoroaster/shared/CartContext';
 export const ProductCard = ({ product, onPurchase, showCheckout = false }) => {
     const [showCheckoutModal, setShowCheckoutModal] = useState(false);
     const [showSample, setShowSample] = useState(false);

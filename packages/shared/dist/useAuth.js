@@ -1,15 +1,18 @@
-import { useState, useEffect } from 'react';
-import { supabase } from './supabaseClient';
-export const useAuth = () => {
-    const [user, setUser] = useState(null);
-    const [userProfile, setUserProfile] = useState(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    useEffect(() => {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.useAuth = void 0;
+const react_1 = require("react");
+const supabaseClient_1 = require("./supabaseClient");
+const useAuth = () => {
+    const [user, setUser] = (0, react_1.useState)(null);
+    const [userProfile, setUserProfile] = (0, react_1.useState)(null);
+    const [isAuthenticated, setIsAuthenticated] = (0, react_1.useState)(false);
+    const [isAdmin, setIsAdmin] = (0, react_1.useState)(false);
+    const [isLoading, setIsLoading] = (0, react_1.useState)(true);
+    (0, react_1.useEffect)(() => {
         const fetchSessionAndProfile = async () => {
             setIsLoading(true);
-            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            const { data: { session }, error: sessionError } = await supabaseClient_1.supabase.auth.getSession();
             if (sessionError) {
                 console.error("Error getting session:", sessionError);
                 setUser(null);
@@ -24,7 +27,7 @@ export const useAuth = () => {
                 setIsAuthenticated(true);
                 try {
                     console.log('🔍 [useAuth] Fetching user profile for ID:', session.user.id);
-                    const { data: profile, error: profileError } = await supabase
+                    const { data: profile, error: profileError } = await supabaseClient_1.supabase
                         .from('profiles')
                         .select('*')
                         .eq('id', session.user.id)
@@ -68,7 +71,7 @@ export const useAuth = () => {
             setIsLoading(false);
         };
         fetchSessionAndProfile();
-        const { data: authListener } = supabase.auth.onAuthStateChange((_event, _session) => {
+        const { data: authListener } = supabaseClient_1.supabase.auth.onAuthStateChange((_event, _session) => {
             console.log('🔄 [useAuth] Auth state changed, event:', _event);
             fetchSessionAndProfile();
         });
@@ -84,3 +87,4 @@ export const useAuth = () => {
         isLoading,
     };
 };
+exports.useAuth = useAuth;

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, getUserStats, useAuth } from '@zoroaster/shared'; // Import useAuth
+import { supabase } from '@zoroaster/shared/supabaseClient';
+import { getUserStats } from '@zoroaster/shared/userStats';
+import { useAuth } from '@zoroaster/shared/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as UserIcon, Bookmark, Clock, Star, Lock } from 'lucide-react';
 
 // Import sub-components for tabs
-import { OverviewTab } from './OverviewTab';
-import { ProfileTab } from './ProfileTab';
+import { OverviewTab } from './OverviewTab.js';
+import { ProfileTab } from './ProfileTab.js';
 import { ReadingTab } from '@zoroaster/ui';
 import { AchievementsTab } from '@zoroaster/ui';
 import { PreferencesTab } from '@zoroaster/ui';

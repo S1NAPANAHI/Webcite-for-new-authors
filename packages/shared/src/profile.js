@@ -16,3 +16,4 @@ export const getProfile = async (userId) => {
         throw error;
     }
 };
+//# sourceMappingURL=profile.js.map

@@ -1,7 +1,7 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useState, useEffect, forwardRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Button } from './button';
 import { Input } from './input';
 import { Textarea } from './textarea';

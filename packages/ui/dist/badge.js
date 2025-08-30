@@ -1,6 +1,6 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import * as React from "react";
-import { cn } from '../../packages/shared/src/utils.js';
+import { cn } from '@zoroaster/shared/utils';
 const variantClasses = {
     default: "bg-primary text-primary-foreground hover:bg-primary/80 border-transparent",
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent",

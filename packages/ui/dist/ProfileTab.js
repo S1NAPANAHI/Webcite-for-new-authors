@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 export const ProfileTab = ({ userProfile, onProfileUpdate }) => {
     const [displayName, setDisplayName] = useState(userProfile.display_name || '');
     const [bio, setBio] = useState(userProfile.bio || '');

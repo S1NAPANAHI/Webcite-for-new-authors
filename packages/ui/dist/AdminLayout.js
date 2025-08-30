@@ -1,9 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { cn } from '../../packages/shared/src/utils.js';
-import { useAuth } from '../../packages/shared/src/AuthContext.js';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { cn } from '@zoroaster/shared/utils';
+import { useAuth } from '@zoroaster/shared/AuthContext';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { LayoutDashboard, FileText, Store, BookOpen, Settings, Users, Upload, ChevronLeft, ChevronRight, LogOut, Calendar } from 'lucide-react';
 const navigation = [
     { name: 'Dashboard', href: '/account/admin', icon: LayoutDashboard },

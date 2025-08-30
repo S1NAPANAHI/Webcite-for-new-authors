@@ -5,7 +5,7 @@ import { Input } from './input';
 import { X, BookOpen, FileIcon, Folder as FolderIcon, Menu as MenuIcon, Search, ChevronRight, Edit } from 'lucide-react';
 import { supabase } from '../../packages/shared/src/supabaseClient.js';
 import { toast } from 'sonner';
-import { WikiPage, WikiSectionView, WikiCategory, WikiPageWithSections, Tables } from '../../packages/shared/src/wiki.js';
+import { WikiPage, WikiSectionView, WikiCategory, WikiPageWithSections, Tables } from '@zoroaster/shared/wiki';
 
 // Re-define local types based on shared types
 interface Folder {

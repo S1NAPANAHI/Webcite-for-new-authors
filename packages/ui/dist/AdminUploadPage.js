@@ -1,6 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useState, useEffect } from 'react';
-import { supabase } from '../../packages/shared/src/supabaseClient.js';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 export const AdminUploadPage = () => {
     const [title, setTitle] = useState('');
     const [type, setType] = useState('chapter'); // Default to chapter

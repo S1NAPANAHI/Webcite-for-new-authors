@@ -11,7 +11,28 @@
     {
       "src": "apps/backend/package.json",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["dist/**", "node_modules/**"] }
+      "config": {
+        "excludeFiles": [
+          "node_modules/**",
+          "dist/**",
+          "apps/frontend/**",
+          "packages/**",
+          "**/*.test.js",
+          "**/*.spec.js",
+          "**/__tests__/**",
+          "**/test/**",
+          "**/tests/**",
+          "**/tmp/**",
+          "**/temp/**",
+          "**/cache/**",
+          "**/logs/**",
+          "**/*.log",
+          "**/*.md",
+          "**/*.txt",
+          "**/*.map",
+          "**/*.tsbuildinfo"
+        ]
+      }
     }
   ],
   "routes": [

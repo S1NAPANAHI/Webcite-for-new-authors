@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { CartIcon } from './CartIcon';
-import styles from './Navbar.module.css';
 import ThemeToggle from './components/ui/ThemeToggle';
 import { Search } from 'lucide-react'; // Import Search icon
 
@@ -83,44 +82,44 @@ export const Navbar = () => {
   }
 
   return (
-    <header className={styles.zoroHeader}>
-      <div className={styles.logo}>
+    <header className="zoro-header">
+      <div className="logo">
         <NavLink to="/">
           <h1>Zoroasterverse</h1>
         </NavLink>
       </div>
 
-      <div className={styles.headerControls}> {/* New wrapper div */}
+      <div className="header-controls">
         {/* Search Bar */}
-        <form className={styles.searchForm}>
+        <form className="search-form">
           <input type="text" placeholder="Search..." />
           <button type="submit">
-            <Search /> {/* Lucide Search icon */}
+            <Search />
           </button>
         </form>
 
-        {/* Theme Toggle (existing component) */}
-        <ThemeToggle /> {/* Use the existing ThemeToggle component */}
+        {/* Theme Toggle */}
+        <ThemeToggle />
       </div>
 
-      <nav className={styles.navbar}>
-          <ul className={styles.navMenu}>
+      <nav className="navbar">
+          <ul className="nav-menu">
             {navLinks.map(link => (
-              <li key={link.name} className={link.children ? styles.dropdown : ''}>
+              <li key={link.name} className={link.children ? 'dropdown' : ''}>
                 {link.onClick ? (
-                  <button onClick={link.onClick} className={styles.navLink}>
+                  <button onClick={link.onClick} className="nav-link">
                     {link.name}
                   </button>
                 ) : (
-                  <NavLink to={link.path} className={styles.navLink}>
+                  <NavLink to={link.path} className="nav-link">
                     {link.name} {link.children ? '▾' : ''}
                   </NavLink>
                 )}
                 {link.children && (
-                  <ul className={styles.dropdownMenu}>
+                  <ul className="dropdown-menu">
                     {link.children.map(childLink => (
                       <li key={childLink.name}>
-                        <NavLink to={childLink.path} className={styles.dropdownMenuItem}>
+                        <NavLink to={childLink.path} className="dropdown-menu-item">
                           {childLink.name}
                         </NavLink>
                       </li>

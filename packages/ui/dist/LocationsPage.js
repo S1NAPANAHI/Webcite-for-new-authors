@@ -1,5 +1,0 @@
-import { jsx as _jsx } from "react/jsx-runtime";
-export const LocationsPage = () => {
-    return (_jsx("div", { children: _jsx("h1", { className: "text-3xl font-bold", children: "Locations & Factions" }) }));
-};
-//# sourceMappingURL=LocationsPage.js.map

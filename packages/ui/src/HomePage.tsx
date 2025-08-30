@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared/supabaseClient';
-import styles from './HomePage.module.css';
 import { Link } from 'react-router-dom';
 
 // --- TYPE DEFINITIONS ---
@@ -474,14 +473,14 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
         
         // English reel scrolls up (negative transform)
         const englishTargetY = targetIndexInReelItems * itemHeight;
-        englishReelRef.current.classList.add(styles.prophecyReelSpinning);
+            englishReelRef.current.classList.add('prophecy-reel-spinning');
         englishReelRef.current.style.transform = `translateY(-${englishTargetY}px)`;
 
         
 
         setTimeout(() => {
             if (!englishReelRef.current) return;
-            englishReelRef.current.classList.remove(styles.prophecyReelSpinning);
+            englishReelRef.current.classList.remove('prophecy-reel-spinning');
             
             // Reset English reel to the equivalent position in the *first* repetition
             englishReelRef.current.style.transition = 'none';
@@ -500,11 +499,11 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
     return (
         <>
             {/* English Reel (Top Left) */}
-            <div className={`${styles.prophecyMask} ${styles.englishMask}`} onClick={handleSpin}>
-                <div ref={englishReelRef} className={styles.prophecyReel}>
+            <div className="prophecy-mask english-mask" onClick={handleSpin}>
+                <div ref={englishReelRef} className="prophecy-reel">
                     {reelItems.map((item, index) => (
-                        <div key={index} className={styles.prophecyItem}>
-                            <span className={styles.englishText}>{item.english}</span>
+                        <div key={index} className="prophecy-item">
+                            <span className="english-text">{item.english}</span>
                         </div>
                     ))}
                 </div>
@@ -522,31 +521,31 @@ const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spin
     const intro = contentMap.get('hero_description')?.content || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world’s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
 
     return (
-        <section id="home" className={styles.zrHero}>
-            <div className={styles.zrHeroContent}>
-                <h1 className={styles.zrTitle}>{title}</h1>
-                <p className={styles.zrQuote}>{quote}</p>
-                <p className={styles.zrIntro}>{intro}</p>
-                <Link className={styles.zrCta} to="/blog/about">
+        <section id="home" className="zr-hero">
+            <div className="zr-hero-content">
+                <h1 className="zr-title">{title}</h1>
+                <p className="zr-quote">{quote}</p>
+                <p className="zr-intro">{intro}</p>
+                <Link className="zr-cta" to="/blog/about">
                     Learn More
                 </Link>
             </div>
-            <figure className={styles.zrHeroArt} aria-labelledby="art-caption">
+            <figure className="zr-hero-art" aria-labelledby="art-caption">
                 <video 
                     src="/200716-913538378.mp4" 
                     autoPlay 
                     loop 
                     muted 
                     playsInline 
-                    className={styles.videoFire}
+                    className="video-fire"
                 />
-                <div className={styles.spinsIndicator}>
+                <div className="spins-indicator">
                     {[...Array(3)].map((_, i) => (
-                        <div key={i} className={`${styles.spinDot} ${i < spinsLeft ? styles.spinDotActive : ''}`}></div>
+                        <div key={i} className={`spin-dot ${i < spinsLeft ? 'spin-dot-active' : ''}`}></div>
                     ))}
                 </div>
                 <DualScrollingProphecy spinsLeft={spinsLeft} setSpinsLeft={setSpinsLeft} />
-                <figcaption id="art-caption" className={styles.srOnly}>
+                <figcaption id="art-caption" className="sr-only">
                     A stylized winged figure above a sacred fire.
                 </figcaption>
             </figure>

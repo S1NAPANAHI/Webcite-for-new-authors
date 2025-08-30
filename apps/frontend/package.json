@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm build:deps && vite build",
-    "build:deps": "pnpm --filter @zoroaster/shared --filter @zoroaster/ui build",
+    "build:deps": "pnpm --filter @zoroaster/shared build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-types": "supabase gen types typescript --project-id opukvvmumyegtkukqint > src/lib/database.types.ts"

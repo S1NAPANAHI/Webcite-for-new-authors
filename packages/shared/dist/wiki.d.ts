@@ -1,4 +1,5 @@
-import { Tables, Enums, Json } from './database.types';
+import { Tables, Enums, Json, TablesInsert } from './database.types';
+export type { Tables, Enums, Json, TablesInsert };
 interface SupabaseSelectError {
     error: true;
 }
@@ -160,4 +161,3 @@ export declare const getCategoryUrl: (category: {
 export declare const getTagUrl: (tag: {
     id: string;
 }) => string;
-export {};

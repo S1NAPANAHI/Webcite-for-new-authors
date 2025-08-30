@@ -102,7 +102,14 @@ const fetchRecentActivity = async () => {
 
 // --- Reusable Components ---
 
-const StatCard = ({ title, value, icon: Icon, color }) => (
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  color: string;
+}
+
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color }) => (
   <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700 flex items-center space-x-4 hover:border-blue-500/50 transition-colors">
     <div className={`p-3 rounded-lg bg-${color}-500/20 text-${color}-400`}>
       <Icon className="w-6 h-6" />
@@ -114,7 +121,13 @@ const StatCard = ({ title, value, icon: Icon, color }) => (
   </div>
 );
 
-const ChartContainer = ({ title, children, icon: Icon }) => (
+interface ChartContainerProps {
+  title: string;
+  children: React.ReactNode;
+  icon: React.ElementType;
+}
+
+const ChartContainer: React.FC<ChartContainerProps> = ({ title, children, icon: Icon }) => (
   <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
     <div className="flex items-center mb-4">
         <Icon className="w-5 h-5 mr-2 text-gray-400"/>
@@ -132,14 +145,23 @@ const LoadingSpinner = () => (
     </div>
 );
 
-const ErrorDisplay = ({ message }) => (
+interface ErrorDisplayProps {
+  message: string;
+}
+
+const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ message }) => (
     <div className="flex justify-center items-center h-full text-red-400">
         <AlertCircle className="w-6 h-6 mr-2"/>
         <p>Error loading data: {message}</p>
     </div>
 );
 
-const EmptyState = ({ message, icon: Icon = Inbox }) => (
+interface EmptyStateProps {
+  message: string;
+  icon?: React.ElementType;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ message, icon: Icon = Inbox }) => (
     <div className="flex flex-col justify-center items-center h-full text-gray-500">
         <Icon className="w-12 h-12 mb-4" />
         <p className="font-semibold">No Data Available</p>
@@ -170,10 +192,10 @@ export const DashboardPage: React.FC = () => {
           <p className="text-gray-900 dark:text-white">Loading metrics...</p>
         ) : (
           <>
-            <StatCard title="Total Users" value={metrics?.totalUsers.toLocaleString()} icon={Users} color="blue" />
-            <StatCard title="Active Subscribers" value={metrics?.activeSubscribers.toLocaleString()} icon={CheckSquare} color="green" />
-            <StatCard title="Total Revenue" value={`$${metrics?.totalRevenue.toLocaleString()}`} icon={DollarSign} color="yellow" />
-            <StatCard title="Total Page Views" value={metrics?.totalViews.toLocaleString()} icon={Eye} color="purple" />
+            <StatCard title="Total Users" value={metrics?.totalUsers.toLocaleString() ?? '0'} icon={Users} color="blue" />
+            <StatCard title="Active Subscribers" value={metrics?.activeSubscribers.toLocaleString() ?? '0'} icon={CheckSquare} color="green" />
+            <StatCard title="Total Revenue" value={`${metrics?.totalRevenue.toLocaleString() ?? '0'}`} icon={DollarSign} color="yellow" />
+            <StatCard title="Total Page Views" value={metrics?.totalViews.toLocaleString() ?? '0'} icon={Eye} color="purple" />
           </>
         )}
       </div>
@@ -201,7 +223,7 @@ export const DashboardPage: React.FC = () => {
           {loadingSubs ? <LoadingSpinner/> : subsError ? <ErrorDisplay message={subsError.message} /> : subStatus && subStatus.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <RechartsPieChart>
-                <Pie data={subStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} fill="#8884d8" labelLine={false} label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
+                <Pie data={subStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} fill="#8884d8" labelLine={false} label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}>
                   {subStatus?.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
@@ -229,7 +251,7 @@ export const DashboardPage: React.FC = () => {
                           <p className="text-gray-700 dark:text-gray-300">
                               <span className="font-semibold text-blue-600 dark:text-blue-400">{activity.actor_display_name || activity.actor_username || 'A user'}</span> {activity.action?.toLowerCase()}.
                           </p>
-                          <p className="text-gray-500 dark:text-gray-400">{new Date(activity.created_at).toLocaleString()}</p>
+                          <p className="text-gray-500 dark:text-gray-400">{activity.created_at ? new Date(activity.created_at).toLocaleString() : ''}</p>
                       </div>
                   ))
               ) : (

@@ -65,6 +65,11 @@
       "import": "./dist/database.types.js",
       "require": "./dist/database.types.js",
       "types": "./dist/database.types.d.ts"
+    },
+    "./types/timeline": {
+      "import": "./dist/types/timeline.js",
+      "require": "./dist/types/timeline.js",
+      "types": "./dist/types/timeline.d.ts"
     }
   },
   "files": ["dist"],
@@ -78,8 +83,8 @@
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.3.0",
     "uuid": "^10.0.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/uuid": "^9.0.8",

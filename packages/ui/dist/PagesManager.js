@@ -82,8 +82,8 @@ export const PagesManager = () => {
                         : 'bg-gray-100 text-gray-800' // Handle 'archived' or other statuses
                 }`, children: item.status }))
         },
-        { key: 'created_at', label: 'Created At', render: (item) => new Date(item.created_at).toLocaleDateString() },
-        { key: 'updated_at', label: 'Last Updated', render: (item) => new Date(item.updated_at).toLocaleDateString() },
+        { key: 'created_at', label: 'Created At', render: (item) => new Date(item.created_at ?? '').toLocaleDateString() },
+        { key: 'updated_at', label: 'Last Updated', render: (item) => new Date(item.updated_at ?? '').toLocaleDateString() },
     ];
     if (isLoading)
         return _jsx("div", { children: "Loading pages..." });
@@ -93,7 +93,7 @@ export const PagesManager = () => {
                 setIsEditing(false);
                 setEditingPage(null);
             } })) : (_jsx(ContentTable, { contentType: "pages", items: pages || [], title: "Website Pages", columns: columns, createActionLabel: "New Page", onEdit: (item) => {
-                setEditingPage(item);
+                setEditingPage(item ?? undefined);
                 setIsEditing(true);
             }, onDelete: handleDeletePage, onCreateNew: () => {
                 setEditingPage(null);

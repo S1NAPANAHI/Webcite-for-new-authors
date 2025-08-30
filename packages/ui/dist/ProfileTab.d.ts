@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserProfile } from '../../packages/shared/src/profile.js';
+import { UserProfile } from '@zoroaster/shared/profile';
 interface ProfileTabProps {
     userProfile: UserProfile;
     onProfileUpdate: (updatedProfile: Partial<UserProfile>) => void;

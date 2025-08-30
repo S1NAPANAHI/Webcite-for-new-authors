@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { Tables, Enums, Json, TablesInsert } from './database.types';
+export type { Tables, Enums, Json, TablesInsert };
 import { v4 as uuidv4 } from 'uuid';
 
 interface SupabaseSelectError {

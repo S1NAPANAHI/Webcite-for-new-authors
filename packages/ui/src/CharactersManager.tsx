@@ -48,7 +48,13 @@ const deleteCharacter = async (id: string): Promise<void> => {
 };
 
 // --- Character Editor Component ---
-export const CharacterEditor = ({ character, onSave, onCancel }) => {
+interface CharacterEditorProps {
+  character: Character | null;
+  onSave: (character: Character) => void;
+  onCancel: () => void;
+}
+
+export const CharacterEditor: React.FC<CharacterEditorProps> = ({ character, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: character?.name || '',
     title: character?.title || '',

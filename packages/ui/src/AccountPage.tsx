@@ -180,7 +180,7 @@ export const AccountPage = () => {
               <div className="p-6 text-center border-b border-gray-800">
                 <div className="relative inline-block">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl font-bold text-white">
-                    {userProfile.display_name ? userProfile.display_name.charAt(0).toUpperCase() : userProfile.username.charAt(0).toUpperCase()}
+                    {(userProfile.display_name || userProfile.username || ' ').charAt(0).toUpperCase()}
                   </div>
                   <button className="absolute -bottom-1 -right-1 bg-primary w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-primary/90 transition-colors">
                     <UserIcon size={16} />

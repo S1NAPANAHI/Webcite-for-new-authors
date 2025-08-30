@@ -208,7 +208,7 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
                   className={`star ${i < (userCurrentRating !== null ? userCurrentRating : Math.floor(work.rating || 0)) ? 'filled' : ''}`}
                   onClick={() => handleStarClick(i + 1)}
                   onMouseEnter={() => user && setUserCurrentRating(i + 1)}
-                  onMouseLeave={() => user && setUserCurrentRating(fetchedUserRating !== null ? fetchedUserRating : null)}
+                  onMouseLeave={() => user && setUserCurrentRating(fetchedUserRating ?? null)}
                   style={{ cursor: user ? 'pointer' : 'default' }}
                 />
               ))}

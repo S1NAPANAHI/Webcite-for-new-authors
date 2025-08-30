@@ -40,4 +40,4 @@ export * from './switch';
 export * from './table';
 
 // Theme
-export * from './theme/index';
+// export * from './theme/index';

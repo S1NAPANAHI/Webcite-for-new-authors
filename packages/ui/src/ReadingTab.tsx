@@ -13,8 +13,12 @@ interface Chapter {
   title: string;
   chapter_number: number;
   work_id: string; // Changed from book_id to work_id
-  is_published: boolean;
-  // Add other relevant chapter fields as needed
+  is_published: boolean | null;
+  created_at: string;
+  updated_at: string;
+  estimated_read_time: number | null;
+  file_path: string;
+  word_count: number | null;
 }
 
 const ReadingTab: React.FC<ReadingTabProps> = ({ userProfile }) => {

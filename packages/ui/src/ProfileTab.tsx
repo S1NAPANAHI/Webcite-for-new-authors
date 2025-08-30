@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { UserProfile } from '@zoroaster/shared/profile'; // Import UserProfile
+import { useAuth } from '@zoroaster/shared/AuthContext'; // Import useAuth
 
 interface ProfileTabProps {
   userProfile: UserProfile; // Use the imported UserProfile type
@@ -8,6 +9,7 @@ interface ProfileTabProps {
 }
 
 export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, onProfileUpdate }) => {
+  const { user } = useAuth(); // Get user from useAuth
   const [displayName, setDisplayName] = useState(userProfile.display_name || '');
   const [bio, setBio] = useState(userProfile.bio || '');
   const [location, setLocation] = useState(userProfile.location || '');
@@ -59,7 +61,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, onProfileUp
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="form-group">
             <label className="block text-text-light text-sm font-bold mb-2">Username</label>
-            <input type="text" className="w-full p-2 rounded-md bg-background-dark border border-primary-dark text-text-light" value={userProfile.username} readOnly />
+            <input type="text" className="w-full p-2 rounded-md bg-background-dark border border-primary-dark text-text-light" value={userProfile.username || ''} readOnly />
           </div>
           <div className="form-group">
             <label className="block text-text-light text-sm font-bold mb-2">Display Name</label>
@@ -67,7 +69,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ userProfile, onProfileUp
           </div>
           <div className="form-group">
             <label className="block text-text-light text-sm font-bold mb-2">Email</label>
-            <input type="email" className="w-full p-2 rounded-md bg-background-dark border border-primary-dark text-text-light" value={userProfile.email || 'N/A'} readOnly />
+            <input type="email" className="w-full p-2 rounded-md bg-background-dark border border-primary-dark text-text-light" value={user?.email || 'N/A'} readOnly />
           </div>
           <div className="form-group">
             <label className="block text-text-light text-sm font-bold mb-2">Location</label>

@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from './button';
 import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
-import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories } from '@zoroaster/shared/wiki';
-import { supabase, fetchFolders, fetchPages, Database, Folder } from '@zoroaster/shared/supabaseClient';
+import { WikiPage, WikiSectionView, WikiCategory, fetchCategories as fetchSharedCategories, fetchFolders, Folder } from '@zoroaster/shared/wiki';
+import { supabase, Database } from '@zoroaster/shared/supabaseClient';
 import { toast } from 'sonner';
 import { WikiEditor } from './WikiEditor';
 import { SortableFolderTree } from './SortableFolderTree';
@@ -326,9 +326,9 @@ export function WikiManager() {
       setFolders(prev => deleteFolderAndChildren(prev, folderId));
       
       // If we're currently viewing the deleted folder or its children, navigate up
-      if (folderId === folderId || folders.some(f => f.parent_id === folderId && f.id === folderId)) {
-        const parentFolder = folders.find(f => f.id === folderId)?.parent_id;
-        navigate(parentFolder ? `/account/admin/wiki/folder/${parentFolder}` : '/account/admin/wiki');
+      if (folderId === targetId || folders.some(f => f.parent_id === targetId && f.id === targetId)) {
+        const parentFolder = folders.find(f => f.id === targetId)?.parent_id;
+        navigate(parentFolder ? `/account/admin/wiki/folder/${parentFolder ?? ''}` : '/account/admin/wiki');
       }
       
       toast.success('Folder and its contents deleted successfully');

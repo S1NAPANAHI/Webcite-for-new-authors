@@ -28,4 +28,3 @@ export declare const AuthProvider: React.FC<{
 }>;
 export declare const useAuth: () => AuthContextType;
 export {};
-//# sourceMappingURL=AuthContext.d.ts.map

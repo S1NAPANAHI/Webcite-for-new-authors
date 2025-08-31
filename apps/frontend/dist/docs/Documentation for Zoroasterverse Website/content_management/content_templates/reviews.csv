@@ -1,7 +1,0 @@
-#tags: #feature/reviews #doctype/template #status/approved
-
-ReviewID,WorkID,Edition (Standard|Deluxe|Bundle),ReviewerType (Beta|Public),VerifiedPurchase (Y/N),Headline,QuickTake (1–2 sentences),Tags (choose 2–3: pacing, character, worldbuilding, clarity, emotional impact),Rating (1–5),SpoilerCapsule (text; optional),RouteLabel (abstract; optional),EndingType (abstract tag; optional, hidden unless Full or owner),HelpfulCount,ReportFlags (spoilers|abuse|off‑topic),Status (Pending|Published|Rejected),SubmittedAt (UTC)
-
-RV‑BETA‑001,S1‑I1‑STD,Standard,Beta,N,“Atmospheric and tense”,“The City feels alive; the tension builds without cheap tricks.”,“pacing,worldbuilding”,4,,“Silent Accord”,,5,0,Published,2025‑06‑01T12:00:00Z
-RV‑BETA‑002,S1‑I1‑DLX,Deluxe,Beta,N,“Annotations add depth”,“The author notes clarified motives I missed.”,“clarity,character”,5,“A mid‑chapter reveal [spoiler capsule].”,“Iron Vow”,“Reprieve”,2,0,Published,2025‑06‑02T09:00:00Z
-RV‑PUB‑001,S1‑I1‑STD,Standard,Public,Y,“Hooked from chapter 2”,“Great momentum and layered politics.”,“pacing,worldbuilding”,5,,,0,0,Pending,2025‑[TBD]

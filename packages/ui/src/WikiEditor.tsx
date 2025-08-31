@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, forwardRef, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Button } from './button'
 import { Input } from './input'
@@ -110,7 +110,7 @@ interface WikiEditorProps {
 
 export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
   const { id: urlId } = useParams<{ id?: string }>();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [loading, setLoading] = useState(!!id);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<LocalWikiCategory[]>([]);
@@ -428,7 +428,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
         
         // If this was a new page, navigate to its edit URL
         if (!id) {
-          navigate(`/account/admin/wiki/page/${resultPage.id}`);
+          // navigate(`/account/admin/wiki/page/${resultPage.id}`);
         }
       }
     } catch (error: any) {
@@ -710,7 +710,7 @@ export function WikiEditor({ id, onUpdatePage, initialData }: WikiEditorProps) {
               type="button" 
               variant="outline" 
               size="sm" 
-              onClick={() => navigate('/account/admin/wiki')}
+              // onClick={() => navigate('/account/admin/wiki')}
             >
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Wiki
             </Button>

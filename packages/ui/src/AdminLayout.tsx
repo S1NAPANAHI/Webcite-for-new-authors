@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { cn } from '@zoroaster/shared/utils';
 import { useAuth } from '@zoroaster/shared/AuthContext';
 import { supabase } from '@zoroaster/shared/supabaseClient';
@@ -46,7 +46,7 @@ export const AdminLayout: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const { user, userProfile } = useAuth();
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export const AdminLayout: React.FC = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    // navigate('/login');
   };
 
   return (

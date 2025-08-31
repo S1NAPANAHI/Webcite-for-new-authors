@@ -10,4 +10,3 @@ export * from './utils';
 export * from './database.types';
 export { supabase } from './supabaseClient';
 export type { Database } from './database.types';
-//# sourceMappingURL=index.d.ts.map

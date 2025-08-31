@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
-import { useNavigate, Link } from 'react-router-dom';
+// import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 type FormMessage = {
   text: string;
@@ -28,7 +29,7 @@ const LoginPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength | null>(null);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const showMessage = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
     setMessage({ text, type });
@@ -52,7 +53,7 @@ const LoginPage: React.FC = () => {
 
       if (error) throw error;
       
-      navigate('/');
+      // navigate('/');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
       showMessage(errorMessage, 'error');

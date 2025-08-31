@@ -9,4 +9,3 @@ interface AuthState {
 }
 export declare const useAuth: () => AuthState;
 export {};
-//# sourceMappingURL=useAuth.d.ts.map

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Button } from './button';
 import { Input } from './input';
 import { Plus, Folder as FolderIcon, File, Loader2, ChevronRight } from 'lucide-react';
@@ -21,7 +21,7 @@ interface ReorderedItem {
 
 export function WikiManager() {
   const { folderId } = useParams();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [folders, setFolders] = useState<Folder[]>([]);
   const [pages, setPages] = useState<WikiPageWithSections[]>([]); 
   
@@ -118,7 +118,7 @@ export function WikiManager() {
       setShowNewFolderInput(false);
       
       // Navigate to the new folder
-      navigate(`/account/admin/wiki/folder/${data.id}`);
+      // navigate(`/account/admin/wiki/folder/${data.id}`);
       
       toast.success('Folder created successfully');
     } catch (error) {
@@ -329,7 +329,7 @@ export function WikiManager() {
       const currentFolderFromUrl = folderId; // This is from useParams
       if (currentFolderFromUrl === deletedFolderId || folders.some(f => f.parent_id === deletedFolderId && f.id === currentFolderFromUrl)) {
         const parentFolder = folders.find(f => f.id === deletedFolderId)?.parent_id;
-        navigate(parentFolder ? `/account/admin/wiki/folder/${parentFolder}` : '/account/admin/wiki');
+        // navigate(parentFolder ? `/account/admin/wiki/folder/${parentFolder}` : '/account/admin/wiki');
       }
       
       toast.success('Folder and its contents deleted successfully');
@@ -442,7 +442,7 @@ export function WikiManager() {
     setSelectedPage(null);
     setEditingPage(null);
     // Navigate to the folder
-    navigate(`/account/admin/wiki/folder/${folderId}`);
+    // navigate(`/account/admin/wiki/folder/${folderId}`);
   };
 
   // Update the folder tree building logic
@@ -507,7 +507,7 @@ export function WikiManager() {
           {/* Breadcrumb navigation */}
           <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mt-2 overflow-x-auto">
             <button 
-              onClick={() => navigate('/account/admin/wiki')}
+              // onClick={() => navigate('/account/admin/wiki')}
               className="hover:text-blue-600 dark:hover:text-blue-400"
             >
               Home

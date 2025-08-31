@@ -5,8 +5,8 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@zoroaster/ui": ["../../packages/ui/dist/index.d.ts"],
-      "@zoroaster/shared": ["../../packages/shared/dist/index.d.ts"],
+      "@zoroaster/ui": ["../../packages/ui/dist"],
+      "@zoroaster/shared": ["../../packages/shared/dist"],
       "@zoroaster/shared/*": ["../../packages/shared/dist/*"],
       "@/*": ["src/*"]
     },

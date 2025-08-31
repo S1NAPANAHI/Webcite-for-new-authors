@@ -1,24 +1,16 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "apps/frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "apps/backend/server.js",
-      "use": "@vercel/node"
+  "buildCommand": "pnpm install && pnpm --filter frontend build",
+  "outputDirectory": "apps/frontend/dist",
+  "installCommand": "pnpm install",
+  "functions": {
+    "apps/backend/server.js": {
+      "runtime": "nodejs18.x"
     }
-  ],
+  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/apps/backend/server" },
+    { "source": "/api/(.*)", "destination": "/api/apps/backend/server" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "installCommand": "pnpm install",
-  "regions": ["iad1"],
   "env": {
     "NODE_VERSION": "18.17.1",
     "NPM_CONFIG_LEGACY_PEER_DEPS": "true"

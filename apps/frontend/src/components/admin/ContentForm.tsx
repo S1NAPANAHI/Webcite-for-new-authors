@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '@zoroaster/shared';
+from '@zoroaster/ui'
 
 const ContentForm: React.FC = () => {
   const [title, setTitle] = useState('');

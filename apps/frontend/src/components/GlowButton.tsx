@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+from '@zoroaster/ui'
 import type { LucideIcon } from "lucide-react"; // Import LucideIcon as a type
 
 interface GlowButtonProps {

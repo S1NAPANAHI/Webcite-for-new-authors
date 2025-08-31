@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { WikiManager, WikiEditor } from '@zoroaster/ui';
+from '@zoroaster/ui'
 import { WikiCategoryManager } from './components/WikiCategoryManager';
 
 export const WikiRoutes: React.FC = () => {

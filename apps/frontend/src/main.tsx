@@ -5,8 +5,9 @@ import 'bulma/css/bulma.css'
 import './index.css'
 import '../../../packages/ui/dist/style.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@zoroaster/shared'
+
 import { BrowserRouter } from 'react-router-dom' // Added import
+import { AuthProvider } from '@zoroaster/shared';
 
 const queryClient = new QueryClient();
 

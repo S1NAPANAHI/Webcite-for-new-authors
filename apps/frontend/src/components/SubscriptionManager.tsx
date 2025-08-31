@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@zoroaster/shared';
+from '@zoroaster/ui'
 import { 
   Crown, 
   Calendar, 

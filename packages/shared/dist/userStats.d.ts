@@ -7,4 +7,3 @@ export interface UserStats {
 }
 export declare const initializeUserStats: (userId: string) => Promise<UserStats>;
 export declare const getUserStats: (userId: string) => Promise<UserStats>;
-//# sourceMappingURL=userStats.d.ts.map

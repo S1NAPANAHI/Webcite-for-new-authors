@@ -20,4 +20,3 @@ export type UserProfile = {
     email?: string | null;
 };
 export declare const getProfile: (userId: string) => Promise<UserProfile | null>;
-//# sourceMappingURL=profile.d.ts.map

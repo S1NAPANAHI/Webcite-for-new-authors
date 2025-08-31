@@ -1,6 +1,0 @@
-#tags: #feature/worldbuilding #doctype/template #status/approved
-
-EventID (slug),Title (non‑spoiler safe),Era (e.g., “Foundations”),Date (in‑world, optional),Participants (CharacterIDs; abstract or initials if needed),OutcomeSummaryMinimal,OutcomeSummaryStandard,OutcomeSummaryFull,SpoilerSeverity (Low|Medium|High),OwnershipLocks (WorkIDs),BranchTag (abstract route),RelatedWorks (WorkIDs),RelatedCharacters (CharacterIDs)
-
-EV‑MARKET‑STANDOFF,Market Standoff,Foundations,1.12,“CH‑LYRA, CH‑MAREN”,“A tense dispute interrupts a routine supply run.”,“The dispute reveals fault lines between factions.”,“Under Silent Accord, a hidden intermediary emerges; Iron Vow escalates.”,Medium,S1‑I1‑STD,“Silent Accord, Iron Vow”,“S1‑I1‑STD,S1‑I1‑DLX”,“CH‑LYRA,CH‑MAREN”
-EV‑HALL‑SUMMIT,Hall Summit,Foundations,1.18,“CH‑LYRA, CH‑ADEM”,“Leaders convene to review accords.”,“A proposal challenges the status quo.”,“Full reveals branch‑dependent concessions or walk‑outs.”,High,“S1‑I1‑STD,S1‑I2‑STD”,“Veiled Tide”,“S1‑I1‑STD,S1‑I2‑STD”,“CH‑LYRA,CH‑ADEM”

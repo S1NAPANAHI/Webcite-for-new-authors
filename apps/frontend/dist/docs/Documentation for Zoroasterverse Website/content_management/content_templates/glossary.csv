@@ -1,6 +1,0 @@
-#tags: #feature/worldbuilding #doctype/template #status/approved
-
-TermID (slug),Term,DefinitionMinimal (one‑line, non‑spoiler),DefinitionStandard (expanded for owners),DefinitionFull (complete, including branch‑specific nuances),ArcTags,SpoilerSeverity (Low|Medium|High),OwnershipLocks (WorkIDs),RelatedEntries (Characters/Events/Nodes IDs)
-
-GL‑ACCORDS,Accords,“Framework of understandings that keeps the City steady.”,“Agreements vary by faction; enforcement is informal.”,“Branch‑specific concessions emerge under Veiled Tide.”,“Foundations,City”,Medium,S1‑I1‑STD,“EV‑HALL‑SUMMIT,CH‑LYRA”
-GL‑TIDE,Veiled Tide,“A maneuvering strategy that favors leverage over force.”,“Used by intermediaries to ‘nudge’ outcomes.”,“In Full, ties to specific concessions at the Summit.”,“Foundations”,High,“S1‑I1‑STD,S1‑I2‑STD”,“EV‑HALL‑SUMMIT,NODE‑PARLEY”

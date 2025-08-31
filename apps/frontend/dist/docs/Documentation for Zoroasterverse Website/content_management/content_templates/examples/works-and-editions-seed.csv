@@ -1,7 +1,0 @@
-#tags: #feature/worldbuilding #feature/store #doctype/example #status/approved
-
-WorkID (slug),Season,IssueNumber,Title,Edition (Standard|Deluxe|Bundle),Formats (EPUB|PDF|MOBI),PreorderMonth (placeholder “[Month, Year]”),ReleaseDate (YYYY‑MM‑DD or blank),DeluxeExtras (comma‑sep; e.g., “annotations, concept art”),ContentWarnings (editable text),AgeGuidance (“13+ recommended” by default),DownloadLimit (default 5),WatermarkNote (Y/N; note shown),ProductPageCopy (short, non‑spoiler overview),StoreTags (comma‑sep)
-
-S1‑I1‑STD,Season1,1,The Veiled City,Standard,"EPUB,PDF,MOBI",[Month, Year],,,“violence; dark themes”,13+ recommended,5,Y,“Entry point into the conflict surrounding the City’s hidden accords.”,“season1,issue1”
-S1‑I1‑DLX,Season1,1,The Veiled City,Deluxe,"EPUB,PDF,MOBI",[Month, Year],,“annotations, concept art”,“violence; dark themes”,13+ recommended,5,Y,“Includes author annotations and concept art.”,“season1,issue1,deluxe”
-S1‑B1,Season1,,Season One Bundle,Bundle,"EPUB,PDF,MOBI",[Month, Year],,“bundle bonus: mini‑artbook PDF”,“violence; dark themes”,13+ recommended,5,Y,“Bundle of Season One issues with extras.”,“season1,bundle”

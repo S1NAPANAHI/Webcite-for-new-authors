@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { CartIcon } from './CartIcon';
 import ThemeToggle from './components/ui/ThemeToggle';
@@ -17,7 +17,7 @@ export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false); // Keep for mobile menu if needed
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [betaApplicationStatus, setBetaApplicationStatus] = useState('none');
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   useEffect(() => {
     const getSession = async () => {
@@ -44,7 +44,7 @@ export const Navbar = () => {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/');
+    // navigate('/');
   };
 
   // New structured navigation links

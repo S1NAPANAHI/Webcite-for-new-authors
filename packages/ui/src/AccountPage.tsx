@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { getUserStats } from '@zoroaster/shared/userStats';
 import { useAuth } from '@zoroaster/shared/AuthContext';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as UserIcon, Bookmark, Clock, Star, Lock } from 'lucide-react';
 
 // Import sub-components for tabs
@@ -32,13 +32,13 @@ export const AccountPage = () => {
   // Redirect if not authenticated and not loading
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      navigate('/login');
+      // navigate('/login');
     }
-  }, [loading, isAuthenticated, navigate]);
+  }, [loading, isAuthenticated]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    // navigate('/login');
   };
 
   // This function will now update the userProfile state from useAuth
@@ -88,7 +88,7 @@ export const AccountPage = () => {
         <div className="text-center">
           <p className="text-text-light text-lg mb-4">No profile data found.</p>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => /* navigate('/login') */ null}
             className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors"
           >
             Go to Login

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { ShoppingCart, X, Trash2, Plus, Minus } from 'lucide-react';
 import { useCart } from '@zoroaster/shared/CartContext';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 export const CartIcon: React.FC = () => {
   const { state, removeItem, updateQuantity, clearCart } = useCart();
   const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const formatPrice = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', {
@@ -17,7 +17,7 @@ export const CartIcon: React.FC = () => {
 
   const handleCheckout = () => {
     setIsOpen(false);
-    navigate('/checkout');
+    // navigate('/checkout');
   };
 
   return (

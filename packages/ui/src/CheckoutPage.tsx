@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useCart } from '@zoroaster/shared/CartContext';
 import { ShoppingCart, ArrowLeft, CreditCard, Lock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 
 export const CheckoutPage: React.FC = () => {
   const { state, clearCart } = useCart();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const formatPrice = (amount: number, currency: string) => {
@@ -21,12 +21,12 @@ export const CheckoutPage: React.FC = () => {
     setTimeout(() => {
       setIsProcessing(false);
       clearCart();
-      navigate('/store?checkout=success');
+      // navigate('/store?checkout=success');
     }, 2000);
   };
 
   const handleBackToStore = () => {
-    navigate('/store');
+    // navigate('/store');
   };
 
   if (state.items.length === 0) {

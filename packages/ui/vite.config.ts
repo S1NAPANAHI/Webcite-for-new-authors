@@ -12,6 +12,9 @@ export default defineConfig({
       include: [resolve(__dirname, 'src')],
     }),
   ],
+  optimizeDeps: {
+    exclude: ['@zoroaster/shared'],
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
@@ -20,7 +23,7 @@ export default defineConfig({
       fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', '@zoroaster/shared'],
       output: {
         globals: {
           react: 'React',

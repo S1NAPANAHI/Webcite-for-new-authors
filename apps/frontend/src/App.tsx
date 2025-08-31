@@ -54,6 +54,7 @@ import BlogPostPage from './pages/BlogPostPage'; // This one is local
 import GenericPage from './pages/GenericPage'; // This one is local
 import ProfileDashboard from './pages/ProfileDashboard'; // New Profile Dashboard
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
+import PayPalButton from './components/PayPalButton/PayPalButton';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
@@ -68,6 +69,7 @@ const App: React.FC = () => {
   return (
     <CartProvider>
       <StarsBackground />
+      <PayPalButton />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         {/* Public and general routes with the main layout */}

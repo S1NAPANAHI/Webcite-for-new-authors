@@ -8,13 +8,16 @@ const isBrowser = typeof window !== 'undefined';
 
 
 // Get environment variables with fallbacks
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+// Use import.meta.env for Vite compatibility, fallback to process.env for other environments
+const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 // Debug log to check if environment variables are loaded
+console.log('DEBUG: supabaseUrl (raw):', supabaseUrl);
+console.log('DEBUG: supabaseAnonKey (raw):', supabaseAnonKey);
 
 
-if (process.env.VITE_DEBUG === 'true') {
+if (import.meta.env?.VITE_DEBUG === 'true' || process.env.VITE_DEBUG === 'true') {
   console.log('Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
   console.log('Supabase Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
 }

@@ -9,43 +9,14 @@
       }
     },
     {
-      "src": "apps/backend/package.json",
-      "use": "@vercel/node",
-      "config": {
-        "excludeFiles": [
-          "node_modules/**",
-          "dist/**",
-          "apps/frontend/**",
-          "packages/**",
-          "**/*.test.js",
-          "**/*.spec.js",
-          "**/__tests__/**",
-          "**/test/**",
-          "**/tests/**",
-          "**/tmp/**",
-          "**/temp/**",
-          "**/cache/**",
-          "**/logs/**",
-          "**/*.log",
-          "**/*.md",
-          "**/*.txt",
-          "**/*.map",
-          "**/*.tsbuildinfo"
-        ]
-      }
+      "src": "apps/backend/server.js",
+      "use": "@vercel/node"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "apps/backend/dist/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "apps/frontend/dist/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/apps/backend/server.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
-  
   "installCommand": "pnpm install",
   "regions": ["iad1"],
   "env": {

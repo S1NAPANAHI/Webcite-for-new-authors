@@ -13,7 +13,7 @@
     "build:frontend": "pnpm --filter frontend build",
     "start": "pnpm --filter frontend start",
     "lint": "pnpm --filter frontend lint",
-    "vercel-build": "pnpm install && pnpm --filter frontend build",
+    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build",
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "packageManager": "pnpm@8.15.0",
@@ -37,7 +37,11 @@
   "pnpm": {
     "overrides": {
       "@types/react": "^18.3.3",
-      "@types/react-dom": "^18.3.0"
+      "@types/react-dom": "^18.3.0",
+      "esbuild": "^0.21.5"
+    },
+    "peerDependencyRules": {
+      "ignoreMissing": ["@babel/core"]
     }
   }
 }

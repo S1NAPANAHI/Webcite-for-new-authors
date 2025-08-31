@@ -1,20 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
-
-// Using Vite's environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please check your .env file.');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+// Re-export the Supabase client from the shared package
+// This ensures environment variables are loaded correctly at the app level
+export { supabase } from '@zoroaster/shared';
+import { supabase } from '@zoroaster/shared';
 
 // Helper function to get the URL for a file in storage
 export const getStorageFileUrl = (bucket: string, filePath: string): string => {

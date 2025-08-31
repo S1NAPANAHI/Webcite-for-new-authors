@@ -1,0 +1,255 @@
+/* PayPal Support Button Styles */
+.paypal-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.paypal-float {
+  background-color: #ffc439; /* PayPal yellow */
+  color: #111;
+  padding: 12px 18px;
+  border-radius: 50px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  font-family: inherit;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  position: relative;
+}
+
+.paypal-float:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.paypal-float.expanded {
+  border-radius: 25px 25px 0 0;
+  animation: none;
+}
+
+/* Arrow animation */
+.arrow {
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+
+.arrow.rotated {
+  transform: rotate(180deg);
+}
+
+/* QR Code Card */
+.qr-card {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  width: 280px;
+  background: white;
+  border-radius: 15px 15px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  transform-origin: bottom right;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.qr-card.hidden {
+  opacity: 0;
+  transform: scale(0) translateY(20px);
+  pointer-events: none;
+}
+
+.qr-card.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: all;
+}
+
+/* QR Card Header */
+.qr-header {
+  background: linear-gradient(135deg, #0070ba, #003087);
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qr-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* QR Card Content */
+.qr-content {
+  padding: 20px;
+  text-align: center;
+  background: white;
+}
+
+.qr-image {
+  width: 180px;
+  height: 180px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  border: 2px solid #f0f0f0;
+}
+
+.qr-image:hover {
+  transform: scale(1.02);
+}
+
+.qr-description {
+  color: #666;
+  font-size: 13px;
+  margin: 10px 0;
+  line-height: 1.4;
+}
+
+.fallback-link {
+  display: inline-block;
+  background: #0070ba;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  margin-top: 10px;
+}
+
+.fallback-link:hover {
+  background: #005ea6;
+  text-decoration: none;
+  color: white;
+}
+
+/* Backdrop */
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Gentle pulse animation for the main button */
+@keyframes gentle-pulse {
+  0% { 
+    transform: scale(1); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  50% { 
+    transform: scale(1.02); 
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.25);
+  }
+  100% { 
+    transform: scale(1); 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.paypal-float:not(.expanded) {
+  animation: gentle-pulse 3s infinite;
+}
+
+/* Pause animation on hover */
+.paypal-float:hover:not(.expanded) {
+  animation-play-state: paused;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .paypal-container {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .paypal-float {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  
+  .qr-card {
+    width: 260px;
+  }
+  
+  .qr-image {
+    width: 160px;
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .qr-card {
+    width: 240px;
+    right: -10px;
+  }
+  
+  .qr-content {
+    padding: 15px;
+  }
+  
+  .qr-image {
+    width: 140px;
+    height: 140px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .qr-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+  }
+  
+  .qr-content {
+    background: #1a1a1a;
+  }
+  
+  .qr-description {
+    color: #ccc;
+  }
+  
+  .qr-image {
+    border-color: #333;
+  }
+}

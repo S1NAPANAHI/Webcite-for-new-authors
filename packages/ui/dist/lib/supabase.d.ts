@@ -1,4 +1,4 @@
-export declare const supabase: import('@supabase/supabase-js').SupabaseClient<any, "public", "public", any, any>;
+export { supabase } from '@zoroaster/shared';
 export declare const getStorageFileUrl: (bucket: string, filePath: string) => string;
 export declare const uploadFile: (bucket: string, filePath: string, file: File, options?: {}) => Promise<{
     publicUrl: string;

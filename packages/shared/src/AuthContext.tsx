@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from './supabaseClient'; // Assuming supabase is exported from here
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, SupabaseClient } from '@supabase/supabase-js';
 
 // UserProfile type definition
 interface UserProfile {
@@ -30,7 +29,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ 
+  children: React.ReactNode;
+  supabaseClient: SupabaseClient;
+}> = ({ children, supabaseClient }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -39,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
+    const { data: authListener } = supabaseClient.auth.onAuthStateChange(
       async (_event, session) => {
         setSession(session);
         setUser(session?.user || null);
@@ -48,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user || null);
       setIsLoading(false);
@@ -57,13 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabaseClient]);
 
   // Fetch user profile when user changes
   useEffect(() => {
     const fetchUserProfile = async (userId: string) => {
       try {
-        const { data: profile, error } = await supabase
+        const { data: profile, error } = await supabaseClient
           .from('profiles')
           .select('*')
           .eq('id', userId)
@@ -88,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(false);
       setIsAuthenticated(false);
     }
-  }, [user]);
+  }, [user, supabaseClient]);
 
   return (
     <AuthContext.Provider value={{ 

@@ -1,8 +1,7 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useState, useEffect, useContext } from 'react';
-import { supabase } from './supabaseClient'; // Assuming supabase is exported from here
 const AuthContext = createContext(undefined);
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children, supabaseClient }) => {
     const [user, setUser] = useState(null);
     const [session, setSession] = useState(null);
     const [userProfile, setUserProfile] = useState(null);
@@ -10,13 +9,13 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     useEffect(() => {
-        const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        const { data: authListener } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
             setUser(session?.user || null);
             setIsLoading(false);
         });
         // Initial session check
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user || null);
             setIsLoading(false);
@@ -24,12 +23,12 @@ export const AuthProvider = ({ children }) => {
         return () => {
             authListener.subscription.unsubscribe();
         };
-    }, []);
+    }, [supabaseClient]);
     // Fetch user profile when user changes
     useEffect(() => {
         const fetchUserProfile = async (userId) => {
             try {
-                const { data: profile, error } = await supabase
+                const { data: profile, error } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
@@ -54,7 +53,7 @@ export const AuthProvider = ({ children }) => {
             setIsAdmin(false);
             setIsAuthenticated(false);
         }
-    }, [user]);
+    }, [user, supabaseClient]);
     return (_jsx(AuthContext.Provider, { value: {
             user,
             session,

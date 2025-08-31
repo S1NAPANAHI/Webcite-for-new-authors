@@ -7,7 +7,7 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file based on `mode` in the current working directory
+  // Load env file from current directory (frontend) first, then fallback to root
   const env = loadEnv(mode, process.cwd(), '');
 
   return {

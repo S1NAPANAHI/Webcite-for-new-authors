@@ -1,5 +1,5 @@
 import React from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, SupabaseClient } from '@supabase/supabase-js';
 interface UserProfile {
     id: string;
     username: string | null;
@@ -25,6 +25,7 @@ interface AuthContextType {
 }
 export declare const AuthProvider: React.FC<{
     children: React.ReactNode;
+    supabaseClient: SupabaseClient;
 }>;
 export declare const useAuth: () => AuthContextType;
 export {};

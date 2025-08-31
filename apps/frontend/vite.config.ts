@@ -15,9 +15,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: [
         { find: '@', replacement: path.resolve(__dirname, './src') },
-        { find: '@zoroaster/ui', replacement: path.resolve(__dirname, '../../packages/ui/dist/index.js') },
-        { find: '@zoroaster/ui/LoginPage', replacement: path.resolve(__dirname, '../../packages/ui/dist/LoginPage.js') },
-        { find: '@zoroaster/shared', replacement: path.resolve(__dirname, '../../packages/shared/dist/index.js') },
+        
         { find: 'lexical', replacement: path.resolve(__dirname, '../../node_modules/lexical') },
         { find: '@lexical/react', replacement: path.resolve(__dirname, '../../node_modules/@lexical/react') },
         { find: 'quill', replacement: path.resolve(__dirname, '../../node_modules/quill') },

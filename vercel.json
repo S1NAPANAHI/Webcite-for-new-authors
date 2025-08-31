@@ -2,13 +2,8 @@
   "buildCommand": "pnpm install && pnpm --filter frontend build",
   "outputDirectory": "apps/frontend/dist",
   "installCommand": "pnpm install",
-  "functions": {
-    "apps/backend/server.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/apps/backend/server" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "env": {

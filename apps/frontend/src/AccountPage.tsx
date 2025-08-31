@@ -1,8 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ReadingTab } from '@zoroaster/ui';
-import { AchievementsTab } from '@zoroaster/ui';
-import { PreferencesTab } from '@zoroaster/ui';
-import { SecurityTab } from '@zoroaster/ui';
+import { AchievementsTab } import { ReadingTab } from '@zoroaster/ui';
+import { PreferencesTab } import { ReadingTab } from '@zoroaster/ui';
+import { SecurityTab } import { ReadingTab } from '@zoroaster/ui';
 
 const AccountPage: React.FC = () => {
   return (

@@ -7,7 +7,7 @@ import {
   deleteCategory,
   WikiCategory
 } from '@zoroaster/shared';
-import { Button } from '@zoroaster/ui';
+from '@zoroaster/ui'
 import { Input } from '@zoroaster/ui';
 import { Label } from '@zoroaster/ui';
 import { Textarea } from '@zoroaster/ui';

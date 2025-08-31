@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@zoroaster/ui';
+from '@zoroaster/ui'
 import { Input } from '@zoroaster/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@zoroaster/ui';
 import { Plus, Folder, File, ChevronDown, ChevronRight, Trash2, Edit, Menu } from 'lucide-react';

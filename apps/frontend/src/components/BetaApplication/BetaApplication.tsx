@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared';
+
 import './BetaApplication.css'; // Import the CSS file
 
 interface StageData {

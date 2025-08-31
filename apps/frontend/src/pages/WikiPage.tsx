@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { fetchFolders, fetchPages, fetchWikiPage, WikiPage as WikiPageData, Folder, WikiSectionView as WikiSection } from '@zoroaster/shared';
-import { WikiNavItem } from '@zoroaster/ui';
+from '@zoroaster/ui'
 import { toast } from 'sonner';
 
 const WikiPage: React.FC = () => {

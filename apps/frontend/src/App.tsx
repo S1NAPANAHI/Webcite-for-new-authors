@@ -37,9 +37,9 @@ import {
   BetaReaderHandbookPage,
   OperationalTimelinePage,
   ViewNDAPage,
-  BetaFeedbackPage
+  BetaFeedbackPage,
+  LoginPage
 } from '@zoroaster/ui';
-import { LoginPage } from '@zoroaster/ui';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';  // Import the type
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import BetaApplicationsManager from './admin/BetaApplicationsManager';

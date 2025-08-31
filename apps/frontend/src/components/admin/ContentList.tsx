@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@zoroaster/shared';
+from '@zoroaster/ui'
 
 interface Content {
   id: number;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserProfile } from '@zoroaster/shared/profile';
+from '@zoroaster/ui'
 
 interface ProfileTabProps {
   userProfile: UserProfile;

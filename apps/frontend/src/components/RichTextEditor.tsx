@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from '@tiptap/react';
+from '@zoroaster/ui'
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';

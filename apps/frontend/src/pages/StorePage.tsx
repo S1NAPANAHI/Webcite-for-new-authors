@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid3X3, List, Star, Crown, Download, ShoppingCart, Eye, ChevronDown, ChevronUp } from 'lucide-react';
-import { ProductCard } from '@zoroaster/ui';
+
 import type { Product } from '@zoroaster/shared'; // Ensure correct Product type is used
 
 const StorePage = () => {

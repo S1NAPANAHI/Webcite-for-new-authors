@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+from '@zoroaster/ui'
 
 const ThemeToggle: React.FC = () => {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {

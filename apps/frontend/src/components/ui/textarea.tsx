@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from '@zoroaster/shared';
+from '@zoroaster/ui'
 
 type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>
 

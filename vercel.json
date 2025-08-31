@@ -14,7 +14,7 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/apps/backend/server.js" },
+    { "source": "/api/(.*)", "destination": "/apps/backend/server" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "installCommand": "pnpm install",

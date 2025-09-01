@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { getUserStats } from '@zoroaster/shared/userStats';
 import { useAuth } from '@zoroaster/shared/AuthContext';
-// import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as UserIcon, Bookmark, Clock, Star, Lock } from 'lucide-react';
 
 // Import sub-components for tabs

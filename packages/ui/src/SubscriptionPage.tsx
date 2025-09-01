@@ -609,7 +609,6 @@ export const SubscriptionPage: React.FC = () => {
         </div>
       </section>
     </div>
-  </div>
     </>
   );
 };

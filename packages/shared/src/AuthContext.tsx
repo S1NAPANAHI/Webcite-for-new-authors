@@ -71,12 +71,59 @@ export const AuthProvider: React.FC<{
           .eq('id', userId)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          // If profile doesn't exist (PGRST116 error), try to create one
+          if (error.code === 'PGRST116') {
+            console.log('Profile not found, creating new profile for user:', userId);
+            await createUserProfile(userId);
+            return; // fetchUserProfile will be called again after profile creation
+          }
+          throw error;
+        }
         
         setUserProfile(profile as UserProfile);
         setIsAdmin(!!(profile?.role === 'admin' || profile?.role === 'super_admin'));
       } catch (error) {
         console.error('Error fetching user profile:', error);
+        setUserProfile(null);
+        setIsAdmin(false);
+      }
+    };
+
+    const createUserProfile = async (userId: string) => {
+      try {
+        // Get user info from auth
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError || !user) {
+          console.error('Error getting user info for profile creation:', userError);
+          return;
+        }
+
+        const { data: newProfile, error: createError } = await supabaseClient
+          .from('profiles')
+          .insert({
+            id: userId,
+            username: user.email?.split('@')[0] || null,
+            display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            email: user.email,
+            role: 'user',
+            subscription_status: 'inactive',
+            beta_reader_status: 'none'
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating user profile:', createError);
+          setUserProfile(null);
+          setIsAdmin(false);
+        } else {
+          console.log('Successfully created user profile:', newProfile);
+          setUserProfile(newProfile as UserProfile);
+          setIsAdmin(!!(newProfile?.role === 'admin' || newProfile?.role === 'super_admin'));
+        }
+      } catch (error) {
+        console.error('Error in createUserProfile:', error);
         setUserProfile(null);
         setIsAdmin(false);
       }

@@ -7,8 +7,10 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file from current directory (frontend) first, then fallback to root
-  const env = loadEnv(mode, process.cwd(), '');
+  // Load env file from frontend directory and fallback to root
+  const frontendEnv = loadEnv(mode, __dirname, '');
+  const rootEnv = loadEnv(mode, path.resolve(__dirname, '../..'), '');
+  const env = { ...rootEnv, ...frontendEnv };
 
   return {
     plugins: [react(), tsconfigPaths()],
@@ -38,6 +40,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       'process.env': { ...env },
+      'import.meta.env': { ...env },
       __APP_ENV__: JSON.stringify(env.NODE_ENV || 'development'),
     },
     server: {

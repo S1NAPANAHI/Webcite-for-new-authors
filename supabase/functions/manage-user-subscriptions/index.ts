@@ -41,14 +41,14 @@ serve(async (req) => {
       result = { success: true, message: 'Subscription updated successfully' };
     } else if (action === 'changeRole') {
       console.log('Action: changeRole'); // Added log
-      // Update user_profiles for role and display_name
+      // Update profiles for role and display_name
       const updateData: { role: string; display_name?: string } = { role: newRole };
       if (data && data.display_name !== undefined) {
         updateData.display_name = data.display_name;
       }
 
       const { error } = await supabaseAdmin
-        .from('user_profiles')
+        .from('profiles')
         .update(updateData)
         .eq('id', targetUserId);
 
@@ -78,9 +78,9 @@ serve(async (req) => {
       console.log('Subscriptions deleted successfully.'); // Added log
 
       console.log('Attempting to delete user profile for user:', targetUserId); // Added log
-      // Then delete from user_profiles
+      // Then delete from profiles
       const { error: profileError } = await supabaseAdmin
-        .from('user_profiles')
+        .from('profiles')
         .delete()
         .eq('id', targetUserId);
       if (profileError) {
@@ -98,9 +98,9 @@ serve(async (req) => {
         const newUserId = crypto.randomUUID(); // Generate a new UUID
         console.log('Generated new user ID:', newUserId); // Added log
 
-        // Insert into user_profiles
+        // Insert into profiles
         const { error: userProfileInsertError } = await supabaseAdmin
-            .from('user_profiles')
+            .from('profiles')
             .insert({
                 id: newUserId,
                 username: data.username,
@@ -114,23 +114,6 @@ serve(async (req) => {
             });
         }
         console.log('User profile inserted.'); // Added log
-
-        // Insert into profiles
-        const { error: profileInsertError } = await supabaseAdmin
-            .from('profiles')
-            .insert({
-                user_id: newUserId,
-                email: data.email,
-                display_name: data.username // Using username as display_name for profiles
-            });
-        if (profileInsertError) {
-            console.error('addProfile - profileInsertError:', profileInsertError.message); // Added log
-            return new Response(JSON.stringify({ error: profileInsertError.message }), {
-              headers: { 'Content-Type': 'application/json' },
-              status: 500,
-            });
-        }
-        console.log('Profile inserted.'); // Added log
 
         result = { success: true, message: 'User profile added successfully' };
     }

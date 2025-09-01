@@ -1,1 +1,1 @@
-{"version":3,"file":"SubscriptionPage.d.ts","sourceRoot":"","sources":["../src/SubscriptionPage.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAmB,MAAM,OAAO,CAAC;AAiBxC,eAAO,MAAM,gBAAgB,EAAE,KAAK,CAAC,EAgQpC,CAAC;AAEF,eAAe,gBAAgB,CAAC"}
+{"version":3,"file":"SubscriptionPage.d.ts","sourceRoot":"","sources":["../src/SubscriptionPage.tsx"],"names":[],"mappings":"AAAA,OAAO,KAA8B,MAAM,OAAO,CAAC;AAkBnD,eAAO,MAAM,gBAAgB,EAAE,KAAK,CAAC,EAmlBpC,CAAC;AAEF,eAAe,gBAAgB,CAAC"}

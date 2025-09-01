@@ -1,7 +1,7 @@
 {
   "framework": null,
   "buildCommand": "pnpm -w run vercel-build",
-  "outputDirectory": "apps/frontend/dist",
+  "outputDirectory": "dist",
   "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },

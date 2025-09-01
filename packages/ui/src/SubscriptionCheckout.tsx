@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { ShoppingCart, CreditCard, Calendar, Download, Crown, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 
 import type { Product } from '@zoroaster/shared/product';

@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "pnpm run vercel-build",
+  "buildCommand": "pnpm -w run vercel-build",
   "outputDirectory": "apps/frontend/dist",
   "installCommand": "pnpm install --frozen-lockfile",
   "rewrites": [

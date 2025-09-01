@@ -3,10 +3,16 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { ShoppingCart, CreditCard, Calendar, Download, Crown, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 
-// Load Stripe outside of component to avoid recreating on every render
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_key_here');
-
 import type { Product } from '@zoroaster/shared/product';
+
+// Create stripePromise with memoization to avoid recreating on every render
+let stripePromise: Promise<any> | null = null;
+const getStripePromise = (publishableKey: string) => {
+  if (!stripePromise) {
+    stripePromise = loadStripe(publishableKey);
+  }
+  return stripePromise;
+};
 
 interface StripeCheckoutProps {
   product: {
@@ -256,7 +262,7 @@ const SubscriptionCheckout: React.FC<StripeCheckoutProps> = (props) => {
   }
 
   return (
-    <Elements stripe={stripePromise}>
+    <Elements stripe={getStripePromise(stripeKey)}>
       <CheckoutForm {...props} />
     </Elements>
   );

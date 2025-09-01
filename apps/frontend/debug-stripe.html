@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Stripe Env</title>
+</head>
+<body>
+    <h1>Environment Debug</h1>
+    <div id="env-debug"></div>
+    
+    <script type="module">
+        // This will show us what environment variables are available
+        const envInfo = {
+            stripe_key: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
+            all_vite_vars: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
+            all_env: import.meta.env
+        };
+        
+        document.getElementById('env-debug').innerHTML = `
+            <pre>${JSON.stringify(envInfo, null, 2)}</pre>
+        `;
+        
+        console.log('Environment variables:', envInfo);
+    </script>
+</body>
+</html>

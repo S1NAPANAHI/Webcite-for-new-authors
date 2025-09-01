@@ -7,10 +7,19 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load env file from frontend directory and fallback to root
+  // Load environment variables from root .env file
+  const rootEnv = loadEnv(mode, path.resolve(__dirname, '../../'), '');
   const frontendEnv = loadEnv(mode, __dirname, '');
-  const rootEnv = loadEnv(mode, path.resolve(__dirname, '../..'), '');
   const env = { ...rootEnv, ...frontendEnv };
+
+  const definedEnv = {};
+  for (const key in env) {
+    if (key.startsWith('VITE_')) {
+      definedEnv[`import.meta.env.${key}`] = JSON.stringify(env[key]);
+      definedEnv[`process.env.${key}`] = JSON.stringify(env[key]);
+    }
+  }
+
 
   return {
     plugins: [react(), tsconfigPaths()],
@@ -39,8 +48,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      'process.env': { ...env },
-      'import.meta.env': { ...env },
+      ...definedEnv,
       __APP_ENV__: JSON.stringify(env.NODE_ENV || 'development'),
     },
     server: {

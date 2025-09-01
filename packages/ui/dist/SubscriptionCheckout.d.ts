@@ -12,6 +12,7 @@ interface StripeCheckoutProps {
     onSuccess: (sessionId: string) => void;
     onCancel: () => void;
     customerEmail?: string;
+    stripePublishableKey?: string;
 }
 declare const SubscriptionCheckout: React.FC<StripeCheckoutProps>;
 export { SubscriptionCheckout };

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Filter, Grid3X3, List, Star, Crown, Download, ShoppingCart, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 
 import type { Product } from '@zoroaster/shared'; // Ensure correct Product type is used
+import ProductCard from '../components/ProductCard';
+import SubscriptionCheckout from '../components/SubscriptionCheckout';
 
 const StorePage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,6 +15,12 @@ const StorePage = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Checkout state
+  const [showCheckoutSection, setShowCheckoutSection] = useState(false);
+  const [selectedProductForCheckout, setSelectedProductForCheckout] = useState<Product | null>(null);
+  const [selectedPriceForCheckout, setSelectedPriceForCheckout] = useState<any>(null);
+  const checkoutSectionRef = useRef<HTMLDivElement>(null);
 
   // Fetch products from API
   useEffect(() => {
@@ -80,6 +88,32 @@ const StorePage = () => {
   const handlePurchase = (productId: string) => {
     console.log('Product purchased:', productId);
     // Handle purchase logic here
+  };
+
+  // Checkout handler functions
+  const handleCheckoutProduct = (product: Product, price: any) => {
+    setSelectedProductForCheckout(product);
+    setSelectedPriceForCheckout(price);
+    setShowCheckoutSection(true);
+    
+    // Scroll to checkout section
+    setTimeout(() => {
+      checkoutSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleCheckoutSuccess = () => {
+    console.log('Checkout successful');
+    setShowCheckoutSection(false);
+    setSelectedProductForCheckout(null);
+    setSelectedPriceForCheckout(null);
+    // TODO: Show success message or redirect
+  };
+
+  const handleCheckoutCancel = () => {
+    setShowCheckoutSection(false);
+    setSelectedProductForCheckout(null);
+    setSelectedPriceForCheckout(null);
   };
 
   const categories = [
@@ -290,8 +324,7 @@ const StorePage = () => {
               <div key={product.id} className={viewMode === 'list' ? 'bg-background-light/30 backdrop-blur-sm rounded-2xl p-6 border border-border/30' : ''}>
                 <ProductCard
                   product={product}
-                  onPurchase={handlePurchase}
-                  showCheckout={true}
+                  onCheckoutProduct={handleCheckoutProduct} // New prop
                 />
               </div>
             ))}
@@ -318,10 +351,31 @@ const StorePage = () => {
             </button>
           </div>
         )}
+
+        {/* Checkout Section */}
+        {showCheckoutSection && selectedProductForCheckout && selectedPriceForCheckout && (
+          <div ref={checkoutSectionRef} className="mt-16 p-8 bg-background-light/30 backdrop-blur-sm rounded-2xl border border-border/30 shadow-xl">
+            <h2 className="text-3xl font-heading text-text-light mb-6 text-center">Complete Your Purchase</h2>
+            <div className="max-w-md mx-auto">
+              <SubscriptionCheckout
+                product={{
+                  id: selectedProductForCheckout.id,
+                  name: selectedProductForCheckout.name,
+                  price: selectedPriceForCheckout.unit_amount,
+                  currency: selectedPriceForCheckout.currency,
+                  interval: selectedPriceForCheckout.interval,
+                  trial_period_days: selectedPriceForCheckout.trial_days,
+                  is_subscription: (selectedProductForCheckout.product_type === 'chapter_pass' || selectedProductForCheckout.product_type === 'arc_pass')
+                }}
+                onSuccess={handleCheckoutSuccess}
+                onCancel={handleCheckoutCancel}
+              />
+            </div>
+          </div>
+        )}
       </div>
-    
-      </div>
-    );
+    </div>
+  );
 };
 
 export default StorePage;

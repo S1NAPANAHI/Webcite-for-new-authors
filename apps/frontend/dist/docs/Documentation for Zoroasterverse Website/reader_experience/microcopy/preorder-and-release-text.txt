@@ -1,0 +1,17 @@
+Preorder: [Month, Year]
+
+Available Now
+
+Releases in: [DD]d [HH]h
+
+Coming Soon
+
+Pre-order available
+
+Now available for purchase
+
+Launch day special pricing
+
+Early access available
+
+Release countdown: 3 days remaining

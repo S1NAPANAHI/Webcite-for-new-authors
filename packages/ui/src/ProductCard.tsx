@@ -1,25 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ShoppingCart, Download, Crown, Star, Eye, ChevronDown, ChevronUp, Plus } from 'lucide-react';
-import { SubscriptionCheckout } from './SubscriptionCheckout';
 import { useCart } from '@zoroaster/shared/CartContext';
 import { Product } from '@zoroaster/shared/product';
 
-
-
 interface ProductCardProps {
   product: Product;
-  onPurchase?: (productId: string) => void;
-  showCheckout?: boolean;
+  onCheckoutProduct: (product: Product, price: { id: string; unit_amount: number; currency: string; interval?: string; trial_days?: number }) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ 
-  product, 
-  onPurchase, 
-  showCheckout = false 
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onCheckoutProduct
 }) => {
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [showSample, setShowSample] = useState(false);
-  const [selectedPrice, setSelectedPrice] = useState<{ id: string; unit_amount: number; currency: string; interval?: string; trial_days?: number } | null>(null);
   const { addItem, isInCart } = useCart();
 
   // Get primary price (first price or subscription price)
@@ -38,11 +30,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }).format(amountCents / 100);
   };
 
-  const handlePurchase = (price: { id: string; unit_amount: number; currency: string; interval?: string; trial_days?: number }) => {
-    setSelectedPrice(price);
-    setShowCheckoutModal(true);
-  };
-
   const handleAddToCart = () => {
     if (primaryPrice) {
       addItem({
@@ -53,19 +40,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         format: 'digital' // Added a placeholder format
       });
     }
-  };
-
-  const handleCheckoutSuccess = (sessionId: string) => {
-    setShowCheckoutModal(false);
-    if (onPurchase) {
-      onPurchase(product.id);
-    }
-    // You can redirect to success page or show success message
-    console.log('Purchase successful:', sessionId);
-  };
-
-  const handleCheckoutCancel = () => {
-    setShowCheckoutModal(false);
   };
 
   if (!primaryPrice) {
@@ -115,25 +89,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             {product.description}
           </p>
 
-          {/* Available Formats - Removed for now as files are not directly on product */}
-          {/* <div className="mb-4">
-            <div className="text-sm text-text-dark mb-2">Available Formats:</div>
-            <div className="flex flex-wrap gap-2">
-              {product.files.map((file) => (
-                <span
-                  key={file.id}
-                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent border border-accent/30"
-                >
-                  <Download className="w-3 h-3 mr-1" />
-                  {file.format.toUpperCase()}
-                  {file.is_primary && (
-                    <span className="ml-1 text-accent">•</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </div> */}
-
           {/* Pricing */}
           <div className="mb-6">
             <div className="text-3xl font-bold text-secondary mb-2">
@@ -179,7 +134,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             {/* Buy Now Button */}
             <button
-              onClick={() => handlePurchase(primaryPrice)}
+              onClick={() => onCheckoutProduct(product, primaryPrice)}
               className="w-full bg-primary text-white py-3 px-4 rounded-xl font-medium hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background-light transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
             >
               <ShoppingCart className="w-5 h-5" />
@@ -187,33 +142,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 {(product.product_type === 'chapter_pass' || product.product_type === 'arc_pass') ? 'Start Subscription' : 'Buy Now'}
               </span>
             </button>
-
-            {/* Sample Preview Toggle - Removed for now */}
-            {/* <button
-              onClick={() => setShowSample(!showSample)}
-              className="w-full bg-background/50 text-text-light py-2 px-4 rounded-xl font-medium hover:bg-background/70 focus:outline-none focus:ring-2 focus:ring-border focus:ring-offset-2 focus:ring-offset-background-light transition-all duration-200 flex items-center justify-center space-x-2 border border-border/30"
-            >
-              <Eye className="w-4 h-4" />
-              <span>Read Sample</span>
-              {showSample ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button> */}
           </div>
-
-          {/* Sample Content - Removed for now */}
-          {/* {showSample && (
-            <div className="mt-4 p-4 bg-background/30 rounded-xl border-l-4 border-accent">
-              <h4 className="font-medium text-text-light mb-2">Sample Preview</h4>
-              <p className="text-text-light/70 text-sm mb-3">
-                This is a preview of the content. Purchase to access the full book.
-              </p>
-              <div className="text-xs text-text-dark">
-                <div>Formats: {availableFormats}</div>
-                {product.files[0] && (
-                  <div>Sample size: {formatFileSize(product.files[0].file_size)}</div>
-                )}
-              </div>
-            </div>
-          )} */}
 
           {/* Additional Info */}
           <div className="mt-6 pt-4 border-t border-border/30">
@@ -232,42 +161,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Checkout Modal */}
-      {showCheckoutModal && selectedPrice && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-background-light rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto glass-effect border border-border/30">
-            <div className="p-6 border-b border-border/30">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-text-light">Complete Purchase</h3>
-                <button
-                  onClick={() => setShowCheckoutModal(false)}
-                  className="text-text-dark hover:text-text-light transition-colors p-1 rounded-lg hover:bg-background/30"
-                >
-                  <span className="sr-only">Close</span>
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            
-            <SubscriptionCheckout
-              product={{
-                id: product.id,
-                name: product.name,
-                price: selectedPrice.unit_amount,
-                currency: selectedPrice.currency,
-                interval: selectedPrice.interval,
-                trial_period_days: selectedPrice.trial_days,
-                is_subscription: (product.product_type === 'chapter_pass' || product.product_type === 'arc_pass')
-              }}
-              onSuccess={handleCheckoutSuccess}
-              onCancel={handleCheckoutCancel}
-            />
-          </div>
-        </div>
-      )}
     </>
   );
 };

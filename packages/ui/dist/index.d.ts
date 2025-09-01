@@ -43,6 +43,7 @@ export { BetaApplicationPage } from './BetaApplicationPage';
 export { ProductCard } from './ProductCard';
 export { WikiNavItem } from './WikiNavItem';
 export { LoadingSkeleton } from './LoadingSkeleton';
+export { SubscriptionCheckout } from './SubscriptionCheckout';
 export * from './lib/utils';
 export * from './hooks';
 export * from './types';

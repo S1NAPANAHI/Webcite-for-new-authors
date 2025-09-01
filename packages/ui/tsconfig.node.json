@@ -5,5 +5,5 @@
     "types": ["node"],
     "noEmit": false
   },
-  "include": ["vite.config.*", "vitest.config.*", "src/**/*.test.ts", "src/**/*.test.tsx"]
+  "include": ["vite.config.*", "vitest.config.*", "src/**/*.ts", "src/**/*.tsx"]
 }

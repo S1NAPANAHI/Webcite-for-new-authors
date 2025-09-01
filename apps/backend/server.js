@@ -37,6 +37,55 @@ async function getOrCreateCustomer(email) {
   return stripe.customers.create({ email });
 }
 
+// Helper to upsert subscription status in Supabase
+async function upsertSubscription(subscription) {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .upsert({
+      id: subscription.id,
+      user_id: subscription.metadata.user_id || subscription.customer, // Assuming user_id is stored in metadata or customer ID maps to user_id
+      plan_id: subscription.items.data[0].price.id,
+      status: subscription.status,
+      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+      cancel_at_period_end: subscription.cancel_at_period_end,
+      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+      metadata: subscription.metadata,
+    }, { onConflict: 'id' })
+    .select();
+
+  if (error) {
+    console.error('Error upserting subscription:', error);
+    throw error;
+  }
+  return data;
+}
+
+// Helper to upsert invoice status in Supabase
+async function upsertInvoice(invoice) {
+  const { data, error } = await supabase
+    .from('invoices')
+    .upsert({
+      id: invoice.id,
+      user_id: invoice.customer_email || invoice.customer, // Assuming user_id is stored in customer_email or customer ID maps to user_id
+      subscription_id: invoice.subscription,
+      status: invoice.status,
+      total: invoice.total / 100, // Convert cents to dollars
+      currency: invoice.currency,
+      hosted_invoice_url: invoice.hosted_invoice_url,
+      pdf_url: invoice.invoice_pdf,
+    }, { onConflict: 'id' })
+    .select();
+
+  if (error) {
+    console.error('Error upserting invoice:', error);
+    throw error;
+  }
+  return data;
+}
+
+
 // Enhanced rate limiting with user-based limits
 const apiLimiter = createRateLimiter(
   15 * 60 * 1000, // 15 minutes
@@ -70,10 +119,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(apiLimiter);
 
 // Create subscription in default_incomplete to collect payment with Payment Element
-app.post('/create-subscription', async (req, res) => {
+app.post('/api/stripe/create-subscription-intent', async (req, res) => {
   try {
-    const { email, priceId } = req.body;
-    if (!email || !priceId) return res.status(400).json({ error: 'Missing email or priceId' });
+    const { email, priceId, userId } = req.body;
+    if (!email || !priceId || !userId) return res.status(400).json({ error: 'Missing email, priceId, or userId' });
 
     const customer = await getOrCreateCustomer(email);
 
@@ -83,6 +132,7 @@ app.post('/create-subscription', async (req, res) => {
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
+      metadata: { user_id: userId }, // Add user_id to metadata
     });
 
     const clientSecret = subscription.latest_invoice.payment_intent.client_secret;
@@ -115,20 +165,60 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
   // Handle subscription lifecycle and invoices
   switch (event.type) {
     case 'invoice.payment_succeeded': {
-      // Provision access, mark subscription active in your DB
+      const invoice = event.data.object;
+      try {
+        await upsertInvoice(invoice);
+        // Optionally, provision access here if not handled by subscription.updated
+        console.log(`Invoice ${invoice.id} payment succeeded. User: ${invoice.customer_email || invoice.customer}`);
+      } catch (e) {
+        console.error(`Error handling invoice.payment_succeeded for invoice ${invoice.id}:`, e);
+        return res.status(500).json({ error: 'Webhook handler failed' });
+      }
       break;
     }
     case 'invoice.payment_failed': {
-      // Notify user, prompt to update payment method
+      const invoice = event.data.object;
+      try {
+        await upsertInvoice(invoice);
+        // Notify user, prompt to update payment method
+        console.log(`Invoice ${invoice.id} payment failed. User: ${invoice.customer_email || invoice.customer}`);
+      } catch (e) {
+        console.error(`Error handling invoice.payment_failed for invoice ${invoice.id}:`, e);
+        return res.status(500).json({ error: 'Webhook handler failed' });
+      }
       break;
     }
     case 'customer.subscription.updated':
-    case 'customer.subscription.created':
+    case 'customer.subscription.created': {
+      const subscription = event.data.object;
+      try {
+        await upsertSubscription(subscription);
+        console.log(`Subscription ${subscription.id} status updated/created to ${subscription.status}. User: ${subscription.customer}`);
+      } catch (e) {
+        console.error(`Error handling customer.subscription.updated/created for subscription ${subscription.id}:`, e);
+        return res.status(500).json({ error: 'Webhook handler failed' });
+      }
+      break;
+    }
     case 'customer.subscription.deleted': {
-      // Sync subscription status to your DB
+      const subscription = event.data.object;
+      try {
+        // Mark subscription as canceled in your DB
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .update({ status: 'canceled' }) // Or 'incomplete_expired' depending on your logic
+          .eq('id', subscription.id);
+
+        if (error) throw error;
+        console.log(`Subscription ${subscription.id} deleted. User: ${subscription.customer}`);
+      } catch (e) {
+        console.error(`Error handling customer.subscription.deleted for subscription ${subscription.id}:`, e);
+        return res.status(500).json({ error: 'Webhook handler failed' });
+      }
       break;
     }
     default:
+      console.log(`Unhandled event type ${event.type}`);
       break;
   }
 

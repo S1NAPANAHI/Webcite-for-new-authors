@@ -63,6 +63,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      outDir: path.resolve(__dirname, '../../dist'),
       sourcemap: mode === 'development',
       rollupOptions: {
         output: {

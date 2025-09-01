@@ -10,6 +10,9 @@ export * from './userStats';
 export * from './utils';
 export * from './database.types';
 
+// Business logic exports
+export * from './business';
+
 // Export specific utilities
 export { supabase } from './supabaseClient';
 export type { Database } from './database.types';

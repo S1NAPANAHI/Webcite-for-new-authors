@@ -24,7 +24,7 @@ module.exports = (supabase) => {
 
     // Get product details from database
     const product = await getRow(
-      'SELECT p.*, pr.amount_cents, pr.currency FROM products p JOIN prices pr ON p.id = pr.product_id WHERE pr.price_id = $1',
+      'SELECT p.*, pr.amount_cents, pr.currency FROM products p JOIN prices pr ON p.id = pr.product_id WHERE pr.id = $1',
       [priceId]
     );
 
@@ -77,6 +77,57 @@ module.exports = (supabase) => {
   }
 });
 
+// Create subscription with Payment Element (new flow)
+router.post('/create-subscription-intent', async (req, res) => {
+  try {
+    const { priceId, customerEmail } = req.body;
+
+    if (!priceId) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        message: 'priceId is required'
+      });
+    }
+
+    // Get or create customer
+    let customer;
+    if (customerEmail) {
+      const existingCustomers = await stripe.customers.list({ email: customerEmail, limit: 1 });
+      if (existingCustomers.data.length > 0) {
+        customer = existingCustomers.data[0];
+      } else {
+        customer = await stripe.customers.create({ email: customerEmail });
+      }
+    } else {
+      customer = await stripe.customers.create({});
+    }
+
+    // Create subscription in incomplete state
+    const subscription = await stripe.subscriptions.create({
+      customer: customer.id,
+      items: [{ price: priceId }],
+      payment_behavior: 'default_incomplete',
+      payment_settings: { save_default_payment_method: 'on_subscription' },
+      expand: ['latest_invoice.payment_intent'],
+    });
+
+    const clientSecret = subscription.latest_invoice.payment_intent.client_secret;
+
+    res.json({
+      clientSecret,
+      subscriptionId: subscription.id,
+      customerId: customer.id,
+    });
+
+  } catch (error) {
+    console.error('Error creating subscription intent:', error);
+    res.status(500).json({
+      error: 'Failed to create subscription intent',
+      message: error.message
+    });
+  }
+});
+
 // Create checkout session for subscription
 router.post('/create-subscription-session', async (req, res) => {
   try {
@@ -91,7 +142,7 @@ router.post('/create-subscription-session', async (req, res) => {
 
     // Get product details from database
     const product = await getRow(
-      'SELECT p.*, pr.amount_cents, pr.currency, pr.interval, pr.trial_period_days FROM products p JOIN prices pr ON p.id = pr.product_id WHERE pr.price_id = $1',
+      'SELECT p.*, pr.amount_cents, pr.currency, pr.interval, pr.trial_period_days FROM products p JOIN prices pr ON p.id = pr.product_id WHERE pr.id = $1',
       [priceId]
     );
 

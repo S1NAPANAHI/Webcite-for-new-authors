@@ -55,6 +55,7 @@ import GenericPage from './pages/GenericPage'; // This one is local
 import ProfileDashboard from './pages/ProfileDashboard'; // New Profile Dashboard
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 import PayPalButton from './components/PayPalButton/PayPalButton';
+import StripeTest from './pages/StripeTest';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
@@ -69,7 +70,6 @@ const App: React.FC = () => {
   return (
     <CartProvider>
       <StarsBackground />
-      <PayPalButton />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         {/* Public and general routes with the main layout */}
@@ -80,6 +80,7 @@ const App: React.FC = () => {
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/subscriptions" element={<SubscriptionPage />} />
           <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
+          <Route path="/stripe-test" element={<StripeTest />} />
           
           {/* Wiki Routes */}
           <Route path="/wiki">

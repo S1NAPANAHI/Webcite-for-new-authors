@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { BaseError, ErrorCode } = require('../errors/index');
+import { BaseError, ErrorCode } from '../errors/index';
 import { ZodError } from 'zod';
 
 interface ErrorResponse {

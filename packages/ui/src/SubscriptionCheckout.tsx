@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { ShoppingCart, CreditCard, Calendar, Download, Crown, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@zoroaster/shared/AuthContext'; // Import useAuth
 
 import type { Product } from '@zoroaster/shared/product';
 
@@ -341,6 +342,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({
 const SubscriptionCheckout: React.FC<StripeCheckoutProps> = (props) => {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { user, isLoading: isAuthLoading } = useAuth(); // Use useAuth hook
   
   // Check if Stripe key is configured (prop takes precedence over env var)
   const stripeKey = props.stripePublishableKey || import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
@@ -351,12 +353,16 @@ const SubscriptionCheckout: React.FC<StripeCheckoutProps> = (props) => {
   
   // Create subscription intent on mount
   useEffect(() => {
-    if (props.product.is_subscription && stripeKey) {
-      createSubscriptionIntent();
+    // Only create intent if not loading auth and user is available for subscription products
+    if (!isAuthLoading && user && props.product.is_subscription && stripeKey) {
+      createSubscriptionIntent(user.id);
+    } else if (!isAuthLoading && !user && props.product.is_subscription) {
+      // Handle case where user is not logged in for a subscription product
+      setError('You must be logged in to subscribe.');
     }
-  }, [props.product.id, stripeKey]);
+  }, [props.product.id, stripeKey, user, isAuthLoading]);
 
-  const createSubscriptionIntent = async () => {
+  const createSubscriptionIntent = async (userId: string) => {
     try {
       const response = await fetch('/api/stripe/create-subscription-intent', {
         method: 'POST',
@@ -365,7 +371,8 @@ const SubscriptionCheckout: React.FC<StripeCheckoutProps> = (props) => {
         },
         body: JSON.stringify({
           priceId: props.product.id,
-          customerEmail: props.customerEmail || '',
+          customerEmail: props.customerEmail || user?.email || '',
+          userId: userId,
         }),
       });
 

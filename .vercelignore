@@ -23,6 +23,5 @@
 **/examples
 **/config
 
-# Ignore scripts except for the copy-dist.js needed for deployment
+# Ignore scripts directory (no longer needed for deployment)
 scripts/*
-!scripts/copy-dist.js

@@ -22,7 +22,7 @@ export const SubscriptionPage: React.FC = () => {
 
   const subscriptionPlans: SubscriptionPlan[] = [
     {
-      id: 'monthly',
+      id: 'price_1S2L8JQv3TvmaocsYofzFKgm',
       name: 'Monthly Membership',
       price: 9.99,
       interval: 'month',
@@ -34,11 +34,11 @@ export const SubscriptionPage: React.FC = () => {
         'Community discussions',
         'Author notes and insights'
       ],
-      paypalPlanId: 'monthly_plan_id',
+      paypalPlanId: 'prod_SyHh0v9pcletkx',
       highlight: 'Perfect for new readers'
     },
     {
-      id: 'yearly',
+      id: 'price_1S2L95Qv3TvmaocsN5zRIEXO',
       name: 'Annual Membership',
       price: 99.99,
       interval: 'year',
@@ -51,7 +51,7 @@ export const SubscriptionPage: React.FC = () => {
         'Member-only events'
       ],
       popular: true,
-      paypalPlanId: 'yearly_plan_id',
+      paypalPlanId: 'prod_SyHiFk24bHGA2U',
       highlight: 'Best value - Save $19.89'
     }
   ];

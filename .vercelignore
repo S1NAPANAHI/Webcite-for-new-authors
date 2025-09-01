@@ -1,18 +1,8 @@
-# Ignore everything
-except
-!apps/frontend/**
-!packages/**
-!package.json
-!pnpm-lock.yaml
-!pnpm-workspace.yaml
-!vercel.json
-
 # Ignore development files
 **/node_modules
 **/.git
 **/.gitignore
 **/.DS_Store
-**/dist
 **/build
 **/.next
 **/out
@@ -31,6 +21,8 @@ except
 **/e2e
 **/docs
 **/examples
-**/scripts
-!scripts/copy-dist.js
 **/config
+
+# Ignore scripts except for the copy-dist.js needed for deployment
+scripts/*
+!scripts/copy-dist.js

@@ -203,30 +203,88 @@ async function handleSubscriptionCreated(subscription) {
   try {
     const { product_id } = subscription.metadata;
     
-    // Get customer email
+    // Get customer details
     const customer = await stripe.customers.retrieve(subscription.customer);
     
+    // Find user by email if available
+    let user_id = null;
+    if (customer.email) {
+      const user = await getRow(
+        'SELECT id FROM auth.users WHERE email = $1',
+        [customer.email]
+      );
+      user_id = user?.id || null;
+    }
+    
+    // Store/update Stripe customer data
+    if (user_id) {
+      await insert(
+        `INSERT INTO stripe_customers (user_id, stripe_customer_id, email, metadata)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (stripe_customer_id) DO UPDATE SET
+         user_id = EXCLUDED.user_id,
+         email = EXCLUDED.email,
+         metadata = EXCLUDED.metadata,
+         updated_at = NOW()`,
+        [user_id, subscription.customer, customer.email, customer.metadata || {}]
+      );
+    }
+    
+    // Get price details for the subscription
+    const priceData = subscription.items.data[0].price;
+    let plan_price_id = null;
+    
+    // Find price record in our database
+    const price = await getRow(
+      'SELECT id FROM prices WHERE price_id = $1 AND provider = $2',
+      [priceData.id, 'stripe']
+    );
+    plan_price_id = price?.id || null;
+    
     // Create subscription record
-    await insert(
+    const newSubscription = await insert(
       `INSERT INTO subscriptions (
         user_id, provider, provider_subscription_id, status,
         current_period_start, current_period_end, plan_price_id, metadata
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
       [
-        null, // user_id will be set when user logs in
+        user_id,
         'stripe',
         subscription.id,
         subscription.status,
         new Date(subscription.current_period_start * 1000),
         new Date(subscription.current_period_end * 1000),
-        subscription.items.data[0].price.id,
+        plan_price_id,
         {
           product_id,
           customer_id: subscription.customer,
-          trial_end: subscription.trial_end
+          trial_end: subscription.trial_end,
+          stripe_price_id: priceData.id
         }
       ]
     );
+    
+    // Update user profile with subscription status
+    if (user_id) {
+      await insert(
+        `INSERT INTO user_profiles (id, email, subscription_status, subscription_tier, stripe_customer_id, current_period_end)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (id) DO UPDATE SET
+         subscription_status = EXCLUDED.subscription_status,
+         subscription_tier = EXCLUDED.subscription_tier,
+         stripe_customer_id = EXCLUDED.stripe_customer_id,
+         current_period_end = EXCLUDED.current_period_end,
+         updated_at = NOW()`,
+        [
+          user_id,
+          customer.email,
+          subscription.status,
+          priceData.recurring?.interval === 'month' ? 'monthly' : 'annual',
+          subscription.customer,
+          new Date(subscription.current_period_end * 1000)
+        ]
+      );
+    }
 
     // Send welcome email for subscription
     if (customer.email) {

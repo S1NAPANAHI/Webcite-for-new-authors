@@ -46,18 +46,24 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
     setError(null);
 
     try {
-      // Create checkout session
-      const response = await fetch('/api/stripe/create-checkout-session', {
+      // Create checkout session for subscription
+      const endpoint = product.is_subscription 
+        ? '/api/stripe/create-subscription-session'
+        : '/api/stripe/create-checkout-session';
+        
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           priceId: product.id,
-          successUrl: `${window.location.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/cancel`,
+          successUrl: `${window.location.origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/subscriptions`,
           customerEmail: email,
-          productSlug: product.id
+          productSlug: product.is_subscription ? 
+            (product.interval === 'month' ? 'monthly-membership' : 'annual-membership') 
+            : product.id
         }),
       });
 

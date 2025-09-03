@@ -19,7 +19,7 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
-import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, CharactersPage, TimelinesPage } from '@zoroaster/ui';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { supabase } from '@zoroaster/shared/supabaseClient';
@@ -67,7 +67,7 @@ const AdminPlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 );
 
 
-const CharactersPage = () => <PlaceholderPage title="Characters" />;
+
 const LocationsPage = () => <PlaceholderPage title="Locations" />;
 const GlossaryPage = () => <PlaceholderPage title="Glossary" />;
 const ReviewsPage = () => <PlaceholderPage title="Reviews" />;
@@ -157,7 +157,7 @@ const App: React.FC = () => {
             <Route path=":folderSlug/:pageSlug" element={<PlaceholderPage title="Wiki Page" />} />
           </Route>
           
-          <Route path="/timelines" element={<PlaceholderPage title="Timelines" />} />
+          <Route path="/timelines" element={<TimelinesPage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/locations" element={<LocationsPage />} />
           <Route path="/glossary" element={<GlossaryPage />} />

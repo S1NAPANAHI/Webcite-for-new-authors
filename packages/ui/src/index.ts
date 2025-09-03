@@ -19,6 +19,7 @@ export { LoadingSkeleton } from './LoadingSkeleton';
 export { StarsBackground } from './StarsBackground';
 export { WikiNavItem } from './WikiNavItem';
 export { CartIcon } from './CartIcon';
+export { default as LoginPage } from './LoginPage';
 export { default as ProductManagementPage } from './ProductManagementPage';
 export { default as OrderManagementPage } from './OrderManagementPage';
 export { default as InventoryManagementPage } from './InventoryManagementPage';

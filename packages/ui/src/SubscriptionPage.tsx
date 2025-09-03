@@ -126,15 +126,7 @@ export const SubscriptionPage: React.FC = () => {
                   plan.popular ? 'md:scale-105 z-20' : 'z-10'
                 }`}
               >
-                {/* Popular Badge */}
-                {plan.popular && (
-                  <div className="absolute -top-5 left-1/2 transform -translate-x-1/2 z-30">
-                    <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
-                      <Crown className="w-4 h-4 inline mr-2" />
-                      MOST POPULAR
-                    </div>
-                  </div>
-                )}
+                
                 
                 <div className={`
                   bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm

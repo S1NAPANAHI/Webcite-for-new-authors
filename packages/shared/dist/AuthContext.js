@@ -8,6 +8,7 @@ export const AuthProvider = ({ children, supabaseClient }) => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubscribed, setIsSubscribed] = useState(false);
     useEffect(() => {
         const { data: authListener } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
@@ -24,36 +25,39 @@ export const AuthProvider = ({ children, supabaseClient }) => {
             authListener.subscription.unsubscribe();
         };
     }, [supabaseClient]);
-    // Fetch user profile when user changes
+    // Fetch user profile and subscription when user changes
     useEffect(() => {
-        const fetchUserProfile = async (userId) => {
+        const fetchUserProfileAndSubscription = async (userId) => {
             try {
-                const { data: profile, error } = await supabaseClient
+                const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
                     .single();
-                if (error) {
-                    // If profile doesn't exist (PGRST116 error), try to create one
-                    if (error.code === 'PGRST116') {
-                        console.log('Profile not found, creating new profile for user:', userId);
+                if (profileError) {
+                    if (profileError.code === 'PGRST116') {
                         await createUserProfile(userId);
-                        return; // fetchUserProfile will be called again after profile creation
+                        return;
                     }
-                    throw error;
+                    throw profileError;
                 }
                 setUserProfile(profile);
                 setIsAdmin(!!(profile?.role === 'admin' || profile?.role === 'super_admin'));
+                const { data: subscription, error: subscriptionError } = await supabaseClient.rpc('get_user_active_subscription', { user_uuid: userId });
+                if (subscriptionError) {
+                    throw subscriptionError;
+                }
+                setIsSubscribed(!!subscription);
             }
             catch (error) {
-                console.error('Error fetching user profile:', error);
+                console.error('Error fetching user profile or subscription:', error);
                 setUserProfile(null);
                 setIsAdmin(false);
+                setIsSubscribed(false);
             }
         };
         const createUserProfile = async (userId) => {
             try {
-                // Get user info from auth
                 const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
                 if (userError || !user) {
                     console.error('Error getting user info for profile creation:', userError);
@@ -78,7 +82,6 @@ export const AuthProvider = ({ children, supabaseClient }) => {
                     setIsAdmin(false);
                 }
                 else {
-                    console.log('Successfully created user profile:', newProfile);
                     setUserProfile(newProfile);
                     setIsAdmin(!!(newProfile?.role === 'admin' || newProfile?.role === 'super_admin'));
                 }
@@ -90,12 +93,13 @@ export const AuthProvider = ({ children, supabaseClient }) => {
             }
         };
         if (user?.id) {
-            fetchUserProfile(user.id);
+            fetchUserProfileAndSubscription(user.id);
             setIsAuthenticated(true);
         }
         else {
             setUserProfile(null);
             setIsAdmin(false);
+            setIsSubscribed(false);
             setIsAuthenticated(false);
         }
     }, [user, supabaseClient]);
@@ -105,7 +109,9 @@ export const AuthProvider = ({ children, supabaseClient }) => {
             userProfile,
             isAdmin,
             isAuthenticated,
-            isLoading
+            isLoading,
+            isSubscribed,
+            supabaseClient
         }, children: children }));
 };
 export const useAuth = () => {

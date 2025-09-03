@@ -14,10 +14,10 @@ export declare const SubscriptionSchema: z.ZodObject<{
     user_id: z.ZodString;
     plan_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
-        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
+        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
@@ -77,10 +77,10 @@ export declare const OrderSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const CreateSubscriptionSchema: z.ZodObject<{
     status: z.ZodDefault<z.ZodEnum<{
-        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
+        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
@@ -97,10 +97,10 @@ export declare const CreateSubscriptionSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const UpdateSubscriptionSchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
-        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
+        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
@@ -138,16 +138,16 @@ export declare const PaymentQuerySchema: z.ZodObject<{
         amount_cents: "amount_cents";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        asc: "asc";
         desc: "desc";
+        asc: "asc";
     }>>;
 }, z.core.$strip>;
 export declare const SubscriptionQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<{
-        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
+        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
@@ -163,8 +163,8 @@ export declare const SubscriptionQuerySchema: z.ZodObject<{
         current_period_end: "current_period_end";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        asc: "asc";
         desc: "desc";
+        asc: "asc";
     }>>;
 }, z.core.$strip>;
 export declare const validatePaymentBusinessRules: (order: z.infer<typeof OrderSchema>) => {

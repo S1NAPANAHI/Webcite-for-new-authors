@@ -6,6 +6,7 @@ export * from './validators/user.validator';
 export * from './validators/payment.validator';
 // Services
 export * from './services/ProductService';
+export * from './services/StripeProductService';
 export * from './services/SubscriptionService';
 export * from './services/UserService';
 // Business rules

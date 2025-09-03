@@ -102,8 +102,8 @@ export declare const UserQuerySchema: z.ZodObject<{
         username: "username";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        asc: "asc";
         desc: "desc";
+        asc: "asc";
     }>>;
 }, z.core.$strip>;
 export declare const validateUserBusinessRules: (profile: z.infer<typeof UserProfileSchema>) => {

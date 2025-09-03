@@ -4,7 +4,7 @@ export class StripeProductService {
     constructor(supabase, stripeSecretKey) {
         this.supabase = supabase;
         this.stripe = new Stripe(stripeSecretKey, {
-            apiVersion: '2024-12-18.acacia'
+            apiVersion: '2023-10-16'
         });
     }
     /**
@@ -380,7 +380,6 @@ export class StripeProductService {
                 active: stripeProduct.active,
                 stripe_product_id: stripeProduct.id,
                 slug: this.generateSlug(stripeProduct.name),
-                category_id: defaultCategoryId || null,
                 // Extract product type from metadata or default to single_issue
                 product_type: stripeProduct.metadata?.product_type || 'single_issue'
             };
@@ -566,19 +565,16 @@ export class StripeProductService {
             const { category_id, active_only = true, with_variants = true, limit = 50, offset = 0 } = filters;
             let query = this.supabase
                 .from('products')
-                .select(`
-          *,
-          product_categories(id, name, slug),
-          content_works(id, title, description, cover_image_url)
-        `);
+                .select(`*`);
             if (active_only) {
                 query = query.eq('active', true);
             }
-            if (category_id) {
-                query = query.eq('category_id', category_id);
-            }
+            // Note: category_id field doesn't exist in products table
+            // Remove this filter for now
+            // if (category_id) {
+            //   query = query.eq('category_id', category_id);
+            // }
             const { data: products, error } = await query
-                .order('sort_order', { ascending: true })
                 .order('created_at', { ascending: false })
                 .range(offset, offset + limit - 1);
             if (error) {
@@ -629,13 +625,13 @@ export class StripeProductService {
             const { data: lowStockVariants, error } = await this.supabase
                 .from('product_variants')
                 .select(`
-          id, name, sku, inventory_quantity, low_stock_threshold,
+          id, name, sku, inventory_quantity,
           products!inner(id, name, active)
         `)
-                .eq('track_inventory', true)
                 .eq('active', true)
                 .eq('products.active', true)
-                .filter('inventory_quantity', 'lte', 'low_stock_threshold');
+                .not('inventory_quantity', 'is', null)
+                .lte('inventory_quantity', 10); // Low stock threshold hardcoded to 10 for now
             if (error) {
                 throw new DatabaseError('Failed to fetch low stock alerts');
             }

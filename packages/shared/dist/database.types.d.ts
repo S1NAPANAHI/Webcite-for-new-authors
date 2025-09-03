@@ -616,8 +616,11 @@ export type Database = {
                     created_at: string;
                     description: string | null;
                     id: string;
+                    images: string[] | null;
                     name: string;
                     product_type: Database["public"]["Enums"]["product_type"] | null;
+                    slug: string | null;
+                    stripe_product_id: string | null;
                     updated_at: string;
                     work_id: string | null;
                 };
@@ -627,8 +630,11 @@ export type Database = {
                     created_at?: string;
                     description?: string | null;
                     id?: string;
+                    images?: string[] | null;
                     name: string;
                     product_type?: Database["public"]["Enums"]["product_type"] | null;
+                    slug?: string | null;
+                    stripe_product_id?: string | null;
                     updated_at?: string;
                     work_id?: string | null;
                 };
@@ -638,8 +644,11 @@ export type Database = {
                     created_at?: string;
                     description?: string | null;
                     id?: string;
+                    images?: string[] | null;
                     name?: string;
                     product_type?: Database["public"]["Enums"]["product_type"] | null;
+                    slug?: string | null;
+                    stripe_product_id?: string | null;
                     updated_at?: string;
                     work_id?: string | null;
                 };
@@ -649,6 +658,151 @@ export type Database = {
                         columns: ["work_id"];
                         isOneToOne: false;
                         referencedRelation: "works";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            product_variants: {
+                Row: {
+                    id: string;
+                    product_id: string;
+                    name: string | null;
+                    sku: string | null;
+                    unit_amount: number;
+                    currency: string;
+                    recurring_interval: string | null;
+                    recurring_interval_count: number | null;
+                    inventory_quantity: number | null;
+                    active: boolean;
+                    is_default: boolean | null;
+                    stripe_price_id: string | null;
+                    created_at: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    product_id: string;
+                    name?: string | null;
+                    sku?: string | null;
+                    unit_amount: number;
+                    currency?: string;
+                    recurring_interval?: string | null;
+                    recurring_interval_count?: number | null;
+                    inventory_quantity?: number | null;
+                    active?: boolean;
+                    is_default?: boolean | null;
+                    stripe_price_id?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    product_id?: string;
+                    name?: string | null;
+                    sku?: string | null;
+                    unit_amount?: number;
+                    currency?: string;
+                    recurring_interval?: string | null;
+                    recurring_interval_count?: number | null;
+                    inventory_quantity?: number | null;
+                    active?: boolean;
+                    is_default?: boolean | null;
+                    stripe_price_id?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "product_variants_product_id_fkey";
+                        columns: ["product_id"];
+                        isOneToOne: false;
+                        referencedRelation: "products";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            stripe_sync_logs: {
+                Row: {
+                    id: string;
+                    sync_type: string;
+                    status: string;
+                    started_at: string;
+                    completed_at: string | null;
+                    items_processed: number | null;
+                    items_synced: number | null;
+                    items_failed: number | null;
+                    error_details: string | null;
+                    result: Json | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    sync_type: string;
+                    status: string;
+                    started_at?: string;
+                    completed_at?: string | null;
+                    items_processed?: number | null;
+                    items_synced?: number | null;
+                    items_failed?: number | null;
+                    error_details?: string | null;
+                    result?: Json | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    sync_type?: string;
+                    status?: string;
+                    started_at?: string;
+                    completed_at?: string | null;
+                    items_processed?: number | null;
+                    items_synced?: number | null;
+                    items_failed?: number | null;
+                    error_details?: string | null;
+                    result?: Json | null;
+                    created_at?: string;
+                };
+                Relationships: [];
+            };
+            inventory_movements: {
+                Row: {
+                    id: string;
+                    variant_id: string;
+                    movement_type: string;
+                    quantity_change: number;
+                    reason: string;
+                    reference_type: string | null;
+                    reference_id: string | null;
+                    created_by: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    variant_id: string;
+                    movement_type: string;
+                    quantity_change: number;
+                    reason: string;
+                    reference_type?: string | null;
+                    reference_id?: string | null;
+                    created_by?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    variant_id?: string;
+                    movement_type?: string;
+                    quantity_change?: number;
+                    reason?: string;
+                    reference_type?: string | null;
+                    reference_id?: string | null;
+                    created_by?: string | null;
+                    created_at?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "inventory_movements_variant_id_fkey";
+                        columns: ["variant_id"];
+                        isOneToOne: false;
+                        referencedRelation: "product_variants";
                         referencedColumns: ["id"];
                     }
                 ];
@@ -1594,6 +1748,34 @@ export type Database = {
                     p_user_id: string;
                 };
                 Returns: boolean;
+            };
+            create_product_with_variants: {
+                Args: {
+                    p_product_data: Json;
+                    p_variants_data: Json;
+                };
+                Returns: {
+                    product_id: string;
+                    variant_ids: string[];
+                };
+            };
+            update_inventory: {
+                Args: {
+                    p_variant_id: string;
+                    p_quantity_change: number;
+                    p_movement_type: string;
+                    p_reason: string;
+                    p_reference_type?: string;
+                    p_reference_id?: string;
+                    p_user_id?: string;
+                };
+                Returns: boolean;
+            };
+            get_user_active_subscription: {
+                Args: {
+                    user_uuid: string;
+                };
+                Returns: Json | null;
             };
         };
         Enums: {

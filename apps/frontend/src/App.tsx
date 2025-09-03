@@ -19,7 +19,9 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
+import { SubscriptionSuccessPage } from '@zoroaster/ui';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 // import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Temporarily disabled
 // import BetaApplicationsManager from './admin/BetaApplicationsManager'; // Temporarily disabled
@@ -44,6 +46,7 @@ import ProfileDashboard from './pages/ProfileDashboard';
 // import PayPalButton from './components/PayPalButton/PayPalButton';
 
 // Admin pages
+import SubscriptionManagementPage from './admin/SubscriptionManagementPage';
 import { ProductManagementPage, OrderManagementPage, InventoryManagementPage, WorksManagementPage, MediaUploadPage } from '@zoroaster/ui';
 
 // Placeholder components for routes that don't have implementations yet
@@ -143,7 +146,7 @@ const App: React.FC = () => {
           <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/subscriptions" element={<PlaceholderPage title="Subscriptions" />} />
-          <Route path="/subscription-success" element={<PlaceholderPage title="Subscription Success" />} />
+          <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
           <Route path="/stripe-test" element={<PlaceholderPage title="Stripe Test" />} />
           
           {/* Wiki Routes */}
@@ -197,6 +200,7 @@ const App: React.FC = () => {
                   <Route path="works" element={<WorksManagementPage />} />
                   <Route path="media" element={<MediaUploadPage />} />
                   <Route path="products" element={<ProductManagementPage />} />
+                  <Route path="subscriptions" element={<SubscriptionManagementPage />} />
                   <Route path="orders" element={<OrderManagementPage />} />
                   <Route path="inventory" element={<InventoryManagementPage />} />
                   <Route path="analytics" element={<AdminPlaceholderPage title="Analytics" />} />

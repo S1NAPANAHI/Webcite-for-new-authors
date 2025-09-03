@@ -17,16 +17,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { priceId, userId } = req.body;
+    const { priceId } = req.body;
 
-    if (!priceId || !userId) {
-      return res.status(400).json({ error: 'Missing required parameters' });
+    if (!priceId) {
+      return res.status(400).json({ error: 'Missing required parameter: priceId' });
     }
 
-    // Get the user from Supabase
-    const { data: user, error: userError } = await supabase.auth.admin.getUserById(userId);
-    if (userError || !user.user) {
-      return res.status(400).json({ error: 'Invalid user' });
+    // Get the user from the session
+    const { data: { user }, error: userError } = await supabase.auth.getUser(req.headers.authorization?.replace('Bearer ', ''));
+
+    if (userError || !user) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     // Get the subscription plan from Supabase
@@ -41,12 +42,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Check if customer already exists in Stripe
-    let customerId: string | undefined;
-    
+    let customerId: string;
+
     const { data: existingSubscription } = await supabase
       .from('user_subscriptions')
       .select('stripe_customer_id')
-      .eq('user_id', userId)
+      .eq('user_id', user.id)
       .not('stripe_customer_id', 'is', null)
       .limit(1)
       .single();
@@ -56,12 +57,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else {
       // Create new customer
       const customer = await stripe.customers.create({
-        email: user.user.email,
+        email: user.email,
         metadata: {
-          supabase_user_id: userId,
+          supabase_user_id: user.id,
         },
       });
       customerId = customer.id;
+
+      // Insert a new record into user_subscriptions to store the customer ID
+      await supabase.from('user_subscriptions').insert({
+        user_id: user.id,
+        stripe_customer_id: customerId,
+        status: 'incomplete',
+      });
     }
 
     // Create Stripe Checkout Session
@@ -78,9 +86,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5173'}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5173'}/subscriptions`,
       metadata: {
-        user_id: userId,
+        user_id: user.id,
         plan_id: plan.id,
       },
+      client_reference_id: user.id,
     });
 
     res.status(200).json({ sessionId: session.id });
@@ -89,3 +98,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ error: error.message });
   }
 }
+

@@ -25,6 +25,7 @@ interface AuthContextType {
   isAdmin: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
+  supabaseClient: SupabaseClient;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -146,7 +147,8 @@ export const AuthProvider: React.FC<{
       userProfile,
       isAdmin,
       isAuthenticated,
-      isLoading 
+      isLoading,
+      supabaseClient
     }}>
       {children}
     </AuthContext.Provider>

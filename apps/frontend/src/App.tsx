@@ -18,6 +18,7 @@ import {
   // Use UI HomePage temporarily to fix build
   HomePage
 } from '@zoroaster/ui';
+import { useAuth } from '@zoroaster/shared';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 // import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Temporarily disabled
@@ -123,6 +124,7 @@ const AuthenticatedLayout: React.FC = () => {
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
   const params = useParams();
+  const { supabaseClient, user } = useAuth();
 
   React.useEffect(() => {
     if (params.pageSlug) {
@@ -160,10 +162,10 @@ const App: React.FC = () => {
           <Route path="/account/*" element={<ProfileDashboard />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
-          <Route path="/beta/application" element={<BetaApplication />} />
+          <Route path="/beta/application" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
           <Route path="/artist-collaboration" element={<PlaceholderPage title="Artist Collaboration" />} />
           <Route path="/read/:workId" element={<WorkReaderPage />} />
-          <Route path="/beta/status" element={<BetaApplication />} />
+          <Route path="/beta/status" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
           
           <Route path="/beta/handbook" element={<BetaReaderHandbookPage />} />
           <Route path="/beta/timeline" element={<OperationalTimelinePage />} />

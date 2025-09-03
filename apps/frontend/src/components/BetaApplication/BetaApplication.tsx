@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 
 import './BetaApplication.css'; // Import the CSS file
 
@@ -19,7 +19,12 @@ interface ApplicationData {
     // Add other top-level properties if they exist
 }
 
-const BetaApplication: React.FC = () => {
+interface BetaApplicationProps {
+    supabaseClient: SupabaseClient;
+    user: User | null;
+}
+
+const BetaApplication: React.FC<BetaApplicationProps> = ({ supabaseClient, user }) => {
     // Application State
     const [currentStage, setCurrentStage] = useState<number>(1);
     const [applicationData, setApplicationData] = useState<ApplicationData>({});
@@ -30,9 +35,8 @@ const BetaApplication: React.FC = () => {
 
     useEffect(() => {
         const fetchApplication = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('beta_applications')
                     .select('*')
                     .eq('user_id', user.id)
@@ -46,7 +50,7 @@ const BetaApplication: React.FC = () => {
         };
 
         fetchApplication();
-    }, []);
+    }, [user, supabaseClient]);
 
     // Define the steps for the mountain stepper
     const steps = [
@@ -320,7 +324,7 @@ const BetaApplication: React.FC = () => {
 
         // Prepare data for Supabase insertion
         const applicationToSave = {
-            user_id: (await supabase.auth.getUser()).data.user?.id, // Get current user ID
+            user_id: user?.id, // Get current user ID
             full_name: (applicationData as any).stage1.fullName,
             email: (applicationData as any).stage1.email,
             time_zone: (applicationData as any).stage1.timeZone,
@@ -364,7 +368,7 @@ const BetaApplication: React.FC = () => {
             composite_score: (applicationData as any).compositeScore,
         };
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('beta_applications')
             .insert([applicationToSave]);
 

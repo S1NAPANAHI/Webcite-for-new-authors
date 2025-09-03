@@ -19,7 +19,7 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
-import { SubscriptionPage, SubscriptionSuccessPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage } from '@zoroaster/ui';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { supabase } from '@zoroaster/shared/supabaseClient';
@@ -66,12 +66,12 @@ const AdminPlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
-const LibraryPage = () => <PlaceholderPage title="Library" />;
+
 const CharactersPage = () => <PlaceholderPage title="Characters" />;
 const LocationsPage = () => <PlaceholderPage title="Locations" />;
 const GlossaryPage = () => <PlaceholderPage title="Glossary" />;
 const ReviewsPage = () => <PlaceholderPage title="Reviews" />;
-const BlogPage = () => <PlaceholderPage title="Blog" />;
+
 const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
 const BetaPortalPage = () => <PlaceholderPage title="Beta Portal" />;
 const BetaApplicationStatusPage = () => <PlaceholderPage title="Beta Application Status" />;

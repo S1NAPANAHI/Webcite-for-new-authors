@@ -56,14 +56,14 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       proxy: {
         '/api': {
-          target: 'http://localhost:3000',
+          target: 'http://localhost:3001',
           changeOrigin: true,
           rewrite: (path) => path,
         },
       },
     },
     build: {
-      outDir: path.resolve(__dirname, '../../dist'),
+      outDir: 'dist',
       emptyOutDir: true,
       sourcemap: mode === 'development',
       rollupOptions: {

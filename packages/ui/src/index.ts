@@ -27,6 +27,8 @@ export { default as WorksManagementPage } from './WorksManagementPage';
 export { default as MediaUploadPage } from './MediaUploadPage';
 export { default as SubscriptionPage } from './SubscriptionPage';
 export { default as SubscriptionSuccessPage } from './SubscriptionSuccessPage';
+export { LibraryPage } from './LibraryPage';
+export { BlogPage } from './BlogPage';
 
 // Basic UI Components
 export * from './button';

@@ -2,60 +2,122 @@ import React, { useState, useEffect } from 'react';
 import { Route, Routes, useParams } from 'react-router-dom';
 import { 
   Layout, 
-  HomePage,
-  AdminStorePage, 
-  LibraryPage, 
-  SubscriptionPage, 
-  SubscriptionSuccessPage, 
-  WikiViewer, 
-  CharactersPage, 
-  LocationsPage, 
-  GlossaryPage, 
-  ReviewsPage, 
-  AccountPage, 
-  BlogPage, 
-  NotFoundPage, 
-  BetaPortalPage, 
-  BetaApplicationStatusPage, 
-  WorkReaderPage, 
-  CheckoutPage, 
-  AdminProtectedRoute, 
-  AdminLayout, 
-  DashboardPage, 
-  HomepageContentManager, 
-  PostsManager, 
-  PagesManager, 
-  CharactersManager, 
-  WorksManager, 
-  AdminUploadPage, 
-  UsersManagement, 
-  StarsBackground, 
-  ChapterUploadPage, 
-  WikiManager, 
-  WikiEditor,
-  TimelineManager,
-  BetaReaderHandbookPage,
-  OperationalTimelinePage,
-  ViewNDAPage,
-  BetaFeedbackPage,
-  LoginPage
+  StarsBackground,
+  LoadingSkeleton,
+  GlowButton,
+  OrnateDivider,
+  MagicalParticles,
+  // Admin components - YouTube-like side navigation
+  AdminProtectedRoute,
+  AdminSideNavProvider,
+  AdminSideNav,
+  AdminSideNavToggle,
+  SimpleDashboardPage
 } from '@zoroaster/ui';
-import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';  // Import the type
+
+// Import our custom LoginPage with beautiful Persian/Zoroastrian styling
+import LoginPage from './components/LoginPage';
+import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import BetaApplicationsManager from './admin/BetaApplicationsManager';
-import Timelines from './pages/Timelines';
-import BetaApplication from './components/BetaApplication/BetaApplication'; // Import the new BetaApplication component
-
+import BetaApplication from './components/BetaApplication/BetaApplication';
 import { CartProvider } from '@zoroaster/shared';
 
-import StorePage from './pages/StorePage'; // This one is local
-import LocalWikiPage from './pages/WikiPage'; // This one is local
-import BlogPostPage from './pages/BlogPostPage'; // This one is local
-import GenericPage from './pages/GenericPage'; // This one is local
-import ProfileDashboard from './pages/ProfileDashboard'; // New Profile Dashboard
+// Your LOCAL page components (these are the ones you've customized)
+import HomePage from './pages/HomePage'; // Local HomePage wrapper
+import StorePage from './pages/StorePage';
+import LocalWikiPage from './pages/WikiPage'; 
+import BlogPostPage from './pages/BlogPostPage';
+import GenericPage from './pages/GenericPage';
+import ProfileDashboard from './pages/ProfileDashboard';
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
-import PayPalButton from './components/PayPalButton/PayPalButton';
+import Timelines from './pages/Timelines';
 import StripeTest from './pages/StripeTest';
+import SubscriptionSuccess from './pages/SubscriptionSuccess';
+import SubscriptionsPage from './pages/SubscriptionsPage';
+import AboutPage from './pages/AboutPage';
+
+// Components 
+import PayPalButton from './components/PayPalButton/PayPalButton';
+
+// Admin pages
+import { ProductManagementPage, OrderManagementPage, InventoryManagementPage, WorksManagementPage, MediaUploadPage } from '@zoroaster/ui';
+
+// Placeholder components for routes that don't have implementations yet
+const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
+  <div className="container mx-auto px-4 py-8 text-center">
+    <h1 className="text-4xl font-bold mb-4">{title}</h1>
+    <p className="text-gray-600">This page is under construction.</p>
+  </div>
+);
+
+// Simple admin placeholder page - no wrapper needed
+const AdminPlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
+  <div className="p-6 text-center">
+    <h1 className="text-4xl font-bold mb-4">{title}</h1>
+    <p className="text-gray-600">This admin page is under construction.</p>
+  </div>
+);
+
+const LibraryPage = () => <PlaceholderPage title="Library" />;
+const CharactersPage = () => <PlaceholderPage title="Characters" />;
+const LocationsPage = () => <PlaceholderPage title="Locations" />;
+const GlossaryPage = () => <PlaceholderPage title="Glossary" />;
+const ReviewsPage = () => <PlaceholderPage title="Reviews" />;
+const BlogPage = () => <PlaceholderPage title="Blog" />;
+const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
+const BetaPortalPage = () => <PlaceholderPage title="Beta Portal" />;
+const BetaApplicationStatusPage = () => <PlaceholderPage title="Beta Application Status" />;
+const WorkReaderPage = () => <PlaceholderPage title="Work Reader" />;
+const BetaReaderHandbookPage = () => <PlaceholderPage title="Beta Reader Handbook" />;
+const OperationalTimelinePage = () => <PlaceholderPage title="Operational Timeline" />;
+const ViewNDAPage = () => <PlaceholderPage title="NDA" />;
+const BetaFeedbackPage = () => <PlaceholderPage title="Beta Feedback" />;
+const AdminStorePage = () => <PlaceholderPage title="Admin Store" />;
+
+// Layout wrapper that handles authentication
+const AuthenticatedLayout: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [betaApplicationStatus, setBetaApplicationStatus] = useState('none');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check initial auth state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsAuthenticated(false);
+  };
+
+  if (loading) {
+    return <LoadingSkeleton />;
+  }
+
+  return (
+    <>
+      <StarsBackground />
+      <Layout 
+        isAuthenticated={isAuthenticated}
+        betaApplicationStatus={betaApplicationStatus}
+        onLogout={handleLogout}
+      />
+    </>
+  );
+};
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
@@ -68,25 +130,24 @@ const App: React.FC = () => {
   }, [params.pageSlug]);
 
   return (
-    <CartProvider>
-      <StarsBackground />
+    <CartProvider className="bg-red-500">
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         {/* Public and general routes with the main layout */}
-        <Route element={<Layout />}>
+        <Route element={<AuthenticatedLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/store" element={<StorePage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />
           <Route path="/library" element={<LibraryPage />} />
-          <Route path="/subscriptions" element={<SubscriptionPage />} />
-          <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
+          <Route path="/subscriptions" element={<SubscriptionsPage />} />
+          <Route path="/subscription-success" element={<SubscriptionSuccess />} />
           <Route path="/stripe-test" element={<StripeTest />} />
           
           {/* Wiki Routes */}
           <Route path="/wiki">
-            <Route index element={currentPage ? <WikiViewer page={currentPage} /> : <div>Loading...</div>} />
-            <Route path=":folderSlug" element={currentPage ? <WikiViewer page={currentPage} /> : <div>Loading...</div>} />
-            <Route path=":folderSlug/:pageSlug" element={currentPage ? <WikiViewer page={currentPage} /> : <div>Loading...</div>} />
+            <Route index element={<LocalWikiPage />} />
+            <Route path=":folderSlug" element={<LocalWikiPage />} />
+            <Route path=":folderSlug/:pageSlug" element={<LocalWikiPage />} />
           </Route>
           
           <Route path="/timelines" element={<Timelines />} />
@@ -94,6 +155,7 @@ const App: React.FC = () => {
           <Route path="/locations" element={<LocationsPage />} />
           <Route path="/glossary" element={<GlossaryPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/account/*" element={<ProfileDashboard />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
@@ -127,43 +189,36 @@ const App: React.FC = () => {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
-        {/* Admin routes with the new AdminLayout */}
+        {/* Admin routes - YouTube-like side navigation */}
         <Route 
-          path="/account/admin"
+          path="/account/admin/*"
           element={
             <AdminProtectedRoute>
-              <AdminLayout />
+              <AdminSideNavProvider>
+                {/* Side navigation components always available */}
+                <AdminSideNavToggle />
+                <AdminSideNav />
+                
+                {/* Admin route content */}
+                <Routes>
+                  <Route index element={<SimpleDashboardPage />} />
+                  <Route path="beta-applications" element={<BetaApplicationsManager />} />
+                  <Route path="users" element={<AdminPlaceholderPage title="User Management" />} />
+                  <Route path="posts" element={<AdminPlaceholderPage title="Posts Management" />} />
+                  <Route path="works" element={<WorksManagementPage />} />
+                  <Route path="media" element={<MediaUploadPage />} />
+                  <Route path="products" element={<ProductManagementPage />} />
+                  <Route path="orders" element={<OrderManagementPage />} />
+                  <Route path="inventory" element={<InventoryManagementPage />} />
+                  <Route path="analytics" element={<AdminPlaceholderPage title="Analytics" />} />
+                  <Route path="timeline/events" element={<AdminPlaceholderPage title="Timeline Events" />} />
+                  <Route path="webhooks" element={<AdminPlaceholderPage title="Webhook Management" />} />
+                  <Route path="settings" element={<AdminPlaceholderPage title="Admin Settings" />} />
+                </Routes>
+              </AdminSideNavProvider>
             </AdminProtectedRoute>
           }
-        >
-          <Route index element={<DashboardPage />} />
-          <Route path="homepage-content" element={<HomepageContentManager />} />
-          <Route path="posts" element={<PostsManager />} />
-          <Route path="pages" element={<PagesManager />} />
-          <Route path="characters" element={<CharactersManager />} />
-          <Route path="works" element={<WorksManager />} />
-          <Route path="upload-work" element={<AdminUploadPage />} />
-          <Route path="upload-chapter" element={<ChapterUploadPage />} />
-          <Route path="users" element={<UsersManagement />} />
-          <Route path="beta-applications" element={<BetaApplicationsManager />} />
-          
-          {/* Wiki Management Routes */}
-          <Route path="wiki" element={<WikiManager />} />
-          <Route path="wiki/folder/:folderId" element={<WikiManager />} />
-          <Route path="wiki/new" element={<WikiEditor />} />
-          <Route path="wiki/edit/:id" element={<WikiEditor />} />
-          
-          {/* Timeline Manager Route */}
-          <Route path="timeline/events" element={<TimelineManager />} />
-          
-          {/* Placeholder routes for other sections */}
-          <Route path="store" element={<AdminStorePage />} />
-          <Route path="library" element={<div>Library Management Coming Soon!</div>} />
-          <Route path="characters" element={<div>Characters Management Coming Soon!</div>} />
-          <Route path="beta-program" element={<div>Beta Program Management Coming Soon!</div>} />
-          <Route path="media" element={<div>Media Management Coming Soon!</div>} />
-          <Route path="settings" element={<div>Settings Coming Soon!</div>} />
-        </Route>
+        />
       </Routes>
     </CartProvider>
   );

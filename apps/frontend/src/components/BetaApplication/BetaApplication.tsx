@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@zoroaster/shared';
 
 import './BetaApplication.css'; // Import the CSS file
 
@@ -24,6 +25,28 @@ const BetaApplication: React.FC = () => {
     const [applicationData, setApplicationData] = useState<ApplicationData>({});
     const [commentCount, setCommentCount] = useState(1);
     const [timeRemaining, setTimeRemaining] = useState(48 * 60 * 60); // 48 hours in seconds
+    const [applicationStatus, setApplicationStatus] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchApplication = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data, error } = await supabase
+                    .from('beta_applications')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+
+                if (data) {
+                    setApplicationStatus(data);
+                }
+            }
+            setIsLoading(false);
+        };
+
+        fetchApplication();
+    }, []);
 
     // Define the steps for the mountain stepper
     const steps = [
@@ -363,6 +386,21 @@ const BetaApplication: React.FC = () => {
     const showFinalResults = () => {
         // This part will be rendered conditionally in JSX
     };
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (applicationStatus) {
+        // Render the application status
+        return (
+            <div>
+                <h2>Application Status</h2>
+                <p>Your application has been submitted.</p>
+                <pre>{JSON.stringify(applicationStatus, null, 2)}</pre>
+            </div>
+        );
+    }
 
     return (
         <div className="beta-app-container">

@@ -22,7 +22,7 @@ import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared
 import { supabase } from '@zoroaster/shared/supabaseClient';
 // import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Temporarily disabled
 // import BetaApplicationsManager from './admin/BetaApplicationsManager'; // Temporarily disabled
-// import BetaApplication from './components/BetaApplication/BetaApplication'; // Temporarily disabled
+import BetaApplication from './components/BetaApplication/BetaApplication';
 import { CartProvider } from '@zoroaster/shared';
 
 // Your LOCAL page components (temporarily disabled to fix Vercel build)
@@ -160,10 +160,10 @@ const App: React.FC = () => {
           <Route path="/account/*" element={<ProfileDashboard />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
-          <Route path="/beta/application" element={<PlaceholderPage title="Beta Application" />} />
+          <Route path="/beta/application" element={<BetaApplication />} />
           <Route path="/artist-collaboration" element={<PlaceholderPage title="Artist Collaboration" />} />
           <Route path="/read/:workId" element={<WorkReaderPage />} />
-          <Route path="/beta/status" element={<BetaApplicationStatusPage />} />
+          <Route path="/beta/status" element={<BetaApplication />} />
           
           <Route path="/beta/handbook" element={<BetaReaderHandbookPage />} />
           <Route path="/beta/timeline" element={<OperationalTimelinePage />} />

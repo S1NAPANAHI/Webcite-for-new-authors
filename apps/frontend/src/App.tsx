@@ -35,6 +35,7 @@ import { CartProvider } from '@zoroaster/shared';
 // import BlogPostPage from './pages/BlogPostPage';
 // import GenericPage from './pages/GenericPage';
 import ProfileDashboard from './pages/ProfileDashboard';
+import AboutPage from './pages/AboutPage';
 // import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 // import Timelines from './pages/Timelines';
 // import StripeTest from './pages/StripeTest';
@@ -161,7 +162,7 @@ const App: React.FC = () => {
           <Route path="/locations" element={<LocationsPage />} />
           <Route path="/glossary" element={<GlossaryPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />
-          <Route path="/about" element={<PlaceholderPage title="About" />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/account/*" element={<ProfileDashboard />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />

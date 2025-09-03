@@ -3,6 +3,7 @@ export * from './validators/product.validator';
 export * from './validators/user.validator';
 export * from './validators/payment.validator';
 export * from './services/ProductService';
+export * from './services/StripeProductService';
 export * from './services/SubscriptionService';
 export * from './services/UserService';
 export * from './rules';

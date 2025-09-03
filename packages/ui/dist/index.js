@@ -1,15 +1,15 @@
-import * as ce from "react";
-import Ot, { createContext as It, useContext as zt, useEffect as he, useState as p, useRef as Dt } from "react";
-import { useNavigate as $t, NavLink as Ge, useLocation as wr, Navigate as jr, Outlet as Nr, Link as ze } from "react-router-dom";
-import { clsx as Wt } from "clsx";
-import { twMerge as Ut } from "tailwind-merge";
-import { createClient as kr } from "@supabase/supabase-js";
-import { X as ge, LayoutDashboard as _r, Package as je, ShoppingCart as Ne, Boxes as Cr, BarChart3 as Ve, FileText as ye, BookOpen as Ze, Calendar as dt, Users as Qe, Webhook as Tr, Upload as xe, Settings as ct, LogOut as Sr, Menu as Er, AlertCircle as Re, CheckSquare as Tt, DollarSign as ht, Eye as ke, TrendingUp as Se, Search as Pe, Twitter as Pr, Instagram as Yr, Mail as Ar, ChevronRight as Fr, Minus as Lr, Plus as Ee, Trash2 as et, RefreshCw as de, Filter as De, EyeOff as qt, Edit as Je, Save as Bt, Crown as Oe, Book as be, AlertTriangle as Ke, User as St, CreditCard as Et, ExternalLink as Pt, XCircle as qe, Clock as Me, CheckCircle as Xe, Package2 as Be, TrendingDown as He, Star as Yt, PauseCircle as Mr, Target as Rr, Archive as Or, Image as At, File as Ir, FolderOpen as zr, Download as Dr, Video as $r, Music as Wr } from "lucide-react";
-import { useCart as Ur } from "@zoroaster/shared";
-import { Slot as qr } from "@radix-ui/react-slot";
-import { cva as Ht } from "class-variance-authority";
-import * as Gt from "@radix-ui/react-label";
-var it = { exports: {} }, Fe = {};
+import * as _e from "react";
+import Li, { createContext as Ue, useContext as le, useEffect as xe, useState as _, useRef as ht, useLayoutEffect as Za, useId as Ja, useCallback as Fi, useMemo as bs, Fragment as Ii, createElement as Qa, useInsertionEffect as el, forwardRef as tl, Component as sl } from "react";
+import { useNavigate as Oi, NavLink as ns, useLocation as rl, Navigate as nl, Outlet as il, Link as Ut } from "react-router-dom";
+import { clsx as Yi } from "clsx";
+import { twMerge as Bi } from "tailwind-merge";
+import { createClient as ol } from "@supabase/supabase-js";
+import { X as Ee, LayoutDashboard as al, Package as Ze, ShoppingCart as et, Boxes as ll, BarChart3 as is, FileText as Ye, BookOpen as hs, Calendar as pr, Users as ms, Webhook as cl, Upload as Ie, Settings as xr, LogOut as dl, Menu as ul, AlertCircle as Dt, CheckSquare as mn, DollarSign as yr, Eye as tt, TrendingUp as it, Search as xt, Twitter as hl, Instagram as ml, Mail as fl, ChevronRight as gl, Minus as pl, Plus as ft, Trash2 as vs, RefreshCw as Se, Filter as $t, EyeOff as zi, Edit as os, Save as Ui, Crown as Rt, Book as Oe, AlertTriangle as as, User as fn, CreditCard as gn, ExternalLink as pn, XCircle as Jt, Clock as Ct, CheckCircle as Vt, Package2 as Qt, TrendingDown as es, Star as xn, PauseCircle as xl, Target as yl, Archive as bl, Image as yn, File as vl, FolderOpen as wl, Download as jl, Video as Nl, Music as kl } from "lucide-react";
+import { useCart as Tl } from "@zoroaster/shared";
+import { Slot as Sl } from "@radix-ui/react-slot";
+import { cva as $i } from "class-variance-authority";
+import * as Wi from "@radix-ui/react-label";
+var Hs = { exports: {} }, kt = {};
 /**
  * @license React
  * react-jsx-runtime.production.min.js
@@ -19,21 +19,21 @@ var it = { exports: {} }, Fe = {};
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var Ft;
-function Br() {
-  if (Ft) return Fe;
-  Ft = 1;
-  var s = Ot, n = Symbol.for("react.element"), i = Symbol.for("react.fragment"), h = Object.prototype.hasOwnProperty, m = s.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner, f = { key: !0, ref: !0, __self: !0, __source: !0 };
-  function N(g, u, v) {
-    var x, C = {}, P = null, Y = null;
-    v !== void 0 && (P = "" + v), u.key !== void 0 && (P = "" + u.key), u.ref !== void 0 && (Y = u.ref);
-    for (x in u) h.call(u, x) && !f.hasOwnProperty(x) && (C[x] = u[x]);
-    if (g && g.defaultProps) for (x in u = g.defaultProps, u) C[x] === void 0 && (C[x] = u[x]);
-    return { $$typeof: n, type: g, key: P, ref: Y, props: C, _owner: m.current };
+var bn;
+function Cl() {
+  if (bn) return kt;
+  bn = 1;
+  var e = Li, t = Symbol.for("react.element"), r = Symbol.for("react.fragment"), n = Object.prototype.hasOwnProperty, i = e.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner, a = { key: !0, ref: !0, __self: !0, __source: !0 };
+  function o(l, c, u) {
+    var d, h = {}, f = null, p = null;
+    u !== void 0 && (f = "" + u), c.key !== void 0 && (f = "" + c.key), c.ref !== void 0 && (p = c.ref);
+    for (d in c) n.call(c, d) && !a.hasOwnProperty(d) && (h[d] = c[d]);
+    if (l && l.defaultProps) for (d in c = l.defaultProps, c) h[d] === void 0 && (h[d] = c[d]);
+    return { $$typeof: t, type: l, key: f, ref: p, props: h, _owner: i.current };
   }
-  return Fe.Fragment = i, Fe.jsx = N, Fe.jsxs = N, Fe;
+  return kt.Fragment = r, kt.jsx = o, kt.jsxs = o, kt;
 }
-var Le = {};
+var Tt = {};
 /**
  * @license React
  * react-jsx-runtime.development.js
@@ -43,91 +43,91 @@ var Le = {};
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var Lt;
-function Hr() {
-  return Lt || (Lt = 1, process.env.NODE_ENV !== "production" && function() {
-    var s = Ot, n = Symbol.for("react.element"), i = Symbol.for("react.portal"), h = Symbol.for("react.fragment"), m = Symbol.for("react.strict_mode"), f = Symbol.for("react.profiler"), N = Symbol.for("react.provider"), g = Symbol.for("react.context"), u = Symbol.for("react.forward_ref"), v = Symbol.for("react.suspense"), x = Symbol.for("react.suspense_list"), C = Symbol.for("react.memo"), P = Symbol.for("react.lazy"), Y = Symbol.for("react.offscreen"), T = Symbol.iterator, q = "@@iterator";
-    function I(t) {
-      if (t === null || typeof t != "object")
+var vn;
+function Pl() {
+  return vn || (vn = 1, process.env.NODE_ENV !== "production" && function() {
+    var e = Li, t = Symbol.for("react.element"), r = Symbol.for("react.portal"), n = Symbol.for("react.fragment"), i = Symbol.for("react.strict_mode"), a = Symbol.for("react.profiler"), o = Symbol.for("react.provider"), l = Symbol.for("react.context"), c = Symbol.for("react.forward_ref"), u = Symbol.for("react.suspense"), d = Symbol.for("react.suspense_list"), h = Symbol.for("react.memo"), f = Symbol.for("react.lazy"), p = Symbol.for("react.offscreen"), y = Symbol.iterator, S = "@@iterator";
+    function C(m) {
+      if (m === null || typeof m != "object")
         return null;
-      var d = T && t[T] || t[q];
-      return typeof d == "function" ? d : null;
+      var N = y && m[y] || m[S];
+      return typeof N == "function" ? N : null;
     }
-    var R = s.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
-    function S(t) {
+    var j = e.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED;
+    function w(m) {
       {
-        for (var d = arguments.length, b = new Array(d > 1 ? d - 1 : 0), E = 1; E < d; E++)
-          b[E - 1] = arguments[E];
-        B("error", t, b);
+        for (var N = arguments.length, M = new Array(N > 1 ? N - 1 : 0), F = 1; F < N; F++)
+          M[F - 1] = arguments[F];
+        P("error", m, M);
       }
     }
-    function B(t, d, b) {
+    function P(m, N, M) {
       {
-        var E = R.ReactDebugCurrentFrame, M = E.getStackAddendum();
-        M !== "" && (d += "%s", b = b.concat([M]));
-        var W = b.map(function(F) {
-          return String(F);
+        var F = j.ReactDebugCurrentFrame, W = F.getStackAddendum();
+        W !== "" && (N += "%s", M = M.concat([W]));
+        var G = M.map(function(z) {
+          return String(z);
         });
-        W.unshift("Warning: " + d), Function.prototype.apply.call(console[t], console, W);
+        G.unshift("Warning: " + N), Function.prototype.apply.call(console[m], console, G);
       }
     }
-    var z = !1, D = !1, se = !1, V = !1, k = !1, l;
-    l = Symbol.for("react.module.reference");
-    function y(t) {
-      return !!(typeof t == "string" || typeof t == "function" || t === h || t === f || k || t === m || t === v || t === x || V || t === Y || z || D || se || typeof t == "object" && t !== null && (t.$$typeof === P || t.$$typeof === C || t.$$typeof === N || t.$$typeof === g || t.$$typeof === u || // This needs to include all possible module reference object
+    var D = !1, A = !1, I = !1, O = !1, k = !1, x;
+    x = Symbol.for("react.module.reference");
+    function E(m) {
+      return !!(typeof m == "string" || typeof m == "function" || m === n || m === a || k || m === i || m === u || m === d || O || m === p || D || A || I || typeof m == "object" && m !== null && (m.$$typeof === f || m.$$typeof === h || m.$$typeof === o || m.$$typeof === l || m.$$typeof === c || // This needs to include all possible module reference object
       // types supported by any Flight configuration anywhere since
       // we don't know which Flight build this will end up being used
       // with.
-      t.$$typeof === l || t.getModuleId !== void 0));
+      m.$$typeof === x || m.getModuleId !== void 0));
     }
-    function a(t, d, b) {
-      var E = t.displayName;
-      if (E)
-        return E;
-      var M = d.displayName || d.name || "";
-      return M !== "" ? b + "(" + M + ")" : b;
+    function b(m, N, M) {
+      var F = m.displayName;
+      if (F)
+        return F;
+      var W = N.displayName || N.name || "";
+      return W !== "" ? M + "(" + W + ")" : M;
     }
-    function _(t) {
-      return t.displayName || "Context";
+    function V(m) {
+      return m.displayName || "Context";
     }
-    function $(t) {
-      if (t == null)
+    function K(m) {
+      if (m == null)
         return null;
-      if (typeof t.tag == "number" && S("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."), typeof t == "function")
-        return t.displayName || t.name || null;
-      if (typeof t == "string")
-        return t;
-      switch (t) {
-        case h:
+      if (typeof m.tag == "number" && w("Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."), typeof m == "function")
+        return m.displayName || m.name || null;
+      if (typeof m == "string")
+        return m;
+      switch (m) {
+        case n:
           return "Fragment";
-        case i:
+        case r:
           return "Portal";
-        case f:
+        case a:
           return "Profiler";
-        case m:
+        case i:
           return "StrictMode";
-        case v:
+        case u:
           return "Suspense";
-        case x:
+        case d:
           return "SuspenseList";
       }
-      if (typeof t == "object")
-        switch (t.$$typeof) {
-          case g:
-            var d = t;
-            return _(d) + ".Consumer";
-          case N:
-            var b = t;
-            return _(b._context) + ".Provider";
-          case u:
-            return a(t, t.render, "ForwardRef");
-          case C:
-            var E = t.displayName || null;
-            return E !== null ? E : $(t.type) || "Memo";
-          case P: {
-            var M = t, W = M._payload, F = M._init;
+      if (typeof m == "object")
+        switch (m.$$typeof) {
+          case l:
+            var N = m;
+            return V(N) + ".Consumer";
+          case o:
+            var M = m;
+            return V(M._context) + ".Provider";
+          case c:
+            return b(m, m.render, "ForwardRef");
+          case h:
+            var F = m.displayName || null;
+            return F !== null ? F : K(m.type) || "Memo";
+          case f: {
+            var W = m, G = W._payload, z = W._init;
             try {
-              return $(F(W));
+              return K(z(G));
             } catch {
               return null;
             }
@@ -135,667 +135,667 @@ function Hr() {
         }
       return null;
     }
-    var Z = Object.assign, c = 0, L, te, H, K, le, ue, o;
-    function r() {
+    var se = Object.assign, T = 0, U, $, B, q, ie, Ne, v;
+    function g() {
     }
-    r.__reactDisabledLog = !0;
-    function j() {
+    g.__reactDisabledLog = !0;
+    function R() {
       {
-        if (c === 0) {
-          L = console.log, te = console.info, H = console.warn, K = console.error, le = console.group, ue = console.groupCollapsed, o = console.groupEnd;
-          var t = {
+        if (T === 0) {
+          U = console.log, $ = console.info, B = console.warn, q = console.error, ie = console.group, Ne = console.groupCollapsed, v = console.groupEnd;
+          var m = {
             configurable: !0,
             enumerable: !0,
-            value: r,
+            value: g,
             writable: !0
           };
           Object.defineProperties(console, {
-            info: t,
-            log: t,
-            warn: t,
-            error: t,
-            group: t,
-            groupCollapsed: t,
-            groupEnd: t
+            info: m,
+            log: m,
+            warn: m,
+            error: m,
+            group: m,
+            groupCollapsed: m,
+            groupEnd: m
           });
         }
-        c++;
+        T++;
       }
     }
-    function U() {
+    function X() {
       {
-        if (c--, c === 0) {
-          var t = {
+        if (T--, T === 0) {
+          var m = {
             configurable: !0,
             enumerable: !0,
             writable: !0
           };
           Object.defineProperties(console, {
-            log: Z({}, t, {
-              value: L
+            log: se({}, m, {
+              value: U
             }),
-            info: Z({}, t, {
-              value: te
+            info: se({}, m, {
+              value: $
             }),
-            warn: Z({}, t, {
-              value: H
+            warn: se({}, m, {
+              value: B
             }),
-            error: Z({}, t, {
-              value: K
+            error: se({}, m, {
+              value: q
             }),
-            group: Z({}, t, {
-              value: le
+            group: se({}, m, {
+              value: ie
             }),
-            groupCollapsed: Z({}, t, {
-              value: ue
+            groupCollapsed: se({}, m, {
+              value: Ne
             }),
-            groupEnd: Z({}, t, {
-              value: o
+            groupEnd: se({}, m, {
+              value: v
             })
           });
         }
-        c < 0 && S("disabledDepth fell below zero. This is a bug in React. Please file an issue.");
+        T < 0 && w("disabledDepth fell below zero. This is a bug in React. Please file an issue.");
       }
     }
-    var X = R.ReactCurrentDispatcher, oe;
-    function Ye(t, d, b) {
+    var de = j.ReactCurrentDispatcher, ye;
+    function jt(m, N, M) {
       {
-        if (oe === void 0)
+        if (ye === void 0)
           try {
             throw Error();
-          } catch (M) {
-            var E = M.stack.trim().match(/\n( *(at )?)/);
-            oe = E && E[1] || "";
+          } catch (W) {
+            var F = W.stack.trim().match(/\n( *(at )?)/);
+            ye = F && F[1] || "";
           }
         return `
-` + oe + t;
+` + ye + m;
       }
     }
-    var _e = !1, $e;
+    var st = !1, qt;
     {
-      var Kt = typeof WeakMap == "function" ? WeakMap : Map;
-      $e = new Kt();
+      var Sa = typeof WeakMap == "function" ? WeakMap : Map;
+      qt = new Sa();
     }
-    function ut(t, d) {
-      if (!t || _e)
+    function Zr(m, N) {
+      if (!m || st)
         return "";
       {
-        var b = $e.get(t);
-        if (b !== void 0)
-          return b;
+        var M = qt.get(m);
+        if (M !== void 0)
+          return M;
       }
-      var E;
-      _e = !0;
-      var M = Error.prepareStackTrace;
+      var F;
+      st = !0;
+      var W = Error.prepareStackTrace;
       Error.prepareStackTrace = void 0;
-      var W;
-      W = X.current, X.current = null, j();
+      var G;
+      G = de.current, de.current = null, R();
       try {
-        if (d) {
-          var F = function() {
+        if (N) {
+          var z = function() {
             throw Error();
           };
-          if (Object.defineProperty(F.prototype, "props", {
+          if (Object.defineProperty(z.prototype, "props", {
             set: function() {
               throw Error();
             }
           }), typeof Reflect == "object" && Reflect.construct) {
             try {
-              Reflect.construct(F, []);
-            } catch (re) {
-              E = re;
+              Reflect.construct(z, []);
+            } catch (me) {
+              F = me;
             }
-            Reflect.construct(t, [], F);
+            Reflect.construct(m, [], z);
           } else {
             try {
-              F.call();
-            } catch (re) {
-              E = re;
+              z.call();
+            } catch (me) {
+              F = me;
             }
-            t.call(F.prototype);
+            m.call(z.prototype);
           }
         } else {
           try {
             throw Error();
-          } catch (re) {
-            E = re;
+          } catch (me) {
+            F = me;
           }
-          t();
+          m();
         }
-      } catch (re) {
-        if (re && E && typeof re.stack == "string") {
-          for (var A = re.stack.split(`
-`), ee = E.stack.split(`
-`), G = A.length - 1, J = ee.length - 1; G >= 1 && J >= 0 && A[G] !== ee[J]; )
-            J--;
-          for (; G >= 1 && J >= 0; G--, J--)
-            if (A[G] !== ee[J]) {
-              if (G !== 1 || J !== 1)
+      } catch (me) {
+        if (me && F && typeof me.stack == "string") {
+          for (var Y = me.stack.split(`
+`), ue = F.stack.split(`
+`), ee = Y.length - 1, re = ue.length - 1; ee >= 1 && re >= 0 && Y[ee] !== ue[re]; )
+            re--;
+          for (; ee >= 1 && re >= 0; ee--, re--)
+            if (Y[ee] !== ue[re]) {
+              if (ee !== 1 || re !== 1)
                 do
-                  if (G--, J--, J < 0 || A[G] !== ee[J]) {
-                    var ie = `
-` + A[G].replace(" at new ", " at ");
-                    return t.displayName && ie.includes("<anonymous>") && (ie = ie.replace("<anonymous>", t.displayName)), typeof t == "function" && $e.set(t, ie), ie;
+                  if (ee--, re--, re < 0 || Y[ee] !== ue[re]) {
+                    var be = `
+` + Y[ee].replace(" at new ", " at ");
+                    return m.displayName && be.includes("<anonymous>") && (be = be.replace("<anonymous>", m.displayName)), typeof m == "function" && qt.set(m, be), be;
                   }
-                while (G >= 1 && J >= 0);
+                while (ee >= 1 && re >= 0);
               break;
             }
         }
       } finally {
-        _e = !1, X.current = W, U(), Error.prepareStackTrace = M;
+        st = !1, de.current = G, X(), Error.prepareStackTrace = W;
       }
-      var Te = t ? t.displayName || t.name : "", ve = Te ? Ye(Te) : "";
-      return typeof t == "function" && $e.set(t, ve), ve;
+      var nt = m ? m.displayName || m.name : "", We = nt ? jt(nt) : "";
+      return typeof m == "function" && qt.set(m, We), We;
     }
-    function Zt(t, d, b) {
-      return ut(t, !1);
+    function Ca(m, N, M) {
+      return Zr(m, !1);
     }
-    function Qt(t) {
-      var d = t.prototype;
-      return !!(d && d.isReactComponent);
+    function Pa(m) {
+      var N = m.prototype;
+      return !!(N && N.isReactComponent);
     }
-    function We(t, d, b) {
-      if (t == null)
+    function Xt(m, N, M) {
+      if (m == null)
         return "";
-      if (typeof t == "function")
-        return ut(t, Qt(t));
-      if (typeof t == "string")
-        return Ye(t);
-      switch (t) {
-        case v:
-          return Ye("Suspense");
-        case x:
-          return Ye("SuspenseList");
+      if (typeof m == "function")
+        return Zr(m, Pa(m));
+      if (typeof m == "string")
+        return jt(m);
+      switch (m) {
+        case u:
+          return jt("Suspense");
+        case d:
+          return jt("SuspenseList");
       }
-      if (typeof t == "object")
-        switch (t.$$typeof) {
-          case u:
-            return Zt(t.render);
-          case C:
-            return We(t.type, d, b);
-          case P: {
-            var E = t, M = E._payload, W = E._init;
+      if (typeof m == "object")
+        switch (m.$$typeof) {
+          case c:
+            return Ca(m.render);
+          case h:
+            return Xt(m.type, N, M);
+          case f: {
+            var F = m, W = F._payload, G = F._init;
             try {
-              return We(W(M), d, b);
+              return Xt(G(W), N, M);
             } catch {
             }
           }
         }
       return "";
     }
-    var Ae = Object.prototype.hasOwnProperty, mt = {}, gt = R.ReactDebugCurrentFrame;
-    function Ue(t) {
-      if (t) {
-        var d = t._owner, b = We(t.type, t._source, d ? d.type : null);
-        gt.setExtraStackFrame(b);
+    var Nt = Object.prototype.hasOwnProperty, Jr = {}, Qr = j.ReactDebugCurrentFrame;
+    function Zt(m) {
+      if (m) {
+        var N = m._owner, M = Xt(m.type, m._source, N ? N.type : null);
+        Qr.setExtraStackFrame(M);
       } else
-        gt.setExtraStackFrame(null);
+        Qr.setExtraStackFrame(null);
     }
-    function Xt(t, d, b, E, M) {
+    function _a(m, N, M, F, W) {
       {
-        var W = Function.call.bind(Ae);
-        for (var F in t)
-          if (W(t, F)) {
-            var A = void 0;
+        var G = Function.call.bind(Nt);
+        for (var z in m)
+          if (G(m, z)) {
+            var Y = void 0;
             try {
-              if (typeof t[F] != "function") {
-                var ee = Error((E || "React class") + ": " + b + " type `" + F + "` is invalid; it must be a function, usually from the `prop-types` package, but received `" + typeof t[F] + "`.This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.");
-                throw ee.name = "Invariant Violation", ee;
+              if (typeof m[z] != "function") {
+                var ue = Error((F || "React class") + ": " + M + " type `" + z + "` is invalid; it must be a function, usually from the `prop-types` package, but received `" + typeof m[z] + "`.This often happens because of typos such as `PropTypes.function` instead of `PropTypes.func`.");
+                throw ue.name = "Invariant Violation", ue;
               }
-              A = t[F](d, F, E, b, null, "SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED");
-            } catch (G) {
-              A = G;
+              Y = m[z](N, z, F, M, null, "SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED");
+            } catch (ee) {
+              Y = ee;
             }
-            A && !(A instanceof Error) && (Ue(M), S("%s: type specification of %s `%s` is invalid; the type checker function must return `null` or an `Error` but returned a %s. You may have forgotten to pass an argument to the type checker creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and shape all require an argument).", E || "React class", b, F, typeof A), Ue(null)), A instanceof Error && !(A.message in mt) && (mt[A.message] = !0, Ue(M), S("Failed %s type: %s", b, A.message), Ue(null));
+            Y && !(Y instanceof Error) && (Zt(W), w("%s: type specification of %s `%s` is invalid; the type checker function must return `null` or an `Error` but returned a %s. You may have forgotten to pass an argument to the type checker creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and shape all require an argument).", F || "React class", M, z, typeof Y), Zt(null)), Y instanceof Error && !(Y.message in Jr) && (Jr[Y.message] = !0, Zt(W), w("Failed %s type: %s", M, Y.message), Zt(null));
           }
       }
     }
-    var er = Array.isArray;
-    function rt(t) {
-      return er(t);
+    var Aa = Array.isArray;
+    function Ts(m) {
+      return Aa(m);
     }
-    function tr(t) {
+    function Ea(m) {
       {
-        var d = typeof Symbol == "function" && Symbol.toStringTag, b = d && t[Symbol.toStringTag] || t.constructor.name || "Object";
-        return b;
+        var N = typeof Symbol == "function" && Symbol.toStringTag, M = N && m[Symbol.toStringTag] || m.constructor.name || "Object";
+        return M;
       }
     }
-    function rr(t) {
+    function Ma(m) {
       try {
-        return pt(t), !1;
+        return en(m), !1;
       } catch {
         return !0;
       }
     }
-    function pt(t) {
-      return "" + t;
+    function en(m) {
+      return "" + m;
     }
-    function ft(t) {
-      if (rr(t))
-        return S("The provided key is an unsupported type %s. This value must be coerced to a string before before using it here.", tr(t)), pt(t);
+    function tn(m) {
+      if (Ma(m))
+        return w("The provided key is an unsupported type %s. This value must be coerced to a string before before using it here.", Ea(m)), en(m);
     }
-    var xt = R.ReactCurrentOwner, sr = {
+    var sn = j.ReactCurrentOwner, Da = {
       key: !0,
       ref: !0,
       __self: !0,
       __source: !0
-    }, bt, yt;
-    function ar(t) {
-      if (Ae.call(t, "ref")) {
-        var d = Object.getOwnPropertyDescriptor(t, "ref").get;
-        if (d && d.isReactWarning)
+    }, rn, nn;
+    function Ra(m) {
+      if (Nt.call(m, "ref")) {
+        var N = Object.getOwnPropertyDescriptor(m, "ref").get;
+        if (N && N.isReactWarning)
           return !1;
       }
-      return t.ref !== void 0;
+      return m.ref !== void 0;
     }
-    function nr(t) {
-      if (Ae.call(t, "key")) {
-        var d = Object.getOwnPropertyDescriptor(t, "key").get;
-        if (d && d.isReactWarning)
+    function Va(m) {
+      if (Nt.call(m, "key")) {
+        var N = Object.getOwnPropertyDescriptor(m, "key").get;
+        if (N && N.isReactWarning)
           return !1;
       }
-      return t.key !== void 0;
+      return m.key !== void 0;
     }
-    function or(t, d) {
-      typeof t.ref == "string" && xt.current;
+    function La(m, N) {
+      typeof m.ref == "string" && sn.current;
     }
-    function ir(t, d) {
+    function Fa(m, N) {
       {
-        var b = function() {
-          bt || (bt = !0, S("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)", d));
+        var M = function() {
+          rn || (rn = !0, w("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)", N));
         };
-        b.isReactWarning = !0, Object.defineProperty(t, "key", {
-          get: b,
+        M.isReactWarning = !0, Object.defineProperty(m, "key", {
+          get: M,
           configurable: !0
         });
       }
     }
-    function lr(t, d) {
+    function Ia(m, N) {
       {
-        var b = function() {
-          yt || (yt = !0, S("%s: `ref` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)", d));
+        var M = function() {
+          nn || (nn = !0, w("%s: `ref` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://reactjs.org/link/special-props)", N));
         };
-        b.isReactWarning = !0, Object.defineProperty(t, "ref", {
-          get: b,
+        M.isReactWarning = !0, Object.defineProperty(m, "ref", {
+          get: M,
           configurable: !0
         });
       }
     }
-    var dr = function(t, d, b, E, M, W, F) {
-      var A = {
+    var Oa = function(m, N, M, F, W, G, z) {
+      var Y = {
         // This tag allows us to uniquely identify this as a React Element
-        $$typeof: n,
+        $$typeof: t,
         // Built-in properties that belong on the element
-        type: t,
-        key: d,
-        ref: b,
-        props: F,
+        type: m,
+        key: N,
+        ref: M,
+        props: z,
         // Record the component responsible for creating this element.
-        _owner: W
+        _owner: G
       };
-      return A._store = {}, Object.defineProperty(A._store, "validated", {
+      return Y._store = {}, Object.defineProperty(Y._store, "validated", {
         configurable: !1,
         enumerable: !1,
         writable: !0,
         value: !1
-      }), Object.defineProperty(A, "_self", {
+      }), Object.defineProperty(Y, "_self", {
         configurable: !1,
         enumerable: !1,
         writable: !1,
-        value: E
-      }), Object.defineProperty(A, "_source", {
+        value: F
+      }), Object.defineProperty(Y, "_source", {
         configurable: !1,
         enumerable: !1,
         writable: !1,
-        value: M
-      }), Object.freeze && (Object.freeze(A.props), Object.freeze(A)), A;
+        value: W
+      }), Object.freeze && (Object.freeze(Y.props), Object.freeze(Y)), Y;
     };
-    function cr(t, d, b, E, M) {
+    function Ya(m, N, M, F, W) {
       {
-        var W, F = {}, A = null, ee = null;
-        b !== void 0 && (ft(b), A = "" + b), nr(d) && (ft(d.key), A = "" + d.key), ar(d) && (ee = d.ref, or(d, M));
-        for (W in d)
-          Ae.call(d, W) && !sr.hasOwnProperty(W) && (F[W] = d[W]);
-        if (t && t.defaultProps) {
-          var G = t.defaultProps;
-          for (W in G)
-            F[W] === void 0 && (F[W] = G[W]);
+        var G, z = {}, Y = null, ue = null;
+        M !== void 0 && (tn(M), Y = "" + M), Va(N) && (tn(N.key), Y = "" + N.key), Ra(N) && (ue = N.ref, La(N, W));
+        for (G in N)
+          Nt.call(N, G) && !Da.hasOwnProperty(G) && (z[G] = N[G]);
+        if (m && m.defaultProps) {
+          var ee = m.defaultProps;
+          for (G in ee)
+            z[G] === void 0 && (z[G] = ee[G]);
         }
-        if (A || ee) {
-          var J = typeof t == "function" ? t.displayName || t.name || "Unknown" : t;
-          A && ir(F, J), ee && lr(F, J);
+        if (Y || ue) {
+          var re = typeof m == "function" ? m.displayName || m.name || "Unknown" : m;
+          Y && Fa(z, re), ue && Ia(z, re);
         }
-        return dr(t, A, ee, M, E, xt.current, F);
+        return Oa(m, Y, ue, W, F, sn.current, z);
       }
     }
-    var st = R.ReactCurrentOwner, vt = R.ReactDebugCurrentFrame;
-    function Ce(t) {
-      if (t) {
-        var d = t._owner, b = We(t.type, t._source, d ? d.type : null);
-        vt.setExtraStackFrame(b);
+    var Ss = j.ReactCurrentOwner, on = j.ReactDebugCurrentFrame;
+    function rt(m) {
+      if (m) {
+        var N = m._owner, M = Xt(m.type, m._source, N ? N.type : null);
+        on.setExtraStackFrame(M);
       } else
-        vt.setExtraStackFrame(null);
+        on.setExtraStackFrame(null);
     }
-    var at;
-    at = !1;
-    function nt(t) {
-      return typeof t == "object" && t !== null && t.$$typeof === n;
+    var Cs;
+    Cs = !1;
+    function Ps(m) {
+      return typeof m == "object" && m !== null && m.$$typeof === t;
     }
-    function wt() {
+    function an() {
       {
-        if (st.current) {
-          var t = $(st.current.type);
-          if (t)
+        if (Ss.current) {
+          var m = K(Ss.current.type);
+          if (m)
             return `
 
-Check the render method of \`` + t + "`.";
+Check the render method of \`` + m + "`.";
         }
         return "";
       }
     }
-    function hr(t) {
+    function Ba(m) {
       return "";
     }
-    var jt = {};
-    function ur(t) {
+    var ln = {};
+    function za(m) {
       {
-        var d = wt();
-        if (!d) {
-          var b = typeof t == "string" ? t : t.displayName || t.name;
-          b && (d = `
+        var N = an();
+        if (!N) {
+          var M = typeof m == "string" ? m : m.displayName || m.name;
+          M && (N = `
 
-Check the top-level render call using <` + b + ">.");
+Check the top-level render call using <` + M + ">.");
         }
-        return d;
+        return N;
       }
     }
-    function Nt(t, d) {
+    function cn(m, N) {
       {
-        if (!t._store || t._store.validated || t.key != null)
+        if (!m._store || m._store.validated || m.key != null)
           return;
-        t._store.validated = !0;
-        var b = ur(d);
-        if (jt[b])
+        m._store.validated = !0;
+        var M = za(N);
+        if (ln[M])
           return;
-        jt[b] = !0;
-        var E = "";
-        t && t._owner && t._owner !== st.current && (E = " It was passed a child from " + $(t._owner.type) + "."), Ce(t), S('Each child in a list should have a unique "key" prop.%s%s See https://reactjs.org/link/warning-keys for more information.', b, E), Ce(null);
+        ln[M] = !0;
+        var F = "";
+        m && m._owner && m._owner !== Ss.current && (F = " It was passed a child from " + K(m._owner.type) + "."), rt(m), w('Each child in a list should have a unique "key" prop.%s%s See https://reactjs.org/link/warning-keys for more information.', M, F), rt(null);
       }
     }
-    function kt(t, d) {
+    function dn(m, N) {
       {
-        if (typeof t != "object")
+        if (typeof m != "object")
           return;
-        if (rt(t))
-          for (var b = 0; b < t.length; b++) {
-            var E = t[b];
-            nt(E) && Nt(E, d);
+        if (Ts(m))
+          for (var M = 0; M < m.length; M++) {
+            var F = m[M];
+            Ps(F) && cn(F, N);
           }
-        else if (nt(t))
-          t._store && (t._store.validated = !0);
-        else if (t) {
-          var M = I(t);
-          if (typeof M == "function" && M !== t.entries)
-            for (var W = M.call(t), F; !(F = W.next()).done; )
-              nt(F.value) && Nt(F.value, d);
+        else if (Ps(m))
+          m._store && (m._store.validated = !0);
+        else if (m) {
+          var W = C(m);
+          if (typeof W == "function" && W !== m.entries)
+            for (var G = W.call(m), z; !(z = G.next()).done; )
+              Ps(z.value) && cn(z.value, N);
         }
       }
     }
-    function mr(t) {
+    function Ua(m) {
       {
-        var d = t.type;
-        if (d == null || typeof d == "string")
+        var N = m.type;
+        if (N == null || typeof N == "string")
           return;
-        var b;
-        if (typeof d == "function")
-          b = d.propTypes;
-        else if (typeof d == "object" && (d.$$typeof === u || // Note: Memo only checks outer props here.
+        var M;
+        if (typeof N == "function")
+          M = N.propTypes;
+        else if (typeof N == "object" && (N.$$typeof === c || // Note: Memo only checks outer props here.
         // Inner props are checked in the reconciler.
-        d.$$typeof === C))
-          b = d.propTypes;
+        N.$$typeof === h))
+          M = N.propTypes;
         else
           return;
-        if (b) {
-          var E = $(d);
-          Xt(b, t.props, "prop", E, t);
-        } else if (d.PropTypes !== void 0 && !at) {
-          at = !0;
-          var M = $(d);
-          S("Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?", M || "Unknown");
+        if (M) {
+          var F = K(N);
+          _a(M, m.props, "prop", F, m);
+        } else if (N.PropTypes !== void 0 && !Cs) {
+          Cs = !0;
+          var W = K(N);
+          w("Component %s declared `PropTypes` instead of `propTypes`. Did you misspell the property assignment?", W || "Unknown");
         }
-        typeof d.getDefaultProps == "function" && !d.getDefaultProps.isReactClassApproved && S("getDefaultProps is only used on classic React.createClass definitions. Use a static property named `defaultProps` instead.");
+        typeof N.getDefaultProps == "function" && !N.getDefaultProps.isReactClassApproved && w("getDefaultProps is only used on classic React.createClass definitions. Use a static property named `defaultProps` instead.");
       }
     }
-    function gr(t) {
+    function $a(m) {
       {
-        for (var d = Object.keys(t.props), b = 0; b < d.length; b++) {
-          var E = d[b];
-          if (E !== "children" && E !== "key") {
-            Ce(t), S("Invalid prop `%s` supplied to `React.Fragment`. React.Fragment can only have `key` and `children` props.", E), Ce(null);
+        for (var N = Object.keys(m.props), M = 0; M < N.length; M++) {
+          var F = N[M];
+          if (F !== "children" && F !== "key") {
+            rt(m), w("Invalid prop `%s` supplied to `React.Fragment`. React.Fragment can only have `key` and `children` props.", F), rt(null);
             break;
           }
         }
-        t.ref !== null && (Ce(t), S("Invalid attribute `ref` supplied to `React.Fragment`."), Ce(null));
+        m.ref !== null && (rt(m), w("Invalid attribute `ref` supplied to `React.Fragment`."), rt(null));
       }
     }
-    var _t = {};
-    function Ct(t, d, b, E, M, W) {
+    var un = {};
+    function hn(m, N, M, F, W, G) {
       {
-        var F = y(t);
-        if (!F) {
-          var A = "";
-          (t === void 0 || typeof t == "object" && t !== null && Object.keys(t).length === 0) && (A += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.");
-          var ee = hr();
-          ee ? A += ee : A += wt();
-          var G;
-          t === null ? G = "null" : rt(t) ? G = "array" : t !== void 0 && t.$$typeof === n ? (G = "<" + ($(t.type) || "Unknown") + " />", A = " Did you accidentally export a JSX literal instead of a component?") : G = typeof t, S("React.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s", G, A);
+        var z = E(m);
+        if (!z) {
+          var Y = "";
+          (m === void 0 || typeof m == "object" && m !== null && Object.keys(m).length === 0) && (Y += " You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.");
+          var ue = Ba();
+          ue ? Y += ue : Y += an();
+          var ee;
+          m === null ? ee = "null" : Ts(m) ? ee = "array" : m !== void 0 && m.$$typeof === t ? (ee = "<" + (K(m.type) || "Unknown") + " />", Y = " Did you accidentally export a JSX literal instead of a component?") : ee = typeof m, w("React.jsx: type is invalid -- expected a string (for built-in components) or a class/function (for composite components) but got: %s.%s", ee, Y);
         }
-        var J = cr(t, d, b, M, W);
-        if (J == null)
-          return J;
-        if (F) {
-          var ie = d.children;
-          if (ie !== void 0)
-            if (E)
-              if (rt(ie)) {
-                for (var Te = 0; Te < ie.length; Te++)
-                  kt(ie[Te], t);
-                Object.freeze && Object.freeze(ie);
+        var re = Ya(m, N, M, W, G);
+        if (re == null)
+          return re;
+        if (z) {
+          var be = N.children;
+          if (be !== void 0)
+            if (F)
+              if (Ts(be)) {
+                for (var nt = 0; nt < be.length; nt++)
+                  dn(be[nt], m);
+                Object.freeze && Object.freeze(be);
               } else
-                S("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");
+                w("React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead.");
             else
-              kt(ie, t);
+              dn(be, m);
         }
-        if (Ae.call(d, "key")) {
-          var ve = $(t), re = Object.keys(d).filter(function(vr) {
-            return vr !== "key";
-          }), ot = re.length > 0 ? "{key: someKey, " + re.join(": ..., ") + ": ...}" : "{key: someKey}";
-          if (!_t[ve + ot]) {
-            var yr = re.length > 0 ? "{" + re.join(": ..., ") + ": ...}" : "{}";
-            S(`A props object containing a "key" prop is being spread into JSX:
+        if (Nt.call(N, "key")) {
+          var We = K(m), me = Object.keys(N).filter(function(Xa) {
+            return Xa !== "key";
+          }), _s = me.length > 0 ? "{key: someKey, " + me.join(": ..., ") + ": ...}" : "{key: someKey}";
+          if (!un[We + _s]) {
+            var qa = me.length > 0 ? "{" + me.join(": ..., ") + ": ...}" : "{}";
+            w(`A props object containing a "key" prop is being spread into JSX:
   let props = %s;
   <%s {...props} />
 React keys must be passed directly to JSX without using spread:
   let props = %s;
-  <%s key={someKey} {...props} />`, ot, ve, yr, ve), _t[ve + ot] = !0;
+  <%s key={someKey} {...props} />`, _s, We, qa, We), un[We + _s] = !0;
           }
         }
-        return t === h ? gr(J) : mr(J), J;
+        return m === n ? $a(re) : Ua(re), re;
       }
     }
-    function pr(t, d, b) {
-      return Ct(t, d, b, !0);
+    function Wa(m, N, M) {
+      return hn(m, N, M, !0);
     }
-    function fr(t, d, b) {
-      return Ct(t, d, b, !1);
+    function Ha(m, N, M) {
+      return hn(m, N, M, !1);
     }
-    var xr = fr, br = pr;
-    Le.Fragment = h, Le.jsx = xr, Le.jsxs = br;
-  }()), Le;
+    var Ka = Ha, Ga = Wa;
+    Tt.Fragment = n, Tt.jsx = Ka, Tt.jsxs = Ga;
+  }()), Tt;
 }
-process.env.NODE_ENV === "production" ? it.exports = Br() : it.exports = Hr();
-var e = it.exports;
-function ne(...s) {
-  return Ut(Wt(s));
+process.env.NODE_ENV === "production" ? Hs.exports = Cl() : Hs.exports = Pl();
+var s = Hs.exports;
+function pe(...e) {
+  return Bi(Yi(e));
 }
-const Gr = It(void 0), Vr = () => {
-  const s = zt(Gr);
-  if (s === void 0)
+const _l = Ue(void 0), Al = () => {
+  const e = le(_l);
+  if (e === void 0)
     throw new Error("useAuth must be used within an AuthProvider");
-  return s;
-}, pe = {}, lt = typeof window < "u", Ie = (pe == null ? void 0 : pe.VITE_SUPABASE_URL) || process.env.VITE_SUPABASE_URL || "", tt = (pe == null ? void 0 : pe.VITE_SUPABASE_ANON_KEY) || process.env.VITE_SUPABASE_ANON_KEY || "";
-console.log("DEBUG: supabaseUrl (raw):", Ie);
-console.log("DEBUG: supabaseAnonKey (raw):", tt);
-((pe == null ? void 0 : pe.VITE_DEBUG) === "true" || process.env.VITE_DEBUG === "true") && (console.log("Supabase URL:", Ie ? "✅ Set" : "❌ Missing"), console.log("Supabase Anon Key:", tt ? "✅ Set" : "❌ Missing"));
-if ((!Ie || !tt) && lt) {
-  const s = `
+  return e;
+}, Me = {}, Ks = typeof window < "u", Lt = (Me == null ? void 0 : Me.VITE_SUPABASE_URL) || process.env.VITE_SUPABASE_URL || "", ws = (Me == null ? void 0 : Me.VITE_SUPABASE_ANON_KEY) || process.env.VITE_SUPABASE_ANON_KEY || "";
+console.log("DEBUG: supabaseUrl (raw):", Lt);
+console.log("DEBUG: supabaseAnonKey (raw):", ws);
+((Me == null ? void 0 : Me.VITE_DEBUG) === "true" || process.env.VITE_DEBUG === "true") && (console.log("Supabase URL:", Lt ? "✅ Set" : "❌ Missing"), console.log("Supabase Anon Key:", ws ? "✅ Set" : "❌ Missing"));
+if ((!Lt || !ws) && Ks) {
+  const e = `
     Missing Supabase environment variables.
     Please check your .env file and ensure the following are set:
     - VITE_SUPABASE_URL
     - VITE_SUPABASE_ANON_KEY
   `;
-  throw console.error(s), new Error(s);
+  throw console.error(e), new Error(e);
 }
-let ae;
-var Rt;
+let ge;
+var Vi;
 try {
-  ae = kr(Ie, tt, {
+  ge = ol(Lt, ws, {
     auth: {
       persistSession: !0,
       autoRefreshToken: !0,
       detectSessionInUrl: !0,
-      storage: lt ? window.localStorage : void 0
+      storage: Ks ? window.localStorage : void 0
     }
-  }), typeof process < "u" && ((Rt = process.env) == null ? void 0 : Rt.NODE_ENV) === "development" && lt && console.log("Supabase client initialized with URL:", Ie);
-} catch (s) {
-  throw console.error("Error initializing Supabase client:", s), s;
+  }), typeof process < "u" && ((Vi = process.env) == null ? void 0 : Vi.NODE_ENV) === "development" && Ks && console.log("Supabase client initialized with URL:", Lt);
+} catch (e) {
+  throw console.error("Error initializing Supabase client:", e), e;
 }
-const Vt = It(void 0), Jt = () => {
-  const s = zt(Vt);
-  if (!s)
+const Hi = Ue(void 0), Ki = () => {
+  const e = le(Hi);
+  if (!e)
     throw new Error("useAdminSideNav must be used within AdminSideNavProvider");
-  return s;
-}, nn = ({ children: s }) => {
-  const [n, i] = p(!1), h = () => {
-    console.log("AdminSideNav: toggle called, current state:", n), i(!n);
-  }, m = () => {
-    console.log("AdminSideNav: close called, current state:", n), i(!1);
+  return e;
+}, Sf = ({ children: e }) => {
+  const [t, r] = _(!1), n = () => {
+    console.log("AdminSideNav: toggle called, current state:", t), r(!t);
+  }, i = () => {
+    console.log("AdminSideNav: close called, current state:", t), r(!1);
   };
-  return /* @__PURE__ */ e.jsx(Vt.Provider, { value: { isOpen: n, toggle: h, close: m }, children: s });
-}, Jr = [
-  { name: "Dashboard", href: "/account/admin", icon: _r },
-  { name: "Products", href: "/account/admin/products", icon: je },
-  { name: "Orders", href: "/account/admin/orders", icon: Ne },
-  { name: "Inventory", href: "/account/admin/inventory", icon: Cr },
-  { name: "Analytics", href: "/account/admin/analytics", icon: Ve },
-  { name: "Posts", href: "/account/admin/posts", icon: ye },
-  { name: "Works", href: "/account/admin/works", icon: Ze },
-  { name: "Timeline", href: "/account/admin/timeline/events", icon: dt },
-  { name: "Users", href: "/account/admin/users", icon: Qe },
-  { name: "Beta Applications", href: "/account/admin/beta-applications", icon: Qe },
-  { name: "Webhooks", href: "/account/admin/webhooks", icon: Tr },
-  { name: "Media", href: "/account/admin/media", icon: xe },
-  { name: "Settings", href: "/account/admin/settings", icon: ct }
-], on = () => {
-  const { isOpen: s, toggle: n } = Jt();
-  return s ? null : /* @__PURE__ */ e.jsx(
+  return /* @__PURE__ */ s.jsx(Hi.Provider, { value: { isOpen: t, toggle: n, close: i }, children: e });
+}, El = [
+  { name: "Dashboard", href: "/account/admin", icon: al },
+  { name: "Products", href: "/account/admin/products", icon: Ze },
+  { name: "Orders", href: "/account/admin/orders", icon: et },
+  { name: "Inventory", href: "/account/admin/inventory", icon: ll },
+  { name: "Analytics", href: "/account/admin/analytics", icon: is },
+  { name: "Posts", href: "/account/admin/posts", icon: Ye },
+  { name: "Works", href: "/account/admin/works", icon: hs },
+  { name: "Timeline", href: "/account/admin/timeline/events", icon: pr },
+  { name: "Users", href: "/account/admin/users", icon: ms },
+  { name: "Beta Applications", href: "/account/admin/beta-applications", icon: ms },
+  { name: "Webhooks", href: "/account/admin/webhooks", icon: cl },
+  { name: "Media", href: "/account/admin/media", icon: Ie },
+  { name: "Settings", href: "/account/admin/settings", icon: xr }
+], Cf = () => {
+  const { isOpen: e, toggle: t } = Ki();
+  return e ? null : /* @__PURE__ */ s.jsx(
     "button",
     {
-      onClick: n,
+      onClick: t,
       className: "fixed top-4 left-4 z-[10000] p-3 rounded-lg bg-slate-800 border border-amber-500/50 shadow-xl hover:bg-slate-700 hover:border-amber-400 text-amber-300 hover:text-amber-200 transition-all duration-300 group",
       "aria-label": "Toggle navigation menu",
-      children: /* @__PURE__ */ e.jsx(Er, { size: 20, className: "transition-transform duration-200 group-hover:scale-110" })
+      children: /* @__PURE__ */ s.jsx(ul, { size: 20, className: "transition-transform duration-200 group-hover:scale-110" })
     }
   );
-}, ln = () => {
-  var g, u;
-  const { isOpen: s, close: n } = Jt(), i = $t(), { user: h, userProfile: m } = Vr(), f = async () => {
-    await ae.auth.signOut(), i("/");
-  }, N = () => {
-    console.log("AdminSideNav: handleLinkClick called"), n();
+}, Pf = () => {
+  var l, c;
+  const { isOpen: e, close: t } = Ki(), r = Oi(), { user: n, userProfile: i } = Al(), a = async () => {
+    await ge.auth.signOut(), r("/");
+  }, o = () => {
+    console.log("AdminSideNav: handleLinkClick called"), t();
   };
-  return he(() => {
-    const v = (x) => {
-      x.key === "Escape" && s && (console.log("AdminSideNav: Escape key pressed"), n());
+  return xe(() => {
+    const u = (d) => {
+      d.key === "Escape" && e && (console.log("AdminSideNav: Escape key pressed"), t());
     };
-    return document.addEventListener("keydown", v), () => document.removeEventListener("keydown", v);
-  }, [s, n]), s ? /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-    /* @__PURE__ */ e.jsx(
+    return document.addEventListener("keydown", u), () => document.removeEventListener("keydown", u);
+  }, [e, t]), e ? /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+    /* @__PURE__ */ s.jsx(
       "div",
       {
         className: "fixed inset-0 bg-black/50 z-[9998]",
-        onClick: n
+        onClick: t
       }
     ),
-    /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsx(
       "aside",
       {
         className: "fixed top-0 left-0 z-[9999] h-screen w-80 border-r border-amber-500 shadow-2xl animate-in slide-in-from-left duration-300",
         style: { backgroundColor: "#0f172a", backdropFilter: "none" },
-        children: /* @__PURE__ */ e.jsxs("div", { className: "h-full flex flex-col relative", style: { backgroundColor: "#0f172a", backdropFilter: "none" }, children: [
-          /* @__PURE__ */ e.jsx("div", { className: "absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-amber-400 via-yellow-500 to-amber-600" }),
-          /* @__PURE__ */ e.jsx("div", { className: "p-6 border-b border-amber-500", style: { backgroundColor: "#1e293b", backdropFilter: "none" }, children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-            /* @__PURE__ */ e.jsxs("div", { className: "flex items-center space-x-3", children: [
-              /* @__PURE__ */ e.jsx("div", { className: "w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg", children: /* @__PURE__ */ e.jsx("span", { className: "text-slate-900 font-bold text-lg", children: "Z" }) }),
-              /* @__PURE__ */ e.jsxs("div", { children: [
-                /* @__PURE__ */ e.jsx("h2", { className: "text-xl font-bold text-amber-300", children: "Zoroaster" }),
-                /* @__PURE__ */ e.jsx("p", { className: "text-xs text-slate-400 font-medium", children: "Admin Panel" })
+        children: /* @__PURE__ */ s.jsxs("div", { className: "h-full flex flex-col relative", style: { backgroundColor: "#0f172a", backdropFilter: "none" }, children: [
+          /* @__PURE__ */ s.jsx("div", { className: "absolute inset-y-0 right-0 w-1 bg-gradient-to-b from-amber-400 via-yellow-500 to-amber-600" }),
+          /* @__PURE__ */ s.jsx("div", { className: "p-6 border-b border-amber-500", style: { backgroundColor: "#1e293b", backdropFilter: "none" }, children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+            /* @__PURE__ */ s.jsxs("div", { className: "flex items-center space-x-3", children: [
+              /* @__PURE__ */ s.jsx("div", { className: "w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-lg flex items-center justify-center shadow-lg", children: /* @__PURE__ */ s.jsx("span", { className: "text-slate-900 font-bold text-lg", children: "Z" }) }),
+              /* @__PURE__ */ s.jsxs("div", { children: [
+                /* @__PURE__ */ s.jsx("h2", { className: "text-xl font-bold text-amber-300", children: "Zoroaster" }),
+                /* @__PURE__ */ s.jsx("p", { className: "text-xs text-slate-400 font-medium", children: "Admin Panel" })
               ] })
             ] }),
-            /* @__PURE__ */ e.jsx(
+            /* @__PURE__ */ s.jsx(
               "button",
               {
-                onClick: n,
+                onClick: t,
                 className: "p-2 rounded-lg hover:bg-slate-700/50 text-slate-400 hover:text-amber-300 transition-colors duration-200",
                 "aria-label": "Close menu",
-                children: /* @__PURE__ */ e.jsx(ge, { size: 20, className: "transition-transform duration-200 hover:rotate-90" })
+                children: /* @__PURE__ */ s.jsx(Ee, { size: 20, className: "transition-transform duration-200 hover:rotate-90" })
               }
             )
           ] }) }),
-          /* @__PURE__ */ e.jsx("nav", { className: "flex-1 overflow-y-auto py-4 px-3", style: { backgroundColor: "#0f172a", backdropFilter: "none" }, children: /* @__PURE__ */ e.jsx("ul", { className: "space-y-2", children: Jr.map((v) => /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx(
-            Ge,
+          /* @__PURE__ */ s.jsx("nav", { className: "flex-1 overflow-y-auto py-4 px-3", style: { backgroundColor: "#0f172a", backdropFilter: "none" }, children: /* @__PURE__ */ s.jsx("ul", { className: "space-y-2", children: El.map((u) => /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx(
+            ns,
             {
-              to: v.href,
-              end: v.href === "/account/admin",
-              onClick: N,
-              className: ({ isActive: x }) => ne(
+              to: u.href,
+              end: u.href === "/account/admin",
+              onClick: o,
+              className: ({ isActive: d }) => pe(
                 "group flex items-center p-3 rounded-xl transition-all duration-200 relative overflow-hidden space-x-3",
-                x ? "bg-amber-600 text-amber-100 border border-amber-500 shadow-md" : "text-slate-300 hover:bg-slate-700 hover:text-amber-200 border border-transparent hover:border-amber-500"
+                d ? "bg-amber-600 text-amber-100 border border-amber-500 shadow-md" : "text-slate-300 hover:bg-slate-700 hover:text-amber-200 border border-transparent hover:border-amber-500"
               ),
-              children: ({ isActive: x }) => /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-                x && /* @__PURE__ */ e.jsx("div", { className: "absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-amber-400 to-yellow-500 rounded-r" }),
-                /* @__PURE__ */ e.jsx(
-                  v.icon,
+              children: ({ isActive: d }) => /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+                d && /* @__PURE__ */ s.jsx("div", { className: "absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-amber-400 to-yellow-500 rounded-r" }),
+                /* @__PURE__ */ s.jsx(
+                  u.icon,
                   {
                     size: 20,
-                    className: ne(
+                    className: pe(
                       "flex-shrink-0 transition-all duration-200",
-                      x ? "text-amber-400 drop-shadow-sm" : "group-hover:text-amber-300"
+                      d ? "text-amber-400 drop-shadow-sm" : "group-hover:text-amber-300"
                     )
                   }
                 ),
-                /* @__PURE__ */ e.jsx("span", { className: ne(
+                /* @__PURE__ */ s.jsx("span", { className: pe(
                   "font-medium transition-all duration-200",
-                  x ? "text-amber-200" : "group-hover:text-amber-200"
-                ), children: v.name })
+                  d ? "text-amber-200" : "group-hover:text-amber-200"
+                ), children: u.name })
               ] })
             }
-          ) }, v.name)) }) }),
-          /* @__PURE__ */ e.jsx("div", { className: "p-4 border-t border-amber-500", style: { backgroundColor: "#1e293b", backdropFilter: "none" }, children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-            /* @__PURE__ */ e.jsxs("div", { className: "flex items-center space-x-3", children: [
-              /* @__PURE__ */ e.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-slate-900 font-bold shadow-lg ring-2 ring-amber-400/30", children: ((g = m == null ? void 0 : m.display_name) == null ? void 0 : g.charAt(0)) || ((u = h == null ? void 0 : h.email) == null ? void 0 : u.charAt(0).toUpperCase()) }),
-              /* @__PURE__ */ e.jsxs("div", { children: [
-                /* @__PURE__ */ e.jsx("p", { className: "text-sm font-semibold text-amber-200 truncate max-w-[160px]", children: (m == null ? void 0 : m.display_name) || "Admin User" }),
-                /* @__PURE__ */ e.jsx("p", { className: "text-xs text-slate-400 truncate max-w-[160px]", children: h == null ? void 0 : h.email })
+          ) }, u.name)) }) }),
+          /* @__PURE__ */ s.jsx("div", { className: "p-4 border-t border-amber-500", style: { backgroundColor: "#1e293b", backdropFilter: "none" }, children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+            /* @__PURE__ */ s.jsxs("div", { className: "flex items-center space-x-3", children: [
+              /* @__PURE__ */ s.jsx("div", { className: "w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center text-slate-900 font-bold shadow-lg ring-2 ring-amber-400/30", children: ((l = i == null ? void 0 : i.display_name) == null ? void 0 : l.charAt(0)) || ((c = n == null ? void 0 : n.email) == null ? void 0 : c.charAt(0).toUpperCase()) }),
+              /* @__PURE__ */ s.jsxs("div", { children: [
+                /* @__PURE__ */ s.jsx("p", { className: "text-sm font-semibold text-amber-200 truncate max-w-[160px]", children: (i == null ? void 0 : i.display_name) || "Admin User" }),
+                /* @__PURE__ */ s.jsx("p", { className: "text-xs text-slate-400 truncate max-w-[160px]", children: n == null ? void 0 : n.email })
               ] })
             ] }),
-            /* @__PURE__ */ e.jsx(
+            /* @__PURE__ */ s.jsx(
               "button",
               {
-                onClick: f,
+                onClick: a,
                 className: "p-2 rounded-lg hover:bg-gradient-to-r hover:from-red-500/20 hover:to-red-600/10 text-slate-400 hover:text-red-300 transition-all duration-200 border border-transparent hover:border-red-500/30",
                 title: "Sign out",
-                children: /* @__PURE__ */ e.jsx(Sr, { size: 18 })
+                children: /* @__PURE__ */ s.jsx(dl, { size: 18 })
               }
             )
           ] }) })
@@ -803,292 +803,292 @@ const Vt = It(void 0), Jt = () => {
       }
     )
   ] }) : null;
-}, dn = ({ children: s }) => {
-  var N, g;
-  const [n, i] = p(!0), [h, m] = p({ isAuthenticated: !1, isAdmin: !1 }), f = wr();
-  return he(() => {
+}, _f = ({ children: e }) => {
+  var o, l;
+  const [t, r] = _(!0), [n, i] = _({ isAuthenticated: !1, isAdmin: !1 }), a = rl();
+  return xe(() => {
     (async () => {
       console.log("⏳ [AdminProtectedRoute] Checking session and admin status...");
-      const { data: { session: v }, error: x } = await ae.auth.getSession();
-      if (x || !v) {
-        console.log("🔒 [AdminProtectedRoute] No authenticated session found."), m({ isAuthenticated: !1, isAdmin: !1 }), i(!1);
+      const { data: { session: u }, error: d } = await ge.auth.getSession();
+      if (d || !u) {
+        console.log("🔒 [AdminProtectedRoute] No authenticated session found."), i({ isAuthenticated: !1, isAdmin: !1 }), r(!1);
         return;
       }
-      console.log("✅ [AdminProtectedRoute] Session found. User:", v.user.email);
-      const { data: C, error: P } = await ae.rpc("is_admin");
-      P && console.error("❌ [AdminProtectedRoute] Error calling is_admin RPC:", P);
-      const T = {
+      console.log("✅ [AdminProtectedRoute] Session found. User:", u.user.email);
+      const { data: h, error: f } = await ge.rpc("is_admin");
+      f && console.error("❌ [AdminProtectedRoute] Error calling is_admin RPC:", f);
+      const y = {
         isAuthenticated: !0,
-        isAdmin: C === !0,
-        user: v.user
+        isAdmin: h === !0,
+        user: u.user
       };
-      console.log("✅ [AdminProtectedRoute] Final auth state:", T), m(T), i(!1);
+      console.log("✅ [AdminProtectedRoute] Final auth state:", y), i(y), r(!1);
     })();
-  }, []), n ? /* @__PURE__ */ e.jsx("div", { className: "min-h-screen flex items-center justify-center bg-gray-900 text-white", children: /* @__PURE__ */ e.jsxs("div", { className: "text-center", children: [
-    /* @__PURE__ */ e.jsx("div", { className: "animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto" }),
-    /* @__PURE__ */ e.jsx("p", { className: "mt-4", children: "Verifying Admin Privileges..." })
-  ] }) }) : h.isAuthenticated ? h.isAdmin ? /* @__PURE__ */ e.jsx(e.Fragment, { children: s }) : (console.log("❌ [AdminProtectedRoute] Access Denied. User is not an admin."), /* @__PURE__ */ e.jsx("div", { className: "min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 text-white", children: /* @__PURE__ */ e.jsx("div", { className: "max-w-4xl mx-auto", children: /* @__PURE__ */ e.jsxs("div", { className: "bg-gray-800 shadow-lg rounded-lg overflow-hidden", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "bg-red-600 p-6", children: [
-      /* @__PURE__ */ e.jsx("h1", { className: "text-2xl font-bold", children: "Access Denied" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-red-100", children: "You do not have the necessary permissions to view this page." })
+  }, []), t ? /* @__PURE__ */ s.jsx("div", { className: "min-h-screen flex items-center justify-center bg-gray-900 text-white", children: /* @__PURE__ */ s.jsxs("div", { className: "text-center", children: [
+    /* @__PURE__ */ s.jsx("div", { className: "animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto" }),
+    /* @__PURE__ */ s.jsx("p", { className: "mt-4", children: "Verifying Admin Privileges..." })
+  ] }) }) : n.isAuthenticated ? n.isAdmin ? /* @__PURE__ */ s.jsx(s.Fragment, { children: e }) : (console.log("❌ [AdminProtectedRoute] Access Denied. User is not an admin."), /* @__PURE__ */ s.jsx("div", { className: "min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8 text-white", children: /* @__PURE__ */ s.jsx("div", { className: "max-w-4xl mx-auto", children: /* @__PURE__ */ s.jsxs("div", { className: "bg-gray-800 shadow-lg rounded-lg overflow-hidden", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "bg-red-600 p-6", children: [
+      /* @__PURE__ */ s.jsx("h1", { className: "text-2xl font-bold", children: "Access Denied" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-red-100", children: "You do not have the necessary permissions to view this page." })
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: "p-6 space-y-4", children: [
-      /* @__PURE__ */ e.jsx("p", { children: "The page you are trying to access is restricted to administrators only." }),
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsx("h2", { className: "text-lg font-medium text-gray-300 mb-2", children: "Your Account Details" }),
-        /* @__PURE__ */ e.jsxs("dl", { className: "bg-gray-700/50 rounded-lg p-4 space-y-2 text-sm", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex justify-between", children: [
-            /* @__PURE__ */ e.jsx("dt", { className: "text-gray-400", children: "User ID" }),
-            /* @__PURE__ */ e.jsx("dd", { className: "font-mono", children: ((N = h.user) == null ? void 0 : N.id) || "N/A" })
+    /* @__PURE__ */ s.jsxs("div", { className: "p-6 space-y-4", children: [
+      /* @__PURE__ */ s.jsx("p", { children: "The page you are trying to access is restricted to administrators only." }),
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsx("h2", { className: "text-lg font-medium text-gray-300 mb-2", children: "Your Account Details" }),
+        /* @__PURE__ */ s.jsxs("dl", { className: "bg-gray-700/50 rounded-lg p-4 space-y-2 text-sm", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex justify-between", children: [
+            /* @__PURE__ */ s.jsx("dt", { className: "text-gray-400", children: "User ID" }),
+            /* @__PURE__ */ s.jsx("dd", { className: "font-mono", children: ((o = n.user) == null ? void 0 : o.id) || "N/A" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex justify-between", children: [
-            /* @__PURE__ */ e.jsx("dt", { className: "text-gray-400", children: "Email" }),
-            /* @__PURE__ */ e.jsx("dd", { children: ((g = h.user) == null ? void 0 : g.email) || "N/A" })
+          /* @__PURE__ */ s.jsxs("div", { className: "flex justify-between", children: [
+            /* @__PURE__ */ s.jsx("dt", { className: "text-gray-400", children: "Email" }),
+            /* @__PURE__ */ s.jsx("dd", { children: ((l = n.user) == null ? void 0 : l.email) || "N/A" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex justify-between", children: [
-            /* @__PURE__ */ e.jsx("dt", { className: "text-gray-400", children: "Admin Status" }),
-            /* @__PURE__ */ e.jsx("dd", { className: "font-semibold text-red-400", children: "Not an Admin" })
+          /* @__PURE__ */ s.jsxs("div", { className: "flex justify-between", children: [
+            /* @__PURE__ */ s.jsx("dt", { className: "text-gray-400", children: "Admin Status" }),
+            /* @__PURE__ */ s.jsx("dd", { className: "font-semibold text-red-400", children: "Not an Admin" })
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ e.jsx("p", { children: "If you believe this is an error, please contact support." }),
-      /* @__PURE__ */ e.jsx("div", { className: "pt-4", children: /* @__PURE__ */ e.jsx("a", { href: "/", className: "px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700", children: "Go to Homepage" }) })
+      /* @__PURE__ */ s.jsx("p", { children: "If you believe this is an error, please contact support." }),
+      /* @__PURE__ */ s.jsx("div", { className: "pt-4", children: /* @__PURE__ */ s.jsx("a", { href: "/", className: "px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700", children: "Go to Homepage" }) })
     ] })
-  ] }) }) })) : (console.log("🛑 [AdminProtectedRoute] Not authenticated, redirecting to login."), /* @__PURE__ */ e.jsx(jr, { to: "/login", state: { from: f }, replace: !0 }));
-}, we = ({ title: s, value: n, icon: i, color: h, trend: m }) => /* @__PURE__ */ e.jsx("div", { className: "bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-  /* @__PURE__ */ e.jsxs("div", { children: [
-    /* @__PURE__ */ e.jsx("p", { className: "text-sm font-medium text-gray-600 dark:text-gray-400", children: s }),
-    /* @__PURE__ */ e.jsx("p", { className: "text-2xl font-bold text-gray-900 dark:text-white", children: n }),
-    m && /* @__PURE__ */ e.jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400 mt-1", children: m })
+  ] }) }) })) : (console.log("🛑 [AdminProtectedRoute] Not authenticated, redirecting to login."), /* @__PURE__ */ s.jsx(nl, { to: "/login", state: { from: a }, replace: !0 }));
+}, He = ({ title: e, value: t, icon: r, color: n, trend: i }) => /* @__PURE__ */ s.jsx("div", { className: "bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+  /* @__PURE__ */ s.jsxs("div", { children: [
+    /* @__PURE__ */ s.jsx("p", { className: "text-sm font-medium text-gray-600 dark:text-gray-400", children: e }),
+    /* @__PURE__ */ s.jsx("p", { className: "text-2xl font-bold text-gray-900 dark:text-white", children: t }),
+    i && /* @__PURE__ */ s.jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400 mt-1", children: i })
   ] }),
-  /* @__PURE__ */ e.jsx("div", { className: `p-3 rounded-lg bg-${h}-100 dark:bg-${h}-900/20`, children: /* @__PURE__ */ e.jsx(i, { className: `w-6 h-6 text-${h}-600 dark:text-${h}-400` }) })
-] }) }), me = ({ title: s, description: n, icon: i, href: h, color: m }) => /* @__PURE__ */ e.jsx(
+  /* @__PURE__ */ s.jsx("div", { className: `p-3 rounded-lg bg-${n}-100 dark:bg-${n}-900/20`, children: /* @__PURE__ */ s.jsx(r, { className: `w-6 h-6 text-${n}-600 dark:text-${n}-400` }) })
+] }) }), Ae = ({ title: e, description: t, icon: r, href: n, color: i }) => /* @__PURE__ */ s.jsx(
   "a",
   {
-    href: h,
+    href: n,
     className: "block bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all hover:border-blue-300 dark:hover:border-blue-600 group",
-    children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center space-x-4", children: [
-      /* @__PURE__ */ e.jsx("div", { className: `p-3 rounded-lg bg-${m}-100 dark:bg-${m}-900/20 group-hover:bg-${m}-200 dark:group-hover:bg-${m}-900/40 transition-colors`, children: /* @__PURE__ */ e.jsx(i, { className: `w-6 h-6 text-${m}-600 dark:text-${m}-400` }) }),
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsx("h3", { className: "font-semibold text-gray-900 dark:text-white", children: s }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-sm text-gray-600 dark:text-gray-400", children: n })
+    children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center space-x-4", children: [
+      /* @__PURE__ */ s.jsx("div", { className: `p-3 rounded-lg bg-${i}-100 dark:bg-${i}-900/20 group-hover:bg-${i}-200 dark:group-hover:bg-${i}-900/40 transition-colors`, children: /* @__PURE__ */ s.jsx(r, { className: `w-6 h-6 text-${i}-600 dark:text-${i}-400` }) }),
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsx("h3", { className: "font-semibold text-gray-900 dark:text-white", children: e }),
+        /* @__PURE__ */ s.jsx("p", { className: "text-sm text-gray-600 dark:text-gray-400", children: t })
       ] })
     ] })
   }
-), cn = () => {
-  const [s, n] = p(null), [i, h] = p(!0), [m, f] = p(null);
-  return he(() => {
+), Af = () => {
+  const [e, t] = _(null), [r, n] = _(!0), [i, a] = _(null);
+  return xe(() => {
     (async () => {
       try {
         const [
-          { count: g },
-          { count: u },
-          { data: v },
-          { data: x },
-          { count: C },
-          { count: P },
-          { count: Y }
+          { count: l },
+          { count: c },
+          { data: u },
+          { data: d },
+          { count: h },
+          { count: f },
+          { count: p }
         ] = await Promise.all([
-          ae.from("profiles").select("id", { count: "exact", head: !0 }),
-          ae.from("subscriptions").select("id", { count: "exact", head: !0 }).eq("status", "active"),
-          ae.from("pages").select("view_count"),
-          ae.from("orders").select("total_amount, status").eq("status", "completed"),
-          ae.from("products").select("id", { count: "exact", head: !0 }).eq("active", !0),
-          ae.from("orders").select("id", { count: "exact", head: !0 }),
-          ae.from("orders").select("id", { count: "exact", head: !0 }).eq("status", "pending")
-        ]), T = (v == null ? void 0 : v.reduce((I, R) => I + (R.view_count || 0), 0)) || 0, q = (x == null ? void 0 : x.reduce((I, R) => I + R.total_amount, 0)) || 0;
-        n({
-          totalUsers: g || 0,
-          activeSubscribers: u || 0,
-          totalRevenue: q,
-          totalViews: T,
-          totalProducts: C || 0,
-          totalOrders: P || 0,
-          pendingOrders: Y || 0
+          ge.from("profiles").select("id", { count: "exact", head: !0 }),
+          ge.from("subscriptions").select("id", { count: "exact", head: !0 }).eq("status", "active"),
+          ge.from("pages").select("view_count"),
+          ge.from("orders").select("total_amount, status").eq("status", "completed"),
+          ge.from("products").select("id", { count: "exact", head: !0 }).eq("active", !0),
+          ge.from("orders").select("id", { count: "exact", head: !0 }),
+          ge.from("orders").select("id", { count: "exact", head: !0 }).eq("status", "pending")
+        ]), y = (u == null ? void 0 : u.reduce((C, j) => C + (j.view_count || 0), 0)) || 0, S = (d == null ? void 0 : d.reduce((C, j) => C + j.total_amount, 0)) || 0;
+        t({
+          totalUsers: l || 0,
+          activeSubscribers: c || 0,
+          totalRevenue: S,
+          totalViews: y,
+          totalProducts: h || 0,
+          totalOrders: f || 0,
+          pendingOrders: p || 0
         });
-      } catch (g) {
-        f(g instanceof Error ? g.message : "Failed to fetch dashboard metrics");
+      } catch (l) {
+        a(l instanceof Error ? l.message : "Failed to fetch dashboard metrics");
       } finally {
-        h(!1);
+        n(!1);
       }
     })();
-  }, []), i ? /* @__PURE__ */ e.jsx("div", { className: "p-6 space-y-6", children: /* @__PURE__ */ e.jsxs("div", { className: "animate-pulse space-y-6", children: [
-    /* @__PURE__ */ e.jsx("div", { className: "h-8 bg-gray-200 dark:bg-gray-700 rounded w-64" }),
-    /* @__PURE__ */ e.jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6", children: [...Array(4)].map((N, g) => /* @__PURE__ */ e.jsx("div", { className: "h-32 bg-gray-200 dark:bg-gray-700 rounded-xl" }, g)) })
-  ] }) }) : m ? /* @__PURE__ */ e.jsx("div", { className: "p-6", children: /* @__PURE__ */ e.jsx("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4", children: /* @__PURE__ */ e.jsxs("div", { className: "flex", children: [
-    /* @__PURE__ */ e.jsx(Re, { className: "w-5 h-5 text-red-600 dark:text-red-400" }),
-    /* @__PURE__ */ e.jsxs("div", { className: "ml-3", children: [
-      /* @__PURE__ */ e.jsx("h3", { className: "text-sm font-medium text-red-800 dark:text-red-200", children: "Error Loading Dashboard" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-sm text-red-700 dark:text-red-300 mt-1", children: m })
+  }, []), r ? /* @__PURE__ */ s.jsx("div", { className: "p-6 space-y-6", children: /* @__PURE__ */ s.jsxs("div", { className: "animate-pulse space-y-6", children: [
+    /* @__PURE__ */ s.jsx("div", { className: "h-8 bg-gray-200 dark:bg-gray-700 rounded w-64" }),
+    /* @__PURE__ */ s.jsx("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6", children: [...Array(4)].map((o, l) => /* @__PURE__ */ s.jsx("div", { className: "h-32 bg-gray-200 dark:bg-gray-700 rounded-xl" }, l)) })
+  ] }) }) : i ? /* @__PURE__ */ s.jsx("div", { className: "p-6", children: /* @__PURE__ */ s.jsx("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4", children: /* @__PURE__ */ s.jsxs("div", { className: "flex", children: [
+    /* @__PURE__ */ s.jsx(Dt, { className: "w-5 h-5 text-red-600 dark:text-red-400" }),
+    /* @__PURE__ */ s.jsxs("div", { className: "ml-3", children: [
+      /* @__PURE__ */ s.jsx("h3", { className: "text-sm font-medium text-red-800 dark:text-red-200", children: "Error Loading Dashboard" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-sm text-red-700 dark:text-red-300 mt-1", children: i })
     ] })
-  ] }) }) }) : /* @__PURE__ */ e.jsxs("div", { className: "p-6 space-y-6", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "border-b border-gray-200 dark:border-gray-700 pb-6", children: [
-      /* @__PURE__ */ e.jsx("h1", { className: "text-3xl font-bold text-gray-900 dark:text-white", children: "Welcome to Zoroasterverse Admin" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-gray-600 dark:text-gray-300 mt-2", children: "Manage your worldbuilding platform with powerful admin tools" })
+  ] }) }) }) : /* @__PURE__ */ s.jsxs("div", { className: "p-6 space-y-6", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "border-b border-gray-200 dark:border-gray-700 pb-6", children: [
+      /* @__PURE__ */ s.jsx("h1", { className: "text-3xl font-bold text-gray-900 dark:text-white", children: "Welcome to Zoroasterverse Admin" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-gray-600 dark:text-gray-300 mt-2", children: "Manage your worldbuilding platform with powerful admin tools" })
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6", children: [
-      /* @__PURE__ */ e.jsx(
-        we,
+    /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6", children: [
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Total Users",
-          value: (s == null ? void 0 : s.totalUsers.toLocaleString()) ?? "0",
-          icon: Qe,
+          value: (e == null ? void 0 : e.totalUsers.toLocaleString()) ?? "0",
+          icon: ms,
           color: "blue",
           trend: "↑ Growing community"
         }
       ),
-      /* @__PURE__ */ e.jsx(
-        we,
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Active Subscribers",
-          value: (s == null ? void 0 : s.activeSubscribers.toLocaleString()) ?? "0",
-          icon: Tt,
+          value: (e == null ? void 0 : e.activeSubscribers.toLocaleString()) ?? "0",
+          icon: mn,
           color: "green",
           trend: "Premium members"
         }
       ),
-      /* @__PURE__ */ e.jsx(
-        we,
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Total Revenue",
-          value: `$${(s == null ? void 0 : s.totalRevenue.toFixed(2)) ?? "0.00"}`,
-          icon: ht,
+          value: `$${(e == null ? void 0 : e.totalRevenue.toFixed(2)) ?? "0.00"}`,
+          icon: yr,
           color: "yellow",
           trend: "All-time earnings"
         }
       ),
-      /* @__PURE__ */ e.jsx(
-        we,
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Page Views",
-          value: (s == null ? void 0 : s.totalViews.toLocaleString()) ?? "0",
-          icon: ke,
+          value: (e == null ? void 0 : e.totalViews.toLocaleString()) ?? "0",
+          icon: tt,
           color: "purple",
           trend: "Content engagement"
         }
       )
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-6", children: [
-      /* @__PURE__ */ e.jsx(
-        we,
+    /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-6", children: [
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Active Products",
-          value: (s == null ? void 0 : s.totalProducts.toLocaleString()) ?? "0",
-          icon: je,
+          value: (e == null ? void 0 : e.totalProducts.toLocaleString()) ?? "0",
+          icon: Ze,
           color: "indigo",
           trend: "Available for sale"
         }
       ),
-      /* @__PURE__ */ e.jsx(
-        we,
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Total Orders",
-          value: (s == null ? void 0 : s.totalOrders.toLocaleString()) ?? "0",
-          icon: Ne,
+          value: (e == null ? void 0 : e.totalOrders.toLocaleString()) ?? "0",
+          icon: et,
           color: "green",
           trend: "All-time orders"
         }
       ),
-      /* @__PURE__ */ e.jsx(
-        we,
+      /* @__PURE__ */ s.jsx(
+        He,
         {
           title: "Pending Orders",
-          value: (s == null ? void 0 : s.pendingOrders.toLocaleString()) ?? "0",
-          icon: Re,
+          value: (e == null ? void 0 : e.pendingOrders.toLocaleString()) ?? "0",
+          icon: Dt,
           color: "orange",
           trend: "Requires attention"
         }
       )
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: "space-y-4", children: [
-      /* @__PURE__ */ e.jsx("h2", { className: "text-xl font-bold text-gray-900 dark:text-white", children: "Quick Actions" }),
-      /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6", children: [
-        /* @__PURE__ */ e.jsx(
-          me,
+    /* @__PURE__ */ s.jsxs("div", { className: "space-y-4", children: [
+      /* @__PURE__ */ s.jsx("h2", { className: "text-xl font-bold text-gray-900 dark:text-white", children: "Quick Actions" }),
+      /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6", children: [
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Manage Users",
             description: "View, edit, and manage user accounts",
-            icon: Qe,
+            icon: ms,
             href: "/account/admin/users",
             color: "blue"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Content Management",
             description: "Create and manage posts and pages",
-            icon: ye,
+            icon: Ye,
             href: "/account/admin/posts",
             color: "green"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Product Catalog",
             description: "Manage your store products",
-            icon: je,
+            icon: Ze,
             href: "/account/admin/products",
             color: "purple"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Order Processing",
             description: "View and process customer orders",
-            icon: Ne,
+            icon: et,
             href: "/account/admin/orders",
             color: "orange"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Beta Applications",
             description: "Review beta reader applications",
-            icon: Tt,
+            icon: mn,
             href: "/account/admin/beta-applications",
             color: "indigo"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Timeline Events",
             description: "Manage worldbuilding timeline",
-            icon: dt,
+            icon: pr,
             href: "/account/admin/timeline/events",
             color: "red"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Works & Chapters",
             description: "Manage your literary works",
-            icon: Ze,
+            icon: hs,
             href: "/account/admin/works",
             color: "teal"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Analytics",
             description: "View detailed performance metrics",
-            icon: Se,
+            icon: it,
             href: "/account/admin/analytics",
             color: "pink"
           }
         ),
-        /* @__PURE__ */ e.jsx(
-          me,
+        /* @__PURE__ */ s.jsx(
+          Ae,
           {
             title: "Settings",
             description: "Configure admin preferences",
-            icon: ct,
+            icon: xr,
             href: "/account/admin/settings",
             color: "gray"
           }
@@ -1096,46 +1096,46 @@ const Vt = It(void 0), Jt = () => {
       ] })
     ] })
   ] });
-}, Kr = "_zoroHeader_6lzsp_2", Zr = "_logo_6lzsp_16", Qr = "_navbar_6lzsp_23", Xr = "_navMenu_6lzsp_27", es = "_navLink_6lzsp_39", ts = "_dropdownMenu_6lzsp_53", rs = "_dropdownMenuItem_6lzsp_73", ss = "_dropdown_6lzsp_53", as = "_headerControls_6lzsp_96", ns = "_searchForm_6lzsp_121", os = "_themeToggle_6lzsp_165", is = "_icon_6lzsp_186", ls = "_iconSun_6lzsp_197", ds = "_iconMoon_6lzsp_203", Q = {
-  zoroHeader: Kr,
-  logo: Zr,
-  navbar: Qr,
-  navMenu: Xr,
-  navLink: es,
-  dropdownMenu: ts,
-  dropdownMenuItem: rs,
-  dropdown: ss,
-  headerControls: as,
-  searchForm: ns,
-  themeToggle: os,
-  icon: is,
-  iconSun: ls,
-  iconMoon: ds
-}, Mt = "zoro-theme", cs = () => {
-  const [s, n] = p(() => {
+}, Ml = "_zoroHeader_6lzsp_2", Dl = "_logo_6lzsp_16", Rl = "_navbar_6lzsp_23", Vl = "_navMenu_6lzsp_27", Ll = "_navLink_6lzsp_39", Fl = "_dropdownMenu_6lzsp_53", Il = "_dropdownMenuItem_6lzsp_73", Ol = "_dropdown_6lzsp_53", Yl = "_headerControls_6lzsp_96", Bl = "_searchForm_6lzsp_121", zl = "_themeToggle_6lzsp_165", Ul = "_icon_6lzsp_186", $l = "_iconSun_6lzsp_197", Wl = "_iconMoon_6lzsp_203", ae = {
+  zoroHeader: Ml,
+  logo: Dl,
+  navbar: Rl,
+  navMenu: Vl,
+  navLink: Ll,
+  dropdownMenu: Fl,
+  dropdownMenuItem: Il,
+  dropdown: Ol,
+  headerControls: Yl,
+  searchForm: Bl,
+  themeToggle: zl,
+  icon: Ul,
+  iconSun: $l,
+  iconMoon: Wl
+}, wn = "zoro-theme", Hl = () => {
+  const [e, t] = _(() => {
     if (typeof window < "u") {
-      const h = localStorage.getItem(Mt), m = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      return h ?? (m ? "dark" : "light");
+      const n = localStorage.getItem(wn), i = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return n ?? (i ? "dark" : "light");
     }
     return "dark";
   });
-  he(() => {
-    const h = window.document.documentElement;
-    h.setAttribute("data-theme", s), localStorage.setItem(Mt, s), s === "dark" ? (h.classList.add("dark"), h.classList.remove("light")) : (h.classList.add("light"), h.classList.remove("dark"));
-  }, [s]);
-  const i = () => {
-    n((h) => h === "dark" ? "light" : "dark");
+  xe(() => {
+    const n = window.document.documentElement;
+    n.setAttribute("data-theme", e), localStorage.setItem(wn, e), e === "dark" ? (n.classList.add("dark"), n.classList.remove("light")) : (n.classList.add("light"), n.classList.remove("dark"));
+  }, [e]);
+  const r = () => {
+    t((n) => n === "dark" ? "light" : "dark");
   };
-  return e.jsxs("button", { id: "theme-toggle", className: Q.themeToggle, "aria-label": "Toggle dark mode", "aria-pressed": s === "dark" ? "true" : "false", title: s === "dark" ? "Switch to light mode" : "Switch to dark mode", onClick: i, children: [e.jsxs("svg", { className: `${Q.icon} ${Q.iconSun}`, viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": "true", children: [e.jsx("circle", { cx: "12", cy: "12", r: "4", fill: "currentColor" }), e.jsxs("g", { stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", children: [e.jsx("line", { x1: "12", y1: "2", x2: "12", y2: "5" }), e.jsx("line", { x1: "12", y1: "19", x2: "12", y2: "22" }), e.jsx("line", { x1: "2", y1: "12", x2: "5", y2: "12" }), e.jsx("line", { x1: "19", y1: "12", x2: "22", y2: "12" }), e.jsx("line", { x1: "4.2", y1: "4.2", x2: "6.3", y2: "6.3" }), e.jsx("line", { x1: "17.7", y1: "17.7", x2: "19.8", y2: "19.8" }), e.jsx("line", { x1: "4.2", y1: "19.8", x2: "6.3", y2: "17.7" }), e.jsx("line", { x1: "17.7", y1: "6.3", x2: "19.8", y2: "4.2" })] })] }), e.jsx("svg", { className: `${Q.icon} ${Q.iconMoon}`, viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": "true", children: e.jsx("path", { d: `M21 14.5a9 9 0 1 1-8.5-12
+  return s.jsxs("button", { id: "theme-toggle", className: ae.themeToggle, "aria-label": "Toggle dark mode", "aria-pressed": e === "dark" ? "true" : "false", title: e === "dark" ? "Switch to light mode" : "Switch to dark mode", onClick: r, children: [s.jsxs("svg", { className: `${ae.icon} ${ae.iconSun}`, viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": "true", children: [s.jsx("circle", { cx: "12", cy: "12", r: "4", fill: "currentColor" }), s.jsxs("g", { stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", children: [s.jsx("line", { x1: "12", y1: "2", x2: "12", y2: "5" }), s.jsx("line", { x1: "12", y1: "19", x2: "12", y2: "22" }), s.jsx("line", { x1: "2", y1: "12", x2: "5", y2: "12" }), s.jsx("line", { x1: "19", y1: "12", x2: "22", y2: "12" }), s.jsx("line", { x1: "4.2", y1: "4.2", x2: "6.3", y2: "6.3" }), s.jsx("line", { x1: "17.7", y1: "17.7", x2: "19.8", y2: "19.8" }), s.jsx("line", { x1: "4.2", y1: "19.8", x2: "6.3", y2: "17.7" }), s.jsx("line", { x1: "17.7", y1: "6.3", x2: "19.8", y2: "4.2" })] })] }), s.jsx("svg", { className: `${ae.icon} ${ae.iconMoon}`, viewBox: "0 0 24 24", width: "22", height: "22", "aria-hidden": "true", children: s.jsx("path", { d: `M21 14.5a9 9 0 1 1-8.5-12
                  a8 8 0 0 0 8.5 12z`, fill: "currentColor" }) })] });
-}, hs = ({
-  isAuthenticated: s = !1,
-  betaApplicationStatus: n = "none",
-  onLogout: i
+}, Kl = ({
+  isAuthenticated: e = !1,
+  betaApplicationStatus: t = "none",
+  onLogout: r
 }) => {
-  const [h, m] = p(!1), f = () => {
-    i && i();
-  }, N = [
+  const [n, i] = _(!1), a = () => {
+    r && r();
+  }, o = [
     { name: "Home", path: "/" },
     {
       name: "Explore",
@@ -1154,102 +1154,102 @@ const Vt = It(void 0), Jt = () => {
     { name: "Beta Program", path: "/beta/application" }
     // Top-level
   ];
-  if (s) {
-    const g = [];
-    g.push({ name: "Store", path: "/store" }), g.push({ name: "Subscriptions", path: "/subscriptions" }), n === "accepted" && g.push({ name: "Beta Portal", path: "/beta/portal" }), g.push({ name: "My Account", path: "/account" }), N.push({ name: "Account", path: "#", children: g }), N.push({ name: "Logout", path: "#", onClick: f });
+  if (e) {
+    const l = [];
+    l.push({ name: "Store", path: "/store" }), l.push({ name: "Subscriptions", path: "/subscriptions" }), t === "accepted" && l.push({ name: "Beta Portal", path: "/beta/portal" }), l.push({ name: "My Account", path: "/account" }), o.push({ name: "Account", path: "#", children: l }), o.push({ name: "Logout", path: "#", onClick: a });
   } else
-    N.push({ name: "Login", path: "/login" });
-  return /* @__PURE__ */ e.jsxs("header", { className: Q.zoroHeader, children: [
-    /* @__PURE__ */ e.jsx("div", { className: Q.logo, children: /* @__PURE__ */ e.jsx(Ge, { to: "/", children: /* @__PURE__ */ e.jsx("h1", { children: "Zoroasterverse" }) }) }),
-    /* @__PURE__ */ e.jsxs("div", { className: Q.headerControls, children: [
-      /* @__PURE__ */ e.jsxs("form", { className: Q.searchForm, children: [
-        /* @__PURE__ */ e.jsx("input", { type: "text", placeholder: "Search..." }),
-        /* @__PURE__ */ e.jsx("button", { type: "submit", children: /* @__PURE__ */ e.jsx(Pe, {}) })
+    o.push({ name: "Login", path: "/login" });
+  return /* @__PURE__ */ s.jsxs("header", { className: ae.zoroHeader, children: [
+    /* @__PURE__ */ s.jsx("div", { className: ae.logo, children: /* @__PURE__ */ s.jsx(ns, { to: "/", children: /* @__PURE__ */ s.jsx("h1", { children: "Zoroasterverse" }) }) }),
+    /* @__PURE__ */ s.jsxs("div", { className: ae.headerControls, children: [
+      /* @__PURE__ */ s.jsxs("form", { className: ae.searchForm, children: [
+        /* @__PURE__ */ s.jsx("input", { type: "text", placeholder: "Search..." }),
+        /* @__PURE__ */ s.jsx("button", { type: "submit", children: /* @__PURE__ */ s.jsx(xt, {}) })
       ] }),
-      /* @__PURE__ */ e.jsx(cs, {})
+      /* @__PURE__ */ s.jsx(Hl, {})
     ] }),
-    /* @__PURE__ */ e.jsx("nav", { className: Q.navbar, children: /* @__PURE__ */ e.jsx("ul", { className: Q.navMenu, children: N.map((g) => /* @__PURE__ */ e.jsxs("li", { className: g.children ? Q.dropdown : "", children: [
-      g.onClick ? /* @__PURE__ */ e.jsx("button", { onClick: g.onClick, className: Q.navLink, children: g.name }) : /* @__PURE__ */ e.jsxs(Ge, { to: g.path, className: Q.navLink, children: [
-        g.name,
+    /* @__PURE__ */ s.jsx("nav", { className: ae.navbar, children: /* @__PURE__ */ s.jsx("ul", { className: ae.navMenu, children: o.map((l) => /* @__PURE__ */ s.jsxs("li", { className: l.children ? ae.dropdown : "", children: [
+      l.onClick ? /* @__PURE__ */ s.jsx("button", { onClick: l.onClick, className: ae.navLink, children: l.name }) : /* @__PURE__ */ s.jsxs(ns, { to: l.path, className: ae.navLink, children: [
+        l.name,
         " ",
-        g.children ? "▾" : ""
+        l.children ? "▾" : ""
       ] }),
-      g.children && /* @__PURE__ */ e.jsx("ul", { className: Q.dropdownMenu, children: g.children.map((u) => /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx(Ge, { to: u.path, className: Q.dropdownMenuItem, children: u.name }) }, u.name)) })
-    ] }, g.name)) }) })
+      l.children && /* @__PURE__ */ s.jsx("ul", { className: ae.dropdownMenu, children: l.children.map((c) => /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx(ns, { to: c.path, className: ae.dropdownMenuItem, children: c.name }) }, c.name)) })
+    ] }, l.name)) }) })
   ] });
-}, us = "_zoroFooter_8qpog_1", ms = "_footerContent_8qpog_8", gs = "_footerColumns_8qpog_13", ps = "_column_8qpog_20", fs = "_socialIcons_8qpog_50", xs = "_footerQuote_8qpog_59", fe = {
-  zoroFooter: us,
-  footerContent: ms,
-  footerColumns: gs,
-  column: ps,
-  socialIcons: fs,
-  footerQuote: xs
-}, bs = () => /* @__PURE__ */ e.jsx("footer", { className: fe.zoroFooter, children: /* @__PURE__ */ e.jsxs("div", { className: fe.footerContent, children: [
-  /* @__PURE__ */ e.jsxs("div", { className: fe.footerColumns, children: [
-    /* @__PURE__ */ e.jsxs("div", { className: fe.column, children: [
-      /* @__PURE__ */ e.jsx("h4", { children: "Zoroasterverse" }),
-      /* @__PURE__ */ e.jsx("p", { children: "“Truth is the architect of happiness.”" }),
-      /* @__PURE__ */ e.jsxs("p", { children: [
+}, Gl = "_zoroFooter_8qpog_1", ql = "_footerContent_8qpog_8", Xl = "_footerColumns_8qpog_13", Zl = "_column_8qpog_20", Jl = "_socialIcons_8qpog_50", Ql = "_footerQuote_8qpog_59", Le = {
+  zoroFooter: Gl,
+  footerContent: ql,
+  footerColumns: Xl,
+  column: Zl,
+  socialIcons: Jl,
+  footerQuote: Ql
+}, ec = () => /* @__PURE__ */ s.jsx("footer", { className: Le.zoroFooter, children: /* @__PURE__ */ s.jsxs("div", { className: Le.footerContent, children: [
+  /* @__PURE__ */ s.jsxs("div", { className: Le.footerColumns, children: [
+    /* @__PURE__ */ s.jsxs("div", { className: Le.column, children: [
+      /* @__PURE__ */ s.jsx("h4", { children: "Zoroasterverse" }),
+      /* @__PURE__ */ s.jsx("p", { children: "“Truth is the architect of happiness.”" }),
+      /* @__PURE__ */ s.jsxs("p", { children: [
         "© ",
         (/* @__PURE__ */ new Date()).getFullYear(),
         " Zoroasterverse. All rights reserved."
       ] })
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: fe.column, children: [
-      /* @__PURE__ */ e.jsx("h4", { children: "Explore" }),
-      /* @__PURE__ */ e.jsxs("ul", { children: [
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "/about", children: "About" }) }),
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "/books", children: "Books" }) }),
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "/collaborate", children: "Artist Collaboration" }) }),
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "/contact", children: "Contact" }) })
+    /* @__PURE__ */ s.jsxs("div", { className: Le.column, children: [
+      /* @__PURE__ */ s.jsx("h4", { children: "Explore" }),
+      /* @__PURE__ */ s.jsxs("ul", { children: [
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/about", children: "About" }) }),
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/books", children: "Books" }) }),
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/collaborate", children: "Artist Collaboration" }) }),
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/contact", children: "Contact" }) })
       ] })
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: fe.column, children: [
-      /* @__PURE__ */ e.jsx("h4", { children: "Connect" }),
-      /* @__PURE__ */ e.jsxs("ul", { className: fe.socialIcons, children: [
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "#", children: /* @__PURE__ */ e.jsx(Pr, {}) }) }),
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "#", children: /* @__PURE__ */ e.jsx(Yr, {}) }) }),
-        /* @__PURE__ */ e.jsx("li", { children: /* @__PURE__ */ e.jsx("a", { href: "#", children: /* @__PURE__ */ e.jsx(Ar, {}) }) })
+    /* @__PURE__ */ s.jsxs("div", { className: Le.column, children: [
+      /* @__PURE__ */ s.jsx("h4", { children: "Connect" }),
+      /* @__PURE__ */ s.jsxs("ul", { className: Le.socialIcons, children: [
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "#", children: /* @__PURE__ */ s.jsx(hl, {}) }) }),
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "#", children: /* @__PURE__ */ s.jsx(ml, {}) }) }),
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "#", children: /* @__PURE__ */ s.jsx(fl, {}) }) })
       ] })
     ] })
   ] }),
-  /* @__PURE__ */ e.jsx("div", { className: fe.footerQuote, children: /* @__PURE__ */ e.jsx("em", { children: "“Let your conscience be the altar where right intention dwells.”" }) })
-] }) }), hn = ({
-  isAuthenticated: s = !1,
-  betaApplicationStatus: n = "none",
-  onLogout: i
-}) => /* @__PURE__ */ e.jsxs("div", { className: "min-h-screen flex flex-col", children: [
-  /* @__PURE__ */ e.jsx(
-    hs,
+  /* @__PURE__ */ s.jsx("div", { className: Le.footerQuote, children: /* @__PURE__ */ s.jsx("em", { children: "“Let your conscience be the altar where right intention dwells.”" }) })
+] }) }), Ef = ({
+  isAuthenticated: e = !1,
+  betaApplicationStatus: t = "none",
+  onLogout: r
+}) => /* @__PURE__ */ s.jsxs("div", { className: "min-h-screen flex flex-col", children: [
+  /* @__PURE__ */ s.jsx(
+    Kl,
     {
-      isAuthenticated: s,
-      betaApplicationStatus: n,
-      onLogout: i
+      isAuthenticated: e,
+      betaApplicationStatus: t,
+      onLogout: r
     }
   ),
-  /* @__PURE__ */ e.jsx("main", { className: "flex-1", children: /* @__PURE__ */ e.jsx(Nr, {}) }),
-  /* @__PURE__ */ e.jsx(bs, {})
-] }), ys = "_zrHero_14v3a_1", vs = "_parchmentCard_14v3a_12", ws = "_zrHeroContent_14v3a_70", js = "_zrTitle_14v3a_74", Ns = "_zrQuote_14v3a_88", ks = "_zrIntro_14v3a_97", _s = "_zrCta_14v3a_105", Cs = "_zrHeroArt_14v3a_123", Ts = "_videoFire_14v3a_156", Ss = "_prophecyMask_14v3a_168", Es = "_prophecyReel_14v3a_183", Ps = "_prophecyItem_14v3a_193", Ys = "_englishText_14v3a_203", As = "_spinsIndicator_14v3a_212", Fs = "_spinDot_14v3a_221", Ls = "_spinDotActive_14v3a_230", Ms = "_zrSection_14v3a_237", Rs = "_zrH2_14v3a_243", O = {
-  zrHero: ys,
-  parchmentCard: vs,
-  zrHeroContent: ws,
-  zrTitle: js,
-  zrQuote: Ns,
-  zrIntro: ks,
-  zrCta: _s,
-  zrHeroArt: Cs,
-  videoFire: Ts,
-  prophecyMask: Ss,
-  prophecyReel: Es,
-  prophecyItem: Ps,
-  englishText: Ys,
-  spinsIndicator: As,
-  spinDot: Fs,
-  spinDotActive: Ls,
-  zrSection: Ms,
-  zrH2: Rs
-}, Os = ({ spinsLeft: s, setSpinsLeft: n, onSpin: i }) => {
-  const h = Dt(null), [m, f] = p(!1), N = 150, g = [
+  /* @__PURE__ */ s.jsx("main", { className: "flex-1", children: /* @__PURE__ */ s.jsx(il, {}) }),
+  /* @__PURE__ */ s.jsx(ec, {})
+] }), tc = "_zrHero_14v3a_1", sc = "_parchmentCard_14v3a_12", rc = "_zrHeroContent_14v3a_70", nc = "_zrTitle_14v3a_74", ic = "_zrQuote_14v3a_88", oc = "_zrIntro_14v3a_97", ac = "_zrCta_14v3a_105", lc = "_zrHeroArt_14v3a_123", cc = "_videoFire_14v3a_156", dc = "_prophecyMask_14v3a_168", uc = "_prophecyReel_14v3a_183", hc = "_prophecyItem_14v3a_193", mc = "_englishText_14v3a_203", fc = "_spinsIndicator_14v3a_212", gc = "_spinDot_14v3a_221", pc = "_spinDotActive_14v3a_230", xc = "_zrSection_14v3a_237", yc = "_zrH2_14v3a_243", H = {
+  zrHero: tc,
+  parchmentCard: sc,
+  zrHeroContent: rc,
+  zrTitle: nc,
+  zrQuote: ic,
+  zrIntro: oc,
+  zrCta: ac,
+  zrHeroArt: lc,
+  videoFire: cc,
+  prophecyMask: dc,
+  prophecyReel: uc,
+  prophecyItem: hc,
+  englishText: mc,
+  spinsIndicator: fc,
+  spinDot: gc,
+  spinDotActive: pc,
+  zrSection: xc,
+  zrH2: yc
+}, bc = ({ spinsLeft: e, setSpinsLeft: t, onSpin: r }) => {
+  const n = ht(null), [i, a] = _(!1), o = 150, l = [
     { english: "Your heart is a compass that always points toward love—trust it, follow it, honor it." },
     { english: "You are not who you were yesterday unless you choose to be—each day offers the gift of becoming." },
     { english: "The friend of truth shall be the friend of my spirit, O Ahura Mazda. (Yasna 46.2)" },
@@ -1615,52 +1615,52 @@ const Vt = It(void 0), Jt = () => {
     { english: "Your fire, strong through truth, is a visible help to Your supporter, but visible harm to Your enemy, O Ahura Mazda. (Yasna 34.4)" },
     { english: "The soul of the earth cries out: For whom did You fashion me? Who created me? (Yasna 29.1)" },
     { english: "Service is the rent we pay for living on this planet—pay it gladly and generously." }
-  ], u = 5, v = g.length, x = [];
-  for (let Y = 0; Y < u; Y++)
-    x.push(...g);
-  const C = [
-    ...x.slice(x.length - v),
-    ...x,
-    ...x.slice(0, v)
+  ], c = 5, u = l.length, d = [];
+  for (let p = 0; p < c; p++)
+    d.push(...l);
+  const h = [
+    ...d.slice(d.length - u),
+    ...d,
+    ...d.slice(0, u)
     // Append for smooth loop
-  ], P = async () => {
-    if (m || !h.current || s <= 0) {
+  ], f = async () => {
+    if (i || !n.current || e <= 0) {
       console.log("No spins left or already spinning.");
       return;
     }
     console.log("handleSpin called");
     try {
-      new Audio("/gear-click-351962.mp3").play().catch((R) => console.error("Error playing sound:", R));
-    } catch (I) {
-      console.error("Error creating Audio object:", I);
+      new Audio("/gear-click-351962.mp3").play().catch((j) => console.error("Error playing sound:", j));
+    } catch (C) {
+      console.error("Error creating Audio object:", C);
     }
-    if (f(!0), n((I) => I - 1), i)
+    if (a(!0), t((C) => C - 1), r)
       try {
-        await i(3 - s + 1);
-      } catch (I) {
-        console.error("Error updating spin count:", I);
+        await r(3 - e + 1);
+      } catch (C) {
+        console.error("Error updating spin count:", C);
       }
-    const Y = Math.floor(Math.random() * g.length), q = (v + Y + g.length * Math.floor(u / 2)) * N;
-    h.current.classList.add("prophecy-reel-spinning"), h.current.style.transform = `translateY(-${q}px)`, setTimeout(() => {
-      if (!h.current) return;
-      h.current.classList.remove("prophecy-reel-spinning"), h.current.style.transition = "none";
-      const I = Y * N;
-      h.current.style.transform = `translateY(-${I}px)`, h.current.offsetHeight, h.current.style.transition = "transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)", f(!1);
+    const p = Math.floor(Math.random() * l.length), S = (u + p + l.length * Math.floor(c / 2)) * o;
+    n.current.classList.add("prophecy-reel-spinning"), n.current.style.transform = `translateY(-${S}px)`, setTimeout(() => {
+      if (!n.current) return;
+      n.current.classList.remove("prophecy-reel-spinning"), n.current.style.transition = "none";
+      const C = p * o;
+      n.current.style.transform = `translateY(-${C}px)`, n.current.offsetHeight, n.current.style.transition = "transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)", a(!1);
     }, 1600);
   };
-  return /* @__PURE__ */ e.jsx(e.Fragment, { children: /* @__PURE__ */ e.jsx("div", { className: O.prophecyMask, onClick: P, children: /* @__PURE__ */ e.jsx("div", { ref: h, className: O.prophecyReel, children: C.map((Y, T) => /* @__PURE__ */ e.jsx("div", { className: O.prophecyItem, children: /* @__PURE__ */ e.jsx("span", { className: O.englishText, children: Y.english }) }, T)) }) }) });
-}, Is = ({ contentMap: s, spinsLeft: n, setSpinsLeft: i, onSpin: h }) => {
-  var g, u, v;
-  const m = ((g = s.get("hero_title")) == null ? void 0 : g.content) || "Zoroasterverse", f = ((u = s.get("hero_quote")) == null ? void 0 : u.content) || "“Happiness comes to them who bring happiness to others.”", N = ((v = s.get("hero_description")) == null ? void 0 : v.content) || "Learn about the teachings of the prophet Zarathustra, the history of one of the world’s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.";
-  return /* @__PURE__ */ e.jsxs("section", { id: "home", className: O.zrHero, children: [
-    /* @__PURE__ */ e.jsxs("div", { className: O.zrHeroContent, children: [
-      /* @__PURE__ */ e.jsx("h1", { className: O.zrTitle, children: m }),
-      /* @__PURE__ */ e.jsx("p", { className: O.zrQuote, children: f }),
-      /* @__PURE__ */ e.jsx("p", { className: O.zrIntro, children: N }),
-      /* @__PURE__ */ e.jsx(ze, { className: O.zrCta, to: "/blog/about", children: "Learn More" })
+  return /* @__PURE__ */ s.jsx(s.Fragment, { children: /* @__PURE__ */ s.jsx("div", { className: H.prophecyMask, onClick: f, children: /* @__PURE__ */ s.jsx("div", { ref: n, className: H.prophecyReel, children: h.map((p, y) => /* @__PURE__ */ s.jsx("div", { className: H.prophecyItem, children: /* @__PURE__ */ s.jsx("span", { className: H.englishText, children: p.english }) }, y)) }) }) });
+}, vc = ({ contentMap: e, spinsLeft: t, setSpinsLeft: r, onSpin: n }) => {
+  var l, c, u;
+  const i = ((l = e.get("hero_title")) == null ? void 0 : l.content) || "Zoroasterverse", a = ((c = e.get("hero_quote")) == null ? void 0 : c.content) || "“Happiness comes to them who bring happiness to others.”", o = ((u = e.get("hero_description")) == null ? void 0 : u.content) || "Learn about the teachings of the prophet Zarathustra, the history of one of the world’s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.";
+  return /* @__PURE__ */ s.jsxs("section", { id: "home", className: H.zrHero, children: [
+    /* @__PURE__ */ s.jsxs("div", { className: H.zrHeroContent, children: [
+      /* @__PURE__ */ s.jsx("h1", { className: H.zrTitle, children: i }),
+      /* @__PURE__ */ s.jsx("p", { className: H.zrQuote, children: a }),
+      /* @__PURE__ */ s.jsx("p", { className: H.zrIntro, children: o }),
+      /* @__PURE__ */ s.jsx(Ut, { className: H.zrCta, to: "/blog/about", children: "Learn More" })
     ] }),
-    /* @__PURE__ */ e.jsxs("figure", { className: O.zrHeroArt, "aria-labelledby": "art-caption", children: [
-      /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsxs("figure", { className: H.zrHeroArt, "aria-labelledby": "art-caption", children: [
+      /* @__PURE__ */ s.jsx(
         "video",
         {
           src: "/200716-913538378.mp4",
@@ -1668,118 +1668,118 @@ const Vt = It(void 0), Jt = () => {
           loop: !0,
           muted: !0,
           playsInline: !0,
-          className: O.videoFire
+          className: H.videoFire
         }
       ),
-      /* @__PURE__ */ e.jsx("div", { className: O.spinsIndicator, children: [...Array(3)].map((x, C) => /* @__PURE__ */ e.jsx("div", { className: `${O.spinDot} ${C < n ? O.spinDotActive : ""}` }, C)) }),
-      /* @__PURE__ */ e.jsx(Os, { spinsLeft: n, setSpinsLeft: i, onSpin: h }),
-      /* @__PURE__ */ e.jsx("figcaption", { id: "art-caption", className: "sr-only", children: "A stylized winged figure above a sacred fire." })
+      /* @__PURE__ */ s.jsx("div", { className: H.spinsIndicator, children: [...Array(3)].map((d, h) => /* @__PURE__ */ s.jsx("div", { className: `${H.spinDot} ${h < t ? H.spinDotActive : ""}` }, h)) }),
+      /* @__PURE__ */ s.jsx(bc, { spinsLeft: t, setSpinsLeft: r, onSpin: n }),
+      /* @__PURE__ */ s.jsx("figcaption", { id: "art-caption", className: "sr-only", children: "A stylized winged figure above a sacred fire." })
     ] })
   ] });
-}, zs = ({ posts: s }) => /* @__PURE__ */ e.jsxs("section", { className: O.zrSection, children: [
-  /* @__PURE__ */ e.jsx("h2", { className: O.zrH2, children: "Latest News & Updates" }),
-  /* @__PURE__ */ e.jsx("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8", children: s.map((n) => {
-    const i = n.content.length > 100 ? n.content.substring(0, 100) + "..." : n.content;
-    return /* @__PURE__ */ e.jsxs("div", { className: O.parchmentCard, children: [
-      /* @__PURE__ */ e.jsx("h3", { children: n.title }),
-      /* @__PURE__ */ e.jsx("p", { className: "mt-2", dangerouslySetInnerHTML: { __html: i } }),
-      /* @__PURE__ */ e.jsx(ze, { to: `/blog/${n.slug}`, className: "mt-4 inline-block", children: "Read More" })
-    ] }, n.id);
+}, wc = ({ posts: e }) => /* @__PURE__ */ s.jsxs("section", { className: H.zrSection, children: [
+  /* @__PURE__ */ s.jsx("h2", { className: H.zrH2, children: "Latest News & Updates" }),
+  /* @__PURE__ */ s.jsx("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8", children: e.map((t) => {
+    const r = t.content.length > 100 ? t.content.substring(0, 100) + "..." : t.content;
+    return /* @__PURE__ */ s.jsxs("div", { className: H.parchmentCard, children: [
+      /* @__PURE__ */ s.jsx("h3", { children: t.title }),
+      /* @__PURE__ */ s.jsx("p", { className: "mt-2", dangerouslySetInnerHTML: { __html: r } }),
+      /* @__PURE__ */ s.jsx(Ut, { to: `/blog/${t.slug}`, className: "mt-4 inline-block", children: "Read More" })
+    ] }, t.id);
   }) })
-] }), Ds = ({ releases: s }) => /* @__PURE__ */ e.jsxs("section", { className: O.zrSection, children: [
-  /* @__PURE__ */ e.jsx("h2", { className: O.zrH2, children: "Latest Releases" }),
-  /* @__PURE__ */ e.jsx("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8", children: s.map((n) => /* @__PURE__ */ e.jsxs("div", { className: O.parchmentCard, children: [
-    /* @__PURE__ */ e.jsx("h3", { children: n.title }),
-    /* @__PURE__ */ e.jsxs("p", { className: "mt-2", children: [
+] }), jc = ({ releases: e }) => /* @__PURE__ */ s.jsxs("section", { className: H.zrSection, children: [
+  /* @__PURE__ */ s.jsx("h2", { className: H.zrH2, children: "Latest Releases" }),
+  /* @__PURE__ */ s.jsx("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-8", children: e.map((t) => /* @__PURE__ */ s.jsxs("div", { className: H.parchmentCard, children: [
+    /* @__PURE__ */ s.jsx("h3", { children: t.title }),
+    /* @__PURE__ */ s.jsxs("p", { className: "mt-2", children: [
       "Type: ",
-      n.type
+      t.type
     ] }),
-    /* @__PURE__ */ e.jsx("a", { href: n.link || "#", className: "mt-4 inline-block", children: "View Details / Purchase" })
-  ] }, n.id)) })
-] }), un = ({
-  homepageData: s = [],
-  latestPosts: n = [],
-  releaseData: i = [],
-  spinsLeft: h = 0,
-  isLoading: m = !1,
-  isError: f = !1,
-  onSpin: N
+    /* @__PURE__ */ s.jsx("a", { href: t.link || "#", className: "mt-4 inline-block", children: "View Details / Purchase" })
+  ] }, t.id)) })
+] }), Mf = ({
+  homepageData: e = [],
+  latestPosts: t = [],
+  releaseData: r = [],
+  spinsLeft: n = 0,
+  isLoading: i = !1,
+  isError: a = !1,
+  onSpin: o
 }) => {
-  var x, C, P, Y;
-  const [g, u] = p(h);
-  if (m) return /* @__PURE__ */ e.jsx("div", { className: "text-center py-8", children: "Loading homepage content..." });
-  if (f) return /* @__PURE__ */ e.jsx("div", { className: "text-center py-8 text-red-400", children: "Error loading homepage content." });
-  const v = new Map(s == null ? void 0 : s.map((T) => [T.section, T]));
-  return /* @__PURE__ */ e.jsxs("div", { children: [
-    /* @__PURE__ */ e.jsx(Is, { contentMap: v, spinsLeft: g, setSpinsLeft: u, onSpin: N }),
-    /* @__PURE__ */ e.jsxs("section", { className: O.zrSection, children: [
-      /* @__PURE__ */ e.jsx("h2", { className: O.zrH2, children: "Our Progress" }),
-      /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-2 md:grid-cols-4 gap-8 text-center", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: O.parchmentCard, children: [
-          /* @__PURE__ */ e.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((x = v.get("statistics_words_written")) == null ? void 0 : x.content) || "0" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: "Words Written" })
+  var d, h, f, p;
+  const [l, c] = _(n);
+  if (i) return /* @__PURE__ */ s.jsx("div", { className: "text-center py-8", children: "Loading homepage content..." });
+  if (a) return /* @__PURE__ */ s.jsx("div", { className: "text-center py-8 text-red-400", children: "Error loading homepage content." });
+  const u = new Map(e == null ? void 0 : e.map((y) => [y.section, y]));
+  return /* @__PURE__ */ s.jsxs("div", { children: [
+    /* @__PURE__ */ s.jsx(vc, { contentMap: u, spinsLeft: l, setSpinsLeft: c, onSpin: o }),
+    /* @__PURE__ */ s.jsxs("section", { className: H.zrSection, children: [
+      /* @__PURE__ */ s.jsx("h2", { className: H.zrH2, children: "Our Progress" }),
+      /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-2 md:grid-cols-4 gap-8 text-center", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: H.parchmentCard, children: [
+          /* @__PURE__ */ s.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((d = u.get("statistics_words_written")) == null ? void 0 : d.content) || "0" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: "Words Written" })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: O.parchmentCard, children: [
-          /* @__PURE__ */ e.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((C = v.get("statistics_beta_readers")) == null ? void 0 : C.content) || "0" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: "Beta Readers" })
+        /* @__PURE__ */ s.jsxs("div", { className: H.parchmentCard, children: [
+          /* @__PURE__ */ s.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((h = u.get("statistics_beta_readers")) == null ? void 0 : h.content) || "0" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: "Beta Readers" })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: O.parchmentCard, children: [
-          /* @__PURE__ */ e.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((P = v.get("statistics_average_rating")) == null ? void 0 : P.content) || "0" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: "Average Rating" })
+        /* @__PURE__ */ s.jsxs("div", { className: H.parchmentCard, children: [
+          /* @__PURE__ */ s.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((f = u.get("statistics_average_rating")) == null ? void 0 : f.content) || "0" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: "Average Rating" })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: O.parchmentCard, children: [
-          /* @__PURE__ */ e.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((Y = v.get("statistics_books_published")) == null ? void 0 : Y.content) || "0" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: "Books Published" })
+        /* @__PURE__ */ s.jsxs("div", { className: H.parchmentCard, children: [
+          /* @__PURE__ */ s.jsx("h3", { className: "text-4xl font-bold text-primary", children: ((p = u.get("statistics_books_published")) == null ? void 0 : p.content) || "0" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: "Books Published" })
         ] })
       ] })
     ] }),
-    /* @__PURE__ */ e.jsx(zs, { posts: n || [] }),
-    /* @__PURE__ */ e.jsx(Ds, { releases: i || [] }),
-    /* @__PURE__ */ e.jsxs("section", { className: O.zrSection, children: [
-      /* @__PURE__ */ e.jsx("h2", { className: O.zrH2, children: "Artist Collaboration" }),
-      /* @__PURE__ */ e.jsxs("div", { className: "relative rounded-lg shadow-lg overflow-hidden w-full", children: [
-        /* @__PURE__ */ e.jsx("img", { src: "/images/invite_to_Colab_card.png", alt: "Artist Collaboration Invitation", className: "w-full h-full object-contain" }),
-        /* @__PURE__ */ e.jsxs("div", { className: "absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-8", children: [
-          /* @__PURE__ */ e.jsx("h3", { className: "text-2xl font-bold text-white mb-4 text-shadow-md", children: "Join Our Creative Team!" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-white mb-6 text-shadow-sm", children: "We're looking for talented artists to help shape the visual identity of the Zangar/Spandam Series. Explore revenue-share opportunities and bring your vision to life." }),
-          /* @__PURE__ */ e.jsx(ze, { to: "/artist-collaboration", className: "inline-block bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105", children: "Apply Now" })
+    /* @__PURE__ */ s.jsx(wc, { posts: t || [] }),
+    /* @__PURE__ */ s.jsx(jc, { releases: r || [] }),
+    /* @__PURE__ */ s.jsxs("section", { className: H.zrSection, children: [
+      /* @__PURE__ */ s.jsx("h2", { className: H.zrH2, children: "Artist Collaboration" }),
+      /* @__PURE__ */ s.jsxs("div", { className: "relative rounded-lg shadow-lg overflow-hidden w-full", children: [
+        /* @__PURE__ */ s.jsx("img", { src: "/images/invite_to_Colab_card.png", alt: "Artist Collaboration Invitation", className: "w-full h-full object-contain" }),
+        /* @__PURE__ */ s.jsxs("div", { className: "absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-8", children: [
+          /* @__PURE__ */ s.jsx("h3", { className: "text-2xl font-bold text-white mb-4 text-shadow-md", children: "Join Our Creative Team!" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-white mb-6 text-shadow-sm", children: "We're looking for talented artists to help shape the visual identity of the Zangar/Spandam Series. Explore revenue-share opportunities and bring your vision to life." }),
+          /* @__PURE__ */ s.jsx(Ut, { to: "/artist-collaboration", className: "inline-block bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105", children: "Apply Now" })
         ] })
       ] })
     ] })
   ] });
-}, mn = ({ children: s, icon: n, variant: i = "primary", className: h = "", onClick: m, type: f = "button" }) => {
-  const N = "group relative inline-flex items-center gap-3 rounded-2xl px-8 py-4 font-semibold tracking-wide transition-all duration-300 transform", g = {
+}, Df = ({ children: e, icon: t, variant: r = "primary", className: n = "", onClick: i, type: a = "button" }) => {
+  const o = "group relative inline-flex items-center gap-3 rounded-2xl px-8 py-4 font-semibold tracking-wide transition-all duration-300 transform", l = {
     // Add index signature
     primary: "border border-amber-600/60 bg-gradient-to-r from-amber-600/20 to-orange-600/20 text-amber-100 shadow-[0_0_30px_rgba(251,191,36,0.15)] hover:shadow-[0_0_50px_rgba(251,191,36,0.3)] hover:-translate-y-1",
     secondary: "border border-slate-600/60 bg-gradient-to-r from-slate-800/80 to-slate-900/80 text-slate-200 shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:shadow-[0_0_40px_rgba(251,191,36,0.2)] hover:border-amber-600/40 hover:-translate-y-1"
   };
-  return /* @__PURE__ */ e.jsxs(
+  return /* @__PURE__ */ s.jsxs(
     "button",
     {
-      className: `${N} ${g[i]} ${h}`,
-      onClick: m,
-      type: f,
+      className: `${o} ${l[r]} ${n}`,
+      onClick: i,
+      type: a,
       children: [
-        n && /* @__PURE__ */ e.jsx(n, { className: "w-5 h-5" }),
-        /* @__PURE__ */ e.jsx("span", { className: "relative z-10", children: s }),
-        /* @__PURE__ */ e.jsx(Fr, { className: "w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" }),
-        /* @__PURE__ */ e.jsx("div", { className: "absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-600/10 via-orange-600/10 to-amber-600/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-xl" })
+        t && /* @__PURE__ */ s.jsx(t, { className: "w-5 h-5" }),
+        /* @__PURE__ */ s.jsx("span", { className: "relative z-10", children: e }),
+        /* @__PURE__ */ s.jsx(gl, { className: "w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" }),
+        /* @__PURE__ */ s.jsx("div", { className: "absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-600/10 via-orange-600/10 to-amber-600/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 blur-xl" })
       ]
     }
   );
-}, gn = () => /* @__PURE__ */ e.jsxs("div", { className: "relative flex items-center justify-center my-12", children: [
-  /* @__PURE__ */ e.jsx("div", { className: "h-px w-32 bg-gradient-to-r from-transparent via-amber-600/60 to-transparent" }),
-  /* @__PURE__ */ e.jsxs("svg", { width: "80", height: "32", viewBox: "0 0 80 32", className: "mx-4 text-amber-500", children: [
-    /* @__PURE__ */ e.jsx("path", { d: "M8 16L16 8L24 16L32 8L40 16L48 8L56 16L64 8L72 16", stroke: "currentColor", strokeWidth: "1", fill: "none" }),
-    /* @__PURE__ */ e.jsx("circle", { cx: "16", cy: "8", r: "2", fill: "currentColor" }),
-    /* @__PURE__ */ e.jsx("circle", { cx: "40", cy: "16", r: "2", fill: "currentColor" }),
-    /* @__PURE__ */ e.jsx("circle", { cx: "64", cy: "8", r: "2", fill: "currentColor" })
+}, Rf = () => /* @__PURE__ */ s.jsxs("div", { className: "relative flex items-center justify-center my-12", children: [
+  /* @__PURE__ */ s.jsx("div", { className: "h-px w-32 bg-gradient-to-r from-transparent via-amber-600/60 to-transparent" }),
+  /* @__PURE__ */ s.jsxs("svg", { width: "80", height: "32", viewBox: "0 0 80 32", className: "mx-4 text-amber-500", children: [
+    /* @__PURE__ */ s.jsx("path", { d: "M8 16L16 8L24 16L32 8L40 16L48 8L56 16L64 8L72 16", stroke: "currentColor", strokeWidth: "1", fill: "none" }),
+    /* @__PURE__ */ s.jsx("circle", { cx: "16", cy: "8", r: "2", fill: "currentColor" }),
+    /* @__PURE__ */ s.jsx("circle", { cx: "40", cy: "16", r: "2", fill: "currentColor" }),
+    /* @__PURE__ */ s.jsx("circle", { cx: "64", cy: "8", r: "2", fill: "currentColor" })
   ] }),
-  /* @__PURE__ */ e.jsx("div", { className: "h-px w-32 bg-gradient-to-r from-transparent via-amber-600/60 to-transparent" })
-] }), pn = () => {
-  const [s] = p(
-    () => Array.from({ length: 60 }, (n, i) => ({
-      id: i,
+  /* @__PURE__ */ s.jsx("div", { className: "h-px w-32 bg-gradient-to-r from-transparent via-amber-600/60 to-transparent" })
+] }), Vf = () => {
+  const [e] = _(
+    () => Array.from({ length: 60 }, (t, r) => ({
+      id: r,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: Math.random() * 3 + 1,
@@ -1787,216 +1787,216 @@ const Vt = It(void 0), Jt = () => {
       opacity: Math.random() * 0.5 + 0.1
     }))
   );
-  return /* @__PURE__ */ e.jsx("div", { className: "absolute inset-0 overflow-hidden pointer-events-none", children: s.map((n) => /* @__PURE__ */ e.jsx(
+  return /* @__PURE__ */ s.jsx("div", { className: "absolute inset-0 overflow-hidden pointer-events-none", children: e.map((t) => /* @__PURE__ */ s.jsx(
     "div",
     {
       className: "absolute rounded-full bg-amber-400/30",
       style: {
-        left: `${n.x}%`,
-        top: `${n.y}%`,
-        width: `${n.size}px`,
-        height: `${n.size}px`,
-        opacity: n.opacity,
-        animation: `float ${n.speed + 8}s linear infinite`,
-        boxShadow: `0 0 ${n.size * 4}px rgba(251, 191, 36, 0.4)`
+        left: `${t.x}%`,
+        top: `${t.y}%`,
+        width: `${t.size}px`,
+        height: `${t.size}px`,
+        opacity: t.opacity,
+        animation: `float ${t.speed + 8}s linear infinite`,
+        boxShadow: `0 0 ${t.size * 4}px rgba(251, 191, 36, 0.4)`
       }
     },
-    n.id
+    t.id
   )) });
 };
-function $s(...s) {
-  return Ut(Wt(s));
+function Nc(...e) {
+  return Bi(Yi(e));
 }
-const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
-  const h = Array.from({ length: s }, (m, f) => /* @__PURE__ */ e.jsxs(
+const Lf = ({ count: e = 4, viewMode: t = "grid", className: r }) => {
+  const n = Array.from({ length: e }, (i, a) => /* @__PURE__ */ s.jsxs(
     "div",
     {
-      className: `${n === "grid" ? "bg-background-light/30 backdrop-blur-sm rounded-2xl border border-border/30 overflow-hidden" : "bg-background-light/30 backdrop-blur-sm rounded-2xl p-6 border border-border/30"}`,
+      className: `${t === "grid" ? "bg-background-light/30 backdrop-blur-sm rounded-2xl border border-border/30 overflow-hidden" : "bg-background-light/30 backdrop-blur-sm rounded-2xl p-6 border border-border/30"}`,
       children: [
-        /* @__PURE__ */ e.jsx("div", { className: "h-64 bg-gradient-to-r from-border/20 to-border/40 skeleton" }),
-        /* @__PURE__ */ e.jsxs("div", { className: "p-6", children: [
-          /* @__PURE__ */ e.jsx("div", { className: "h-6 bg-border/20 rounded skeleton mb-3" }),
-          /* @__PURE__ */ e.jsxs("div", { className: "space-y-2 mb-4", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "h-4 bg-border/20 rounded skeleton" }),
-            /* @__PURE__ */ e.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-3/4" }),
-            /* @__PURE__ */ e.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-1/2" })
+        /* @__PURE__ */ s.jsx("div", { className: "h-64 bg-gradient-to-r from-border/20 to-border/40 skeleton" }),
+        /* @__PURE__ */ s.jsxs("div", { className: "p-6", children: [
+          /* @__PURE__ */ s.jsx("div", { className: "h-6 bg-border/20 rounded skeleton mb-3" }),
+          /* @__PURE__ */ s.jsxs("div", { className: "space-y-2 mb-4", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "h-4 bg-border/20 rounded skeleton" }),
+            /* @__PURE__ */ s.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-3/4" }),
+            /* @__PURE__ */ s.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-1/2" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "mb-4", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-24 mb-2" }),
-            /* @__PURE__ */ e.jsxs("div", { className: "flex space-x-2", children: [
-              /* @__PURE__ */ e.jsx("div", { className: "h-6 bg-border/20 rounded-full skeleton w-16" }),
-              /* @__PURE__ */ e.jsx("div", { className: "h-6 bg-border/20 rounded-full skeleton w-20" })
+          /* @__PURE__ */ s.jsxs("div", { className: "mb-4", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-24 mb-2" }),
+            /* @__PURE__ */ s.jsxs("div", { className: "flex space-x-2", children: [
+              /* @__PURE__ */ s.jsx("div", { className: "h-6 bg-border/20 rounded-full skeleton w-16" }),
+              /* @__PURE__ */ s.jsx("div", { className: "h-6 bg-border/20 rounded-full skeleton w-20" })
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "mb-6", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "h-8 bg-border/20 rounded skeleton w-20 mb-2" }),
-            /* @__PURE__ */ e.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-32" })
+          /* @__PURE__ */ s.jsxs("div", { className: "mb-6", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "h-8 bg-border/20 rounded skeleton w-20 mb-2" }),
+            /* @__PURE__ */ s.jsx("div", { className: "h-4 bg-border/20 rounded skeleton w-32" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "space-y-3", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "h-12 bg-border/20 rounded-xl skeleton" }),
-            /* @__PURE__ */ e.jsx("div", { className: "h-10 bg-border/20 rounded-xl skeleton" })
+          /* @__PURE__ */ s.jsxs("div", { className: "space-y-3", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "h-12 bg-border/20 rounded-xl skeleton" }),
+            /* @__PURE__ */ s.jsx("div", { className: "h-10 bg-border/20 rounded-xl skeleton" })
           ] })
         ] })
       ]
     },
-    f
+    a
   ));
-  return /* @__PURE__ */ e.jsx(
+  return /* @__PURE__ */ s.jsx(
     "div",
     {
-      className: $s(
-        n === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4",
-        i
+      className: Nc(
+        t === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4",
+        r
       ),
-      children: h
+      children: n
     }
   );
-}, xn = () => {
-  const s = Dt(null);
-  return he(() => {
-    const n = s.current;
-    if (!n) return;
-    const i = 50, h = () => {
-      const f = document.createElement("div");
-      f.className = "star", f.style.position = "absolute", f.style.backgroundColor = "#ffffff", f.style.borderRadius = "50%", f.style.left = Math.random() * 100 + "%", f.style.top = Math.random() * 100 + "%";
-      const N = Math.random() * 3 + 1;
-      f.style.width = f.style.height = N + "px", f.style.animationDelay = Math.random() * 3 + "s", f.style.animationDuration = Math.random() * 2 + 2 + "s", f.style.pointerEvents = "none", n.appendChild(f);
+}, Ff = () => {
+  const e = ht(null);
+  return xe(() => {
+    const t = e.current;
+    if (!t) return;
+    const r = 50, n = () => {
+      const a = document.createElement("div");
+      a.className = "star", a.style.position = "absolute", a.style.backgroundColor = "#ffffff", a.style.borderRadius = "50%", a.style.left = Math.random() * 100 + "%", a.style.top = Math.random() * 100 + "%";
+      const o = Math.random() * 3 + 1;
+      a.style.width = a.style.height = o + "px", a.style.animationDelay = Math.random() * 3 + "s", a.style.animationDuration = Math.random() * 2 + 2 + "s", a.style.pointerEvents = "none", t.appendChild(a);
     };
-    n.innerHTML = "";
-    for (let f = 0; f < i; f++)
-      h();
-    const m = () => {
-      const N = window.pageYOffset * -0.1;
-      n && (n.style.transform = `translateY(${N}px)`);
+    t.innerHTML = "";
+    for (let a = 0; a < r; a++)
+      n();
+    const i = () => {
+      const o = window.pageYOffset * -0.1;
+      t && (t.style.transform = `translateY(${o}px)`);
     };
-    return window.addEventListener("scroll", m), () => {
-      window.removeEventListener("scroll", m);
+    return window.addEventListener("scroll", i), () => {
+      window.removeEventListener("scroll", i);
     };
-  }, []), /* @__PURE__ */ e.jsx("div", { ref: s, className: "stars fixed top-0 left-0 w-full h-full pointer-events-none -z-10", children: " " });
-}, Ws = ({
-  item: s,
-  isActive: n = !1,
-  level: i = 0,
-  onClick: h
+  }, []), /* @__PURE__ */ s.jsx("div", { ref: e, className: "stars fixed top-0 left-0 w-full h-full pointer-events-none -z-10", children: " " });
+}, kc = ({
+  item: e,
+  isActive: t = !1,
+  level: r = 0,
+  onClick: n
 }) => {
-  const { title: m, slug: f, type: N, children: g = [] } = s, u = g && g.length > 0, v = `${i * 16 + 8}px`, x = (C) => {
-    C.preventDefault(), h && h(f);
+  const { title: i, slug: a, type: o, children: l = [] } = e, c = l && l.length > 0, u = `${r * 16 + 8}px`, d = (h) => {
+    h.preventDefault(), n && n(a);
   };
-  return /* @__PURE__ */ e.jsxs("div", { className: `wiki-nav-item ${n ? "active" : ""}`, style: { paddingLeft: v }, children: [
-    /* @__PURE__ */ e.jsxs(
-      ze,
+  return /* @__PURE__ */ s.jsxs("div", { className: `wiki-nav-item ${t ? "active" : ""}`, style: { paddingLeft: u }, children: [
+    /* @__PURE__ */ s.jsxs(
+      Ut,
       {
-        to: `/wiki/${f}`,
-        className: `nav-link ${N}`,
-        onClick: x,
+        to: `/wiki/${a}`,
+        className: `nav-link ${o}`,
+        onClick: d,
         children: [
-          m,
-          u && /* @__PURE__ */ e.jsx("span", { className: "nav-toggle", children: n ? "▼" : "▶" })
+          i,
+          c && /* @__PURE__ */ s.jsx("span", { className: "nav-toggle", children: t ? "▼" : "▶" })
         ]
       }
     ),
-    u && n && /* @__PURE__ */ e.jsx("div", { className: "nav-children", children: g.map((C, P) => /* @__PURE__ */ e.jsx(
-      Ws,
+    c && t && /* @__PURE__ */ s.jsx("div", { className: "nav-children", children: l.map((h, f) => /* @__PURE__ */ s.jsx(
+      kc,
       {
-        item: C,
-        level: i + 1,
-        isActive: n,
-        onClick: h
+        item: h,
+        level: r + 1,
+        isActive: t,
+        onClick: n
       },
-      C.slug
+      h.slug
     )) })
   ] });
-}, bn = () => {
-  const { state: s, removeItem: n, updateQuantity: i, clearCart: h } = Ur(), [m, f] = p(!1), N = (u, v) => new Intl.NumberFormat("en-US", {
+}, If = () => {
+  const { state: e, removeItem: t, updateQuantity: r, clearCart: n } = Tl(), [i, a] = _(!1), o = (c, u) => new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: v.toUpperCase()
-  }).format(u), g = () => {
-    f(!1);
+    currency: u.toUpperCase()
+  }).format(c), l = () => {
+    a(!1);
   };
-  return /* @__PURE__ */ e.jsxs("div", { className: "relative", children: [
-    /* @__PURE__ */ e.jsxs(
+  return /* @__PURE__ */ s.jsxs("div", { className: "relative", children: [
+    /* @__PURE__ */ s.jsxs(
       "button",
       {
-        onClick: () => f(!m),
+        onClick: () => a(!i),
         className: "relative p-2 text-text-light hover:text-secondary transition-colors",
         "aria-label": "Shopping Cart",
         children: [
-          /* @__PURE__ */ e.jsx(Ne, { className: "w-6 h-6" }),
-          s.itemCount > 0 && /* @__PURE__ */ e.jsx("span", { className: "absolute -top-1 -right-1 bg-secondary text-background text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium", children: s.itemCount > 99 ? "99+" : s.itemCount })
+          /* @__PURE__ */ s.jsx(et, { className: "w-6 h-6" }),
+          e.itemCount > 0 && /* @__PURE__ */ s.jsx("span", { className: "absolute -top-1 -right-1 bg-secondary text-background text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium", children: e.itemCount > 99 ? "99+" : e.itemCount })
         ]
       }
     ),
-    m && /* @__PURE__ */ e.jsxs("div", { className: "absolute right-0 top-full mt-2 w-80 bg-background-light rounded-2xl shadow-2xl border border-border/30 z-50 glass-effect", children: [
-      /* @__PURE__ */ e.jsx("div", { className: "p-4 border-b border-border/30", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-text-light", children: "Shopping Cart" }),
-        /* @__PURE__ */ e.jsx(
+    i && /* @__PURE__ */ s.jsxs("div", { className: "absolute right-0 top-full mt-2 w-80 bg-background-light rounded-2xl shadow-2xl border border-border/30 z-50 glass-effect", children: [
+      /* @__PURE__ */ s.jsx("div", { className: "p-4 border-b border-border/30", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-text-light", children: "Shopping Cart" }),
+        /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: () => f(!1),
+            onClick: () => a(!1),
             className: "text-text-dark hover:text-text-light transition-colors",
-            children: /* @__PURE__ */ e.jsx(ge, { className: "w-5 h-5" })
+            children: /* @__PURE__ */ s.jsx(Ee, { className: "w-5 h-5" })
           }
         )
       ] }) }),
-      /* @__PURE__ */ e.jsx("div", { className: "max-h-96 overflow-y-auto", children: s.items.length === 0 ? /* @__PURE__ */ e.jsxs("div", { className: "p-6 text-center", children: [
-        /* @__PURE__ */ e.jsx(Ne, { className: "w-12 h-12 text-text-dark mx-auto mb-3" }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-text-dark", children: "Your cart is empty" }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-text-dark text-sm", children: "Add some products to get started!" })
-      ] }) : /* @__PURE__ */ e.jsx("div", { className: "p-4 space-y-3", children: s.items.map((u) => /* @__PURE__ */ e.jsxs("div", { className: "flex items-center space-x-3 p-3 bg-background/30 rounded-xl", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex-1 min-w-0", children: [
-          /* @__PURE__ */ e.jsx("h4", { className: "text-sm font-medium text-text-light truncate", children: u.title }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-xs text-text-dark", children: u.format.toUpperCase() }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-sm text-secondary font-medium", children: N(u.price, u.currency) })
+      /* @__PURE__ */ s.jsx("div", { className: "max-h-96 overflow-y-auto", children: e.items.length === 0 ? /* @__PURE__ */ s.jsxs("div", { className: "p-6 text-center", children: [
+        /* @__PURE__ */ s.jsx(et, { className: "w-12 h-12 text-text-dark mx-auto mb-3" }),
+        /* @__PURE__ */ s.jsx("p", { className: "text-text-dark", children: "Your cart is empty" }),
+        /* @__PURE__ */ s.jsx("p", { className: "text-text-dark text-sm", children: "Add some products to get started!" })
+      ] }) : /* @__PURE__ */ s.jsx("div", { className: "p-4 space-y-3", children: e.items.map((c) => /* @__PURE__ */ s.jsxs("div", { className: "flex items-center space-x-3 p-3 bg-background/30 rounded-xl", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex-1 min-w-0", children: [
+          /* @__PURE__ */ s.jsx("h4", { className: "text-sm font-medium text-text-light truncate", children: c.title }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-xs text-text-dark", children: c.format.toUpperCase() }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-sm text-secondary font-medium", children: o(c.price, c.currency) })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center space-x-2", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center space-x-2", children: [
+          /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: () => i(u.id, u.quantity - 1),
+              onClick: () => r(c.id, c.quantity - 1),
               className: "p-1 text-text-dark hover:text-text-light transition-colors",
               "aria-label": "Decrease quantity",
-              children: /* @__PURE__ */ e.jsx(Lr, { className: "w-4 h-4" })
+              children: /* @__PURE__ */ s.jsx(pl, { className: "w-4 h-4" })
             }
           ),
-          /* @__PURE__ */ e.jsx("span", { className: "text-sm text-text-light min-w-[2rem] text-center", children: u.quantity }),
-          /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsx("span", { className: "text-sm text-text-light min-w-[2rem] text-center", children: c.quantity }),
+          /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: () => i(u.id, u.quantity + 1),
+              onClick: () => r(c.id, c.quantity + 1),
               className: "p-1 text-text-dark hover:text-text-light transition-colors",
               "aria-label": "Increase quantity",
-              children: /* @__PURE__ */ e.jsx(Ee, { className: "w-4 h-4" })
+              children: /* @__PURE__ */ s.jsx(ft, { className: "w-4 h-4" })
             }
           ),
-          /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: () => n(u.id),
+              onClick: () => t(c.id),
               className: "p-1 text-error hover:text-error-dark transition-colors",
               "aria-label": "Remove item",
-              children: /* @__PURE__ */ e.jsx(et, { className: "w-4 h-4" })
+              children: /* @__PURE__ */ s.jsx(vs, { className: "w-4 h-4" })
             }
           )
         ] })
-      ] }, u.id)) }) }),
-      s.items.length > 0 && /* @__PURE__ */ e.jsxs("div", { className: "p-4 border-t border-border/30", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between mb-4", children: [
-          /* @__PURE__ */ e.jsx("span", { className: "text-text-light font-medium", children: "Total:" }),
-          /* @__PURE__ */ e.jsx("span", { className: "text-xl text-secondary font-bold", children: N(s.total, "USD") })
+      ] }, c.id)) }) }),
+      e.items.length > 0 && /* @__PURE__ */ s.jsxs("div", { className: "p-4 border-t border-border/30", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between mb-4", children: [
+          /* @__PURE__ */ s.jsx("span", { className: "text-text-light font-medium", children: "Total:" }),
+          /* @__PURE__ */ s.jsx("span", { className: "text-xl text-secondary font-bold", children: o(e.total, "USD") })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "space-y-2", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: g,
+              onClick: l,
               className: "w-full bg-secondary text-background py-3 px-4 rounded-xl font-medium hover:bg-secondary-dark transition-colors",
               children: "Proceed to Checkout"
             }
           ),
-          /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: h,
+              onClick: n,
               className: "w-full bg-background/50 text-text-light py-2 px-4 rounded-xl font-medium hover:bg-background/70 transition-colors border border-border/30",
               children: "Clear Cart"
             }
@@ -2004,370 +2004,247 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
         ] })
       ] })
     ] }),
-    m && /* @__PURE__ */ e.jsx(
+    i && /* @__PURE__ */ s.jsx(
       "div",
       {
         className: "fixed inset-0 z-40",
-        onClick: () => f(!1)
+        onClick: () => a(!1)
       }
     )
   ] });
-}, Us = "_body_1luq5_11", qs = "_patternShift_1luq5_1", Bs = "_sacredSymbols_1luq5_56", Hs = "_symbol_1luq5_65", Gs = "_floatSymbol_1luq5_1", Vs = "_portalContainer_1luq5_91", Js = "_cornerOrnament_1luq5_139", Ks = "_topLeft_1luq5_159", Zs = "_topRight_1luq5_160", Qs = "_bottomLeft_1luq5_161", Xs = "_bottomRight_1luq5_162", ea = "_header_1luq5_164", ta = "_title_1luq5_169", ra = "_subtitle_1luq5_179", sa = "_sacredQuote_1luq5_188", aa = "_tabContainer_1luq5_201", na = "_tab_1luq5_201", oa = "_activeTab_1luq5_226", ia = "_formContainer_1luq5_248", la = "_activeForm_1luq5_252", da = "_formGroup_1luq5_256", ca = "_formLabel_1luq5_261", ha = "_formInput_1luq5_271", ua = "_passwordStrength_1luq5_297", ma = "_visible_1luq5_308", ga = "_strengthBar_1luq5_312", pa = "_strengthWeak_1luq5_319", fa = "_strengthFair_1luq5_320", xa = "_strengthGood_1luq5_321", ba = "_strengthStrong_1luq5_322", ya = "_strengthText_1luq5_324", va = "_actionBtn_1luq5_332", wa = "_secondaryActions_1luq5_378", ja = "_message_1luq5_413", Na = "_show_1luq5_426", ka = "_success_1luq5_431", _a = "_error_1luq5_437", Ca = "_warning_1luq5_443", Ta = "_loading_1luq5_450", Sa = "_showLoading_1luq5_457", Ea = "_spinner_1luq5_461", Pa = "_spin_1luq5_461", Ya = "_sacredMethods_1luq5_478", Aa = "_sacredTitle_1luq5_483", Fa = "_sacredButtons_1luq5_492", La = "_sacredBtn_1luq5_499", Ma = "_invalid_1luq5_522", Ra = "_valid_1luq5_527", w = {
-  body: Us,
-  patternShift: qs,
-  sacredSymbols: Bs,
-  symbol: Hs,
-  floatSymbol: Gs,
-  portalContainer: Vs,
-  cornerOrnament: Js,
-  topLeft: Ks,
-  topRight: Zs,
-  bottomLeft: Qs,
-  bottomRight: Xs,
-  header: ea,
-  title: ta,
-  subtitle: ra,
-  sacredQuote: sa,
-  tabContainer: aa,
-  tab: na,
-  activeTab: oa,
-  formContainer: ia,
-  activeForm: la,
-  formGroup: da,
-  formLabel: ca,
-  formInput: ha,
-  passwordStrength: ua,
-  visible: ma,
-  strengthBar: ga,
-  strengthWeak: pa,
-  strengthFair: fa,
-  strengthGood: xa,
-  strengthStrong: ba,
-  strengthText: ya,
-  actionBtn: va,
-  secondaryActions: wa,
-  message: ja,
-  show: Na,
-  success: ka,
-  error: _a,
-  warning: Ca,
-  loading: Ta,
-  showLoading: Sa,
-  spinner: Ea,
-  spin: Pa,
-  sacredMethods: Ya,
-  sacredTitle: Aa,
-  sacredButtons: Fa,
-  sacredBtn: La,
-  invalid: Ma,
-  valid: Ra
-}, yn = () => {
-  const [s, n] = p("login"), [i, h] = p(null), [m, f] = p(!1), [N, g] = p(""), [u, v] = p(""), [x, C] = p(""), [P, Y] = p(""), [T, q] = p(""), [I, R] = p(""), [S, B] = p(null), z = $t(), D = (y, a = "info") => {
-    h({ text: y, type: a });
-    const _ = setTimeout(() => h(null), 6e3);
-    return () => clearTimeout(_);
-  }, se = async (y) => {
-    if (y.preventDefault(), !N || !u) {
-      D("Please enter both email and password", "error");
+}, Of = () => {
+  const [e, t] = _("login"), [r, n] = _(null), [i, a] = _(!1), [o, l] = _(""), [c, u] = _(""), [d, h] = _(""), [f, p] = _(""), [y, S] = _(""), [C, j] = _(""), [w, P] = _(null), D = Oi(), A = (x, E = "info") => {
+    n({ text: x, type: E });
+    const b = setTimeout(() => n(null), 6e3);
+    return () => clearTimeout(b);
+  }, I = async (x) => {
+    if (x.preventDefault(), !o || !c) {
+      A("Please enter both email and password", "error");
       return;
     }
-    f(!0);
+    a(!0);
     try {
-      const { error: a } = await ae.auth.signInWithPassword({
-        email: N,
-        password: u
+      const { error: E } = await ge.auth.signInWithPassword({
+        email: o,
+        password: c
       });
-      if (a) throw a;
-      D("Login successful! Redirecting...", "success"), z("/");
-    } catch (a) {
-      const _ = a instanceof Error ? a.message : "Failed to sign in";
-      D(_, "error");
+      if (E) throw E;
+      A("Login successful! Redirecting...", "success"), D("/");
+    } catch (E) {
+      const b = E instanceof Error ? E.message : "Failed to sign in";
+      A(b, "error");
     } finally {
-      f(!1);
+      a(!1);
     }
-  }, V = async (y) => {
-    if (y.preventDefault(), P !== I) {
-      D("Passwords do not match", "error");
+  }, O = async (x) => {
+    if (x.preventDefault(), f !== C) {
+      A("Passwords do not match", "error");
       return;
     }
-    f(!0);
+    a(!0);
     try {
-      const { error: a } = await ae.auth.signUp({
-        email: x,
-        password: P,
+      const { error: E } = await ge.auth.signUp({
+        email: d,
+        password: f,
         options: {
           data: {
-            display_name: T
+            display_name: y
           }
         }
       });
-      if (a) throw a;
-      D("Account created! Please check your email to confirm your account.", "success"), n("login");
-    } catch (a) {
-      const _ = a instanceof Error ? a.message : "Failed to create account";
-      D(_, "error");
+      if (E) throw E;
+      A("Account created! Please check your email to confirm your account.", "success"), t("login");
+    } catch (E) {
+      E instanceof Error && E.message;
     } finally {
-      f(!1);
+      a(!1);
     }
-  }, k = (y) => {
-    if (!y) {
-      B(null);
+  }, k = (x) => {
+    if (!x) {
+      P(null);
       return;
     }
-    let a = 0;
-    y.length >= 8 && a++, /[A-Z]/.test(y) && a++, /[a-z]/.test(y) && a++, /[0-9]/.test(y) && a++, /[^A-Za-z0-9]/.test(y) && a++, y.length >= 12 && a++;
-    const _ = [
+    let E = 0;
+    x.length >= 8 && E++, /[A-Z]/.test(x) && E++, /[a-z]/.test(x) && E++, /[0-9]/.test(x) && E++, /[^A-Za-z0-9]/.test(x) && E++, x.length >= 12 && E++;
+    const b = [
       { text: "Weak", className: "weak" },
       { text: "Fair", className: "fair" },
       { text: "Good", className: "good" },
       { text: "Strong", className: "strong" },
       { text: "Very Strong", className: "very-strong" }
-    ], $ = Math.min(a, _.length - 1);
-    B(_[$]);
-  }, l = ["☽", "☿", "♃", "⊙", "♆", "⚯", "☯", "✧", "◊", "⬟"];
-  return console.log("LoginPage styles object:", w), /* @__PURE__ */ e.jsxs(
-    "div",
-    {
-      className: w.body,
-      style: {
-        fontFamily: "'Cormorant Garamond', serif",
-        background: "linear-gradient(135deg, #8B4513 0%, #CD853F 25%, #DEB887 50%, #F4A460 75%, #D2691E 100%)",
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 9999
-      },
-      children: [
-        /* @__PURE__ */ e.jsx("div", { className: w.sacredSymbols, children: Array.from({ length: 12 }, (y, a) => /* @__PURE__ */ e.jsx(
-          "div",
+    ], V = Math.min(E, b.length - 1);
+    P(b[V]);
+  };
+  return /* @__PURE__ */ s.jsx("div", { className: "auth-page", children: /* @__PURE__ */ s.jsxs("div", { className: "auth-container", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "auth-header", children: [
+      /* @__PURE__ */ s.jsx("h1", { children: "Zoroasterverse" }),
+      /* @__PURE__ */ s.jsx("p", { children: "Join our community of readers and writers" })
+    ] }),
+    r && /* @__PURE__ */ s.jsx("div", { className: `message ${r.type}`, children: r.text }),
+    /* @__PURE__ */ s.jsxs("div", { className: "tabs", children: [
+      /* @__PURE__ */ s.jsx(
+        "button",
+        {
+          className: `tab ${e === "login" ? "active" : ""}`,
+          onClick: () => t("login"),
+          type: "button",
+          children: "Sign In"
+        }
+      ),
+      /* @__PURE__ */ s.jsx(
+        "button",
+        {
+          className: `tab ${e === "signup" ? "active" : ""}`,
+          onClick: () => t("signup"),
+          type: "button",
+          children: "Create Account"
+        }
+      )
+    ] }),
+    e === "login" && /* @__PURE__ */ s.jsxs("form", { onSubmit: I, className: "auth-form", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "form-group", children: [
+        /* @__PURE__ */ s.jsx("label", { htmlFor: "loginEmail", children: "Email Address" }),
+        /* @__PURE__ */ s.jsx(
+          "input",
           {
-            className: w.symbol,
-            style: {
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 20}s`,
-              fontSize: `${1.5 + Math.random()}em`
-            },
-            children: l[Math.floor(Math.random() * l.length)]
-          },
-          a
-        )) }),
-        /* @__PURE__ */ e.jsxs(
-          "div",
-          {
-            className: w.portalContainer,
-            style: {
-              background: "linear-gradient(145deg, #F5DEB3, #DEB887, #D2B48C)",
-              border: "8px solid #8B4513",
-              borderRadius: "20px",
-              padding: "50px",
-              width: "500px",
-              maxWidth: "90vw",
-              position: "relative",
-              zIndex: 10,
-              boxShadow: "0 0 50px rgba(139, 69, 19, 0.4), inset 0 0 30px rgba(245, 222, 179, 0.3)",
-              maxHeight: "90vh",
-              overflowY: "auto"
-            },
-            children: [
-              /* @__PURE__ */ e.jsx("div", { className: `${w.cornerOrnament} ${w.topLeft}` }),
-              /* @__PURE__ */ e.jsx("div", { className: `${w.cornerOrnament} ${w.topRight}` }),
-              /* @__PURE__ */ e.jsx("div", { className: `${w.cornerOrnament} ${w.bottomLeft}` }),
-              /* @__PURE__ */ e.jsx("div", { className: `${w.cornerOrnament} ${w.bottomRight}` }),
-              /* @__PURE__ */ e.jsxs("div", { className: w.header, children: [
-                /* @__PURE__ */ e.jsx("h1", { className: w.title, children: "Zoroasterverse" }),
-                /* @__PURE__ */ e.jsx("p", { className: w.subtitle, children: "Sacred Portal of Ancient Wisdom" })
-              ] }),
-              /* @__PURE__ */ e.jsx("div", { className: w.sacredQuote, children: '"Truth is best (of all that is) good. As desired, what is being desired is truth for him who (represents) the best truth."' }),
-              i && /* @__PURE__ */ e.jsx("div", { className: `${w.message} ${w[i.type]} ${w.show}`, children: i.text }),
-              /* @__PURE__ */ e.jsxs("div", { className: w.tabContainer, children: [
-                /* @__PURE__ */ e.jsx(
-                  "button",
-                  {
-                    className: `${w.tab} ${s === "login" ? w.activeTab : ""}`,
-                    onClick: () => n("login"),
-                    type: "button",
-                    children: "Sacred Entry"
-                  }
-                ),
-                /* @__PURE__ */ e.jsx(
-                  "button",
-                  {
-                    className: `${w.tab} ${s === "signup" ? w.activeTab : ""}`,
-                    onClick: () => n("signup"),
-                    type: "button",
-                    children: "Join the Light"
-                  }
-                )
-              ] }),
-              /* @__PURE__ */ e.jsx("div", { className: `${w.formContainer} ${s === "login" ? w.activeForm : ""}`, children: /* @__PURE__ */ e.jsxs("form", { onSubmit: se, children: [
-                /* @__PURE__ */ e.jsxs("div", { className: w.formGroup, children: [
-                  /* @__PURE__ */ e.jsx("label", { className: w.formLabel, htmlFor: "loginEmail", children: "Sacred Email" }),
-                  /* @__PURE__ */ e.jsx(
-                    "input",
-                    {
-                      className: w.formInput,
-                      type: "email",
-                      id: "loginEmail",
-                      value: N,
-                      onChange: (y) => g(y.target.value),
-                      placeholder: "Enter your sacred email",
-                      required: !0,
-                      disabled: m
-                    }
-                  )
-                ] }),
-                /* @__PURE__ */ e.jsxs("div", { className: w.formGroup, children: [
-                  /* @__PURE__ */ e.jsx("label", { className: w.formLabel, htmlFor: "loginPassword", children: "Sacred Password" }),
-                  /* @__PURE__ */ e.jsx(
-                    "input",
-                    {
-                      className: w.formInput,
-                      type: "password",
-                      id: "loginPassword",
-                      value: u,
-                      onChange: (y) => v(y.target.value),
-                      placeholder: "Enter your sacred password",
-                      required: !0,
-                      disabled: m
-                    }
-                  )
-                ] }),
-                /* @__PURE__ */ e.jsx(
-                  "button",
-                  {
-                    type: "submit",
-                    className: w.actionBtn,
-                    disabled: m,
-                    children: m ? "Entering Sacred Realm..." : "Enter Sacred Realm"
-                  }
-                ),
-                /* @__PURE__ */ e.jsx("div", { className: w.secondaryActions, children: /* @__PURE__ */ e.jsx(ze, { to: "/forgot-password", children: "Forgotten Sacred Words?" }) })
-              ] }) }),
-              /* @__PURE__ */ e.jsx("div", { className: `${w.formContainer} ${s === "signup" ? w.activeForm : ""}`, children: /* @__PURE__ */ e.jsxs("form", { onSubmit: V, children: [
-                /* @__PURE__ */ e.jsxs("div", { className: w.formGroup, children: [
-                  /* @__PURE__ */ e.jsx("label", { className: w.formLabel, htmlFor: "signupDisplayName", children: "Sacred Name" }),
-                  /* @__PURE__ */ e.jsx(
-                    "input",
-                    {
-                      className: w.formInput,
-                      type: "text",
-                      id: "signupDisplayName",
-                      value: T,
-                      onChange: (y) => q(y.target.value),
-                      placeholder: "Enter your sacred name",
-                      required: !0,
-                      disabled: m
-                    }
-                  )
-                ] }),
-                /* @__PURE__ */ e.jsxs("div", { className: w.formGroup, children: [
-                  /* @__PURE__ */ e.jsx("label", { className: w.formLabel, htmlFor: "signupEmail", children: "Sacred Email" }),
-                  /* @__PURE__ */ e.jsx(
-                    "input",
-                    {
-                      className: w.formInput,
-                      type: "email",
-                      id: "signupEmail",
-                      value: x,
-                      onChange: (y) => C(y.target.value),
-                      placeholder: "your.sacred@email.com",
-                      required: !0,
-                      disabled: m
-                    }
-                  )
-                ] }),
-                /* @__PURE__ */ e.jsxs("div", { className: w.formGroup, children: [
-                  /* @__PURE__ */ e.jsx("label", { className: w.formLabel, htmlFor: "signupPassword", children: "Sacred Password" }),
-                  /* @__PURE__ */ e.jsx(
-                    "input",
-                    {
-                      className: w.formInput,
-                      type: "password",
-                      id: "signupPassword",
-                      value: P,
-                      onChange: (y) => {
-                        Y(y.target.value), k(y.target.value);
-                      },
-                      placeholder: "Create a sacred password",
-                      required: !0,
-                      disabled: m
-                    }
-                  ),
-                  S && /* @__PURE__ */ e.jsxs("div", { className: `${w.passwordStrength} ${w.visible}`, children: [
-                    /* @__PURE__ */ e.jsx("div", { className: `${w.strengthBar} ${w[`strength${S.className.charAt(0).toUpperCase() + S.className.slice(1)}`]}` }),
-                    /* @__PURE__ */ e.jsxs("div", { className: w.strengthText, children: [
-                      "Sacred Power: ",
-                      S.text
-                    ] })
-                  ] })
-                ] }),
-                /* @__PURE__ */ e.jsxs("div", { className: w.formGroup, children: [
-                  /* @__PURE__ */ e.jsx("label", { className: w.formLabel, htmlFor: "confirmPassword", children: "Confirm Sacred Password" }),
-                  /* @__PURE__ */ e.jsx(
-                    "input",
-                    {
-                      className: w.formInput,
-                      type: "password",
-                      id: "confirmPassword",
-                      value: I,
-                      onChange: (y) => R(y.target.value),
-                      placeholder: "Confirm your sacred password",
-                      required: !0,
-                      disabled: m
-                    }
-                  )
-                ] }),
-                /* @__PURE__ */ e.jsx(
-                  "button",
-                  {
-                    type: "submit",
-                    className: w.actionBtn,
-                    disabled: m,
-                    children: m ? "Joining Sacred Realm..." : "Join Sacred Realm"
-                  }
-                )
-              ] }) }),
-              /* @__PURE__ */ e.jsxs("div", { className: w.sacredMethods, children: [
-                /* @__PURE__ */ e.jsx("div", { className: w.sacredTitle, children: "Sacred Methods" }),
-                /* @__PURE__ */ e.jsxs("div", { className: w.sacredButtons, children: [
-                  /* @__PURE__ */ e.jsx(
-                    "button",
-                    {
-                      className: w.sacredBtn,
-                      onClick: () => D("Google sacred connection is not yet available", "warning"),
-                      disabled: m,
-                      children: "Google Light"
-                    }
-                  ),
-                  /* @__PURE__ */ e.jsx(
-                    "button",
-                    {
-                      className: w.sacredBtn,
-                      onClick: () => D("GitHub sacred connection is not yet available", "warning"),
-                      disabled: m,
-                      children: "GitHub Wisdom"
-                    }
-                  )
-                ] })
-              ] }),
-              m && /* @__PURE__ */ e.jsxs("div", { className: `${w.loading} ${m ? w.showLoading : ""}`, children: [
-                /* @__PURE__ */ e.jsx("span", { className: w.spinner }),
-                "Connecting to Sacred Realm..."
-              ] })
-            ]
+            type: "email",
+            id: "loginEmail",
+            value: o,
+            onChange: (x) => l(x.target.value),
+            placeholder: "your@email.com",
+            required: !0,
+            disabled: i
           }
         )
-      ]
-    }
-  );
-}, vn = () => {
-  const [s, n] = p([]), [i, h] = p(!0), [m, f] = p(null), [N, g] = p(""), [u, v] = p("all"), [x, C] = p(!1), [P, Y] = p(null), [T, q] = p({
+      ] }),
+      /* @__PURE__ */ s.jsxs("div", { className: "form-group", children: [
+        /* @__PURE__ */ s.jsx("label", { htmlFor: "loginPassword", children: "Password" }),
+        /* @__PURE__ */ s.jsx(
+          "input",
+          {
+            type: "password",
+            id: "loginPassword",
+            value: c,
+            onChange: (x) => u(x.target.value),
+            placeholder: "Enter your password",
+            required: !0,
+            disabled: i
+          }
+        )
+      ] }),
+      /* @__PURE__ */ s.jsx(
+        "button",
+        {
+          type: "submit",
+          className: "btn primary",
+          disabled: i,
+          children: i ? "Signing in..." : "Sign In"
+        }
+      ),
+      /* @__PURE__ */ s.jsx("div", { className: "form-footer", children: /* @__PURE__ */ s.jsx(Ut, { to: "/forgot-password", children: "Forgot your password?" }) })
+    ] }),
+    e === "signup" && /* @__PURE__ */ s.jsxs("form", { onSubmit: O, className: "auth-form", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "form-group", children: [
+        /* @__PURE__ */ s.jsx("label", { htmlFor: "signupDisplayName", children: "Display Name" }),
+        /* @__PURE__ */ s.jsx(
+          "input",
+          {
+            type: "text",
+            id: "signupDisplayName",
+            value: y,
+            onChange: (x) => S(x.target.value),
+            placeholder: "Your name",
+            required: !0,
+            disabled: i
+          }
+        )
+      ] }),
+      /* @__PURE__ */ s.jsxs("div", { className: "form-group", children: [
+        /* @__PURE__ */ s.jsx("label", { htmlFor: "signupEmail", children: "Email Address" }),
+        /* @__PURE__ */ s.jsx(
+          "input",
+          {
+            type: "email",
+            id: "signupEmail",
+            value: d,
+            onChange: (x) => h(x.target.value),
+            placeholder: "your@email.com",
+            required: !0,
+            disabled: i
+          }
+        )
+      ] }),
+      /* @__PURE__ */ s.jsxs("div", { className: "form-group", children: [
+        /* @__PURE__ */ s.jsx("label", { htmlFor: "signupPassword", children: "Password" }),
+        /* @__PURE__ */ s.jsx(
+          "input",
+          {
+            type: "password",
+            id: "signupPassword",
+            value: f,
+            onChange: (x) => {
+              p(x.target.value), k(x.target.value);
+            },
+            placeholder: "Create a password",
+            required: !0,
+            disabled: i
+          }
+        ),
+        w && /* @__PURE__ */ s.jsxs("div", { className: `password-strength ${w.className}`, children: [
+          "Password strength: ",
+          w.text
+        ] })
+      ] }),
+      /* @__PURE__ */ s.jsxs("div", { className: "form-group", children: [
+        /* @__PURE__ */ s.jsx("label", { htmlFor: "confirmPassword", children: "Confirm Password" }),
+        /* @__PURE__ */ s.jsx(
+          "input",
+          {
+            type: "password",
+            id: "confirmPassword",
+            value: C,
+            onChange: (x) => j(x.target.value),
+            placeholder: "Confirm your password",
+            required: !0,
+            disabled: i
+          }
+        )
+      ] }),
+      /* @__PURE__ */ s.jsx(
+        "button",
+        {
+          type: "submit",
+          className: "btn primary",
+          disabled: i,
+          children: i ? "Creating account..." : "Create Account"
+        }
+      )
+    ] }),
+    /* @__PURE__ */ s.jsx("div", { className: "auth-divider", children: "or continue with" }),
+    /* @__PURE__ */ s.jsxs("div", { className: "social-logins", children: [
+      /* @__PURE__ */ s.jsx(
+        "button",
+        {
+          className: "btn social",
+          onClick: () => A("Google sign-in will be available soon", "info"),
+          disabled: i,
+          children: "Google"
+        }
+      ),
+      /* @__PURE__ */ s.jsx(
+        "button",
+        {
+          className: "btn social",
+          onClick: () => A("GitHub sign-in will be available soon", "info"),
+          disabled: i,
+          children: "GitHub"
+        }
+      )
+    ] }),
+    /* @__PURE__ */ s.jsx("div", { className: "auth-footer", children: "By signing up, you agree to our terms of service and privacy policy." })
+  ] }) });
+}, Yf = () => {
+  const [e, t] = _([]), [r, n] = _(!0), [i, a] = _(null), [o, l] = _(""), [c, u] = _("all"), [d, h] = _(!1), [f, p] = _(null), [y, S] = _({
     name: "",
     title: "",
     description: "",
@@ -2375,70 +2252,70 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
     cover_image_url: "",
     active: !0,
     status: "draft"
-  }), [I, R] = p({
+  }), [C, j] = _({
     amount: "",
     currency: "USD",
     interval: "",
     nickname: "",
     trial_period_days: 0
-  }), S = async () => {
+  }), w = async () => {
     try {
-      h(!0);
-      const a = await fetch("/api/products?include_prices=true");
-      if (!a.ok) throw new Error("Failed to fetch products");
-      const _ = await a.json();
-      n(_.products || []);
-    } catch (a) {
-      f(a instanceof Error ? a.message : "Failed to fetch products");
+      n(!0);
+      const b = await fetch("/api/products?include_prices=true");
+      if (!b.ok) throw new Error("Failed to fetch products");
+      const V = await b.json();
+      t(V.products || []);
+    } catch (b) {
+      a(b instanceof Error ? b.message : "Failed to fetch products");
     } finally {
-      h(!1);
+      n(!1);
     }
   };
-  he(() => {
-    S();
+  xe(() => {
+    w();
   }, []);
-  const B = s.filter((a) => {
-    const _ = a.name.toLowerCase().includes(N.toLowerCase()) || a.title.toLowerCase().includes(N.toLowerCase()), $ = u === "all" || a.product_type === u;
-    return _ && $;
-  }), z = async (a) => {
-    a.preventDefault();
+  const P = e.filter((b) => {
+    const V = b.name.toLowerCase().includes(o.toLowerCase()) || b.title.toLowerCase().includes(o.toLowerCase()), K = c === "all" || b.product_type === c;
+    return V && K;
+  }), D = async (b) => {
+    b.preventDefault();
     try {
-      const _ = P ? `/api/products/${P.id}` : "/api/products", Z = await fetch(_, {
-        method: P ? "PUT" : "POST",
+      const V = f ? `/api/products/${f.id}` : "/api/products", se = await fetch(V, {
+        method: f ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(T)
+        body: JSON.stringify(y)
       });
-      if (!Z.ok) {
-        const c = await Z.json();
-        throw new Error(c.message || "Failed to save product");
+      if (!se.ok) {
+        const T = await se.json();
+        throw new Error(T.message || "Failed to save product");
       }
-      await S(), V(), C(!1);
-    } catch (_) {
-      f(_ instanceof Error ? _.message : "Failed to save product");
+      await w(), O(), h(!1);
+    } catch (V) {
+      a(V instanceof Error ? V.message : "Failed to save product");
     }
-  }, D = async (a) => {
-    if (confirm(`Are you sure you want to delete "${a.name}"? This will deactivate it in Stripe but not permanently delete it.`))
+  }, A = async (b) => {
+    if (confirm(`Are you sure you want to delete "${b.name}"? This will deactivate it in Stripe but not permanently delete it.`))
       try {
-        if (!(await fetch(`/api/products/${a.id}`, {
+        if (!(await fetch(`/api/products/${b.id}`, {
           method: "DELETE"
         })).ok) throw new Error("Failed to delete product");
-        await S();
-      } catch (_) {
-        f(_ instanceof Error ? _.message : "Failed to delete product");
+        await w();
+      } catch (V) {
+        a(V instanceof Error ? V.message : "Failed to delete product");
       }
-  }, se = async (a) => {
+  }, I = async (b) => {
     try {
-      if (!(await fetch(`/api/products/${a.id}`, {
+      if (!(await fetch(`/api/products/${b.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: !a.active })
+        body: JSON.stringify({ active: !b.active })
       })).ok) throw new Error("Failed to update product");
-      await S();
-    } catch (_) {
-      f(_ instanceof Error ? _.message : "Failed to update product");
+      await w();
+    } catch (V) {
+      a(V instanceof Error ? V.message : "Failed to update product");
     }
-  }, V = () => {
-    q({
+  }, O = () => {
+    S({
       name: "",
       title: "",
       description: "",
@@ -2446,328 +2323,328 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
       cover_image_url: "",
       active: !0,
       status: "draft"
-    }), Y(null);
-  }, k = (a) => {
-    Y(a), q({
-      name: a.name,
-      title: a.title,
-      description: a.description,
-      product_type: a.product_type,
-      cover_image_url: a.cover_image_url || "",
-      active: a.active,
-      status: a.status
-    }), C(!0);
-  }, l = (a) => {
-    switch (a) {
+    }), p(null);
+  }, k = (b) => {
+    p(b), S({
+      name: b.name,
+      title: b.title,
+      description: b.description,
+      product_type: b.product_type,
+      cover_image_url: b.cover_image_url || "",
+      active: b.active,
+      status: b.status
+    }), h(!0);
+  }, x = (b) => {
+    switch (b) {
       case "book":
-        return /* @__PURE__ */ e.jsx(be, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Oe, { className: "w-4 h-4" });
       case "subscription":
-        return /* @__PURE__ */ e.jsx(Oe, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Rt, { className: "w-4 h-4" });
       case "bundle":
-        return /* @__PURE__ */ e.jsx(je, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Ze, { className: "w-4 h-4" });
       default:
-        return /* @__PURE__ */ e.jsx(ye, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Ye, { className: "w-4 h-4" });
     }
-  }, y = (a, _) => new Intl.NumberFormat("en-US", {
+  }, E = (b, V) => new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: _.toUpperCase()
-  }).format(a / 100);
-  return i ? /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
-    /* @__PURE__ */ e.jsx(de, { className: "w-8 h-8 animate-spin text-primary" }),
-    /* @__PURE__ */ e.jsx("span", { className: "ml-3 text-lg", children: "Loading products..." })
-  ] }) : /* @__PURE__ */ e.jsxs("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
-          /* @__PURE__ */ e.jsx(je, { className: "w-8 h-8 text-primary" }),
+    currency: V.toUpperCase()
+  }).format(b / 100);
+  return r ? /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
+    /* @__PURE__ */ s.jsx(Se, { className: "w-8 h-8 animate-spin text-primary" }),
+    /* @__PURE__ */ s.jsx("span", { className: "ml-3 text-lg", children: "Loading products..." })
+  ] }) : /* @__PURE__ */ s.jsxs("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
+          /* @__PURE__ */ s.jsx(Ze, { className: "w-8 h-8 text-primary" }),
           "Product Management"
         ] }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mt-2", children: "Manage your books, subscriptions, and bundles with integrated Stripe pricing" })
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mt-2", children: "Manage your books, subscriptions, and bundles with integrated Stripe pricing" })
       ] }),
-      /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
           onClick: () => {
-            V(), C(!0);
+            O(), h(!0);
           },
           className: "bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
           children: [
-            /* @__PURE__ */ e.jsx(Ee, { className: "w-5 h-5" }),
+            /* @__PURE__ */ s.jsx(ft, { className: "w-5 h-5" }),
             "Add Product"
           ]
         }
       )
     ] }),
-    m && /* @__PURE__ */ e.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
-      /* @__PURE__ */ e.jsx(Re, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
-      /* @__PURE__ */ e.jsx("span", { className: "text-red-700 dark:text-red-400", children: m }),
-      /* @__PURE__ */ e.jsx(
+    i && /* @__PURE__ */ s.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
+      /* @__PURE__ */ s.jsx(Dt, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
+      /* @__PURE__ */ s.jsx("span", { className: "text-red-700 dark:text-red-400", children: i }),
+      /* @__PURE__ */ s.jsx(
         "button",
         {
-          onClick: () => f(null),
+          onClick: () => a(null),
           className: "ml-auto text-red-500 hover:text-red-600",
-          children: /* @__PURE__ */ e.jsx(ge, { className: "w-5 h-5" })
+          children: /* @__PURE__ */ s.jsx(Ee, { className: "w-5 h-5" })
         }
       )
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "relative flex-1", children: [
-        /* @__PURE__ */ e.jsx(Pe, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-        /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "relative flex-1", children: [
+        /* @__PURE__ */ s.jsx(xt, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+        /* @__PURE__ */ s.jsx(
           "input",
           {
             type: "text",
             placeholder: "Search products...",
-            value: N,
-            onChange: (a) => g(a.target.value),
+            value: o,
+            onChange: (b) => l(b.target.value),
             className: "w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           }
         )
       ] }),
-      /* @__PURE__ */ e.jsxs("div", { className: "relative", children: [
-        /* @__PURE__ */ e.jsx(De, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-        /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs("div", { className: "relative", children: [
+        /* @__PURE__ */ s.jsx($t, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+        /* @__PURE__ */ s.jsxs(
           "select",
           {
-            value: u,
-            onChange: (a) => v(a.target.value),
+            value: c,
+            onChange: (b) => u(b.target.value),
             className: "pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             children: [
-              /* @__PURE__ */ e.jsx("option", { value: "all", children: "All Types" }),
-              /* @__PURE__ */ e.jsx("option", { value: "book", children: "Books" }),
-              /* @__PURE__ */ e.jsx("option", { value: "subscription", children: "Subscriptions" }),
-              /* @__PURE__ */ e.jsx("option", { value: "bundle", children: "Bundles" })
+              /* @__PURE__ */ s.jsx("option", { value: "all", children: "All Types" }),
+              /* @__PURE__ */ s.jsx("option", { value: "book", children: "Books" }),
+              /* @__PURE__ */ s.jsx("option", { value: "subscription", children: "Subscriptions" }),
+              /* @__PURE__ */ s.jsx("option", { value: "bundle", children: "Bundles" })
             ]
           }
         )
       ] })
     ] }),
-    /* @__PURE__ */ e.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6", children: B.map((a) => /* @__PURE__ */ e.jsxs("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow", children: [
-      /* @__PURE__ */ e.jsx("div", { className: "aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 overflow-hidden", children: a.cover_image_url ? /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6", children: P.map((b) => /* @__PURE__ */ s.jsxs("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow", children: [
+      /* @__PURE__ */ s.jsx("div", { className: "aspect-[3/4] bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 overflow-hidden", children: b.cover_image_url ? /* @__PURE__ */ s.jsx(
         "img",
         {
-          src: a.cover_image_url,
-          alt: a.title,
+          src: b.cover_image_url,
+          alt: b.title,
           className: "w-full h-full object-cover"
         }
-      ) : /* @__PURE__ */ e.jsx("div", { className: "w-full h-full flex items-center justify-center", children: l(a.product_type) }) }),
-      /* @__PURE__ */ e.jsxs("div", { className: "space-y-3", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-start justify-between", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex-1", children: [
-            /* @__PURE__ */ e.jsx("h3", { className: "font-semibold text-foreground line-clamp-2", children: a.title }),
-            /* @__PURE__ */ e.jsxs("p", { className: "text-sm text-muted-foreground capitalize flex items-center gap-2 mt-1", children: [
-              l(a.product_type),
-              a.product_type
+      ) : /* @__PURE__ */ s.jsx("div", { className: "w-full h-full flex items-center justify-center", children: x(b.product_type) }) }),
+      /* @__PURE__ */ s.jsxs("div", { className: "space-y-3", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-start justify-between", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex-1", children: [
+            /* @__PURE__ */ s.jsx("h3", { className: "font-semibold text-foreground line-clamp-2", children: b.title }),
+            /* @__PURE__ */ s.jsxs("p", { className: "text-sm text-muted-foreground capitalize flex items-center gap-2 mt-1", children: [
+              x(b.product_type),
+              b.product_type
             ] })
           ] }),
-          /* @__PURE__ */ e.jsx("div", { className: "flex items-center gap-2", children: /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsx("div", { className: "flex items-center gap-2", children: /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: () => se(a),
-              className: `p-1.5 rounded-lg transition-colors ${a.active ? "bg-green-100 text-green-600 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`,
-              title: a.active ? "Active" : "Inactive",
-              children: a.active ? /* @__PURE__ */ e.jsx(ke, { className: "w-4 h-4" }) : /* @__PURE__ */ e.jsx(qt, { className: "w-4 h-4" })
+              onClick: () => I(b),
+              className: `p-1.5 rounded-lg transition-colors ${b.active ? "bg-green-100 text-green-600 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`,
+              title: b.active ? "Active" : "Inactive",
+              children: b.active ? /* @__PURE__ */ s.jsx(tt, { className: "w-4 h-4" }) : /* @__PURE__ */ s.jsx(zi, { className: "w-4 h-4" })
             }
           ) })
         ] }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-sm text-muted-foreground line-clamp-2", children: a.description || "No description available" }),
-        /* @__PURE__ */ e.jsxs("div", { className: "space-y-2", children: [
-          a.prices && a.prices.length > 0 ? a.prices.slice(0, 2).map((_) => /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between text-sm", children: [
-            /* @__PURE__ */ e.jsxs("span", { className: "text-muted-foreground", children: [
-              _.nickname || "Standard",
-              _.interval && ` (${_.interval}ly)`
+        /* @__PURE__ */ s.jsx("p", { className: "text-sm text-muted-foreground line-clamp-2", children: b.description || "No description available" }),
+        /* @__PURE__ */ s.jsxs("div", { className: "space-y-2", children: [
+          b.prices && b.prices.length > 0 ? b.prices.slice(0, 2).map((V) => /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between text-sm", children: [
+            /* @__PURE__ */ s.jsxs("span", { className: "text-muted-foreground", children: [
+              V.nickname || "Standard",
+              V.interval && ` (${V.interval}ly)`
             ] }),
-            /* @__PURE__ */ e.jsx("span", { className: "font-medium text-foreground", children: y(_.amount_cents, _.currency) })
-          ] }, _.id)) : /* @__PURE__ */ e.jsx("p", { className: "text-sm text-muted-foreground italic", children: "No prices set" }),
-          a.prices && a.prices.length > 2 && /* @__PURE__ */ e.jsxs("p", { className: "text-xs text-muted-foreground", children: [
+            /* @__PURE__ */ s.jsx("span", { className: "font-medium text-foreground", children: E(V.amount_cents, V.currency) })
+          ] }, V.id)) : /* @__PURE__ */ s.jsx("p", { className: "text-sm text-muted-foreground italic", children: "No prices set" }),
+          b.prices && b.prices.length > 2 && /* @__PURE__ */ s.jsxs("p", { className: "text-xs text-muted-foreground", children: [
             "+",
-            a.prices.length - 2,
+            b.prices.length - 2,
             " more prices"
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ e.jsx("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${a.status === "published" ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : a.status === "draft" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400" : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"}`, children: a.status }),
-          /* @__PURE__ */ e.jsx("span", { className: "text-xs text-muted-foreground", children: new Date(a.updated_at).toLocaleDateString() })
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ s.jsx("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${b.status === "published" ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : b.status === "draft" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400" : "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"}`, children: b.status }),
+          /* @__PURE__ */ s.jsx("span", { className: "text-xs text-muted-foreground", children: new Date(b.updated_at).toLocaleDateString() })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between pt-2 border-t border-border", children: [
-          /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between pt-2 border-t border-border", children: [
+          /* @__PURE__ */ s.jsxs(
             "button",
             {
-              onClick: () => k(a),
+              onClick: () => k(b),
               className: "text-primary hover:text-primary-dark flex items-center gap-2 text-sm font-medium",
               children: [
-                /* @__PURE__ */ e.jsx(Je, { className: "w-4 h-4" }),
+                /* @__PURE__ */ s.jsx(os, { className: "w-4 h-4" }),
                 "Edit"
               ]
             }
           ),
-          /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsxs(
             "button",
             {
-              onClick: () => D(a),
+              onClick: () => A(b),
               className: "text-red-500 hover:text-red-600 flex items-center gap-2 text-sm font-medium",
               children: [
-                /* @__PURE__ */ e.jsx(et, { className: "w-4 h-4" }),
+                /* @__PURE__ */ s.jsx(vs, { className: "w-4 h-4" }),
                 "Delete"
               ]
             }
           )
         ] })
       ] })
-    ] }, a.id)) }),
-    B.length === 0 && !i && /* @__PURE__ */ e.jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ e.jsx(je, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
-      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No products found" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mb-4", children: N || u !== "all" ? "Try adjusting your search or filters" : "Get started by creating your first product" }),
-      /* @__PURE__ */ e.jsx(
+    ] }, b.id)) }),
+    P.length === 0 && !r && /* @__PURE__ */ s.jsxs("div", { className: "text-center py-12", children: [
+      /* @__PURE__ */ s.jsx(Ze, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
+      /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No products found" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mb-4", children: o || c !== "all" ? "Try adjusting your search or filters" : "Get started by creating your first product" }),
+      /* @__PURE__ */ s.jsx(
         "button",
         {
           onClick: () => {
-            V(), C(!0);
+            O(), h(!0);
           },
           className: "bg-primary text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors",
           children: "Create Product"
         }
       )
     ] }),
-    x && /* @__PURE__ */ e.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ e.jsxs("div", { className: "bg-background rounded-xl shadow-xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between p-6 border-b border-border", children: [
-        /* @__PURE__ */ e.jsx("h2", { className: "text-xl font-semibold text-foreground", children: P ? "Edit Product" : "Create Product" }),
-        /* @__PURE__ */ e.jsx(
+    d && /* @__PURE__ */ s.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ s.jsxs("div", { className: "bg-background rounded-xl shadow-xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between p-6 border-b border-border", children: [
+        /* @__PURE__ */ s.jsx("h2", { className: "text-xl font-semibold text-foreground", children: f ? "Edit Product" : "Create Product" }),
+        /* @__PURE__ */ s.jsx(
           "button",
           {
             onClick: () => {
-              C(!1), V();
+              h(!1), O();
             },
             className: "text-muted-foreground hover:text-foreground",
-            children: /* @__PURE__ */ e.jsx(ge, { className: "w-6 h-6" })
+            children: /* @__PURE__ */ s.jsx(Ee, { className: "w-6 h-6" })
           }
         )
       ] }),
-      /* @__PURE__ */ e.jsxs("form", { onSubmit: z, className: "p-6 space-y-6", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Product Name *" }),
-            /* @__PURE__ */ e.jsx(
+      /* @__PURE__ */ s.jsxs("form", { onSubmit: D, className: "p-6 space-y-6", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Product Name *" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "text",
                 required: !0,
-                value: T.name,
-                onChange: (a) => q({ ...T, name: a.target.value }),
+                value: y.name,
+                onChange: (b) => S({ ...y, name: b.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 placeholder: "Internal product name"
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Display Title *" }),
-            /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Display Title *" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "text",
                 required: !0,
-                value: T.title,
-                onChange: (a) => q({ ...T, title: a.target.value }),
+                value: y.title,
+                onChange: (b) => S({ ...y, title: b.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 placeholder: "Public display title"
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Description" }),
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Description" }),
+          /* @__PURE__ */ s.jsx(
             "textarea",
             {
-              value: T.description,
-              onChange: (a) => q({ ...T, description: a.target.value }),
+              value: y.description,
+              onChange: (b) => S({ ...y, description: b.target.value }),
               rows: 3,
               className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
               placeholder: "Product description..."
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Product Type" }),
-            /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Product Type" }),
+            /* @__PURE__ */ s.jsxs(
               "select",
               {
-                value: T.product_type,
-                onChange: (a) => q({ ...T, product_type: a.target.value }),
+                value: y.product_type,
+                onChange: (b) => S({ ...y, product_type: b.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 children: [
-                  /* @__PURE__ */ e.jsx("option", { value: "book", children: "Book (One-time purchase)" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "subscription", children: "Subscription" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "bundle", children: "Bundle" })
+                  /* @__PURE__ */ s.jsx("option", { value: "book", children: "Book (One-time purchase)" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "subscription", children: "Subscription" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "bundle", children: "Bundle" })
                 ]
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Status" }),
-            /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Status" }),
+            /* @__PURE__ */ s.jsxs(
               "select",
               {
-                value: T.status,
-                onChange: (a) => q({ ...T, status: a.target.value }),
+                value: y.status,
+                onChange: (b) => S({ ...y, status: b.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 children: [
-                  /* @__PURE__ */ e.jsx("option", { value: "draft", children: "Draft" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "published", children: "Published" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "archived", children: "Archived" })
+                  /* @__PURE__ */ s.jsx("option", { value: "draft", children: "Draft" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "published", children: "Published" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "archived", children: "Archived" })
                 ]
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Cover Image URL" }),
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Cover Image URL" }),
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "url",
-              value: T.cover_image_url,
-              onChange: (a) => q({ ...T, cover_image_url: a.target.value }),
+              value: y.cover_image_url,
+              onChange: (b) => S({ ...y, cover_image_url: b.target.value }),
               className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
               placeholder: "https://example.com/cover.jpg"
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center", children: [
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "checkbox",
               id: "active",
-              checked: T.active,
-              onChange: (a) => q({ ...T, active: a.target.checked }),
+              checked: y.active,
+              onChange: (b) => S({ ...y, active: b.target.checked }),
               className: "w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
             }
           ),
-          /* @__PURE__ */ e.jsx("label", { htmlFor: "active", className: "ml-2 text-sm font-medium text-foreground", children: "Product is active (visible to customers)" })
+          /* @__PURE__ */ s.jsx("label", { htmlFor: "active", className: "ml-2 text-sm font-medium text-foreground", children: "Product is active (visible to customers)" })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-end gap-3 pt-4 border-t border-border", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-end gap-3 pt-4 border-t border-border", children: [
+          /* @__PURE__ */ s.jsx(
             "button",
             {
               type: "button",
               onClick: () => {
-                C(!1), V();
+                h(!1), O();
               },
               className: "px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium",
               children: "Cancel"
             }
           ),
-          /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsxs(
             "button",
             {
               type: "submit",
               className: "bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
               children: [
-                /* @__PURE__ */ e.jsx(Bt, { className: "w-4 h-4" }),
-                P ? "Update Product" : "Create Product"
+                /* @__PURE__ */ s.jsx(Ui, { className: "w-4 h-4" }),
+                f ? "Update Product" : "Create Product"
               ]
             }
           )
@@ -2775,643 +2652,643 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
       ] })
     ] }) })
   ] });
-}, wn = () => {
-  const [s, n] = p("orders"), [i, h] = p([]), [m, f] = p([]), [N, g] = p(!0), [u, v] = p(null), [x, C] = p(""), [P, Y] = p("all"), [T, q] = p("all"), [I, R] = p(null), [S, B] = p(null), z = async () => {
+}, Bf = () => {
+  const [e, t] = _("orders"), [r, n] = _([]), [i, a] = _([]), [o, l] = _(!0), [c, u] = _(null), [d, h] = _(""), [f, p] = _("all"), [y, S] = _("all"), [C, j] = _(null), [w, P] = _(null), D = async () => {
     try {
-      const c = await fetch("/api/admin/orders?include_details=true");
-      if (!c.ok) throw new Error("Failed to fetch orders");
-      const L = await c.json();
-      h(L.orders || []);
-    } catch (c) {
-      v(c instanceof Error ? c.message : "Failed to fetch orders");
+      const T = await fetch("/api/admin/orders?include_details=true");
+      if (!T.ok) throw new Error("Failed to fetch orders");
+      const U = await T.json();
+      n(U.orders || []);
+    } catch (T) {
+      u(T instanceof Error ? T.message : "Failed to fetch orders");
     }
-  }, D = async () => {
+  }, A = async () => {
     try {
-      const c = await fetch("/api/admin/subscriptions?include_details=true");
-      if (!c.ok) throw new Error("Failed to fetch subscriptions");
-      const L = await c.json();
-      f(L.subscriptions || []);
-    } catch (c) {
-      v(c instanceof Error ? c.message : "Failed to fetch subscriptions");
+      const T = await fetch("/api/admin/subscriptions?include_details=true");
+      if (!T.ok) throw new Error("Failed to fetch subscriptions");
+      const U = await T.json();
+      a(U.subscriptions || []);
+    } catch (T) {
+      u(T instanceof Error ? T.message : "Failed to fetch subscriptions");
     }
-  }, se = async () => {
+  }, I = async () => {
     try {
-      g(!0), v(null), await Promise.all([z(), D()]);
+      l(!0), u(null), await Promise.all([D(), A()]);
     } catch {
-      v("Failed to fetch data");
+      u("Failed to fetch data");
     } finally {
-      g(!1);
+      l(!1);
     }
   };
-  he(() => {
-    se();
+  xe(() => {
+    I();
   }, []);
-  const V = i.filter((c) => {
-    var H, K, le, ue, o;
-    const L = c.id.toLowerCase().includes(x.toLowerCase()) || ((H = c.customer_email) == null ? void 0 : H.toLowerCase().includes(x.toLowerCase())) || ((le = (K = c.user) == null ? void 0 : K.email) == null ? void 0 : le.toLowerCase().includes(x.toLowerCase())) || ((o = (ue = c.product) == null ? void 0 : ue.title) == null ? void 0 : o.toLowerCase().includes(x.toLowerCase())), te = P === "all" || c.status === P;
-    return L && te;
-  }), k = m.filter((c) => {
-    var H, K;
-    const L = c.id.toLowerCase().includes(x.toLowerCase()) || c.provider_subscription_id.toLowerCase().includes(x.toLowerCase()) || ((K = (H = c.user) == null ? void 0 : H.email) == null ? void 0 : K.toLowerCase().includes(x.toLowerCase())), te = T === "all" || c.status === T;
-    return L && te;
-  }), l = (c, L = "USD") => new Intl.NumberFormat("en-US", {
+  const O = r.filter((T) => {
+    var B, q, ie, Ne, v;
+    const U = T.id.toLowerCase().includes(d.toLowerCase()) || ((B = T.customer_email) == null ? void 0 : B.toLowerCase().includes(d.toLowerCase())) || ((ie = (q = T.user) == null ? void 0 : q.email) == null ? void 0 : ie.toLowerCase().includes(d.toLowerCase())) || ((v = (Ne = T.product) == null ? void 0 : Ne.title) == null ? void 0 : v.toLowerCase().includes(d.toLowerCase())), $ = f === "all" || T.status === f;
+    return U && $;
+  }), k = i.filter((T) => {
+    var B, q;
+    const U = T.id.toLowerCase().includes(d.toLowerCase()) || T.provider_subscription_id.toLowerCase().includes(d.toLowerCase()) || ((q = (B = T.user) == null ? void 0 : B.email) == null ? void 0 : q.toLowerCase().includes(d.toLowerCase())), $ = y === "all" || T.status === y;
+    return U && $;
+  }), x = (T, U = "USD") => new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: L.toUpperCase()
-  }).format(c / 100), y = (c) => new Date(c).toLocaleDateString("en-US", {
+    currency: U.toUpperCase()
+  }).format(T / 100), E = (T) => new Date(T).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit"
-  }), a = (c) => {
-    switch (c) {
+  }), b = (T) => {
+    switch (T) {
       case "completed":
-        return { color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", icon: Xe };
+        return { color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", icon: Vt };
       case "pending":
-        return { color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", icon: Me };
+        return { color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", icon: Ct };
       case "failed":
-        return { color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/20", icon: qe };
+        return { color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/20", icon: Jt };
       case "cancelled":
-        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: qe };
+        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Jt };
       case "expired":
-        return { color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", icon: Ke };
+        return { color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", icon: as };
       default:
-        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Me };
+        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Ct };
     }
-  }, _ = (c) => {
-    switch (c) {
+  }, V = (T) => {
+    switch (T) {
       case "active":
-        return { color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", icon: Xe };
+        return { color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", icon: Vt };
       case "trialing":
-        return { color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", icon: Me };
+        return { color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", icon: Ct };
       case "past_due":
-        return { color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", icon: Ke };
+        return { color: "text-orange-600", bg: "bg-orange-100 dark:bg-orange-900/20", icon: as };
       case "canceled":
-        return { color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/20", icon: qe };
+        return { color: "text-red-600", bg: "bg-red-100 dark:bg-red-900/20", icon: Jt };
       default:
-        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Me };
+        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Ct };
     }
-  }, $ = async (c) => {
+  }, K = async (T) => {
     if (confirm("Are you sure you want to issue a refund for this order?"))
       try {
-        if (!(await fetch(`/api/admin/orders/${c}/refund`, {
+        if (!(await fetch(`/api/admin/orders/${T}/refund`, {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         })).ok) throw new Error("Failed to process refund");
-        await z(), R(null);
-      } catch (L) {
-        v(L instanceof Error ? L.message : "Failed to process refund");
+        await D(), j(null);
+      } catch (U) {
+        u(U instanceof Error ? U.message : "Failed to process refund");
       }
-  }, Z = async (c) => {
+  }, se = async (T) => {
     if (confirm("Are you sure you want to cancel this subscription?"))
       try {
-        if (!(await fetch(`/api/admin/subscriptions/${c}/cancel`, {
+        if (!(await fetch(`/api/admin/subscriptions/${T}/cancel`, {
           method: "POST",
           headers: { "Content-Type": "application/json" }
         })).ok) throw new Error("Failed to cancel subscription");
-        await D(), B(null);
-      } catch (L) {
-        v(L instanceof Error ? L.message : "Failed to cancel subscription");
+        await A(), P(null);
+      } catch (U) {
+        u(U instanceof Error ? U.message : "Failed to cancel subscription");
       }
   };
-  return N ? /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
-    /* @__PURE__ */ e.jsx(de, { className: "w-8 h-8 animate-spin text-primary" }),
-    /* @__PURE__ */ e.jsx("span", { className: "ml-3 text-lg", children: "Loading orders and subscriptions..." })
-  ] }) : /* @__PURE__ */ e.jsxs("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
-          /* @__PURE__ */ e.jsx(Ne, { className: "w-8 h-8 text-primary" }),
+  return o ? /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
+    /* @__PURE__ */ s.jsx(Se, { className: "w-8 h-8 animate-spin text-primary" }),
+    /* @__PURE__ */ s.jsx("span", { className: "ml-3 text-lg", children: "Loading orders and subscriptions..." })
+  ] }) : /* @__PURE__ */ s.jsxs("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
+          /* @__PURE__ */ s.jsx(et, { className: "w-8 h-8 text-primary" }),
           "Order Management"
         ] }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mt-2", children: "Track and manage customer orders, subscriptions, and payments" })
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mt-2", children: "Track and manage customer orders, subscriptions, and payments" })
       ] }),
-      /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
-          onClick: se,
+          onClick: I,
           className: "bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
           children: [
-            /* @__PURE__ */ e.jsx(de, { className: "w-5 h-5" }),
+            /* @__PURE__ */ s.jsx(Se, { className: "w-5 h-5" }),
             "Refresh"
           ]
         }
       )
     ] }),
-    u && /* @__PURE__ */ e.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
-      /* @__PURE__ */ e.jsx(Ke, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
-      /* @__PURE__ */ e.jsx("span", { className: "text-red-700 dark:text-red-400", children: u })
+    c && /* @__PURE__ */ s.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
+      /* @__PURE__ */ s.jsx(as, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
+      /* @__PURE__ */ s.jsx("span", { className: "text-red-700 dark:text-red-400", children: c })
     ] }),
-    /* @__PURE__ */ e.jsx("div", { className: "border-b border-border", children: /* @__PURE__ */ e.jsxs("nav", { className: "-mb-px flex space-x-8", children: [
-      /* @__PURE__ */ e.jsxs(
+    /* @__PURE__ */ s.jsx("div", { className: "border-b border-border", children: /* @__PURE__ */ s.jsxs("nav", { className: "-mb-px flex space-x-8", children: [
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
-          onClick: () => n("orders"),
-          className: `py-2 px-1 border-b-2 font-medium text-sm ${s === "orders" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
+          onClick: () => t("orders"),
+          className: `py-2 px-1 border-b-2 font-medium text-sm ${e === "orders" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
           children: [
             "Orders (",
-            i.length,
+            r.length,
             ")"
           ]
         }
       ),
-      /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
-          onClick: () => n("subscriptions"),
-          className: `py-2 px-1 border-b-2 font-medium text-sm ${s === "subscriptions" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
+          onClick: () => t("subscriptions"),
+          className: `py-2 px-1 border-b-2 font-medium text-sm ${e === "subscriptions" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
           children: [
             "Subscriptions (",
-            m.length,
+            i.length,
             ")"
           ]
         }
       )
     ] }) }),
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "relative flex-1", children: [
-        /* @__PURE__ */ e.jsx(Pe, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-        /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "relative flex-1", children: [
+        /* @__PURE__ */ s.jsx(xt, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+        /* @__PURE__ */ s.jsx(
           "input",
           {
             type: "text",
-            placeholder: `Search ${s}...`,
-            value: x,
-            onChange: (c) => C(c.target.value),
+            placeholder: `Search ${e}...`,
+            value: d,
+            onChange: (T) => h(T.target.value),
             className: "w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           }
         )
       ] }),
-      /* @__PURE__ */ e.jsxs("div", { className: "relative", children: [
-        /* @__PURE__ */ e.jsx(De, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-        /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs("div", { className: "relative", children: [
+        /* @__PURE__ */ s.jsx($t, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+        /* @__PURE__ */ s.jsxs(
           "select",
           {
-            value: s === "orders" ? P : T,
-            onChange: (c) => {
-              s === "orders" ? Y(c.target.value) : q(c.target.value);
+            value: e === "orders" ? f : y,
+            onChange: (T) => {
+              e === "orders" ? p(T.target.value) : S(T.target.value);
             },
             className: "pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             children: [
-              /* @__PURE__ */ e.jsx("option", { value: "all", children: "All Status" }),
-              s === "orders" ? /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-                /* @__PURE__ */ e.jsx("option", { value: "completed", children: "Completed" }),
-                /* @__PURE__ */ e.jsx("option", { value: "pending", children: "Pending" }),
-                /* @__PURE__ */ e.jsx("option", { value: "failed", children: "Failed" }),
-                /* @__PURE__ */ e.jsx("option", { value: "cancelled", children: "Cancelled" }),
-                /* @__PURE__ */ e.jsx("option", { value: "expired", children: "Expired" })
-              ] }) : /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-                /* @__PURE__ */ e.jsx("option", { value: "active", children: "Active" }),
-                /* @__PURE__ */ e.jsx("option", { value: "trialing", children: "Trialing" }),
-                /* @__PURE__ */ e.jsx("option", { value: "past_due", children: "Past Due" }),
-                /* @__PURE__ */ e.jsx("option", { value: "canceled", children: "Canceled" })
+              /* @__PURE__ */ s.jsx("option", { value: "all", children: "All Status" }),
+              e === "orders" ? /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+                /* @__PURE__ */ s.jsx("option", { value: "completed", children: "Completed" }),
+                /* @__PURE__ */ s.jsx("option", { value: "pending", children: "Pending" }),
+                /* @__PURE__ */ s.jsx("option", { value: "failed", children: "Failed" }),
+                /* @__PURE__ */ s.jsx("option", { value: "cancelled", children: "Cancelled" }),
+                /* @__PURE__ */ s.jsx("option", { value: "expired", children: "Expired" })
+              ] }) : /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+                /* @__PURE__ */ s.jsx("option", { value: "active", children: "Active" }),
+                /* @__PURE__ */ s.jsx("option", { value: "trialing", children: "Trialing" }),
+                /* @__PURE__ */ s.jsx("option", { value: "past_due", children: "Past Due" }),
+                /* @__PURE__ */ s.jsx("option", { value: "canceled", children: "Canceled" })
               ] })
             ]
           }
         )
       ] })
     ] }),
-    s === "orders" && /* @__PURE__ */ e.jsx("div", { className: "space-y-4", children: V.length === 0 ? /* @__PURE__ */ e.jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ e.jsx(Ne, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
-      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No orders found" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: x || P !== "all" ? "Try adjusting your search or filters" : "Orders will appear here when customers make purchases" })
-    ] }) : /* @__PURE__ */ e.jsx("div", { className: "grid gap-4", children: V.map((c) => {
-      var H, K;
-      const L = a(c.status), te = L.icon;
-      return /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow", children: /* @__PURE__ */ e.jsx("div", { className: "flex items-start justify-between", children: /* @__PURE__ */ e.jsxs("div", { className: "flex-1 space-y-3", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsxs("h3", { className: "text-lg font-semibold text-foreground", children: [
+    e === "orders" && /* @__PURE__ */ s.jsx("div", { className: "space-y-4", children: O.length === 0 ? /* @__PURE__ */ s.jsxs("div", { className: "text-center py-12", children: [
+      /* @__PURE__ */ s.jsx(et, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
+      /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No orders found" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: d || f !== "all" ? "Try adjusting your search or filters" : "Orders will appear here when customers make purchases" })
+    ] }) : /* @__PURE__ */ s.jsx("div", { className: "grid gap-4", children: O.map((T) => {
+      var B, q;
+      const U = b(T.status), $ = U.icon;
+      return /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow", children: /* @__PURE__ */ s.jsx("div", { className: "flex items-start justify-between", children: /* @__PURE__ */ s.jsxs("div", { className: "flex-1 space-y-3", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsxs("h3", { className: "text-lg font-semibold text-foreground", children: [
               "Order #",
-              c.id.slice(-8)
+              T.id.slice(-8)
             ] }),
-            /* @__PURE__ */ e.jsxs("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${L.bg} ${L.color}`, children: [
-              /* @__PURE__ */ e.jsx(te, { className: "w-3 h-3 mr-1" }),
-              c.status
+            /* @__PURE__ */ s.jsxs("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${U.bg} ${U.color}`, children: [
+              /* @__PURE__ */ s.jsx($, { className: "w-3 h-3 mr-1" }),
+              T.status
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "text-right", children: [
-            /* @__PURE__ */ e.jsx("p", { className: "text-lg font-bold text-foreground", children: l(c.amount_cents, c.currency) }),
-            /* @__PURE__ */ e.jsx("p", { className: "text-sm text-muted-foreground", children: y(c.created_at) })
+          /* @__PURE__ */ s.jsxs("div", { className: "text-right", children: [
+            /* @__PURE__ */ s.jsx("p", { className: "text-lg font-bold text-foreground", children: x(T.amount_cents, T.currency) }),
+            /* @__PURE__ */ s.jsx("p", { className: "text-sm text-muted-foreground", children: E(T.created_at) })
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4 text-sm", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ e.jsx(St, { className: "w-4 h-4 text-muted-foreground" }),
-            /* @__PURE__ */ e.jsx("span", { className: "text-foreground", children: c.customer_email || ((H = c.user) == null ? void 0 : H.email) || "No email" })
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4 text-sm", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ s.jsx(fn, { className: "w-4 h-4 text-muted-foreground" }),
+            /* @__PURE__ */ s.jsx("span", { className: "text-foreground", children: T.customer_email || ((B = T.user) == null ? void 0 : B.email) || "No email" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ e.jsx(je, { className: "w-4 h-4 text-muted-foreground" }),
-            /* @__PURE__ */ e.jsx("span", { className: "text-foreground", children: ((K = c.product) == null ? void 0 : K.title) || "Unknown Product" })
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ s.jsx(Ze, { className: "w-4 h-4 text-muted-foreground" }),
+            /* @__PURE__ */ s.jsx("span", { className: "text-foreground", children: ((q = T.product) == null ? void 0 : q.title) || "Unknown Product" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ e.jsx(Et, { className: "w-4 h-4 text-muted-foreground" }),
-            /* @__PURE__ */ e.jsxs("span", { className: "text-foreground capitalize", children: [
-              c.provider,
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ s.jsx(gn, { className: "w-4 h-4 text-muted-foreground" }),
+            /* @__PURE__ */ s.jsxs("span", { className: "text-foreground capitalize", children: [
+              T.provider,
               " Payment"
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between pt-3 border-t border-border", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between pt-3 border-t border-border", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => R(c),
+                onClick: () => j(T),
                 className: "text-primary hover:text-primary-dark flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(ke, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(tt, { className: "w-4 h-4" }),
                   "View Details"
                 ]
               }
             ),
-            c.status === "completed" && /* @__PURE__ */ e.jsxs(
+            T.status === "completed" && /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => $(c.id),
+                onClick: () => K(T.id),
                 className: "text-orange-600 hover:text-orange-700 flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(ht, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(yr, { className: "w-4 h-4" }),
                   "Refund"
                 ]
               }
             )
           ] }),
-          c.provider_payment_intent_id && /* @__PURE__ */ e.jsxs(
+          T.provider_payment_intent_id && /* @__PURE__ */ s.jsxs(
             "button",
             {
-              onClick: () => window.open(`https://dashboard.stripe.com/payments/${c.provider_payment_intent_id}`, "_blank"),
+              onClick: () => window.open(`https://dashboard.stripe.com/payments/${T.provider_payment_intent_id}`, "_blank"),
               className: "text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm",
               children: [
-                /* @__PURE__ */ e.jsx(Pt, { className: "w-4 h-4" }),
+                /* @__PURE__ */ s.jsx(pn, { className: "w-4 h-4" }),
                 "View in Stripe"
               ]
             }
           )
         ] })
-      ] }) }) }, c.id);
+      ] }) }) }, T.id);
     }) }) }),
-    s === "subscriptions" && /* @__PURE__ */ e.jsx("div", { className: "space-y-4", children: k.length === 0 ? /* @__PURE__ */ e.jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ e.jsx(Oe, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
-      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No subscriptions found" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: x || T !== "all" ? "Try adjusting your search or filters" : "Subscriptions will appear here when customers subscribe" })
-    ] }) : /* @__PURE__ */ e.jsx("div", { className: "grid gap-4", children: k.map((c) => {
-      var H, K;
-      const L = _(c.status), te = L.icon;
-      return /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow", children: /* @__PURE__ */ e.jsx("div", { className: "flex items-start justify-between", children: /* @__PURE__ */ e.jsxs("div", { className: "flex-1 space-y-3", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsxs("h3", { className: "text-lg font-semibold text-foreground flex items-center gap-2", children: [
-              /* @__PURE__ */ e.jsx(Oe, { className: "w-5 h-5 text-primary" }),
+    e === "subscriptions" && /* @__PURE__ */ s.jsx("div", { className: "space-y-4", children: k.length === 0 ? /* @__PURE__ */ s.jsxs("div", { className: "text-center py-12", children: [
+      /* @__PURE__ */ s.jsx(Rt, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
+      /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No subscriptions found" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: d || y !== "all" ? "Try adjusting your search or filters" : "Subscriptions will appear here when customers subscribe" })
+    ] }) : /* @__PURE__ */ s.jsx("div", { className: "grid gap-4", children: k.map((T) => {
+      var B, q;
+      const U = V(T.status), $ = U.icon;
+      return /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow", children: /* @__PURE__ */ s.jsx("div", { className: "flex items-start justify-between", children: /* @__PURE__ */ s.jsxs("div", { className: "flex-1 space-y-3", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsxs("h3", { className: "text-lg font-semibold text-foreground flex items-center gap-2", children: [
+              /* @__PURE__ */ s.jsx(Rt, { className: "w-5 h-5 text-primary" }),
               "Subscription #",
-              c.id.slice(-8)
+              T.id.slice(-8)
             ] }),
-            /* @__PURE__ */ e.jsxs("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${L.bg} ${L.color}`, children: [
-              /* @__PURE__ */ e.jsx(te, { className: "w-3 h-3 mr-1" }),
-              c.status
+            /* @__PURE__ */ s.jsxs("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${U.bg} ${U.color}`, children: [
+              /* @__PURE__ */ s.jsx($, { className: "w-3 h-3 mr-1" }),
+              T.status
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "text-right", children: [
-            /* @__PURE__ */ e.jsxs("p", { className: "text-sm text-muted-foreground", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "text-right", children: [
+            /* @__PURE__ */ s.jsxs("p", { className: "text-sm text-muted-foreground", children: [
               "Created ",
-              y(c.created_at)
+              E(T.created_at)
             ] }),
-            c.current_period_end && /* @__PURE__ */ e.jsxs("p", { className: "text-sm text-muted-foreground", children: [
+            T.current_period_end && /* @__PURE__ */ s.jsxs("p", { className: "text-sm text-muted-foreground", children: [
               "Next billing: ",
-              y(c.current_period_end)
+              E(T.current_period_end)
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4 text-sm", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ e.jsx(St, { className: "w-4 h-4 text-muted-foreground" }),
-            /* @__PURE__ */ e.jsx("span", { className: "text-foreground", children: ((H = c.user) == null ? void 0 : H.email) || "No email" })
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-3 gap-4 text-sm", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ s.jsx(fn, { className: "w-4 h-4 text-muted-foreground" }),
+            /* @__PURE__ */ s.jsx("span", { className: "text-foreground", children: ((B = T.user) == null ? void 0 : B.email) || "No email" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ e.jsx(dt, { className: "w-4 h-4 text-muted-foreground" }),
-            /* @__PURE__ */ e.jsxs("span", { className: "text-foreground", children: [
-              ((K = c.plan) == null ? void 0 : K.interval) || "Unknown",
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ s.jsx(pr, { className: "w-4 h-4 text-muted-foreground" }),
+            /* @__PURE__ */ s.jsxs("span", { className: "text-foreground", children: [
+              ((q = T.plan) == null ? void 0 : q.interval) || "Unknown",
               " billing"
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ e.jsx(Et, { className: "w-4 h-4 text-muted-foreground" }),
-            /* @__PURE__ */ e.jsxs("span", { className: "text-foreground capitalize", children: [
-              c.provider,
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ s.jsx(gn, { className: "w-4 h-4 text-muted-foreground" }),
+            /* @__PURE__ */ s.jsxs("span", { className: "text-foreground capitalize", children: [
+              T.provider,
               " Subscription"
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between pt-3 border-t border-border", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between pt-3 border-t border-border", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => B(c),
+                onClick: () => P(T),
                 className: "text-primary hover:text-primary-dark flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(ke, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(tt, { className: "w-4 h-4" }),
                   "View Details"
                 ]
               }
             ),
-            c.status === "active" && !c.cancel_at_period_end && /* @__PURE__ */ e.jsxs(
+            T.status === "active" && !T.cancel_at_period_end && /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => Z(c.id),
+                onClick: () => se(T.id),
                 className: "text-red-600 hover:text-red-700 flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(qe, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(Jt, { className: "w-4 h-4" }),
                   "Cancel"
                 ]
               }
             )
           ] }),
-          c.provider_subscription_id && /* @__PURE__ */ e.jsxs(
+          T.provider_subscription_id && /* @__PURE__ */ s.jsxs(
             "button",
             {
-              onClick: () => window.open(`https://dashboard.stripe.com/subscriptions/${c.provider_subscription_id}`, "_blank"),
+              onClick: () => window.open(`https://dashboard.stripe.com/subscriptions/${T.provider_subscription_id}`, "_blank"),
               className: "text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm",
               children: [
-                /* @__PURE__ */ e.jsx(Pt, { className: "w-4 h-4" }),
+                /* @__PURE__ */ s.jsx(pn, { className: "w-4 h-4" }),
                 "View in Stripe"
               ]
             }
           )
         ] })
-      ] }) }) }, c.id);
+      ] }) }) }, T.id);
     }) }) })
   ] });
-}, jn = () => {
-  const [s, n] = p([]), [i, h] = p(null), [m, f] = p(!0), [N, g] = p(null), [u, v] = p(""), [x, C] = p("all"), [P, Y] = p("sales"), [T, q] = p("desc"), I = async () => {
+}, zf = () => {
+  const [e, t] = _([]), [r, n] = _(null), [i, a] = _(!0), [o, l] = _(null), [c, u] = _(""), [d, h] = _("all"), [f, p] = _("sales"), [y, S] = _("desc"), C = async () => {
     try {
-      const l = await fetch("/api/admin/inventory");
-      if (!l.ok) throw new Error("Failed to fetch inventory data");
-      const y = await l.json();
-      n(y.inventory || []);
-    } catch (l) {
-      g(l instanceof Error ? l.message : "Failed to fetch inventory");
+      const x = await fetch("/api/admin/inventory");
+      if (!x.ok) throw new Error("Failed to fetch inventory data");
+      const E = await x.json();
+      t(E.inventory || []);
+    } catch (x) {
+      l(x instanceof Error ? x.message : "Failed to fetch inventory");
     }
-  }, R = async () => {
+  }, j = async () => {
     try {
-      const l = await fetch("/api/admin/metrics");
-      if (!l.ok) throw new Error("Failed to fetch metrics");
-      const y = await l.json();
-      h(y.metrics);
-    } catch (l) {
-      g(l instanceof Error ? l.message : "Failed to fetch metrics");
+      const x = await fetch("/api/admin/metrics");
+      if (!x.ok) throw new Error("Failed to fetch metrics");
+      const E = await x.json();
+      n(E.metrics);
+    } catch (x) {
+      l(x instanceof Error ? x.message : "Failed to fetch metrics");
     }
-  }, S = async () => {
+  }, w = async () => {
     try {
-      f(!0), g(null), await Promise.all([I(), R()]);
+      a(!0), l(null), await Promise.all([C(), j()]);
     } catch {
-      g("Failed to fetch data");
+      l("Failed to fetch data");
     } finally {
-      f(!1);
+      a(!1);
     }
   };
-  he(() => {
-    S();
+  xe(() => {
+    w();
   }, []);
-  const B = s.filter((l) => {
-    const y = l.product.name.toLowerCase().includes(u.toLowerCase()) || l.product.title.toLowerCase().includes(u.toLowerCase()), a = x === "all" || l.product.product_type === x;
-    return y && a;
-  }).sort((l, y) => {
-    let a, _;
-    switch (P) {
+  const P = e.filter((x) => {
+    const E = x.product.name.toLowerCase().includes(c.toLowerCase()) || x.product.title.toLowerCase().includes(c.toLowerCase()), b = d === "all" || x.product.product_type === d;
+    return E && b;
+  }).sort((x, E) => {
+    let b, V;
+    switch (f) {
       case "name":
-        a = l.product.title.toLowerCase(), _ = y.product.title.toLowerCase();
+        b = x.product.title.toLowerCase(), V = E.product.title.toLowerCase();
         break;
       case "sales":
-        a = l.total_sales, _ = y.total_sales;
+        b = x.total_sales, V = E.total_sales;
         break;
       case "revenue":
-        a = l.revenue, _ = y.revenue;
+        b = x.revenue, V = E.revenue;
         break;
       case "recent_activity":
-        a = l.last_sale ? new Date(l.last_sale).getTime() : 0, _ = y.last_sale ? new Date(y.last_sale).getTime() : 0;
+        b = x.last_sale ? new Date(x.last_sale).getTime() : 0, V = E.last_sale ? new Date(E.last_sale).getTime() : 0;
         break;
       default:
-        a = l.total_sales, _ = y.total_sales;
+        b = x.total_sales, V = E.total_sales;
     }
-    return T === "asc" ? a > _ ? 1 : -1 : a < _ ? 1 : -1;
-  }), z = (l) => new Intl.NumberFormat("en-US", {
+    return y === "asc" ? b > V ? 1 : -1 : b < V ? 1 : -1;
+  }), D = (x) => new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD"
-  }).format(l), D = (l) => `${l >= 0 ? "+" : ""}${l.toFixed(1)}%`, se = (l) => new Date(l).toLocaleDateString("en-US", {
+  }).format(x), A = (x) => `${x >= 0 ? "+" : ""}${x.toFixed(1)}%`, I = (x) => new Date(x).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric"
-  }), V = (l) => {
-    switch (l) {
+  }), O = (x) => {
+    switch (x) {
       case "book":
-        return /* @__PURE__ */ e.jsx(be, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Oe, { className: "w-4 h-4" });
       case "subscription":
-        return /* @__PURE__ */ e.jsx(Oe, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Rt, { className: "w-4 h-4" });
       case "bundle":
-        return /* @__PURE__ */ e.jsx(Be, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Qt, { className: "w-4 h-4" });
       default:
-        return /* @__PURE__ */ e.jsx(ye, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Ye, { className: "w-4 h-4" });
     }
-  }, k = (l, y) => {
-    const a = y > 0 ? (l - y) / y * 100 : 0;
-    return a > 10 ? { icon: Se, color: "text-green-600", bg: "bg-green-100" } : a < -10 ? { icon: He, color: "text-red-600", bg: "bg-red-100" } : { icon: Ve, color: "text-yellow-600", bg: "bg-yellow-100" };
+  }, k = (x, E) => {
+    const b = E > 0 ? (x - E) / E * 100 : 0;
+    return b > 10 ? { icon: it, color: "text-green-600", bg: "bg-green-100" } : b < -10 ? { icon: es, color: "text-red-600", bg: "bg-red-100" } : { icon: is, color: "text-yellow-600", bg: "bg-yellow-100" };
   };
-  return m ? /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
-    /* @__PURE__ */ e.jsx(de, { className: "w-8 h-8 animate-spin text-primary" }),
-    /* @__PURE__ */ e.jsx("span", { className: "ml-3 text-lg", children: "Loading inventory data..." })
-  ] }) : /* @__PURE__ */ e.jsxs("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
-          /* @__PURE__ */ e.jsx(Be, { className: "w-8 h-8 text-primary" }),
+  return i ? /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
+    /* @__PURE__ */ s.jsx(Se, { className: "w-8 h-8 animate-spin text-primary" }),
+    /* @__PURE__ */ s.jsx("span", { className: "ml-3 text-lg", children: "Loading inventory data..." })
+  ] }) : /* @__PURE__ */ s.jsxs("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
+          /* @__PURE__ */ s.jsx(Qt, { className: "w-8 h-8 text-primary" }),
           "Inventory Management"
         ] }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mt-2", children: "Track digital product performance, sales analytics, and inventory metrics" })
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mt-2", children: "Track digital product performance, sales analytics, and inventory metrics" })
       ] }),
-      /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
-          onClick: S,
+          onClick: w,
           className: "bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
           children: [
-            /* @__PURE__ */ e.jsx(de, { className: "w-5 h-5" }),
+            /* @__PURE__ */ s.jsx(Se, { className: "w-5 h-5" }),
             "Refresh Data"
           ]
         }
       )
     ] }),
-    N && /* @__PURE__ */ e.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
-      /* @__PURE__ */ e.jsx(Ke, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
-      /* @__PURE__ */ e.jsx("span", { className: "text-red-700 dark:text-red-400", children: N })
+    o && /* @__PURE__ */ s.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
+      /* @__PURE__ */ s.jsx(as, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
+      /* @__PURE__ */ s.jsx("span", { className: "text-red-700 dark:text-red-400", children: o })
     ] }),
-    i && /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6", children: [
-      /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Total Revenue" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-2xl font-bold text-foreground", children: z(i.total_revenue) }),
-          /* @__PURE__ */ e.jsxs("p", { className: `text-sm flex items-center gap-1 mt-1 ${i.revenue_growth >= 0 ? "text-green-600" : "text-red-600"}`, children: [
-            i.revenue_growth >= 0 ? /* @__PURE__ */ e.jsx(Se, { className: "w-4 h-4" }) : /* @__PURE__ */ e.jsx(He, { className: "w-4 h-4" }),
-            D(i.revenue_growth),
+    r && /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6", children: [
+      /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Total Revenue" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-2xl font-bold text-foreground", children: D(r.total_revenue) }),
+          /* @__PURE__ */ s.jsxs("p", { className: `text-sm flex items-center gap-1 mt-1 ${r.revenue_growth >= 0 ? "text-green-600" : "text-red-600"}`, children: [
+            r.revenue_growth >= 0 ? /* @__PURE__ */ s.jsx(it, { className: "w-4 h-4" }) : /* @__PURE__ */ s.jsx(es, { className: "w-4 h-4" }),
+            A(r.revenue_growth),
             " this month"
           ] })
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ e.jsx(ht, { className: "w-6 h-6 text-green-600" }) })
+        /* @__PURE__ */ s.jsx("div", { className: "w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ s.jsx(yr, { className: "w-6 h-6 text-green-600" }) })
       ] }) }),
-      /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Total Sales" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-2xl font-bold text-foreground", children: i.total_sales.toLocaleString() }),
-          /* @__PURE__ */ e.jsxs("p", { className: `text-sm flex items-center gap-1 mt-1 ${i.sales_growth >= 0 ? "text-green-600" : "text-red-600"}`, children: [
-            i.sales_growth >= 0 ? /* @__PURE__ */ e.jsx(Se, { className: "w-4 h-4" }) : /* @__PURE__ */ e.jsx(He, { className: "w-4 h-4" }),
-            D(i.sales_growth),
+      /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Total Sales" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-2xl font-bold text-foreground", children: r.total_sales.toLocaleString() }),
+          /* @__PURE__ */ s.jsxs("p", { className: `text-sm flex items-center gap-1 mt-1 ${r.sales_growth >= 0 ? "text-green-600" : "text-red-600"}`, children: [
+            r.sales_growth >= 0 ? /* @__PURE__ */ s.jsx(it, { className: "w-4 h-4" }) : /* @__PURE__ */ s.jsx(es, { className: "w-4 h-4" }),
+            A(r.sales_growth),
             " this month"
           ] })
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ e.jsx(Ve, { className: "w-6 h-6 text-blue-600" }) })
+        /* @__PURE__ */ s.jsx("div", { className: "w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ s.jsx(is, { className: "w-6 h-6 text-blue-600" }) })
       ] }) }),
-      /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Active Subscriptions" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-2xl font-bold text-foreground", children: i.active_subscriptions.toLocaleString() }),
-          /* @__PURE__ */ e.jsxs("p", { className: `text-sm flex items-center gap-1 mt-1 ${i.subscription_growth >= 0 ? "text-green-600" : "text-red-600"}`, children: [
-            i.subscription_growth >= 0 ? /* @__PURE__ */ e.jsx(Se, { className: "w-4 h-4" }) : /* @__PURE__ */ e.jsx(He, { className: "w-4 h-4" }),
-            D(i.subscription_growth),
+      /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Active Subscriptions" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-2xl font-bold text-foreground", children: r.active_subscriptions.toLocaleString() }),
+          /* @__PURE__ */ s.jsxs("p", { className: `text-sm flex items-center gap-1 mt-1 ${r.subscription_growth >= 0 ? "text-green-600" : "text-red-600"}`, children: [
+            r.subscription_growth >= 0 ? /* @__PURE__ */ s.jsx(it, { className: "w-4 h-4" }) : /* @__PURE__ */ s.jsx(es, { className: "w-4 h-4" }),
+            A(r.subscription_growth),
             " this month"
           ] })
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ e.jsx(Oe, { className: "w-6 h-6 text-purple-600" }) })
+        /* @__PURE__ */ s.jsx("div", { className: "w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ s.jsx(Rt, { className: "w-6 h-6 text-purple-600" }) })
       ] }) }),
-      /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Total Products" }),
-          /* @__PURE__ */ e.jsx("p", { className: "text-2xl font-bold text-foreground", children: i.total_products }),
-          /* @__PURE__ */ e.jsxs("p", { className: "text-sm text-muted-foreground mt-1", children: [
-            i.total_books,
+      /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("p", { className: "text-sm font-medium text-muted-foreground", children: "Total Products" }),
+          /* @__PURE__ */ s.jsx("p", { className: "text-2xl font-bold text-foreground", children: r.total_products }),
+          /* @__PURE__ */ s.jsxs("p", { className: "text-sm text-muted-foreground mt-1", children: [
+            r.total_books,
             " books, ",
-            i.total_subscriptions,
+            r.total_subscriptions,
             " subscriptions"
           ] })
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ e.jsx(Be, { className: "w-6 h-6 text-orange-600" }) })
+        /* @__PURE__ */ s.jsx("div", { className: "w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-lg flex items-center justify-center", children: /* @__PURE__ */ s.jsx(Qt, { className: "w-6 h-6 text-orange-600" }) })
       ] }) })
     ] }),
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col lg:flex-row gap-4", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "relative flex-1", children: [
-        /* @__PURE__ */ e.jsx(Pe, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-        /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col lg:flex-row gap-4", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "relative flex-1", children: [
+        /* @__PURE__ */ s.jsx(xt, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+        /* @__PURE__ */ s.jsx(
           "input",
           {
             type: "text",
             placeholder: "Search products...",
-            value: u,
-            onChange: (l) => v(l.target.value),
+            value: c,
+            onChange: (x) => u(x.target.value),
             className: "w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           }
         )
       ] }),
-      /* @__PURE__ */ e.jsxs("div", { className: "flex gap-4", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "relative", children: [
-          /* @__PURE__ */ e.jsx(De, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-          /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs("div", { className: "flex gap-4", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "relative", children: [
+          /* @__PURE__ */ s.jsx($t, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+          /* @__PURE__ */ s.jsxs(
             "select",
             {
-              value: x,
-              onChange: (l) => C(l.target.value),
+              value: d,
+              onChange: (x) => h(x.target.value),
               className: "pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
               children: [
-                /* @__PURE__ */ e.jsx("option", { value: "all", children: "All Types" }),
-                /* @__PURE__ */ e.jsx("option", { value: "book", children: "Books" }),
-                /* @__PURE__ */ e.jsx("option", { value: "subscription", children: "Subscriptions" }),
-                /* @__PURE__ */ e.jsx("option", { value: "bundle", children: "Bundles" })
+                /* @__PURE__ */ s.jsx("option", { value: "all", children: "All Types" }),
+                /* @__PURE__ */ s.jsx("option", { value: "book", children: "Books" }),
+                /* @__PURE__ */ s.jsx("option", { value: "subscription", children: "Subscriptions" }),
+                /* @__PURE__ */ s.jsx("option", { value: "bundle", children: "Bundles" })
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs(
           "select",
           {
-            value: `${P}-${T}`,
-            onChange: (l) => {
-              const [y, a] = l.target.value.split("-");
-              Y(y), q(a);
+            value: `${f}-${y}`,
+            onChange: (x) => {
+              const [E, b] = x.target.value.split("-");
+              p(E), S(b);
             },
             className: "px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             children: [
-              /* @__PURE__ */ e.jsx("option", { value: "sales-desc", children: "Sales (High to Low)" }),
-              /* @__PURE__ */ e.jsx("option", { value: "sales-asc", children: "Sales (Low to High)" }),
-              /* @__PURE__ */ e.jsx("option", { value: "revenue-desc", children: "Revenue (High to Low)" }),
-              /* @__PURE__ */ e.jsx("option", { value: "revenue-asc", children: "Revenue (Low to High)" }),
-              /* @__PURE__ */ e.jsx("option", { value: "name-asc", children: "Name (A-Z)" }),
-              /* @__PURE__ */ e.jsx("option", { value: "name-desc", children: "Name (Z-A)" }),
-              /* @__PURE__ */ e.jsx("option", { value: "recent_activity-desc", children: "Most Recent Activity" })
+              /* @__PURE__ */ s.jsx("option", { value: "sales-desc", children: "Sales (High to Low)" }),
+              /* @__PURE__ */ s.jsx("option", { value: "sales-asc", children: "Sales (Low to High)" }),
+              /* @__PURE__ */ s.jsx("option", { value: "revenue-desc", children: "Revenue (High to Low)" }),
+              /* @__PURE__ */ s.jsx("option", { value: "revenue-asc", children: "Revenue (Low to High)" }),
+              /* @__PURE__ */ s.jsx("option", { value: "name-asc", children: "Name (A-Z)" }),
+              /* @__PURE__ */ s.jsx("option", { value: "name-desc", children: "Name (Z-A)" }),
+              /* @__PURE__ */ s.jsx("option", { value: "recent_activity-desc", children: "Most Recent Activity" })
             ]
           }
         )
       ] })
     ] }),
-    /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl overflow-hidden", children: /* @__PURE__ */ e.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ e.jsxs("table", { className: "w-full", children: [
-      /* @__PURE__ */ e.jsx("thead", { className: "bg-muted/50 border-b border-border", children: /* @__PURE__ */ e.jsxs("tr", { children: [
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Product" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Type" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Total Sales" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Recent Sales (30d)" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Revenue" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Performance" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Last Sale" }),
-        /* @__PURE__ */ e.jsx("th", { className: "px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Actions" })
+    /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl overflow-hidden", children: /* @__PURE__ */ s.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ s.jsxs("table", { className: "w-full", children: [
+      /* @__PURE__ */ s.jsx("thead", { className: "bg-muted/50 border-b border-border", children: /* @__PURE__ */ s.jsxs("tr", { children: [
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Product" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Type" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Total Sales" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Recent Sales (30d)" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Revenue" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Performance" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Last Sale" }),
+        /* @__PURE__ */ s.jsx("th", { className: "px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider", children: "Actions" })
       ] }) }),
-      /* @__PURE__ */ e.jsx("tbody", { className: "divide-y divide-border", children: B.length === 0 ? /* @__PURE__ */ e.jsx("tr", { children: /* @__PURE__ */ e.jsxs("td", { colSpan: 8, className: "px-6 py-12 text-center", children: [
-        /* @__PURE__ */ e.jsx(Be, { className: "w-12 h-12 text-muted-foreground mx-auto mb-3" }),
-        /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-1", children: "No products found" }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: u || x !== "all" ? "Try adjusting your search or filters" : "Products will appear here once they have sales data" })
-      ] }) }) : B.map((l) => {
-        const y = k(l.recent_sales, l.total_sales - l.recent_sales), a = y.icon;
-        return /* @__PURE__ */ e.jsxs("tr", { className: "hover:bg-muted/30", children: [
-          /* @__PURE__ */ e.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ e.jsx("div", { className: "flex items-center", children: /* @__PURE__ */ e.jsxs("div", { className: "flex-1", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "text-sm font-medium text-foreground", children: l.product.title }),
-            /* @__PURE__ */ e.jsx("div", { className: "text-sm text-muted-foreground", children: l.product.name })
+      /* @__PURE__ */ s.jsx("tbody", { className: "divide-y divide-border", children: P.length === 0 ? /* @__PURE__ */ s.jsx("tr", { children: /* @__PURE__ */ s.jsxs("td", { colSpan: 8, className: "px-6 py-12 text-center", children: [
+        /* @__PURE__ */ s.jsx(Qt, { className: "w-12 h-12 text-muted-foreground mx-auto mb-3" }),
+        /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-1", children: "No products found" }),
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: c || d !== "all" ? "Try adjusting your search or filters" : "Products will appear here once they have sales data" })
+      ] }) }) : P.map((x) => {
+        const E = k(x.recent_sales, x.total_sales - x.recent_sales), b = E.icon;
+        return /* @__PURE__ */ s.jsxs("tr", { className: "hover:bg-muted/30", children: [
+          /* @__PURE__ */ s.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ s.jsx("div", { className: "flex items-center", children: /* @__PURE__ */ s.jsxs("div", { className: "flex-1", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "text-sm font-medium text-foreground", children: x.product.title }),
+            /* @__PURE__ */ s.jsx("div", { className: "text-sm text-muted-foreground", children: x.product.name })
           ] }) }) }),
-          /* @__PURE__ */ e.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-            V(l.product.product_type),
-            /* @__PURE__ */ e.jsx("span", { className: "text-sm text-foreground capitalize", children: l.product.product_type })
+          /* @__PURE__ */ s.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+            O(x.product.product_type),
+            /* @__PURE__ */ s.jsx("span", { className: "text-sm text-foreground capitalize", children: x.product.product_type })
           ] }) }),
-          /* @__PURE__ */ e.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ e.jsx("div", { className: "text-sm font-medium text-foreground", children: l.total_sales.toLocaleString() }) }),
-          /* @__PURE__ */ e.jsxs("td", { className: "px-6 py-4", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "text-sm font-medium text-foreground", children: l.recent_sales.toLocaleString() }),
-            l.downloads && /* @__PURE__ */ e.jsxs("div", { className: "text-xs text-muted-foreground", children: [
-              l.downloads.toLocaleString(),
+          /* @__PURE__ */ s.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ s.jsx("div", { className: "text-sm font-medium text-foreground", children: x.total_sales.toLocaleString() }) }),
+          /* @__PURE__ */ s.jsxs("td", { className: "px-6 py-4", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "text-sm font-medium text-foreground", children: x.recent_sales.toLocaleString() }),
+            x.downloads && /* @__PURE__ */ s.jsxs("div", { className: "text-xs text-muted-foreground", children: [
+              x.downloads.toLocaleString(),
               " downloads"
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("td", { className: "px-6 py-4", children: [
-            /* @__PURE__ */ e.jsx("div", { className: "text-sm font-medium text-foreground", children: z(l.revenue) }),
-            /* @__PURE__ */ e.jsxs("div", { className: "text-xs text-muted-foreground", children: [
-              z(l.revenue_recent),
+          /* @__PURE__ */ s.jsxs("td", { className: "px-6 py-4", children: [
+            /* @__PURE__ */ s.jsx("div", { className: "text-sm font-medium text-foreground", children: D(x.revenue) }),
+            /* @__PURE__ */ s.jsxs("div", { className: "text-xs text-muted-foreground", children: [
+              D(x.revenue_recent),
               " recent"
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("td", { className: "px-6 py-4", children: [
-            /* @__PURE__ */ e.jsxs("div", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${y.bg} ${y.color}`, children: [
-              /* @__PURE__ */ e.jsx(a, { className: "w-3 h-3 mr-1" }),
-              l.recent_sales > l.total_sales - l.recent_sales ? "Growing" : l.recent_sales < (l.total_sales - l.recent_sales) / 2 ? "Declining" : "Stable"
+          /* @__PURE__ */ s.jsxs("td", { className: "px-6 py-4", children: [
+            /* @__PURE__ */ s.jsxs("div", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${E.bg} ${E.color}`, children: [
+              /* @__PURE__ */ s.jsx(b, { className: "w-3 h-3 mr-1" }),
+              x.recent_sales > x.total_sales - x.recent_sales ? "Growing" : x.recent_sales < (x.total_sales - x.recent_sales) / 2 ? "Declining" : "Stable"
             ] }),
-            l.active_subscriptions !== void 0 && /* @__PURE__ */ e.jsxs("div", { className: "text-xs text-muted-foreground mt-1", children: [
-              l.active_subscriptions,
+            x.active_subscriptions !== void 0 && /* @__PURE__ */ s.jsxs("div", { className: "text-xs text-muted-foreground mt-1", children: [
+              x.active_subscriptions,
               " active subs"
             ] })
           ] }),
-          /* @__PURE__ */ e.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ e.jsx("div", { className: "text-sm text-foreground", children: l.last_sale ? se(l.last_sale) : "Never" }) }),
-          /* @__PURE__ */ e.jsx("td", { className: "px-6 py-4 text-right", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-end gap-2", children: [
-            /* @__PURE__ */ e.jsx("button", { className: "text-primary hover:text-primary-dark p-1", children: /* @__PURE__ */ e.jsx(ke, { className: "w-4 h-4" }) }),
-            /* @__PURE__ */ e.jsx("button", { className: "text-muted-foreground hover:text-foreground p-1", children: /* @__PURE__ */ e.jsx(Ve, { className: "w-4 h-4" }) })
+          /* @__PURE__ */ s.jsx("td", { className: "px-6 py-4", children: /* @__PURE__ */ s.jsx("div", { className: "text-sm text-foreground", children: x.last_sale ? I(x.last_sale) : "Never" }) }),
+          /* @__PURE__ */ s.jsx("td", { className: "px-6 py-4 text-right", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-end gap-2", children: [
+            /* @__PURE__ */ s.jsx("button", { className: "text-primary hover:text-primary-dark p-1", children: /* @__PURE__ */ s.jsx(tt, { className: "w-4 h-4" }) }),
+            /* @__PURE__ */ s.jsx("button", { className: "text-muted-foreground hover:text-foreground p-1", children: /* @__PURE__ */ s.jsx(is, { className: "w-4 h-4" }) })
           ] }) })
-        ] }, l.id);
+        ] }, x.id);
       }) })
     ] }) }) })
   ] });
-}, Nn = () => {
-  const [s, n] = p([]), [i, h] = p([]), [m, f] = p(!0), [N, g] = p(null), [u, v] = p("works"), [x, C] = p(""), [P, Y] = p("all"), [T, q] = p("all"), [I, R] = p(!1), [S, B] = p(null), [z, D] = p(null), [se, V] = p(!1), [k, l] = p({
+}, Uf = () => {
+  const [e, t] = _([]), [r, n] = _([]), [i, a] = _(!0), [o, l] = _(null), [c, u] = _("works"), [d, h] = _(""), [f, p] = _("all"), [y, S] = _("all"), [C, j] = _(!1), [w, P] = _(null), [D, A] = _(null), [I, O] = _(!1), [k, x] = _({
     title: "",
     type: "book",
     description: "",
@@ -3424,46 +3301,46 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
     is_premium: !1,
     is_free: !0,
     target_word_count: void 0
-  }), y = async () => {
+  }), E = async () => {
     try {
-      const r = await fetch("/api/admin/works?include_stats=true");
-      if (!r.ok) throw new Error("Failed to fetch works");
-      const j = await r.json();
-      n(j.works || []);
-    } catch (r) {
-      g(r instanceof Error ? r.message : "Failed to fetch works");
+      const g = await fetch("/api/admin/works?include_stats=true");
+      if (!g.ok) throw new Error("Failed to fetch works");
+      const R = await g.json();
+      t(R.works || []);
+    } catch (g) {
+      l(g instanceof Error ? g.message : "Failed to fetch works");
     }
-  }, a = async (r) => {
+  }, b = async (g) => {
     try {
-      const j = r ? `/api/admin/chapters?work_id=${r}` : "/api/admin/chapters", U = await fetch(j);
-      if (!U.ok) throw new Error("Failed to fetch chapters");
-      const X = await U.json();
-      h(X.chapters || []);
-    } catch (j) {
-      g(j instanceof Error ? j.message : "Failed to fetch chapters");
+      const R = g ? `/api/admin/chapters?work_id=${g}` : "/api/admin/chapters", X = await fetch(R);
+      if (!X.ok) throw new Error("Failed to fetch chapters");
+      const de = await X.json();
+      n(de.chapters || []);
+    } catch (R) {
+      l(R instanceof Error ? R.message : "Failed to fetch chapters");
     }
   };
-  he(() => {
+  xe(() => {
     (async () => {
-      f(!0), g(null);
+      a(!0), l(null);
       try {
-        await Promise.all([y(), a()]);
+        await Promise.all([E(), b()]);
       } catch {
-        g("Failed to load data");
+        l("Failed to load data");
       } finally {
-        f(!1);
+        a(!1);
       }
     })();
   }, []);
-  const _ = s.filter((r) => {
-    var oe;
-    const j = r.title.toLowerCase().includes(x.toLowerCase()) || ((oe = r.description) == null ? void 0 : oe.toLowerCase().includes(x.toLowerCase())), U = P === "all" || r.status === P, X = T === "all" || r.type === T;
-    return j && U && X;
-  }), $ = z ? i.filter((r) => r.work_id === z.id) : i, Z = async (r) => {
-    r.preventDefault();
+  const V = e.filter((g) => {
+    var ye;
+    const R = g.title.toLowerCase().includes(d.toLowerCase()) || ((ye = g.description) == null ? void 0 : ye.toLowerCase().includes(d.toLowerCase())), X = f === "all" || g.status === f, de = y === "all" || g.type === y;
+    return R && X && de;
+  }), K = D ? r.filter((g) => g.work_id === D.id) : r, se = async (g) => {
+    g.preventDefault();
     try {
-      const j = S ? `/api/admin/works/${S.id}` : "/api/admin/works", X = await fetch(j, {
-        method: S ? "PUT" : "POST",
+      const R = w ? `/api/admin/works/${w.id}` : "/api/admin/works", de = await fetch(R, {
+        method: w ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...k,
@@ -3471,16 +3348,16 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
           target_word_count: k.target_word_count || null
         })
       });
-      if (!X.ok) {
-        const oe = await X.json();
-        throw new Error(oe.message || "Failed to save work");
+      if (!de.ok) {
+        const ye = await de.json();
+        throw new Error(ye.message || "Failed to save work");
       }
-      await y(), c(), R(!1);
-    } catch (j) {
-      g(j instanceof Error ? j.message : "Failed to save work");
+      await E(), T(), j(!1);
+    } catch (R) {
+      l(R instanceof Error ? R.message : "Failed to save work");
     }
-  }, c = () => {
-    l({
+  }, T = () => {
+    x({
       title: "",
       type: "book",
       description: "",
@@ -3493,683 +3370,683 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
       is_premium: !1,
       is_free: !0,
       target_word_count: void 0
-    }), B(null);
-  }, L = (r) => {
-    B(r), l({
-      title: r.title,
-      type: r.type,
-      parent_id: r.parent_id,
-      description: r.description || "",
-      status: r.status,
-      progress_percentage: r.progress_percentage || 0,
-      release_date: r.release_date || "",
-      estimated_release: r.estimated_release || "",
-      cover_image_url: r.cover_image_url || "",
-      is_featured: r.is_featured,
-      is_premium: r.is_premium,
-      is_free: r.is_free,
-      target_word_count: r.target_word_count
-    }), R(!0);
-  }, te = async (r) => {
-    if (confirm(`Are you sure you want to delete "${r.title}"? This will also delete all associated chapters.`))
+    }), P(null);
+  }, U = (g) => {
+    P(g), x({
+      title: g.title,
+      type: g.type,
+      parent_id: g.parent_id,
+      description: g.description || "",
+      status: g.status,
+      progress_percentage: g.progress_percentage || 0,
+      release_date: g.release_date || "",
+      estimated_release: g.estimated_release || "",
+      cover_image_url: g.cover_image_url || "",
+      is_featured: g.is_featured,
+      is_premium: g.is_premium,
+      is_free: g.is_free,
+      target_word_count: g.target_word_count
+    }), j(!0);
+  }, $ = async (g) => {
+    if (confirm(`Are you sure you want to delete "${g.title}"? This will also delete all associated chapters.`))
       try {
-        if (!(await fetch(`/api/admin/works/${r.id}`, {
+        if (!(await fetch(`/api/admin/works/${g.id}`, {
           method: "DELETE"
         })).ok) throw new Error("Failed to delete work");
-        await y(), (z == null ? void 0 : z.id) === r.id && D(null);
-      } catch (j) {
-        g(j instanceof Error ? j.message : "Failed to delete work");
+        await E(), (D == null ? void 0 : D.id) === g.id && A(null);
+      } catch (R) {
+        l(R instanceof Error ? R.message : "Failed to delete work");
       }
-  }, H = async (r, j) => {
+  }, B = async (g, R) => {
     try {
-      if (!(await fetch(`/api/admin/works/${r.id}`, {
+      if (!(await fetch(`/api/admin/works/${g.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ [j]: !r[j] })
+        body: JSON.stringify({ [R]: !g[R] })
       })).ok) throw new Error("Failed to update work");
-      await y();
-    } catch (U) {
-      g(U instanceof Error ? U.message : "Failed to update work");
+      await E();
+    } catch (X) {
+      l(X instanceof Error ? X.message : "Failed to update work");
     }
-  }, K = async (r) => {
+  }, q = async (g) => {
     try {
-      if (!(await fetch(`/api/admin/chapters/${r.id}`, {
+      if (!(await fetch(`/api/admin/chapters/${g.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_published: !r.is_published })
+        body: JSON.stringify({ is_published: !g.is_published })
       })).ok) throw new Error("Failed to update chapter");
-      await a(z == null ? void 0 : z.id);
-    } catch (j) {
-      g(j instanceof Error ? j.message : "Failed to update chapter");
+      await b(D == null ? void 0 : D.id);
+    } catch (R) {
+      l(R instanceof Error ? R.message : "Failed to update chapter");
     }
-  }, le = (r) => {
-    switch (r) {
+  }, ie = (g) => {
+    switch (g) {
       case "published":
-        return { color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", icon: Xe };
+        return { color: "text-green-600", bg: "bg-green-100 dark:bg-green-900/20", icon: Vt };
       case "writing":
-        return { color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", icon: Je };
+        return { color: "text-blue-600", bg: "bg-blue-100 dark:bg-blue-900/20", icon: os };
       case "editing":
-        return { color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", icon: ct };
+        return { color: "text-yellow-600", bg: "bg-yellow-100 dark:bg-yellow-900/20", icon: xr };
       case "planning":
-        return { color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/20", icon: Rr };
+        return { color: "text-purple-600", bg: "bg-purple-100 dark:bg-purple-900/20", icon: yl };
       case "on_hold":
-        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Mr };
+        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: xl };
       default:
-        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Me };
+        return { color: "text-gray-600", bg: "bg-gray-100 dark:bg-gray-900/20", icon: Ct };
     }
-  }, ue = (r) => {
-    switch (r) {
+  }, Ne = (g) => {
+    switch (g) {
       case "book":
-        return /* @__PURE__ */ e.jsx(be, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Oe, { className: "w-4 h-4" });
       case "volume":
-        return /* @__PURE__ */ e.jsx(Ze, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(hs, { className: "w-4 h-4" });
       case "saga":
-        return /* @__PURE__ */ e.jsx(Or, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(bl, { className: "w-4 h-4" });
       case "arc":
-        return /* @__PURE__ */ e.jsx(Se, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(it, { className: "w-4 h-4" });
       case "issue":
-        return /* @__PURE__ */ e.jsx(ye, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Ye, { className: "w-4 h-4" });
       default:
-        return /* @__PURE__ */ e.jsx(be, { className: "w-4 h-4" });
+        return /* @__PURE__ */ s.jsx(Oe, { className: "w-4 h-4" });
     }
-  }, o = (r) => new Date(r).toLocaleDateString("en-US", {
+  }, v = (g) => new Date(g).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric"
   });
-  return m ? /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
-    /* @__PURE__ */ e.jsx(de, { className: "w-8 h-8 animate-spin text-primary" }),
-    /* @__PURE__ */ e.jsx("span", { className: "ml-3 text-lg", children: "Loading works and chapters..." })
-  ] }) : /* @__PURE__ */ e.jsxs("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
-          /* @__PURE__ */ e.jsx(be, { className: "w-8 h-8 text-primary" }),
+  return i ? /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-center min-h-[400px]", children: [
+    /* @__PURE__ */ s.jsx(Se, { className: "w-8 h-8 animate-spin text-primary" }),
+    /* @__PURE__ */ s.jsx("span", { className: "ml-3 text-lg", children: "Loading works and chapters..." })
+  ] }) : /* @__PURE__ */ s.jsxs("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
+          /* @__PURE__ */ s.jsx(Oe, { className: "w-8 h-8 text-primary" }),
           "Works Management"
         ] }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mt-2", children: "Create and manage your literary works, upload chapters for subscribers, and showcase in library" })
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mt-2", children: "Create and manage your literary works, upload chapters for subscribers, and showcase in library" })
       ] }),
-      /* @__PURE__ */ e.jsxs("div", { className: "flex gap-3", children: [
-        /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs("div", { className: "flex gap-3", children: [
+        /* @__PURE__ */ s.jsxs(
           "button",
           {
-            onClick: () => V(!0),
+            onClick: () => O(!0),
             className: "bg-secondary text-white px-6 py-3 rounded-xl font-medium hover:bg-secondary-dark transition-colors flex items-center gap-2",
             children: [
-              /* @__PURE__ */ e.jsx(xe, { className: "w-5 h-5" }),
+              /* @__PURE__ */ s.jsx(Ie, { className: "w-5 h-5" }),
               "Upload Chapter"
             ]
           }
         ),
-        /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs(
           "button",
           {
             onClick: () => {
-              c(), R(!0);
+              T(), j(!0);
             },
             className: "bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
             children: [
-              /* @__PURE__ */ e.jsx(Ee, { className: "w-5 h-5" }),
+              /* @__PURE__ */ s.jsx(ft, { className: "w-5 h-5" }),
               "New Work"
             ]
           }
         )
       ] })
     ] }),
-    N && /* @__PURE__ */ e.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
-      /* @__PURE__ */ e.jsx(Re, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
-      /* @__PURE__ */ e.jsx("span", { className: "text-red-700 dark:text-red-400", children: N }),
-      /* @__PURE__ */ e.jsx(
+    o && /* @__PURE__ */ s.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
+      /* @__PURE__ */ s.jsx(Dt, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
+      /* @__PURE__ */ s.jsx("span", { className: "text-red-700 dark:text-red-400", children: o }),
+      /* @__PURE__ */ s.jsx(
         "button",
         {
-          onClick: () => g(null),
+          onClick: () => l(null),
           className: "ml-auto text-red-500 hover:text-red-600",
-          children: /* @__PURE__ */ e.jsx(ge, { className: "w-5 h-5" })
+          children: /* @__PURE__ */ s.jsx(Ee, { className: "w-5 h-5" })
         }
       )
     ] }),
-    /* @__PURE__ */ e.jsx("div", { className: "border-b border-border", children: /* @__PURE__ */ e.jsxs("nav", { className: "-mb-px flex space-x-8", children: [
-      /* @__PURE__ */ e.jsxs(
+    /* @__PURE__ */ s.jsx("div", { className: "border-b border-border", children: /* @__PURE__ */ s.jsxs("nav", { className: "-mb-px flex space-x-8", children: [
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
           onClick: () => {
-            v("works"), D(null);
+            u("works"), A(null);
           },
-          className: `py-2 px-1 border-b-2 font-medium text-sm ${u === "works" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
+          className: `py-2 px-1 border-b-2 font-medium text-sm ${c === "works" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
           children: [
             "Works (",
-            s.length,
+            e.length,
             ")"
           ]
         }
       ),
-      /* @__PURE__ */ e.jsxs(
+      /* @__PURE__ */ s.jsxs(
         "button",
         {
-          onClick: () => v("chapters"),
-          className: `py-2 px-1 border-b-2 font-medium text-sm ${u === "chapters" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
+          onClick: () => u("chapters"),
+          className: `py-2 px-1 border-b-2 font-medium text-sm ${c === "chapters" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"}`,
           children: [
             "Chapters (",
-            i.length,
+            r.length,
             ")"
           ]
         }
       )
     ] }) }),
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col lg:flex-row gap-4", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "relative flex-1", children: [
-        /* @__PURE__ */ e.jsx(Pe, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-        /* @__PURE__ */ e.jsx(
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col lg:flex-row gap-4", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "relative flex-1", children: [
+        /* @__PURE__ */ s.jsx(xt, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+        /* @__PURE__ */ s.jsx(
           "input",
           {
             type: "text",
-            placeholder: `Search ${u}...`,
-            value: x,
-            onChange: (r) => C(r.target.value),
+            placeholder: `Search ${c}...`,
+            value: d,
+            onChange: (g) => h(g.target.value),
             className: "w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
           }
         )
       ] }),
-      u === "works" && /* @__PURE__ */ e.jsxs("div", { className: "flex gap-4", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "relative", children: [
-          /* @__PURE__ */ e.jsx(De, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-          /* @__PURE__ */ e.jsxs(
+      c === "works" && /* @__PURE__ */ s.jsxs("div", { className: "flex gap-4", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "relative", children: [
+          /* @__PURE__ */ s.jsx($t, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+          /* @__PURE__ */ s.jsxs(
             "select",
             {
-              value: P,
-              onChange: (r) => Y(r.target.value),
+              value: f,
+              onChange: (g) => p(g.target.value),
               className: "pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
               children: [
-                /* @__PURE__ */ e.jsx("option", { value: "all", children: "All Status" }),
-                /* @__PURE__ */ e.jsx("option", { value: "planning", children: "Planning" }),
-                /* @__PURE__ */ e.jsx("option", { value: "writing", children: "Writing" }),
-                /* @__PURE__ */ e.jsx("option", { value: "editing", children: "Editing" }),
-                /* @__PURE__ */ e.jsx("option", { value: "published", children: "Published" }),
-                /* @__PURE__ */ e.jsx("option", { value: "on_hold", children: "On Hold" })
+                /* @__PURE__ */ s.jsx("option", { value: "all", children: "All Status" }),
+                /* @__PURE__ */ s.jsx("option", { value: "planning", children: "Planning" }),
+                /* @__PURE__ */ s.jsx("option", { value: "writing", children: "Writing" }),
+                /* @__PURE__ */ s.jsx("option", { value: "editing", children: "Editing" }),
+                /* @__PURE__ */ s.jsx("option", { value: "published", children: "Published" }),
+                /* @__PURE__ */ s.jsx("option", { value: "on_hold", children: "On Hold" })
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs(
           "select",
           {
-            value: T,
-            onChange: (r) => q(r.target.value),
+            value: y,
+            onChange: (g) => S(g.target.value),
             className: "px-3 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
             children: [
-              /* @__PURE__ */ e.jsx("option", { value: "all", children: "All Types" }),
-              /* @__PURE__ */ e.jsx("option", { value: "book", children: "Books" }),
-              /* @__PURE__ */ e.jsx("option", { value: "volume", children: "Volumes" }),
-              /* @__PURE__ */ e.jsx("option", { value: "saga", children: "Sagas" }),
-              /* @__PURE__ */ e.jsx("option", { value: "arc", children: "Arcs" }),
-              /* @__PURE__ */ e.jsx("option", { value: "issue", children: "Issues" })
+              /* @__PURE__ */ s.jsx("option", { value: "all", children: "All Types" }),
+              /* @__PURE__ */ s.jsx("option", { value: "book", children: "Books" }),
+              /* @__PURE__ */ s.jsx("option", { value: "volume", children: "Volumes" }),
+              /* @__PURE__ */ s.jsx("option", { value: "saga", children: "Sagas" }),
+              /* @__PURE__ */ s.jsx("option", { value: "arc", children: "Arcs" }),
+              /* @__PURE__ */ s.jsx("option", { value: "issue", children: "Issues" })
             ]
           }
         )
       ] })
     ] }),
-    u === "works" && /* @__PURE__ */ e.jsx("div", { className: "space-y-4", children: _.length === 0 ? /* @__PURE__ */ e.jsxs("div", { className: "text-center py-12", children: [
-      /* @__PURE__ */ e.jsx(be, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
-      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No works found" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mb-4", children: x || P !== "all" || T !== "all" ? "Try adjusting your search or filters" : "Create your first work to get started" }),
-      /* @__PURE__ */ e.jsx(
+    c === "works" && /* @__PURE__ */ s.jsx("div", { className: "space-y-4", children: V.length === 0 ? /* @__PURE__ */ s.jsxs("div", { className: "text-center py-12", children: [
+      /* @__PURE__ */ s.jsx(Oe, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
+      /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No works found" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mb-4", children: d || f !== "all" || y !== "all" ? "Try adjusting your search or filters" : "Create your first work to get started" }),
+      /* @__PURE__ */ s.jsx(
         "button",
         {
           onClick: () => {
-            c(), R(!0);
+            T(), j(!0);
           },
           className: "bg-primary text-white px-6 py-2 rounded-xl font-medium hover:bg-primary-dark transition-colors",
           children: "Create First Work"
         }
       )
-    ] }) : /* @__PURE__ */ e.jsx("div", { className: "grid gap-4", children: _.map((r) => {
-      const j = le(r.status), U = j.icon;
-      return /* @__PURE__ */ e.jsx("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-start justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex-1 space-y-3", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-            /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-              /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-                ue(r.type),
-                /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-semibold text-foreground", children: r.title })
+    ] }) : /* @__PURE__ */ s.jsx("div", { className: "grid gap-4", children: V.map((g) => {
+      const R = ie(g.status), X = R.icon;
+      return /* @__PURE__ */ s.jsx("div", { className: "bg-card border border-border rounded-xl p-6 hover:shadow-md transition-shadow", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-start justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex-1 space-y-3", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+            /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+              /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+                Ne(g.type),
+                /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-semibold text-foreground", children: g.title })
               ] }),
-              /* @__PURE__ */ e.jsxs("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${j.bg} ${j.color}`, children: [
-                /* @__PURE__ */ e.jsx(U, { className: "w-3 h-3 mr-1" }),
-                r.status
+              /* @__PURE__ */ s.jsxs("span", { className: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${R.bg} ${R.color}`, children: [
+                /* @__PURE__ */ s.jsx(X, { className: "w-3 h-3 mr-1" }),
+                g.status
               ] }),
-              r.is_featured && /* @__PURE__ */ e.jsx(Yt, { className: "w-4 h-4 text-yellow-500 fill-current" })
+              g.is_featured && /* @__PURE__ */ s.jsx(xn, { className: "w-4 h-4 text-yellow-500 fill-current" })
             ] }),
-            /* @__PURE__ */ e.jsxs("div", { className: "text-right text-sm text-muted-foreground", children: [
-              /* @__PURE__ */ e.jsxs("p", { children: [
+            /* @__PURE__ */ s.jsxs("div", { className: "text-right text-sm text-muted-foreground", children: [
+              /* @__PURE__ */ s.jsxs("p", { children: [
                 "Updated ",
-                o(r.updated_at)
+                v(g.updated_at)
               ] }),
-              r.chapters_count && /* @__PURE__ */ e.jsxs("p", { children: [
-                r.published_chapters,
+              g.chapters_count && /* @__PURE__ */ s.jsxs("p", { children: [
+                g.published_chapters,
                 "/",
-                r.chapters_count,
+                g.chapters_count,
                 " chapters published"
               ] })
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-4 gap-4 text-sm", children: [
-            /* @__PURE__ */ e.jsxs("div", { children: [
-              /* @__PURE__ */ e.jsx("span", { className: "text-muted-foreground", children: "Type:" }),
-              /* @__PURE__ */ e.jsx("span", { className: "ml-2 text-foreground capitalize", children: r.type })
+          /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-4 gap-4 text-sm", children: [
+            /* @__PURE__ */ s.jsxs("div", { children: [
+              /* @__PURE__ */ s.jsx("span", { className: "text-muted-foreground", children: "Type:" }),
+              /* @__PURE__ */ s.jsx("span", { className: "ml-2 text-foreground capitalize", children: g.type })
             ] }),
-            r.progress_percentage !== void 0 && /* @__PURE__ */ e.jsxs("div", { children: [
-              /* @__PURE__ */ e.jsx("span", { className: "text-muted-foreground", children: "Progress:" }),
-              /* @__PURE__ */ e.jsxs("span", { className: "ml-2 text-foreground", children: [
-                r.progress_percentage,
+            g.progress_percentage !== void 0 && /* @__PURE__ */ s.jsxs("div", { children: [
+              /* @__PURE__ */ s.jsx("span", { className: "text-muted-foreground", children: "Progress:" }),
+              /* @__PURE__ */ s.jsxs("span", { className: "ml-2 text-foreground", children: [
+                g.progress_percentage,
                 "%"
               ] })
             ] }),
-            r.word_count && /* @__PURE__ */ e.jsxs("div", { children: [
-              /* @__PURE__ */ e.jsx("span", { className: "text-muted-foreground", children: "Words:" }),
-              /* @__PURE__ */ e.jsxs("span", { className: "ml-2 text-foreground", children: [
-                r.word_count.toLocaleString(),
-                r.target_word_count && ` / ${r.target_word_count.toLocaleString()}`
+            g.word_count && /* @__PURE__ */ s.jsxs("div", { children: [
+              /* @__PURE__ */ s.jsx("span", { className: "text-muted-foreground", children: "Words:" }),
+              /* @__PURE__ */ s.jsxs("span", { className: "ml-2 text-foreground", children: [
+                g.word_count.toLocaleString(),
+                g.target_word_count && ` / ${g.target_word_count.toLocaleString()}`
               ] })
             ] }),
-            r.rating && /* @__PURE__ */ e.jsxs("div", { children: [
-              /* @__PURE__ */ e.jsx("span", { className: "text-muted-foreground", children: "Rating:" }),
-              /* @__PURE__ */ e.jsxs("span", { className: "ml-2 text-foreground", children: [
-                r.rating.toFixed(1),
+            g.rating && /* @__PURE__ */ s.jsxs("div", { children: [
+              /* @__PURE__ */ s.jsx("span", { className: "text-muted-foreground", children: "Rating:" }),
+              /* @__PURE__ */ s.jsxs("span", { className: "ml-2 text-foreground", children: [
+                g.rating.toFixed(1),
                 " ⭐ (",
-                r.reviews_count,
+                g.reviews_count,
                 ")"
               ] })
             ] })
           ] }),
-          r.description && /* @__PURE__ */ e.jsx("p", { className: "text-sm text-muted-foreground line-clamp-2", children: r.description }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex gap-6 text-sm", children: [
-            r.release_date && /* @__PURE__ */ e.jsxs("div", { children: [
-              /* @__PURE__ */ e.jsx("span", { className: "text-muted-foreground", children: "Released:" }),
-              /* @__PURE__ */ e.jsx("span", { className: "ml-2 text-foreground", children: o(r.release_date) })
+          g.description && /* @__PURE__ */ s.jsx("p", { className: "text-sm text-muted-foreground line-clamp-2", children: g.description }),
+          /* @__PURE__ */ s.jsxs("div", { className: "flex gap-6 text-sm", children: [
+            g.release_date && /* @__PURE__ */ s.jsxs("div", { children: [
+              /* @__PURE__ */ s.jsx("span", { className: "text-muted-foreground", children: "Released:" }),
+              /* @__PURE__ */ s.jsx("span", { className: "ml-2 text-foreground", children: v(g.release_date) })
             ] }),
-            r.estimated_release && !r.release_date && /* @__PURE__ */ e.jsxs("div", { children: [
-              /* @__PURE__ */ e.jsx("span", { className: "text-muted-foreground", children: "Est. Release:" }),
-              /* @__PURE__ */ e.jsx("span", { className: "ml-2 text-foreground", children: r.estimated_release })
+            g.estimated_release && !g.release_date && /* @__PURE__ */ s.jsxs("div", { children: [
+              /* @__PURE__ */ s.jsx("span", { className: "text-muted-foreground", children: "Est. Release:" }),
+              /* @__PURE__ */ s.jsx("span", { className: "ml-2 text-foreground", children: g.estimated_release })
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-4", children: [
-            /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-4", children: [
+            /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => H(r, "is_featured"),
-                className: `flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${r.is_featured ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"}`,
+                onClick: () => B(g, "is_featured"),
+                className: `flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${g.is_featured ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"}`,
                 children: [
-                  /* @__PURE__ */ e.jsx(Yt, { className: "w-3 h-3" }),
+                  /* @__PURE__ */ s.jsx(xn, { className: "w-3 h-3" }),
                   "Featured"
                 ]
               }
             ),
-            /* @__PURE__ */ e.jsx(
+            /* @__PURE__ */ s.jsx(
               "button",
               {
-                onClick: () => H(r, "is_premium"),
-                className: `flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${r.is_premium ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"}`,
+                onClick: () => B(g, "is_premium"),
+                className: `flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${g.is_premium ? "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"}`,
                 children: "Premium"
               }
             ),
-            /* @__PURE__ */ e.jsx(
+            /* @__PURE__ */ s.jsx(
               "button",
               {
-                onClick: () => H(r, "is_free"),
-                className: `flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${r.is_free ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"}`,
+                onClick: () => B(g, "is_free"),
+                className: `flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${g.is_free ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"}`,
                 children: "Free"
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsx("div", { className: "flex items-center justify-between pt-3 border-t border-border", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsx("div", { className: "flex items-center justify-between pt-3 border-t border-border", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => L(r),
+                onClick: () => U(g),
                 className: "text-primary hover:text-primary-dark flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(Je, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(os, { className: "w-4 h-4" }),
                   "Edit"
                 ]
               }
             ),
-            /* @__PURE__ */ e.jsxs(
+            /* @__PURE__ */ s.jsxs(
               "button",
               {
                 onClick: () => {
-                  D(r), v("chapters"), a(r.id);
+                  A(g), u("chapters"), b(g.id);
                 },
                 className: "text-blue-600 hover:text-blue-700 flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(Ze, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(hs, { className: "w-4 h-4" }),
                   "Chapters (",
-                  r.chapters_count || 0,
+                  g.chapters_count || 0,
                   ")"
                 ]
               }
             ),
-            /* @__PURE__ */ e.jsxs(
+            /* @__PURE__ */ s.jsxs(
               "button",
               {
-                onClick: () => te(r),
+                onClick: () => $(g),
                 className: "text-red-500 hover:text-red-600 flex items-center gap-2 text-sm font-medium",
                 children: [
-                  /* @__PURE__ */ e.jsx(et, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ s.jsx(vs, { className: "w-4 h-4" }),
                   "Delete"
                 ]
               }
             )
           ] }) })
         ] }),
-        r.cover_image_url && /* @__PURE__ */ e.jsx("div", { className: "ml-4 flex-shrink-0", children: /* @__PURE__ */ e.jsx(
+        g.cover_image_url && /* @__PURE__ */ s.jsx("div", { className: "ml-4 flex-shrink-0", children: /* @__PURE__ */ s.jsx(
           "img",
           {
-            src: r.cover_image_url,
-            alt: r.title,
+            src: g.cover_image_url,
+            alt: g.title,
             className: "w-16 h-20 object-cover rounded-lg border border-border"
           }
         ) })
-      ] }) }, r.id);
+      ] }) }, g.id);
     }) }) }),
-    u === "chapters" && /* @__PURE__ */ e.jsxs("div", { className: "space-y-4", children: [
-      z && /* @__PURE__ */ e.jsx("div", { className: "bg-primary/5 border border-primary/20 rounded-xl p-4", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsxs("h3", { className: "font-semibold text-foreground", children: [
+    c === "chapters" && /* @__PURE__ */ s.jsxs("div", { className: "space-y-4", children: [
+      D && /* @__PURE__ */ s.jsx("div", { className: "bg-primary/5 border border-primary/20 rounded-xl p-4", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsxs("h3", { className: "font-semibold text-foreground", children: [
             "Chapters for: ",
-            z.title
+            D.title
           ] }),
-          /* @__PURE__ */ e.jsxs("p", { className: "text-sm text-muted-foreground", children: [
-            $.length,
+          /* @__PURE__ */ s.jsxs("p", { className: "text-sm text-muted-foreground", children: [
+            K.length,
             " chapters • ",
-            $.filter((r) => r.is_published).length,
+            K.filter((g) => g.is_published).length,
             " published"
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs(
           "button",
           {
-            onClick: () => V(!0),
+            onClick: () => O(!0),
             className: "bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
             children: [
-              /* @__PURE__ */ e.jsx(Ee, { className: "w-4 h-4" }),
+              /* @__PURE__ */ s.jsx(ft, { className: "w-4 h-4" }),
               "Add Chapter"
             ]
           }
         )
       ] }) }),
-      $.length === 0 ? /* @__PURE__ */ e.jsxs("div", { className: "text-center py-12", children: [
-        /* @__PURE__ */ e.jsx(ye, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
-        /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No chapters found" }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mb-4", children: z ? `No chapters uploaded for "${z.title}" yet` : "Select a work to view its chapters or upload new content" })
-      ] }) : /* @__PURE__ */ e.jsx("div", { className: "grid gap-3", children: $.sort((r, j) => r.chapter_number - j.chapter_number).map((r) => /* @__PURE__ */ e.jsxs("div", { className: "bg-card border border-border rounded-lg p-4 flex items-center justify-between", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "flex-1", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsxs("span", { className: "text-sm font-mono text-muted-foreground", children: [
+      K.length === 0 ? /* @__PURE__ */ s.jsxs("div", { className: "text-center py-12", children: [
+        /* @__PURE__ */ s.jsx(Ye, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
+        /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No chapters found" }),
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mb-4", children: D ? `No chapters uploaded for "${D.title}" yet` : "Select a work to view its chapters or upload new content" })
+      ] }) : /* @__PURE__ */ s.jsx("div", { className: "grid gap-3", children: K.sort((g, R) => g.chapter_number - R.chapter_number).map((g) => /* @__PURE__ */ s.jsxs("div", { className: "bg-card border border-border rounded-lg p-4 flex items-center justify-between", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "flex-1", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsxs("span", { className: "text-sm font-mono text-muted-foreground", children: [
               "Ch. ",
-              r.chapter_number
+              g.chapter_number
             ] }),
-            /* @__PURE__ */ e.jsx("h4", { className: "font-medium text-foreground", children: r.title }),
-            /* @__PURE__ */ e.jsx("span", { className: `inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${r.is_published ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400"}`, children: r.is_published ? "Published" : "Draft" })
+            /* @__PURE__ */ s.jsx("h4", { className: "font-medium text-foreground", children: g.title }),
+            /* @__PURE__ */ s.jsx("span", { className: `inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${g.is_published ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400"}`, children: g.is_published ? "Published" : "Draft" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-4 mt-2 text-xs text-muted-foreground", children: [
-            /* @__PURE__ */ e.jsxs("span", { children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-4 mt-2 text-xs text-muted-foreground", children: [
+            /* @__PURE__ */ s.jsxs("span", { children: [
               "Updated ",
-              o(r.updated_at)
+              v(g.updated_at)
             ] }),
-            r.word_count && /* @__PURE__ */ e.jsxs("span", { children: [
-              r.word_count.toLocaleString(),
+            g.word_count && /* @__PURE__ */ s.jsxs("span", { children: [
+              g.word_count.toLocaleString(),
               " words"
             ] }),
-            r.estimated_read_time && /* @__PURE__ */ e.jsxs("span", { children: [
-              r.estimated_read_time,
+            g.estimated_read_time && /* @__PURE__ */ s.jsxs("span", { children: [
+              g.estimated_read_time,
               " min read"
             ] })
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ s.jsx(
             "button",
             {
-              onClick: () => K(r),
-              className: `p-2 rounded-lg transition-colors ${r.is_published ? "text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"}`,
-              title: r.is_published ? "Unpublish chapter" : "Publish chapter",
-              children: r.is_published ? /* @__PURE__ */ e.jsx(ke, { className: "w-4 h-4" }) : /* @__PURE__ */ e.jsx(qt, { className: "w-4 h-4" })
+              onClick: () => q(g),
+              className: `p-2 rounded-lg transition-colors ${g.is_published ? "text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20" : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"}`,
+              title: g.is_published ? "Unpublish chapter" : "Publish chapter",
+              children: g.is_published ? /* @__PURE__ */ s.jsx(tt, { className: "w-4 h-4" }) : /* @__PURE__ */ s.jsx(zi, { className: "w-4 h-4" })
             }
           ),
-          /* @__PURE__ */ e.jsx("button", { className: "p-2 text-primary hover:bg-primary/10 rounded-lg", children: /* @__PURE__ */ e.jsx(Je, { className: "w-4 h-4" }) })
+          /* @__PURE__ */ s.jsx("button", { className: "p-2 text-primary hover:bg-primary/10 rounded-lg", children: /* @__PURE__ */ s.jsx(os, { className: "w-4 h-4" }) })
         ] })
-      ] }, r.id)) })
+      ] }, g.id)) })
     ] }),
-    I && /* @__PURE__ */ e.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ e.jsxs("div", { className: "bg-background rounded-xl shadow-xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between p-6 border-b border-border", children: [
-        /* @__PURE__ */ e.jsx("h2", { className: "text-xl font-semibold text-foreground", children: S ? "Edit Work" : "Create New Work" }),
-        /* @__PURE__ */ e.jsx(
+    C && /* @__PURE__ */ s.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ s.jsxs("div", { className: "bg-background rounded-xl shadow-xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between p-6 border-b border-border", children: [
+        /* @__PURE__ */ s.jsx("h2", { className: "text-xl font-semibold text-foreground", children: w ? "Edit Work" : "Create New Work" }),
+        /* @__PURE__ */ s.jsx(
           "button",
           {
             onClick: () => {
-              R(!1), c();
+              j(!1), T();
             },
             className: "text-muted-foreground hover:text-foreground",
-            children: /* @__PURE__ */ e.jsx(ge, { className: "w-6 h-6" })
+            children: /* @__PURE__ */ s.jsx(Ee, { className: "w-6 h-6" })
           }
         )
       ] }),
-      /* @__PURE__ */ e.jsxs("form", { onSubmit: Z, className: "p-6 space-y-6", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Title *" }),
-            /* @__PURE__ */ e.jsx(
+      /* @__PURE__ */ s.jsxs("form", { onSubmit: se, className: "p-6 space-y-6", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Title *" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "text",
                 required: !0,
                 value: k.title,
-                onChange: (r) => l({ ...k, title: r.target.value }),
+                onChange: (g) => x({ ...k, title: g.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Type" }),
-            /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Type" }),
+            /* @__PURE__ */ s.jsxs(
               "select",
               {
                 value: k.type,
-                onChange: (r) => l({ ...k, type: r.target.value }),
+                onChange: (g) => x({ ...k, type: g.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 children: [
-                  /* @__PURE__ */ e.jsx("option", { value: "book", children: "Book" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "volume", children: "Volume" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "saga", children: "Saga" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "arc", children: "Arc" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "issue", children: "Issue" })
+                  /* @__PURE__ */ s.jsx("option", { value: "book", children: "Book" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "volume", children: "Volume" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "saga", children: "Saga" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "arc", children: "Arc" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "issue", children: "Issue" })
                 ]
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Description" }),
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Description" }),
+          /* @__PURE__ */ s.jsx(
             "textarea",
             {
               value: k.description,
-              onChange: (r) => l({ ...k, description: r.target.value }),
+              onChange: (g) => x({ ...k, description: g.target.value }),
               rows: 3,
               className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Status" }),
-            /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Status" }),
+            /* @__PURE__ */ s.jsxs(
               "select",
               {
                 value: k.status,
-                onChange: (r) => l({ ...k, status: r.target.value }),
+                onChange: (g) => x({ ...k, status: g.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 children: [
-                  /* @__PURE__ */ e.jsx("option", { value: "planning", children: "Planning" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "writing", children: "Writing" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "editing", children: "Editing" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "published", children: "Published" }),
-                  /* @__PURE__ */ e.jsx("option", { value: "on_hold", children: "On Hold" })
+                  /* @__PURE__ */ s.jsx("option", { value: "planning", children: "Planning" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "writing", children: "Writing" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "editing", children: "Editing" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "published", children: "Published" }),
+                  /* @__PURE__ */ s.jsx("option", { value: "on_hold", children: "On Hold" })
                 ]
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Progress %" }),
-            /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Progress %" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "number",
                 min: "0",
                 max: "100",
                 value: k.progress_percentage,
-                onChange: (r) => l({ ...k, progress_percentage: parseInt(r.target.value) || 0 }),
+                onChange: (g) => x({ ...k, progress_percentage: parseInt(g.target.value) || 0 }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Release Date" }),
-            /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: [
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Release Date" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "date",
                 value: k.release_date,
-                onChange: (r) => l({ ...k, release_date: r.target.value }),
+                onChange: (g) => x({ ...k, release_date: g.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Estimated Release" }),
-            /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Estimated Release" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "text",
                 value: k.estimated_release,
-                onChange: (r) => l({ ...k, estimated_release: r.target.value }),
+                onChange: (g) => x({ ...k, estimated_release: g.target.value }),
                 placeholder: "e.g., Spring 2024",
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Cover Image URL" }),
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Cover Image URL" }),
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "url",
               value: k.cover_image_url,
-              onChange: (r) => l({ ...k, cover_image_url: r.target.value }),
+              onChange: (g) => x({ ...k, cover_image_url: g.target.value }),
               className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { children: [
-          /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Target Word Count" }),
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { children: [
+          /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Target Word Count" }),
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "number",
               value: k.target_word_count || "",
-              onChange: (r) => l({ ...k, target_word_count: r.target.value ? parseInt(r.target.value) : void 0 }),
+              onChange: (g) => x({ ...k, target_word_count: g.target.value ? parseInt(g.target.value) : void 0 }),
               className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "space-y-3", children: [
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center", children: [
-            /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "space-y-3", children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center", children: [
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "checkbox",
                 id: "is_featured",
                 checked: k.is_featured,
-                onChange: (r) => l({ ...k, is_featured: r.target.checked }),
+                onChange: (g) => x({ ...k, is_featured: g.target.checked }),
                 className: "w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
               }
             ),
-            /* @__PURE__ */ e.jsx("label", { htmlFor: "is_featured", className: "ml-2 text-sm font-medium text-foreground", children: "Featured (highlight in library)" })
+            /* @__PURE__ */ s.jsx("label", { htmlFor: "is_featured", className: "ml-2 text-sm font-medium text-foreground", children: "Featured (highlight in library)" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center", children: [
-            /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center", children: [
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "checkbox",
                 id: "is_premium",
                 checked: k.is_premium,
-                onChange: (r) => l({ ...k, is_premium: r.target.checked }),
+                onChange: (g) => x({ ...k, is_premium: g.target.checked }),
                 className: "w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
               }
             ),
-            /* @__PURE__ */ e.jsx("label", { htmlFor: "is_premium", className: "ml-2 text-sm font-medium text-foreground", children: "Premium content (requires subscription/purchase)" })
+            /* @__PURE__ */ s.jsx("label", { htmlFor: "is_premium", className: "ml-2 text-sm font-medium text-foreground", children: "Premium content (requires subscription/purchase)" })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center", children: [
-            /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center", children: [
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "checkbox",
                 id: "is_free",
                 checked: k.is_free,
-                onChange: (r) => l({ ...k, is_free: r.target.checked }),
+                onChange: (g) => x({ ...k, is_free: g.target.checked }),
                 className: "w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
               }
             ),
-            /* @__PURE__ */ e.jsx("label", { htmlFor: "is_free", className: "ml-2 text-sm font-medium text-foreground", children: "Free to read (no subscription required)" })
+            /* @__PURE__ */ s.jsx("label", { htmlFor: "is_free", className: "ml-2 text-sm font-medium text-foreground", children: "Free to read (no subscription required)" })
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-end gap-3 pt-4 border-t border-border", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-end gap-3 pt-4 border-t border-border", children: [
+          /* @__PURE__ */ s.jsx(
             "button",
             {
               type: "button",
               onClick: () => {
-                R(!1), c();
+                j(!1), T();
               },
               className: "px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium",
               children: "Cancel"
             }
           ),
-          /* @__PURE__ */ e.jsxs(
+          /* @__PURE__ */ s.jsxs(
             "button",
             {
               type: "submit",
               className: "bg-primary text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2",
               children: [
-                /* @__PURE__ */ e.jsx(Bt, { className: "w-4 h-4" }),
-                S ? "Update Work" : "Create Work"
+                /* @__PURE__ */ s.jsx(Ui, { className: "w-4 h-4" }),
+                w ? "Update Work" : "Create Work"
               ]
             }
           )
         ] })
       ] })
     ] }) }),
-    se && /* @__PURE__ */ e.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ e.jsx("div", { className: "bg-background rounded-xl shadow-xl border border-border max-w-md w-full", children: /* @__PURE__ */ e.jsxs("div", { className: "p-6 text-center", children: [
-      /* @__PURE__ */ e.jsx(xe, { className: "w-16 h-16 text-primary mx-auto mb-4" }),
-      /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-semibold text-foreground mb-2", children: "Chapter Upload" }),
-      /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mb-4", children: "Use the existing Chapter Upload page or integrate the upload functionality here." }),
-      /* @__PURE__ */ e.jsxs("div", { className: "flex gap-3", children: [
-        /* @__PURE__ */ e.jsx(
+    I && /* @__PURE__ */ s.jsx("div", { className: "fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4", children: /* @__PURE__ */ s.jsx("div", { className: "bg-background rounded-xl shadow-xl border border-border max-w-md w-full", children: /* @__PURE__ */ s.jsxs("div", { className: "p-6 text-center", children: [
+      /* @__PURE__ */ s.jsx(Ie, { className: "w-16 h-16 text-primary mx-auto mb-4" }),
+      /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-semibold text-foreground mb-2", children: "Chapter Upload" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mb-4", children: "Use the existing Chapter Upload page or integrate the upload functionality here." }),
+      /* @__PURE__ */ s.jsxs("div", { className: "flex gap-3", children: [
+        /* @__PURE__ */ s.jsx(
           "button",
           {
             onClick: () => {
-              V(!1), window.open("/account/admin/media", "_blank");
+              O(!1), window.open("/account/admin/media", "_blank");
             },
             className: "flex-1 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors",
             children: "Go to Upload Page"
           }
         ),
-        /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: () => V(!1),
+            onClick: () => O(!1),
             className: "flex-1 bg-gray-200 dark:bg-gray-700 text-foreground px-4 py-2 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors",
             children: "Close"
           }
@@ -4177,326 +4054,326 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
       ] })
     ] }) }) })
   ] });
-}, kn = () => {
-  const [s, n] = p("upload"), [i, h] = p("chapter"), [m, f] = p([]), [N, g] = p([]), [u, v] = p(!1), [x, C] = p(null), [P, Y] = p(null), [T, q] = p(""), [I, R] = p("all"), [S, B] = p(null), [z, D] = p(!1), [se, V] = p({}), [k, l] = p({
+}, $f = () => {
+  const [e, t] = _("upload"), [r, n] = _("chapter"), [i, a] = _([]), [o, l] = _([]), [c, u] = _(!1), [d, h] = _(null), [f, p] = _(null), [y, S] = _(""), [C, j] = _("all"), [w, P] = _(null), [D, A] = _(!1), [I, O] = _({}), [k, x] = _({
     work_id: "",
     chapter_title: "",
     chapter_number: 1,
     is_published: !1
   });
-  he(() => {
-    y(), a();
+  xe(() => {
+    E(), b();
   }, []);
-  const y = async () => {
+  const E = async () => {
     try {
-      const o = await fetch("/api/admin/works");
-      if (o.ok) {
-        const r = await o.json();
-        f(r.works || []);
+      const v = await fetch("/api/admin/works");
+      if (v.ok) {
+        const g = await v.json();
+        a(g.works || []);
       }
-    } catch (o) {
-      console.error("Failed to fetch works:", o);
+    } catch (v) {
+      console.error("Failed to fetch works:", v);
     }
-  }, a = async () => {
+  }, b = async () => {
     try {
-      v(!0);
-      const o = await fetch("/api/admin/media");
-      if (o.ok) {
-        const r = await o.json();
-        g(r.files || []);
+      u(!0);
+      const v = await fetch("/api/admin/media");
+      if (v.ok) {
+        const g = await v.json();
+        l(g.files || []);
       }
     } catch {
-      C("Failed to fetch media files");
+      h("Failed to fetch media files");
     } finally {
-      v(!1);
+      u(!1);
     }
-  }, _ = (o) => {
-    o.target.files && B(o.target.files);
-  }, $ = (o) => {
-    o.preventDefault(), o.stopPropagation(), o.type === "dragenter" || o.type === "dragover" ? D(!0) : o.type === "dragleave" && D(!1);
-  }, Z = (o) => {
-    o.preventDefault(), o.stopPropagation(), D(!1), o.dataTransfer.files && o.dataTransfer.files[0] && B(o.dataTransfer.files);
-  }, c = async () => {
-    var o, r;
-    if (!S || S.length === 0) {
-      C("Please select a file to upload");
+  }, V = (v) => {
+    v.target.files && P(v.target.files);
+  }, K = (v) => {
+    v.preventDefault(), v.stopPropagation(), v.type === "dragenter" || v.type === "dragover" ? A(!0) : v.type === "dragleave" && A(!1);
+  }, se = (v) => {
+    v.preventDefault(), v.stopPropagation(), A(!1), v.dataTransfer.files && v.dataTransfer.files[0] && P(v.dataTransfer.files);
+  }, T = async () => {
+    var v, g;
+    if (!w || w.length === 0) {
+      h("Please select a file to upload");
       return;
     }
     if (!k.work_id || !k.chapter_title) {
-      C("Please fill in all required chapter information");
+      h("Please fill in all required chapter information");
       return;
     }
-    v(!0), C(null), Y(null);
+    u(!0), h(null), p(null);
     try {
-      const j = new FormData();
-      j.append("file", S[0]), j.append("title", k.chapter_title), j.append("chapter_number", k.chapter_number.toString()), j.append("book_id", k.work_id), j.append("is_published", k.is_published.toString());
-      const { data: { session: U }, error: X } = await ((r = (o = window.supabase) == null ? void 0 : o.auth) == null ? void 0 : r.getSession());
-      if (X || !U)
+      const R = new FormData();
+      R.append("file", w[0]), R.append("title", k.chapter_title), R.append("chapter_number", k.chapter_number.toString()), R.append("book_id", k.work_id), R.append("is_published", k.is_published.toString());
+      const { data: { session: X }, error: de } = await ((g = (v = window.supabase) == null ? void 0 : v.auth) == null ? void 0 : g.getSession());
+      if (de || !X)
         throw new Error("User session not found. Please log in.");
-      const oe = await fetch("/api/chapters/upload", {
+      const ye = await fetch("/api/chapters/upload", {
         method: "POST",
-        body: j,
+        body: R,
         headers: {
-          Authorization: `Bearer ${U.access_token}`
+          Authorization: `Bearer ${X.access_token}`
         }
       });
-      if (!oe.ok) {
-        const _e = await oe.json();
-        throw new Error(_e.message || _e.error || "Failed to upload chapter.");
+      if (!ye.ok) {
+        const st = await ye.json();
+        throw new Error(st.message || st.error || "Failed to upload chapter.");
       }
-      const Ye = await oe.json();
-      Y(`Chapter "${k.chapter_title}" uploaded successfully!`), B(null), l({
+      const jt = await ye.json();
+      p(`Chapter "${k.chapter_title}" uploaded successfully!`), P(null), x({
         work_id: "",
         chapter_title: "",
         chapter_number: 1,
         is_published: !1
-      }), await a();
-    } catch (j) {
-      C(j instanceof Error ? j.message : "Failed to upload chapter");
+      }), await b();
+    } catch (R) {
+      h(R instanceof Error ? R.message : "Failed to upload chapter");
     } finally {
-      v(!1);
+      u(!1);
     }
-  }, L = async () => {
-    if (!S || S.length === 0) {
-      C("Please select files to upload");
+  }, U = async () => {
+    if (!w || w.length === 0) {
+      h("Please select files to upload");
       return;
     }
-    v(!0), C(null), Y(null);
+    u(!0), h(null), p(null);
     try {
-      const o = Array.from(S).map(async (r, j) => {
-        const U = new FormData();
-        U.append("file", r), U.append("type", "media");
-        const X = await fetch("/api/admin/media/upload", {
+      const v = Array.from(w).map(async (g, R) => {
+        const X = new FormData();
+        X.append("file", g), X.append("type", "media");
+        const de = await fetch("/api/admin/media/upload", {
           method: "POST",
-          body: U
+          body: X
         });
-        if (!X.ok)
-          throw new Error(`Failed to upload ${r.name}`);
-        return X.json();
+        if (!de.ok)
+          throw new Error(`Failed to upload ${g.name}`);
+        return de.json();
       });
-      await Promise.all(o), Y(`Successfully uploaded ${S.length} file(s)`), B(null), await a();
-    } catch (o) {
-      C(o instanceof Error ? o.message : "Failed to upload files");
+      await Promise.all(v), p(`Successfully uploaded ${w.length} file(s)`), P(null), await b();
+    } catch (v) {
+      h(v instanceof Error ? v.message : "Failed to upload files");
     } finally {
-      v(!1);
+      u(!1);
     }
-  }, te = async (o) => {
+  }, $ = async (v) => {
     if (confirm("Are you sure you want to delete this file?"))
       try {
-        if (!(await fetch(`/api/admin/media/${o}`, {
+        if (!(await fetch(`/api/admin/media/${v}`, {
           method: "DELETE"
         })).ok)
           throw new Error("Failed to delete file");
-        Y("File deleted successfully"), await a();
-      } catch (r) {
-        C(r instanceof Error ? r.message : "Failed to delete file");
+        p("File deleted successfully"), await b();
+      } catch (g) {
+        h(g instanceof Error ? g.message : "Failed to delete file");
       }
-  }, H = N.filter((o) => {
-    var U;
-    const r = o.filename.toLowerCase().includes(T.toLowerCase()) || ((U = o.chapter_title) == null ? void 0 : U.toLowerCase().includes(T.toLowerCase()));
-    let j = !0;
-    if (I !== "all")
-      switch (I) {
+  }, B = o.filter((v) => {
+    var X;
+    const g = v.filename.toLowerCase().includes(y.toLowerCase()) || ((X = v.chapter_title) == null ? void 0 : X.toLowerCase().includes(y.toLowerCase()));
+    let R = !0;
+    if (C !== "all")
+      switch (C) {
         case "chapter":
-          j = !!(o.work_id && o.chapter_number);
+          R = !!(v.work_id && v.chapter_number);
           break;
         case "image":
-          j = o.file_type.startsWith("image/");
+          R = v.file_type.startsWith("image/");
           break;
         case "video":
-          j = o.file_type.startsWith("video/");
+          R = v.file_type.startsWith("video/");
           break;
         case "audio":
-          j = o.file_type.startsWith("audio/");
+          R = v.file_type.startsWith("audio/");
           break;
         case "document":
-          j = o.file_type.includes("pdf") || o.file_type.includes("document") || o.file_type.includes("text");
+          R = v.file_type.includes("pdf") || v.file_type.includes("document") || v.file_type.includes("text");
           break;
       }
-    return r && j;
-  }), K = (o) => o.work_id && o.chapter_number ? /* @__PURE__ */ e.jsx(be, { className: "w-5 h-5 text-blue-600" }) : o.file_type.startsWith("image/") ? /* @__PURE__ */ e.jsx(At, { className: "w-5 h-5 text-green-600" }) : o.file_type.startsWith("video/") ? /* @__PURE__ */ e.jsx($r, { className: "w-5 h-5 text-purple-600" }) : o.file_type.startsWith("audio/") ? /* @__PURE__ */ e.jsx(Wr, { className: "w-5 h-5 text-pink-600" }) : /* @__PURE__ */ e.jsx(ye, { className: "w-5 h-5 text-gray-600" }), le = (o) => {
-    if (o === 0) return "0 Bytes";
-    const r = 1024, j = ["Bytes", "KB", "MB", "GB"], U = Math.floor(Math.log(o) / Math.log(r));
-    return parseFloat((o / Math.pow(r, U)).toFixed(2)) + " " + j[U];
-  }, ue = (o) => new Date(o).toLocaleDateString("en-US", {
+    return g && R;
+  }), q = (v) => v.work_id && v.chapter_number ? /* @__PURE__ */ s.jsx(Oe, { className: "w-5 h-5 text-blue-600" }) : v.file_type.startsWith("image/") ? /* @__PURE__ */ s.jsx(yn, { className: "w-5 h-5 text-green-600" }) : v.file_type.startsWith("video/") ? /* @__PURE__ */ s.jsx(Nl, { className: "w-5 h-5 text-purple-600" }) : v.file_type.startsWith("audio/") ? /* @__PURE__ */ s.jsx(kl, { className: "w-5 h-5 text-pink-600" }) : /* @__PURE__ */ s.jsx(Ye, { className: "w-5 h-5 text-gray-600" }), ie = (v) => {
+    if (v === 0) return "0 Bytes";
+    const g = 1024, R = ["Bytes", "KB", "MB", "GB"], X = Math.floor(Math.log(v) / Math.log(g));
+    return parseFloat((v / Math.pow(g, X)).toFixed(2)) + " " + R[X];
+  }, Ne = (v) => new Date(v).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit"
   });
-  return /* @__PURE__ */ e.jsxs("div", { className: "space-y-6", children: [
-    /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
-      /* @__PURE__ */ e.jsxs("div", { children: [
-        /* @__PURE__ */ e.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
-          /* @__PURE__ */ e.jsx(xe, { className: "w-8 h-8 text-primary" }),
+  return /* @__PURE__ */ s.jsxs("div", { className: "space-y-6", children: [
+    /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0", children: [
+      /* @__PURE__ */ s.jsxs("div", { children: [
+        /* @__PURE__ */ s.jsxs("h1", { className: "text-3xl font-bold text-foreground flex items-center gap-3", children: [
+          /* @__PURE__ */ s.jsx(Ie, { className: "w-8 h-8 text-primary" }),
           "Media Upload"
         ] }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mt-2", children: "Upload chapters for subscribers and manage media files for your website" })
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mt-2", children: "Upload chapters for subscribers and manage media files for your website" })
       ] }),
-      /* @__PURE__ */ e.jsxs("div", { className: "flex gap-3", children: [
-        /* @__PURE__ */ e.jsx(
+      /* @__PURE__ */ s.jsxs("div", { className: "flex gap-3", children: [
+        /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: () => n("upload"),
-            className: `px-6 py-3 rounded-xl font-medium transition-colors ${s === "upload" ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-700 text-foreground hover:bg-gray-300 dark:hover:bg-gray-600"}`,
+            onClick: () => t("upload"),
+            className: `px-6 py-3 rounded-xl font-medium transition-colors ${e === "upload" ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-700 text-foreground hover:bg-gray-300 dark:hover:bg-gray-600"}`,
             children: "Upload Files"
           }
         ),
-        /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: () => n("library"),
-            className: `px-6 py-3 rounded-xl font-medium transition-colors ${s === "library" ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-700 text-foreground hover:bg-gray-300 dark:hover:bg-gray-600"}`,
+            onClick: () => t("library"),
+            className: `px-6 py-3 rounded-xl font-medium transition-colors ${e === "library" ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-700 text-foreground hover:bg-gray-300 dark:hover:bg-gray-600"}`,
             children: "Media Library"
           }
         )
       ] })
     ] }),
-    P && /* @__PURE__ */ e.jsxs("div", { className: "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-3", children: [
-      /* @__PURE__ */ e.jsx(Xe, { className: "w-5 h-5 text-green-500 flex-shrink-0" }),
-      /* @__PURE__ */ e.jsx("span", { className: "text-green-700 dark:text-green-400", children: P }),
-      /* @__PURE__ */ e.jsx(
+    f && /* @__PURE__ */ s.jsxs("div", { className: "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-3", children: [
+      /* @__PURE__ */ s.jsx(Vt, { className: "w-5 h-5 text-green-500 flex-shrink-0" }),
+      /* @__PURE__ */ s.jsx("span", { className: "text-green-700 dark:text-green-400", children: f }),
+      /* @__PURE__ */ s.jsx(
         "button",
         {
-          onClick: () => Y(null),
+          onClick: () => p(null),
           className: "ml-auto text-green-500 hover:text-green-600",
-          children: /* @__PURE__ */ e.jsx(ge, { className: "w-5 h-5" })
+          children: /* @__PURE__ */ s.jsx(Ee, { className: "w-5 h-5" })
         }
       )
     ] }),
-    x && /* @__PURE__ */ e.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
-      /* @__PURE__ */ e.jsx(Re, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
-      /* @__PURE__ */ e.jsx("span", { className: "text-red-700 dark:text-red-400", children: x }),
-      /* @__PURE__ */ e.jsx(
+    d && /* @__PURE__ */ s.jsxs("div", { className: "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3", children: [
+      /* @__PURE__ */ s.jsx(Dt, { className: "w-5 h-5 text-red-500 flex-shrink-0" }),
+      /* @__PURE__ */ s.jsx("span", { className: "text-red-700 dark:text-red-400", children: d }),
+      /* @__PURE__ */ s.jsx(
         "button",
         {
-          onClick: () => C(null),
+          onClick: () => h(null),
           className: "ml-auto text-red-500 hover:text-red-600",
-          children: /* @__PURE__ */ e.jsx(ge, { className: "w-5 h-5" })
+          children: /* @__PURE__ */ s.jsx(Ee, { className: "w-5 h-5" })
         }
       )
     ] }),
-    s === "upload" && /* @__PURE__ */ e.jsxs("div", { className: "space-y-6", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "flex gap-4 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl", children: [
-        /* @__PURE__ */ e.jsxs(
+    e === "upload" && /* @__PURE__ */ s.jsxs("div", { className: "space-y-6", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "flex gap-4 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl", children: [
+        /* @__PURE__ */ s.jsxs(
           "button",
           {
-            onClick: () => h("chapter"),
-            className: `flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${i === "chapter" ? "bg-white dark:bg-gray-700 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`,
+            onClick: () => n("chapter"),
+            className: `flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${r === "chapter" ? "bg-white dark:bg-gray-700 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`,
             children: [
-              /* @__PURE__ */ e.jsx(be, { className: "w-4 h-4 inline mr-2" }),
+              /* @__PURE__ */ s.jsx(Oe, { className: "w-4 h-4 inline mr-2" }),
               "Chapter Upload"
             ]
           }
         ),
-        /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs(
           "button",
           {
-            onClick: () => h("media"),
-            className: `flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${i === "media" ? "bg-white dark:bg-gray-700 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`,
+            onClick: () => n("media"),
+            className: `flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${r === "media" ? "bg-white dark:bg-gray-700 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`,
             children: [
-              /* @__PURE__ */ e.jsx(At, { className: "w-4 h-4 inline mr-2" }),
+              /* @__PURE__ */ s.jsx(yn, { className: "w-4 h-4 inline mr-2" }),
               "Media Upload"
             ]
           }
         )
       ] }),
-      i === "chapter" && /* @__PURE__ */ e.jsxs("div", { className: "bg-card border border-border rounded-xl p-6", children: [
-        /* @__PURE__ */ e.jsx("h2", { className: "text-xl font-semibold text-foreground mb-4", children: "Upload New Chapter" }),
-        /* @__PURE__ */ e.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6", children: [
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Select Work *" }),
-            /* @__PURE__ */ e.jsxs(
+      r === "chapter" && /* @__PURE__ */ s.jsxs("div", { className: "bg-card border border-border rounded-xl p-6", children: [
+        /* @__PURE__ */ s.jsx("h2", { className: "text-xl font-semibold text-foreground mb-4", children: "Upload New Chapter" }),
+        /* @__PURE__ */ s.jsxs("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6", children: [
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Select Work *" }),
+            /* @__PURE__ */ s.jsxs(
               "select",
               {
                 value: k.work_id,
-                onChange: (o) => l({ ...k, work_id: o.target.value }),
+                onChange: (v) => x({ ...k, work_id: v.target.value }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 required: !0,
                 children: [
-                  /* @__PURE__ */ e.jsx("option", { value: "", children: "-- Select a Work --" }),
-                  m.map((o) => /* @__PURE__ */ e.jsxs("option", { value: o.id, children: [
-                    o.title,
+                  /* @__PURE__ */ s.jsx("option", { value: "", children: "-- Select a Work --" }),
+                  i.map((v) => /* @__PURE__ */ s.jsxs("option", { value: v.id, children: [
+                    v.title,
                     " (",
-                    o.type,
+                    v.type,
                     ")"
-                  ] }, o.id))
+                  ] }, v.id))
                 ]
               }
             )
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { children: [
-            /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Chapter Number *" }),
-            /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { children: [
+            /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Chapter Number *" }),
+            /* @__PURE__ */ s.jsx(
               "input",
               {
                 type: "number",
                 min: "1",
                 value: k.chapter_number,
-                onChange: (o) => l({ ...k, chapter_number: parseInt(o.target.value) || 1 }),
+                onChange: (v) => x({ ...k, chapter_number: parseInt(v.target.value) || 1 }),
                 className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
                 required: !0
               }
             )
           ] })
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "mb-6", children: [
-          /* @__PURE__ */ e.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Chapter Title *" }),
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsxs("div", { className: "mb-6", children: [
+          /* @__PURE__ */ s.jsx("label", { className: "block text-sm font-medium text-foreground mb-2", children: "Chapter Title *" }),
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "text",
               value: k.chapter_title,
-              onChange: (o) => l({ ...k, chapter_title: o.target.value }),
+              onChange: (v) => x({ ...k, chapter_title: v.target.value }),
               className: "w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
               placeholder: "Enter chapter title",
               required: !0
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "mb-6", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center", children: [
-          /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsx("div", { className: "mb-6", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center", children: [
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "checkbox",
               id: "is_published",
               checked: k.is_published,
-              onChange: (o) => l({ ...k, is_published: o.target.checked }),
+              onChange: (v) => x({ ...k, is_published: v.target.checked }),
               className: "w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
             }
           ),
-          /* @__PURE__ */ e.jsx("label", { htmlFor: "is_published", className: "ml-2 text-sm font-medium text-foreground", children: "Publish immediately (subscribers will get access)" })
+          /* @__PURE__ */ s.jsx("label", { htmlFor: "is_published", className: "ml-2 text-sm font-medium text-foreground", children: "Publish immediately (subscribers will get access)" })
         ] }) }),
-        /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs(
           "div",
           {
-            className: `border-2 border-dashed rounded-xl p-8 text-center transition-colors ${z ? "border-primary bg-primary/5" : "border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5"}`,
-            onDragEnter: $,
-            onDragLeave: $,
-            onDragOver: $,
-            onDrop: Z,
+            className: `border-2 border-dashed rounded-xl p-8 text-center transition-colors ${D ? "border-primary bg-primary/5" : "border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5"}`,
+            onDragEnter: K,
+            onDragLeave: K,
+            onDragOver: K,
+            onDrop: se,
             children: [
-              /* @__PURE__ */ e.jsx(xe, { className: "w-12 h-12 text-primary mx-auto mb-4" }),
-              /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "Drop chapter file here or click to browse" }),
-              /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mb-4", children: "Supported formats: PDF, DOCX, TXT, HTML" }),
-              /* @__PURE__ */ e.jsx(
+              /* @__PURE__ */ s.jsx(Ie, { className: "w-12 h-12 text-primary mx-auto mb-4" }),
+              /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "Drop chapter file here or click to browse" }),
+              /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mb-4", children: "Supported formats: PDF, DOCX, TXT, HTML" }),
+              /* @__PURE__ */ s.jsx(
                 "input",
                 {
                   type: "file",
-                  onChange: _,
+                  onChange: V,
                   accept: ".pdf,.docx,.txt,.html",
                   className: "hidden",
                   id: "chapter-file-input"
                 }
               ),
-              /* @__PURE__ */ e.jsxs(
+              /* @__PURE__ */ s.jsxs(
                 "label",
                 {
                   htmlFor: "chapter-file-input",
                   className: "bg-primary text-white px-6 py-2 rounded-lg cursor-pointer hover:bg-primary-dark transition-colors inline-flex items-center gap-2",
                   children: [
-                    /* @__PURE__ */ e.jsx(Ee, { className: "w-4 h-4" }),
+                    /* @__PURE__ */ s.jsx(ft, { className: "w-4 h-4" }),
                     "Choose File"
                   ]
                 }
@@ -4504,71 +4381,71 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
             ]
           }
         ),
-        S && /* @__PURE__ */ e.jsxs("div", { className: "mt-4", children: [
-          /* @__PURE__ */ e.jsx("h4", { className: "font-medium text-foreground mb-2", children: "Selected File:" }),
-          Array.from(S).map((o, r) => /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-lg", children: [
-            /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-              /* @__PURE__ */ e.jsx(ye, { className: "w-4 h-4 text-gray-500" }),
-              /* @__PURE__ */ e.jsx("span", { className: "text-sm font-medium", children: o.name }),
-              /* @__PURE__ */ e.jsx("span", { className: "text-xs text-muted-foreground", children: le(o.size) })
+        w && /* @__PURE__ */ s.jsxs("div", { className: "mt-4", children: [
+          /* @__PURE__ */ s.jsx("h4", { className: "font-medium text-foreground mb-2", children: "Selected File:" }),
+          Array.from(w).map((v, g) => /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-lg", children: [
+            /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+              /* @__PURE__ */ s.jsx(Ye, { className: "w-4 h-4 text-gray-500" }),
+              /* @__PURE__ */ s.jsx("span", { className: "text-sm font-medium", children: v.name }),
+              /* @__PURE__ */ s.jsx("span", { className: "text-xs text-muted-foreground", children: ie(v.size) })
             ] }),
-            /* @__PURE__ */ e.jsx(
+            /* @__PURE__ */ s.jsx(
               "button",
               {
-                onClick: () => B(null),
+                onClick: () => P(null),
                 className: "text-red-500 hover:text-red-600",
-                children: /* @__PURE__ */ e.jsx(ge, { className: "w-4 h-4" })
+                children: /* @__PURE__ */ s.jsx(Ee, { className: "w-4 h-4" })
               }
             )
-          ] }, r))
+          ] }, g))
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "mt-6 flex justify-end", children: /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsx("div", { className: "mt-6 flex justify-end", children: /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: c,
-            disabled: u || !S || !k.work_id || !k.chapter_title,
+            onClick: T,
+            disabled: c || !w || !k.work_id || !k.chapter_title,
             className: "bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
-            children: u ? /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-              /* @__PURE__ */ e.jsx(de, { className: "w-4 h-4 animate-spin" }),
+            children: c ? /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+              /* @__PURE__ */ s.jsx(Se, { className: "w-4 h-4 animate-spin" }),
               "Uploading Chapter..."
-            ] }) : /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-              /* @__PURE__ */ e.jsx(xe, { className: "w-4 h-4" }),
+            ] }) : /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+              /* @__PURE__ */ s.jsx(Ie, { className: "w-4 h-4" }),
               "Upload Chapter"
             ] })
           }
         ) })
       ] }),
-      i === "media" && /* @__PURE__ */ e.jsxs("div", { className: "bg-card border border-border rounded-xl p-6", children: [
-        /* @__PURE__ */ e.jsx("h2", { className: "text-xl font-semibold text-foreground mb-4", children: "Upload Media Files" }),
-        /* @__PURE__ */ e.jsxs(
+      r === "media" && /* @__PURE__ */ s.jsxs("div", { className: "bg-card border border-border rounded-xl p-6", children: [
+        /* @__PURE__ */ s.jsx("h2", { className: "text-xl font-semibold text-foreground mb-4", children: "Upload Media Files" }),
+        /* @__PURE__ */ s.jsxs(
           "div",
           {
-            className: `border-2 border-dashed rounded-xl p-8 text-center transition-colors ${z ? "border-primary bg-primary/5" : "border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5"}`,
-            onDragEnter: $,
-            onDragLeave: $,
-            onDragOver: $,
-            onDrop: Z,
+            className: `border-2 border-dashed rounded-xl p-8 text-center transition-colors ${D ? "border-primary bg-primary/5" : "border-gray-300 dark:border-gray-600 hover:border-primary hover:bg-primary/5"}`,
+            onDragEnter: K,
+            onDragLeave: K,
+            onDragOver: K,
+            onDrop: se,
             children: [
-              /* @__PURE__ */ e.jsx(xe, { className: "w-12 h-12 text-primary mx-auto mb-4" }),
-              /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "Drop files here or click to browse" }),
-              /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground mb-4", children: "Images, videos, documents, and other media files" }),
-              /* @__PURE__ */ e.jsx(
+              /* @__PURE__ */ s.jsx(Ie, { className: "w-12 h-12 text-primary mx-auto mb-4" }),
+              /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "Drop files here or click to browse" }),
+              /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground mb-4", children: "Images, videos, documents, and other media files" }),
+              /* @__PURE__ */ s.jsx(
                 "input",
                 {
                   type: "file",
-                  onChange: _,
+                  onChange: V,
                   multiple: !0,
                   className: "hidden",
                   id: "media-file-input"
                 }
               ),
-              /* @__PURE__ */ e.jsxs(
+              /* @__PURE__ */ s.jsxs(
                 "label",
                 {
                   htmlFor: "media-file-input",
                   className: "bg-primary text-white px-6 py-2 rounded-lg cursor-pointer hover:bg-primary-dark transition-colors inline-flex items-center gap-2",
                   children: [
-                    /* @__PURE__ */ e.jsx(Ee, { className: "w-4 h-4" }),
+                    /* @__PURE__ */ s.jsx(ft, { className: "w-4 h-4" }),
                     "Choose Files"
                   ]
                 }
@@ -4576,154 +4453,4888 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
             ]
           }
         ),
-        S && /* @__PURE__ */ e.jsxs("div", { className: "mt-4", children: [
-          /* @__PURE__ */ e.jsxs("h4", { className: "font-medium text-foreground mb-2", children: [
+        w && /* @__PURE__ */ s.jsxs("div", { className: "mt-4", children: [
+          /* @__PURE__ */ s.jsxs("h4", { className: "font-medium text-foreground mb-2", children: [
             "Selected Files (",
-            S.length,
+            w.length,
             "):"
           ] }),
-          /* @__PURE__ */ e.jsx("div", { className: "space-y-2 max-h-40 overflow-y-auto", children: Array.from(S).map((o, r) => /* @__PURE__ */ e.jsx("div", { className: "flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-lg", children: /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-3", children: [
-            /* @__PURE__ */ e.jsx(Ir, { className: "w-4 h-4 text-gray-500" }),
-            /* @__PURE__ */ e.jsx("span", { className: "text-sm font-medium", children: o.name }),
-            /* @__PURE__ */ e.jsx("span", { className: "text-xs text-muted-foreground", children: le(o.size) })
-          ] }) }, r)) })
+          /* @__PURE__ */ s.jsx("div", { className: "space-y-2 max-h-40 overflow-y-auto", children: Array.from(w).map((v, g) => /* @__PURE__ */ s.jsx("div", { className: "flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded-lg", children: /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ s.jsx(vl, { className: "w-4 h-4 text-gray-500" }),
+            /* @__PURE__ */ s.jsx("span", { className: "text-sm font-medium", children: v.name }),
+            /* @__PURE__ */ s.jsx("span", { className: "text-xs text-muted-foreground", children: ie(v.size) })
+          ] }) }, g)) })
         ] }),
-        /* @__PURE__ */ e.jsx("div", { className: "mt-6 flex justify-end", children: /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsx("div", { className: "mt-6 flex justify-end", children: /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: L,
-            disabled: u || !S,
+            onClick: U,
+            disabled: c || !w,
             className: "bg-primary text-white px-6 py-3 rounded-xl font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
-            children: u ? /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-              /* @__PURE__ */ e.jsx(de, { className: "w-4 h-4 animate-spin" }),
+            children: c ? /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+              /* @__PURE__ */ s.jsx(Se, { className: "w-4 h-4 animate-spin" }),
               "Uploading Files..."
-            ] }) : /* @__PURE__ */ e.jsxs(e.Fragment, { children: [
-              /* @__PURE__ */ e.jsx(xe, { className: "w-4 h-4" }),
+            ] }) : /* @__PURE__ */ s.jsxs(s.Fragment, { children: [
+              /* @__PURE__ */ s.jsx(Ie, { className: "w-4 h-4" }),
               "Upload Files"
             ] })
           }
         ) })
       ] })
     ] }),
-    s === "library" && /* @__PURE__ */ e.jsxs("div", { className: "space-y-4", children: [
-      /* @__PURE__ */ e.jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
-        /* @__PURE__ */ e.jsxs("div", { className: "relative flex-1", children: [
-          /* @__PURE__ */ e.jsx(Pe, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-          /* @__PURE__ */ e.jsx(
+    e === "library" && /* @__PURE__ */ s.jsxs("div", { className: "space-y-4", children: [
+      /* @__PURE__ */ s.jsxs("div", { className: "flex flex-col sm:flex-row gap-4", children: [
+        /* @__PURE__ */ s.jsxs("div", { className: "relative flex-1", children: [
+          /* @__PURE__ */ s.jsx(xt, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+          /* @__PURE__ */ s.jsx(
             "input",
             {
               type: "text",
               placeholder: "Search files...",
-              value: T,
-              onChange: (o) => q(o.target.value),
+              value: y,
+              onChange: (v) => S(v.target.value),
               className: "w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsxs("div", { className: "relative", children: [
-          /* @__PURE__ */ e.jsx(De, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
-          /* @__PURE__ */ e.jsxs(
+        /* @__PURE__ */ s.jsxs("div", { className: "relative", children: [
+          /* @__PURE__ */ s.jsx($t, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" }),
+          /* @__PURE__ */ s.jsxs(
             "select",
             {
-              value: I,
-              onChange: (o) => R(o.target.value),
+              value: C,
+              onChange: (v) => j(v.target.value),
               className: "pl-10 pr-8 py-3 border border-gray-200 dark:border-gray-600 rounded-xl bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary",
               children: [
-                /* @__PURE__ */ e.jsx("option", { value: "all", children: "All Files" }),
-                /* @__PURE__ */ e.jsx("option", { value: "chapter", children: "Chapters" }),
-                /* @__PURE__ */ e.jsx("option", { value: "image", children: "Images" }),
-                /* @__PURE__ */ e.jsx("option", { value: "video", children: "Videos" }),
-                /* @__PURE__ */ e.jsx("option", { value: "audio", children: "Audio" }),
-                /* @__PURE__ */ e.jsx("option", { value: "document", children: "Documents" })
+                /* @__PURE__ */ s.jsx("option", { value: "all", children: "All Files" }),
+                /* @__PURE__ */ s.jsx("option", { value: "chapter", children: "Chapters" }),
+                /* @__PURE__ */ s.jsx("option", { value: "image", children: "Images" }),
+                /* @__PURE__ */ s.jsx("option", { value: "video", children: "Videos" }),
+                /* @__PURE__ */ s.jsx("option", { value: "audio", children: "Audio" }),
+                /* @__PURE__ */ s.jsx("option", { value: "document", children: "Documents" })
               ]
             }
           )
         ] }),
-        /* @__PURE__ */ e.jsx(
+        /* @__PURE__ */ s.jsx(
           "button",
           {
-            onClick: a,
+            onClick: b,
             className: "bg-primary text-white px-4 py-3 rounded-xl hover:bg-primary-dark transition-colors",
-            children: /* @__PURE__ */ e.jsx(de, { className: "w-4 h-4" })
+            children: /* @__PURE__ */ s.jsx(Se, { className: "w-4 h-4" })
           }
         )
       ] }),
-      u ? /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-center py-12", children: [
-        /* @__PURE__ */ e.jsx(de, { className: "w-8 h-8 animate-spin text-primary" }),
-        /* @__PURE__ */ e.jsx("span", { className: "ml-3", children: "Loading files..." })
-      ] }) : H.length === 0 ? /* @__PURE__ */ e.jsxs("div", { className: "text-center py-12", children: [
-        /* @__PURE__ */ e.jsx(zr, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
-        /* @__PURE__ */ e.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No files found" }),
-        /* @__PURE__ */ e.jsx("p", { className: "text-muted-foreground", children: T || I !== "all" ? "Try adjusting your search or filters" : "Upload your first file to get started" })
-      ] }) : /* @__PURE__ */ e.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", children: H.map((o) => {
-        var r;
-        return /* @__PURE__ */ e.jsxs("div", { className: "bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow", children: [
-          /* @__PURE__ */ e.jsx("div", { className: "aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center", children: o.thumbnail_url ? /* @__PURE__ */ e.jsx(
+      c ? /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-center py-12", children: [
+        /* @__PURE__ */ s.jsx(Se, { className: "w-8 h-8 animate-spin text-primary" }),
+        /* @__PURE__ */ s.jsx("span", { className: "ml-3", children: "Loading files..." })
+      ] }) : B.length === 0 ? /* @__PURE__ */ s.jsxs("div", { className: "text-center py-12", children: [
+        /* @__PURE__ */ s.jsx(wl, { className: "w-16 h-16 text-muted-foreground mx-auto mb-4" }),
+        /* @__PURE__ */ s.jsx("h3", { className: "text-lg font-medium text-foreground mb-2", children: "No files found" }),
+        /* @__PURE__ */ s.jsx("p", { className: "text-muted-foreground", children: y || C !== "all" ? "Try adjusting your search or filters" : "Upload your first file to get started" })
+      ] }) : /* @__PURE__ */ s.jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", children: B.map((v) => {
+        var g;
+        return /* @__PURE__ */ s.jsxs("div", { className: "bg-card border border-border rounded-xl p-4 hover:shadow-md transition-shadow", children: [
+          /* @__PURE__ */ s.jsx("div", { className: "aspect-video bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center", children: v.thumbnail_url ? /* @__PURE__ */ s.jsx(
             "img",
             {
-              src: o.thumbnail_url,
-              alt: o.filename,
+              src: v.thumbnail_url,
+              alt: v.filename,
               className: "w-full h-full object-cover rounded-lg"
             }
-          ) : /* @__PURE__ */ e.jsxs("div", { className: "text-center", children: [
-            K(o),
-            /* @__PURE__ */ e.jsx("p", { className: "text-xs text-muted-foreground mt-2", children: (r = o.file_type.split("/")[1]) == null ? void 0 : r.toUpperCase() })
+          ) : /* @__PURE__ */ s.jsxs("div", { className: "text-center", children: [
+            q(v),
+            /* @__PURE__ */ s.jsx("p", { className: "text-xs text-muted-foreground mt-2", children: (g = v.file_type.split("/")[1]) == null ? void 0 : g.toUpperCase() })
           ] }) }),
-          /* @__PURE__ */ e.jsxs("div", { className: "space-y-2", children: [
-            /* @__PURE__ */ e.jsx("h3", { className: "font-medium text-foreground truncate", title: o.filename, children: o.filename }),
-            o.work_id && o.chapter_number && /* @__PURE__ */ e.jsxs("div", { className: "text-sm text-muted-foreground", children: [
-              /* @__PURE__ */ e.jsxs("p", { children: [
+          /* @__PURE__ */ s.jsxs("div", { className: "space-y-2", children: [
+            /* @__PURE__ */ s.jsx("h3", { className: "font-medium text-foreground truncate", title: v.filename, children: v.filename }),
+            v.work_id && v.chapter_number && /* @__PURE__ */ s.jsxs("div", { className: "text-sm text-muted-foreground", children: [
+              /* @__PURE__ */ s.jsxs("p", { children: [
                 "Chapter ",
-                o.chapter_number,
+                v.chapter_number,
                 ": ",
-                o.chapter_title
+                v.chapter_title
               ] }),
-              /* @__PURE__ */ e.jsx("span", { className: `inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${o.is_published ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400"}`, children: o.is_published ? "Published" : "Draft" })
+              /* @__PURE__ */ s.jsx("span", { className: `inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${v.is_published ? "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400" : "bg-gray-100 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400"}`, children: v.is_published ? "Published" : "Draft" })
             ] }),
-            /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between text-xs text-muted-foreground", children: [
-              /* @__PURE__ */ e.jsx("span", { children: le(o.file_size) }),
-              /* @__PURE__ */ e.jsx("span", { children: ue(o.upload_date) })
+            /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between text-xs text-muted-foreground", children: [
+              /* @__PURE__ */ s.jsx("span", { children: ie(v.file_size) }),
+              /* @__PURE__ */ s.jsx("span", { children: Ne(v.upload_date) })
             ] })
           ] }),
-          /* @__PURE__ */ e.jsxs("div", { className: "flex items-center justify-between mt-4 pt-3 border-t border-border", children: [
-            /* @__PURE__ */ e.jsxs("div", { className: "flex items-center gap-2", children: [
-              o.file_url && /* @__PURE__ */ e.jsx(
+          /* @__PURE__ */ s.jsxs("div", { className: "flex items-center justify-between mt-4 pt-3 border-t border-border", children: [
+            /* @__PURE__ */ s.jsxs("div", { className: "flex items-center gap-2", children: [
+              v.file_url && /* @__PURE__ */ s.jsx(
                 "button",
                 {
-                  onClick: () => window.open(o.file_url, "_blank"),
+                  onClick: () => window.open(v.file_url, "_blank"),
                   className: "p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors",
                   title: "View file",
-                  children: /* @__PURE__ */ e.jsx(ke, { className: "w-4 h-4" })
+                  children: /* @__PURE__ */ s.jsx(tt, { className: "w-4 h-4" })
                 }
               ),
-              o.file_url && /* @__PURE__ */ e.jsx(
+              v.file_url && /* @__PURE__ */ s.jsx(
                 "button",
                 {
                   onClick: () => {
-                    const j = document.createElement("a");
-                    j.href = o.file_url, j.download = o.filename, j.click();
+                    const R = document.createElement("a");
+                    R.href = v.file_url, R.download = v.filename, R.click();
                   },
                   className: "p-1.5 text-blue-600 hover:bg-blue-600/10 rounded-lg transition-colors",
                   title: "Download file",
-                  children: /* @__PURE__ */ e.jsx(Dr, { className: "w-4 h-4" })
+                  children: /* @__PURE__ */ s.jsx(jl, { className: "w-4 h-4" })
                 }
               )
             ] }),
-            /* @__PURE__ */ e.jsx(
+            /* @__PURE__ */ s.jsx(
               "button",
               {
-                onClick: () => te(o.id),
+                onClick: () => $(v.id),
                 className: "p-1.5 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors",
                 title: "Delete file",
-                children: /* @__PURE__ */ e.jsx(et, { className: "w-4 h-4" })
+                children: /* @__PURE__ */ s.jsx(vs, { className: "w-4 h-4" })
               }
             )
           ] })
-        ] }, o.id);
+        ] }, v.id);
       }) })
     ] })
   ] });
-}, Oa = Ht(
+}, Gi = Ue({});
+function Tc(e) {
+  const t = ht(null);
+  return t.current === null && (t.current = e()), t.current;
+}
+const br = typeof window < "u", Sc = br ? Za : xe, vr = /* @__PURE__ */ Ue(null);
+function wr(e, t) {
+  e.indexOf(t) === -1 && e.push(t);
+}
+function jr(e, t) {
+  const r = e.indexOf(t);
+  r > -1 && e.splice(r, 1);
+}
+const De = (e, t, r) => r > t ? t : r < e ? e : r;
+function Gs(e, t) {
+  return t ? `${e}. For more information and steps for solving, visit https://motion.dev/troubleshooting/${t}` : e;
+}
+let yt = () => {
+}, Re = () => {
+};
+process.env.NODE_ENV !== "production" && (yt = (e, t, r) => {
+  !e && typeof console < "u" && console.warn(Gs(t, r));
+}, Re = (e, t, r) => {
+  if (!e)
+    throw new Error(Gs(t, r));
+});
+const Ve = {}, qi = (e) => /^-?(?:\d+(?:\.\d+)?|\.\d+)$/u.test(e);
+function Xi(e) {
+  return typeof e == "object" && e !== null;
+}
+const Zi = (e) => /^0[^.\s]+$/u.test(e);
+// @__NO_SIDE_EFFECTS__
+function Nr(e) {
+  let t;
+  return () => (t === void 0 && (t = e()), t);
+}
+const je = /* @__NO_SIDE_EFFECTS__ */ (e) => e, Cc = (e, t) => (r) => t(e(r)), Wt = (...e) => e.reduce(Cc), Ft = /* @__NO_SIDE_EFFECTS__ */ (e, t, r) => {
+  const n = t - e;
+  return n === 0 ? 1 : (r - e) / n;
+};
+class kr {
+  constructor() {
+    this.subscriptions = [];
+  }
+  add(t) {
+    return wr(this.subscriptions, t), () => jr(this.subscriptions, t);
+  }
+  notify(t, r, n) {
+    const i = this.subscriptions.length;
+    if (i)
+      if (i === 1)
+        this.subscriptions[0](t, r, n);
+      else
+        for (let a = 0; a < i; a++) {
+          const o = this.subscriptions[a];
+          o && o(t, r, n);
+        }
+  }
+  getSize() {
+    return this.subscriptions.length;
+  }
+  clear() {
+    this.subscriptions.length = 0;
+  }
+}
+const Te = /* @__NO_SIDE_EFFECTS__ */ (e) => e * 1e3, Ce = /* @__NO_SIDE_EFFECTS__ */ (e) => e / 1e3;
+function Ji(e, t) {
+  return t ? e * (1e3 / t) : 0;
+}
+const jn = /* @__PURE__ */ new Set();
+function Tr(e, t, r) {
+  e || jn.has(t) || (console.warn(Gs(t, r)), jn.add(t));
+}
+const Qi = (e, t, r) => (((1 - 3 * r + 3 * t) * e + (3 * r - 6 * t)) * e + 3 * t) * e, Pc = 1e-7, _c = 12;
+function Ac(e, t, r, n, i) {
+  let a, o, l = 0;
+  do
+    o = t + (r - t) / 2, a = Qi(o, n, i) - e, a > 0 ? r = o : t = o;
+  while (Math.abs(a) > Pc && ++l < _c);
+  return o;
+}
+function Ht(e, t, r, n) {
+  if (e === t && r === n)
+    return je;
+  const i = (a) => Ac(a, 0, 1, e, r);
+  return (a) => a === 0 || a === 1 ? a : Qi(i(a), t, n);
+}
+const eo = (e) => (t) => t <= 0.5 ? e(2 * t) / 2 : (2 - e(2 * (1 - t))) / 2, to = (e) => (t) => 1 - e(1 - t), so = /* @__PURE__ */ Ht(0.33, 1.53, 0.69, 0.99), Sr = /* @__PURE__ */ to(so), ro = /* @__PURE__ */ eo(Sr), no = (e) => (e *= 2) < 1 ? 0.5 * Sr(e) : 0.5 * (2 - Math.pow(2, -10 * (e - 1))), Cr = (e) => 1 - Math.sin(Math.acos(e)), io = to(Cr), oo = eo(Cr), Ec = /* @__PURE__ */ Ht(0.42, 0, 1, 1), Mc = /* @__PURE__ */ Ht(0, 0, 0.58, 1), ao = /* @__PURE__ */ Ht(0.42, 0, 0.58, 1), Dc = (e) => Array.isArray(e) && typeof e[0] != "number", lo = (e) => Array.isArray(e) && typeof e[0] == "number", Nn = {
+  linear: je,
+  easeIn: Ec,
+  easeInOut: ao,
+  easeOut: Mc,
+  circIn: Cr,
+  circInOut: oo,
+  circOut: io,
+  backIn: Sr,
+  backInOut: ro,
+  backOut: so,
+  anticipate: no
+}, Rc = (e) => typeof e == "string", kn = (e) => {
+  if (lo(e)) {
+    Re(e.length === 4, "Cubic bezier arrays must contain four numerical values.", "cubic-bezier-length");
+    const [t, r, n, i] = e;
+    return Ht(t, r, n, i);
+  } else if (Rc(e))
+    return Re(Nn[e] !== void 0, `Invalid easing type '${e}'`, "invalid-easing-type"), Nn[e];
+  return e;
+}, ts = [
+  "setup",
+  // Compute
+  "read",
+  // Read
+  "resolveKeyframes",
+  // Write/Read/Write/Read
+  "preUpdate",
+  // Compute
+  "update",
+  // Compute
+  "preRender",
+  // Compute
+  "render",
+  // Write
+  "postRender"
+  // Compute
+];
+function Vc(e, t) {
+  let r = /* @__PURE__ */ new Set(), n = /* @__PURE__ */ new Set(), i = !1, a = !1;
+  const o = /* @__PURE__ */ new WeakSet();
+  let l = {
+    delta: 0,
+    timestamp: 0,
+    isProcessing: !1
+  };
+  function c(d) {
+    o.has(d) && (u.schedule(d), e()), d(l);
+  }
+  const u = {
+    /**
+     * Schedule a process to run on the next frame.
+     */
+    schedule: (d, h = !1, f = !1) => {
+      const y = f && i ? r : n;
+      return h && o.add(d), y.has(d) || y.add(d), d;
+    },
+    /**
+     * Cancel the provided callback from running on the next frame.
+     */
+    cancel: (d) => {
+      n.delete(d), o.delete(d);
+    },
+    /**
+     * Execute all schedule callbacks.
+     */
+    process: (d) => {
+      if (l = d, i) {
+        a = !0;
+        return;
+      }
+      i = !0, [r, n] = [n, r], r.forEach(c), r.clear(), i = !1, a && (a = !1, u.process(d));
+    }
+  };
+  return u;
+}
+const Lc = 40;
+function co(e, t) {
+  let r = !1, n = !0;
+  const i = {
+    delta: 0,
+    timestamp: 0,
+    isProcessing: !1
+  }, a = () => r = !0, o = ts.reduce((P, D) => (P[D] = Vc(a), P), {}), { setup: l, read: c, resolveKeyframes: u, preUpdate: d, update: h, preRender: f, render: p, postRender: y } = o, S = () => {
+    const P = Ve.useManualTiming ? i.timestamp : performance.now();
+    r = !1, Ve.useManualTiming || (i.delta = n ? 1e3 / 60 : Math.max(Math.min(P - i.timestamp, Lc), 1)), i.timestamp = P, i.isProcessing = !0, l.process(i), c.process(i), u.process(i), d.process(i), h.process(i), f.process(i), p.process(i), y.process(i), i.isProcessing = !1, r && t && (n = !1, e(S));
+  }, C = () => {
+    r = !0, n = !0, i.isProcessing || e(S);
+  };
+  return { schedule: ts.reduce((P, D) => {
+    const A = o[D];
+    return P[D] = (I, O = !1, k = !1) => (r || C(), A.schedule(I, O, k)), P;
+  }, {}), cancel: (P) => {
+    for (let D = 0; D < ts.length; D++)
+      o[ts[D]].cancel(P);
+  }, state: i, steps: o };
+}
+const { schedule: Z, cancel: Be, state: oe, steps: As } = /* @__PURE__ */ co(typeof requestAnimationFrame < "u" ? requestAnimationFrame : je, !0);
+let ls;
+function Fc() {
+  ls = void 0;
+}
+const fe = {
+  now: () => (ls === void 0 && fe.set(oe.isProcessing || Ve.useManualTiming ? oe.timestamp : performance.now()), ls),
+  set: (e) => {
+    ls = e, queueMicrotask(Fc);
+  }
+}, uo = (e) => (t) => typeof t == "string" && t.startsWith(e), Pr = /* @__PURE__ */ uo("--"), Ic = /* @__PURE__ */ uo("var(--"), _r = (e) => Ic(e) ? Oc.test(e.split("/*")[0].trim()) : !1, Oc = /var\(--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)$/iu, bt = {
+  test: (e) => typeof e == "number",
+  parse: parseFloat,
+  transform: (e) => e
+}, It = {
+  ...bt,
+  transform: (e) => De(0, 1, e)
+}, ss = {
+  ...bt,
+  default: 1
+}, _t = (e) => Math.round(e * 1e5) / 1e5, Ar = /-?(?:\d+(?:\.\d+)?|\.\d+)/gu;
+function Yc(e) {
+  return e == null;
+}
+const Bc = /^(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))$/iu, Er = (e, t) => (r) => !!(typeof r == "string" && Bc.test(r) && r.startsWith(e) || t && !Yc(r) && Object.prototype.hasOwnProperty.call(r, t)), ho = (e, t, r) => (n) => {
+  if (typeof n != "string")
+    return n;
+  const [i, a, o, l] = n.match(Ar);
+  return {
+    [e]: parseFloat(i),
+    [t]: parseFloat(a),
+    [r]: parseFloat(o),
+    alpha: l !== void 0 ? parseFloat(l) : 1
+  };
+}, zc = (e) => De(0, 255, e), Es = {
+  ...bt,
+  transform: (e) => Math.round(zc(e))
+}, qe = {
+  test: /* @__PURE__ */ Er("rgb", "red"),
+  parse: /* @__PURE__ */ ho("red", "green", "blue"),
+  transform: ({ red: e, green: t, blue: r, alpha: n = 1 }) => "rgba(" + Es.transform(e) + ", " + Es.transform(t) + ", " + Es.transform(r) + ", " + _t(It.transform(n)) + ")"
+};
+function Uc(e) {
+  let t = "", r = "", n = "", i = "";
+  return e.length > 5 ? (t = e.substring(1, 3), r = e.substring(3, 5), n = e.substring(5, 7), i = e.substring(7, 9)) : (t = e.substring(1, 2), r = e.substring(2, 3), n = e.substring(3, 4), i = e.substring(4, 5), t += t, r += r, n += n, i += i), {
+    red: parseInt(t, 16),
+    green: parseInt(r, 16),
+    blue: parseInt(n, 16),
+    alpha: i ? parseInt(i, 16) / 255 : 1
+  };
+}
+const qs = {
+  test: /* @__PURE__ */ Er("#"),
+  parse: Uc,
+  transform: qe.transform
+}, Kt = /* @__NO_SIDE_EFFECTS__ */ (e) => ({
+  test: (t) => typeof t == "string" && t.endsWith(e) && t.split(" ").length === 1,
+  parse: parseFloat,
+  transform: (t) => `${t}${e}`
+}), Fe = /* @__PURE__ */ Kt("deg"), Pe = /* @__PURE__ */ Kt("%"), L = /* @__PURE__ */ Kt("px"), $c = /* @__PURE__ */ Kt("vh"), Wc = /* @__PURE__ */ Kt("vw"), Tn = {
+  ...Pe,
+  parse: (e) => Pe.parse(e) / 100,
+  transform: (e) => Pe.transform(e * 100)
+}, ot = {
+  test: /* @__PURE__ */ Er("hsl", "hue"),
+  parse: /* @__PURE__ */ ho("hue", "saturation", "lightness"),
+  transform: ({ hue: e, saturation: t, lightness: r, alpha: n = 1 }) => "hsla(" + Math.round(e) + ", " + Pe.transform(_t(t)) + ", " + Pe.transform(_t(r)) + ", " + _t(It.transform(n)) + ")"
+}, ne = {
+  test: (e) => qe.test(e) || qs.test(e) || ot.test(e),
+  parse: (e) => qe.test(e) ? qe.parse(e) : ot.test(e) ? ot.parse(e) : qs.parse(e),
+  transform: (e) => typeof e == "string" ? e : e.hasOwnProperty("red") ? qe.transform(e) : ot.transform(e),
+  getAnimatableNone: (e) => {
+    const t = ne.parse(e);
+    return t.alpha = 0, ne.transform(t);
+  }
+}, Hc = /(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))/giu;
+function Kc(e) {
+  var t, r;
+  return isNaN(e) && typeof e == "string" && (((t = e.match(Ar)) == null ? void 0 : t.length) || 0) + (((r = e.match(Hc)) == null ? void 0 : r.length) || 0) > 0;
+}
+const mo = "number", fo = "color", Gc = "var", qc = "var(", Sn = "${}", Xc = /var\s*\(\s*--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)|#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\)|-?(?:\d+(?:\.\d+)?|\.\d+)/giu;
+function Ot(e) {
+  const t = e.toString(), r = [], n = {
+    color: [],
+    number: [],
+    var: []
+  }, i = [];
+  let a = 0;
+  const l = t.replace(Xc, (c) => (ne.test(c) ? (n.color.push(a), i.push(fo), r.push(ne.parse(c))) : c.startsWith(qc) ? (n.var.push(a), i.push(Gc), r.push(c)) : (n.number.push(a), i.push(mo), r.push(parseFloat(c))), ++a, Sn)).split(Sn);
+  return { values: r, split: l, indexes: n, types: i };
+}
+function go(e) {
+  return Ot(e).values;
+}
+function po(e) {
+  const { split: t, types: r } = Ot(e), n = t.length;
+  return (i) => {
+    let a = "";
+    for (let o = 0; o < n; o++)
+      if (a += t[o], i[o] !== void 0) {
+        const l = r[o];
+        l === mo ? a += _t(i[o]) : l === fo ? a += ne.transform(i[o]) : a += i[o];
+      }
+    return a;
+  };
+}
+const Zc = (e) => typeof e == "number" ? 0 : ne.test(e) ? ne.getAnimatableNone(e) : e;
+function Jc(e) {
+  const t = go(e);
+  return po(e)(t.map(Zc));
+}
+const ze = {
+  test: Kc,
+  parse: go,
+  createTransformer: po,
+  getAnimatableNone: Jc
+};
+function Ms(e, t, r) {
+  return r < 0 && (r += 1), r > 1 && (r -= 1), r < 1 / 6 ? e + (t - e) * 6 * r : r < 1 / 2 ? t : r < 2 / 3 ? e + (t - e) * (2 / 3 - r) * 6 : e;
+}
+function Qc({ hue: e, saturation: t, lightness: r, alpha: n }) {
+  e /= 360, t /= 100, r /= 100;
+  let i = 0, a = 0, o = 0;
+  if (!t)
+    i = a = o = r;
+  else {
+    const l = r < 0.5 ? r * (1 + t) : r + t - r * t, c = 2 * r - l;
+    i = Ms(c, l, e + 1 / 3), a = Ms(c, l, e), o = Ms(c, l, e - 1 / 3);
+  }
+  return {
+    red: Math.round(i * 255),
+    green: Math.round(a * 255),
+    blue: Math.round(o * 255),
+    alpha: n
+  };
+}
+function fs(e, t) {
+  return (r) => r > 0 ? t : e;
+}
+const Q = (e, t, r) => e + (t - e) * r, Ds = (e, t, r) => {
+  const n = e * e, i = r * (t * t - n) + n;
+  return i < 0 ? 0 : Math.sqrt(i);
+}, ed = [qs, qe, ot], td = (e) => ed.find((t) => t.test(e));
+function Cn(e) {
+  const t = td(e);
+  if (yt(!!t, `'${e}' is not an animatable color. Use the equivalent color code instead.`, "color-not-animatable"), !t)
+    return !1;
+  let r = t.parse(e);
+  return t === ot && (r = Qc(r)), r;
+}
+const Pn = (e, t) => {
+  const r = Cn(e), n = Cn(t);
+  if (!r || !n)
+    return fs(e, t);
+  const i = { ...r };
+  return (a) => (i.red = Ds(r.red, n.red, a), i.green = Ds(r.green, n.green, a), i.blue = Ds(r.blue, n.blue, a), i.alpha = Q(r.alpha, n.alpha, a), qe.transform(i));
+}, Xs = /* @__PURE__ */ new Set(["none", "hidden"]);
+function sd(e, t) {
+  return Xs.has(e) ? (r) => r <= 0 ? e : t : (r) => r >= 1 ? t : e;
+}
+function rd(e, t) {
+  return (r) => Q(e, t, r);
+}
+function Mr(e) {
+  return typeof e == "number" ? rd : typeof e == "string" ? _r(e) ? fs : ne.test(e) ? Pn : od : Array.isArray(e) ? xo : typeof e == "object" ? ne.test(e) ? Pn : nd : fs;
+}
+function xo(e, t) {
+  const r = [...e], n = r.length, i = e.map((a, o) => Mr(a)(a, t[o]));
+  return (a) => {
+    for (let o = 0; o < n; o++)
+      r[o] = i[o](a);
+    return r;
+  };
+}
+function nd(e, t) {
+  const r = { ...e, ...t }, n = {};
+  for (const i in r)
+    e[i] !== void 0 && t[i] !== void 0 && (n[i] = Mr(e[i])(e[i], t[i]));
+  return (i) => {
+    for (const a in n)
+      r[a] = n[a](i);
+    return r;
+  };
+}
+function id(e, t) {
+  const r = [], n = { color: 0, var: 0, number: 0 };
+  for (let i = 0; i < t.values.length; i++) {
+    const a = t.types[i], o = e.indexes[a][n[a]], l = e.values[o] ?? 0;
+    r[i] = l, n[a]++;
+  }
+  return r;
+}
+const od = (e, t) => {
+  const r = ze.createTransformer(t), n = Ot(e), i = Ot(t);
+  return n.indexes.var.length === i.indexes.var.length && n.indexes.color.length === i.indexes.color.length && n.indexes.number.length >= i.indexes.number.length ? Xs.has(e) && !i.values.length || Xs.has(t) && !n.values.length ? sd(e, t) : Wt(xo(id(n, i), i.values), r) : (yt(!0, `Complex values '${e}' and '${t}' too different to mix. Ensure all colors are of the same type, and that each contains the same quantity of number and color values. Falling back to instant transition.`, "complex-values-different"), fs(e, t));
+};
+function yo(e, t, r) {
+  return typeof e == "number" && typeof t == "number" && typeof r == "number" ? Q(e, t, r) : Mr(e)(e, t);
+}
+const ad = (e) => {
+  const t = ({ timestamp: r }) => e(r);
+  return {
+    start: (r = !0) => Z.update(t, r),
+    stop: () => Be(t),
+    /**
+     * If we're processing this frame we can use the
+     * framelocked timestamp to keep things in sync.
+     */
+    now: () => oe.isProcessing ? oe.timestamp : fe.now()
+  };
+}, bo = (e, t, r = 10) => {
+  let n = "";
+  const i = Math.max(Math.round(t / r), 2);
+  for (let a = 0; a < i; a++)
+    n += Math.round(e(a / (i - 1)) * 1e4) / 1e4 + ", ";
+  return `linear(${n.substring(0, n.length - 2)})`;
+}, gs = 2e4;
+function Dr(e) {
+  let t = 0;
+  const r = 50;
+  let n = e.next(t);
+  for (; !n.done && t < gs; )
+    t += r, n = e.next(t);
+  return t >= gs ? 1 / 0 : t;
+}
+function ld(e, t = 100, r) {
+  const n = r({ ...e, keyframes: [0, t] }), i = Math.min(Dr(n), gs);
+  return {
+    type: "keyframes",
+    ease: (a) => n.next(i * a).value / t,
+    duration: /* @__PURE__ */ Ce(i)
+  };
+}
+const cd = 5;
+function vo(e, t, r) {
+  const n = Math.max(t - cd, 0);
+  return Ji(r - e(n), t - n);
+}
+const J = {
+  // Default spring physics
+  stiffness: 100,
+  damping: 10,
+  mass: 1,
+  velocity: 0,
+  // Default duration/bounce-based options
+  duration: 800,
+  // in ms
+  bounce: 0.3,
+  visualDuration: 0.3,
+  // in seconds
+  // Rest thresholds
+  restSpeed: {
+    granular: 0.01,
+    default: 2
+  },
+  restDelta: {
+    granular: 5e-3,
+    default: 0.5
+  },
+  // Limits
+  minDuration: 0.01,
+  // in seconds
+  maxDuration: 10,
+  // in seconds
+  minDamping: 0.05,
+  maxDamping: 1
+}, Rs = 1e-3;
+function dd({ duration: e = J.duration, bounce: t = J.bounce, velocity: r = J.velocity, mass: n = J.mass }) {
+  let i, a;
+  yt(e <= /* @__PURE__ */ Te(J.maxDuration), "Spring duration must be 10 seconds or less", "spring-duration-limit");
+  let o = 1 - t;
+  o = De(J.minDamping, J.maxDamping, o), e = De(J.minDuration, J.maxDuration, /* @__PURE__ */ Ce(e)), o < 1 ? (i = (u) => {
+    const d = u * o, h = d * e, f = d - r, p = Zs(u, o), y = Math.exp(-h);
+    return Rs - f / p * y;
+  }, a = (u) => {
+    const h = u * o * e, f = h * r + r, p = Math.pow(o, 2) * Math.pow(u, 2) * e, y = Math.exp(-h), S = Zs(Math.pow(u, 2), o);
+    return (-i(u) + Rs > 0 ? -1 : 1) * ((f - p) * y) / S;
+  }) : (i = (u) => {
+    const d = Math.exp(-u * e), h = (u - r) * e + 1;
+    return -Rs + d * h;
+  }, a = (u) => {
+    const d = Math.exp(-u * e), h = (r - u) * (e * e);
+    return d * h;
+  });
+  const l = 5 / e, c = hd(i, a, l);
+  if (e = /* @__PURE__ */ Te(e), isNaN(c))
+    return {
+      stiffness: J.stiffness,
+      damping: J.damping,
+      duration: e
+    };
+  {
+    const u = Math.pow(c, 2) * n;
+    return {
+      stiffness: u,
+      damping: o * 2 * Math.sqrt(n * u),
+      duration: e
+    };
+  }
+}
+const ud = 12;
+function hd(e, t, r) {
+  let n = r;
+  for (let i = 1; i < ud; i++)
+    n = n - e(n) / t(n);
+  return n;
+}
+function Zs(e, t) {
+  return e * Math.sqrt(1 - t * t);
+}
+const md = ["duration", "bounce"], fd = ["stiffness", "damping", "mass"];
+function _n(e, t) {
+  return t.some((r) => e[r] !== void 0);
+}
+function gd(e) {
+  let t = {
+    velocity: J.velocity,
+    stiffness: J.stiffness,
+    damping: J.damping,
+    mass: J.mass,
+    isResolvedFromDuration: !1,
+    ...e
+  };
+  if (!_n(e, fd) && _n(e, md))
+    if (e.visualDuration) {
+      const r = e.visualDuration, n = 2 * Math.PI / (r * 1.2), i = n * n, a = 2 * De(0.05, 1, 1 - (e.bounce || 0)) * Math.sqrt(i);
+      t = {
+        ...t,
+        mass: J.mass,
+        stiffness: i,
+        damping: a
+      };
+    } else {
+      const r = dd(e);
+      t = {
+        ...t,
+        ...r,
+        mass: J.mass
+      }, t.isResolvedFromDuration = !0;
+    }
+  return t;
+}
+function ps(e = J.visualDuration, t = J.bounce) {
+  const r = typeof e != "object" ? {
+    visualDuration: e,
+    keyframes: [0, 1],
+    bounce: t
+  } : e;
+  let { restSpeed: n, restDelta: i } = r;
+  const a = r.keyframes[0], o = r.keyframes[r.keyframes.length - 1], l = { done: !1, value: a }, { stiffness: c, damping: u, mass: d, duration: h, velocity: f, isResolvedFromDuration: p } = gd({
+    ...r,
+    velocity: -/* @__PURE__ */ Ce(r.velocity || 0)
+  }), y = f || 0, S = u / (2 * Math.sqrt(c * d)), C = o - a, j = /* @__PURE__ */ Ce(Math.sqrt(c / d)), w = Math.abs(C) < 5;
+  n || (n = w ? J.restSpeed.granular : J.restSpeed.default), i || (i = w ? J.restDelta.granular : J.restDelta.default);
+  let P;
+  if (S < 1) {
+    const A = Zs(j, S);
+    P = (I) => {
+      const O = Math.exp(-S * j * I);
+      return o - O * ((y + S * j * C) / A * Math.sin(A * I) + C * Math.cos(A * I));
+    };
+  } else if (S === 1)
+    P = (A) => o - Math.exp(-j * A) * (C + (y + j * C) * A);
+  else {
+    const A = j * Math.sqrt(S * S - 1);
+    P = (I) => {
+      const O = Math.exp(-S * j * I), k = Math.min(A * I, 300);
+      return o - O * ((y + S * j * C) * Math.sinh(k) + A * C * Math.cosh(k)) / A;
+    };
+  }
+  const D = {
+    calculatedDuration: p && h || null,
+    next: (A) => {
+      const I = P(A);
+      if (p)
+        l.done = A >= h;
+      else {
+        let O = A === 0 ? y : 0;
+        S < 1 && (O = A === 0 ? /* @__PURE__ */ Te(y) : vo(P, A, I));
+        const k = Math.abs(O) <= n, x = Math.abs(o - I) <= i;
+        l.done = k && x;
+      }
+      return l.value = l.done ? o : I, l;
+    },
+    toString: () => {
+      const A = Math.min(Dr(D), gs), I = bo((O) => D.next(A * O).value, A, 30);
+      return A + "ms " + I;
+    },
+    toTransition: () => {
+    }
+  };
+  return D;
+}
+ps.applyToOptions = (e) => {
+  const t = ld(e, 100, ps);
+  return e.ease = t.ease, e.duration = /* @__PURE__ */ Te(t.duration), e.type = "keyframes", e;
+};
+function Js({ keyframes: e, velocity: t = 0, power: r = 0.8, timeConstant: n = 325, bounceDamping: i = 10, bounceStiffness: a = 500, modifyTarget: o, min: l, max: c, restDelta: u = 0.5, restSpeed: d }) {
+  const h = e[0], f = {
+    done: !1,
+    value: h
+  }, p = (k) => l !== void 0 && k < l || c !== void 0 && k > c, y = (k) => l === void 0 ? c : c === void 0 || Math.abs(l - k) < Math.abs(c - k) ? l : c;
+  let S = r * t;
+  const C = h + S, j = o === void 0 ? C : o(C);
+  j !== C && (S = j - h);
+  const w = (k) => -S * Math.exp(-k / n), P = (k) => j + w(k), D = (k) => {
+    const x = w(k), E = P(k);
+    f.done = Math.abs(x) <= u, f.value = f.done ? j : E;
+  };
+  let A, I;
+  const O = (k) => {
+    p(f.value) && (A = k, I = ps({
+      keyframes: [f.value, y(f.value)],
+      velocity: vo(P, k, f.value),
+      // TODO: This should be passing * 1000
+      damping: i,
+      stiffness: a,
+      restDelta: u,
+      restSpeed: d
+    }));
+  };
+  return O(0), {
+    calculatedDuration: null,
+    next: (k) => {
+      let x = !1;
+      return !I && A === void 0 && (x = !0, D(k), O(k)), A !== void 0 && k >= A ? I.next(k - A) : (!x && D(k), f);
+    }
+  };
+}
+function pd(e, t, r) {
+  const n = [], i = r || Ve.mix || yo, a = e.length - 1;
+  for (let o = 0; o < a; o++) {
+    let l = i(e[o], e[o + 1]);
+    if (t) {
+      const c = Array.isArray(t) ? t[o] || je : t;
+      l = Wt(c, l);
+    }
+    n.push(l);
+  }
+  return n;
+}
+function xd(e, t, { clamp: r = !0, ease: n, mixer: i } = {}) {
+  const a = e.length;
+  if (Re(a === t.length, "Both input and output ranges must be the same length", "range-length"), a === 1)
+    return () => t[0];
+  if (a === 2 && t[0] === t[1])
+    return () => t[1];
+  const o = e[0] === e[1];
+  e[0] > e[a - 1] && (e = [...e].reverse(), t = [...t].reverse());
+  const l = pd(t, n, i), c = l.length, u = (d) => {
+    if (o && d < e[0])
+      return t[0];
+    let h = 0;
+    if (c > 1)
+      for (; h < e.length - 2 && !(d < e[h + 1]); h++)
+        ;
+    const f = /* @__PURE__ */ Ft(e[h], e[h + 1], d);
+    return l[h](f);
+  };
+  return r ? (d) => u(De(e[0], e[a - 1], d)) : u;
+}
+function yd(e, t) {
+  const r = e[e.length - 1];
+  for (let n = 1; n <= t; n++) {
+    const i = /* @__PURE__ */ Ft(0, t, n);
+    e.push(Q(r, 1, i));
+  }
+}
+function bd(e) {
+  const t = [0];
+  return yd(t, e.length - 1), t;
+}
+function vd(e, t) {
+  return e.map((r) => r * t);
+}
+function wd(e, t) {
+  return e.map(() => t || ao).splice(0, e.length - 1);
+}
+function at({ duration: e = 300, keyframes: t, times: r, ease: n = "easeInOut" }) {
+  const i = Dc(n) ? n.map(kn) : kn(n), a = {
+    done: !1,
+    value: t[0]
+  }, o = vd(
+    // Only use the provided offsets if they're the correct length
+    // TODO Maybe we should warn here if there's a length mismatch
+    r && r.length === t.length ? r : bd(t),
+    e
+  ), l = xd(o, t, {
+    ease: Array.isArray(i) ? i : wd(t, i)
+  });
+  return {
+    calculatedDuration: e,
+    next: (c) => (a.value = l(c), a.done = c >= e, a)
+  };
+}
+const jd = (e) => e !== null;
+function Rr(e, { repeat: t, repeatType: r = "loop" }, n, i = 1) {
+  const a = e.filter(jd), l = i < 0 || t && r !== "loop" && t % 2 === 1 ? 0 : a.length - 1;
+  return !l || n === void 0 ? a[l] : n;
+}
+const Nd = {
+  decay: Js,
+  inertia: Js,
+  tween: at,
+  keyframes: at,
+  spring: ps
+};
+function wo(e) {
+  typeof e.type == "string" && (e.type = Nd[e.type]);
+}
+class Vr {
+  constructor() {
+    this.updateFinished();
+  }
+  get finished() {
+    return this._finished;
+  }
+  updateFinished() {
+    this._finished = new Promise((t) => {
+      this.resolve = t;
+    });
+  }
+  notifyFinished() {
+    this.resolve();
+  }
+  /**
+   * Allows the animation to be awaited.
+   *
+   * @deprecated Use `finished` instead.
+   */
+  then(t, r) {
+    return this.finished.then(t, r);
+  }
+}
+const kd = (e) => e / 100;
+class Lr extends Vr {
+  constructor(t) {
+    super(), this.state = "idle", this.startTime = null, this.isStopped = !1, this.currentTime = 0, this.holdTime = null, this.playbackSpeed = 1, this.stop = () => {
+      var n, i;
+      const { motionValue: r } = this.options;
+      r && r.updatedAt !== fe.now() && this.tick(fe.now()), this.isStopped = !0, this.state !== "idle" && (this.teardown(), (i = (n = this.options).onStop) == null || i.call(n));
+    }, this.options = t, this.initAnimation(), this.play(), t.autoplay === !1 && this.pause();
+  }
+  initAnimation() {
+    const { options: t } = this;
+    wo(t);
+    const { type: r = at, repeat: n = 0, repeatDelay: i = 0, repeatType: a, velocity: o = 0 } = t;
+    let { keyframes: l } = t;
+    const c = r || at;
+    process.env.NODE_ENV !== "production" && c !== at && Re(l.length <= 2, `Only two keyframes currently supported with spring and inertia animations. Trying to animate ${l}`, "spring-two-frames"), c !== at && typeof l[0] != "number" && (this.mixKeyframes = Wt(kd, yo(l[0], l[1])), l = [0, 100]);
+    const u = c({ ...t, keyframes: l });
+    a === "mirror" && (this.mirroredGenerator = c({
+      ...t,
+      keyframes: [...l].reverse(),
+      velocity: -o
+    })), u.calculatedDuration === null && (u.calculatedDuration = Dr(u));
+    const { calculatedDuration: d } = u;
+    this.calculatedDuration = d, this.resolvedDuration = d + i, this.totalDuration = this.resolvedDuration * (n + 1) - i, this.generator = u;
+  }
+  updateTime(t) {
+    const r = Math.round(t - this.startTime) * this.playbackSpeed;
+    this.holdTime !== null ? this.currentTime = this.holdTime : this.currentTime = r;
+  }
+  tick(t, r = !1) {
+    const { generator: n, totalDuration: i, mixKeyframes: a, mirroredGenerator: o, resolvedDuration: l, calculatedDuration: c } = this;
+    if (this.startTime === null)
+      return n.next(0);
+    const { delay: u = 0, keyframes: d, repeat: h, repeatType: f, repeatDelay: p, type: y, onUpdate: S, finalKeyframe: C } = this.options;
+    this.speed > 0 ? this.startTime = Math.min(this.startTime, t) : this.speed < 0 && (this.startTime = Math.min(t - i / this.speed, this.startTime)), r ? this.currentTime = t : this.updateTime(t);
+    const j = this.currentTime - u * (this.playbackSpeed >= 0 ? 1 : -1), w = this.playbackSpeed >= 0 ? j < 0 : j > i;
+    this.currentTime = Math.max(j, 0), this.state === "finished" && this.holdTime === null && (this.currentTime = i);
+    let P = this.currentTime, D = n;
+    if (h) {
+      const k = Math.min(this.currentTime, i) / l;
+      let x = Math.floor(k), E = k % 1;
+      !E && k >= 1 && (E = 1), E === 1 && x--, x = Math.min(x, h + 1), !!(x % 2) && (f === "reverse" ? (E = 1 - E, p && (E -= p / l)) : f === "mirror" && (D = o)), P = De(0, 1, E) * l;
+    }
+    const A = w ? { done: !1, value: d[0] } : D.next(P);
+    a && (A.value = a(A.value));
+    let { done: I } = A;
+    !w && c !== null && (I = this.playbackSpeed >= 0 ? this.currentTime >= i : this.currentTime <= 0);
+    const O = this.holdTime === null && (this.state === "finished" || this.state === "running" && I);
+    return O && y !== Js && (A.value = Rr(d, this.options, C, this.speed)), S && S(A.value), O && this.finish(), A;
+  }
+  /**
+   * Allows the returned animation to be awaited or promise-chained. Currently
+   * resolves when the animation finishes at all but in a future update could/should
+   * reject if its cancels.
+   */
+  then(t, r) {
+    return this.finished.then(t, r);
+  }
+  get duration() {
+    return /* @__PURE__ */ Ce(this.calculatedDuration);
+  }
+  get time() {
+    return /* @__PURE__ */ Ce(this.currentTime);
+  }
+  set time(t) {
+    var r;
+    t = /* @__PURE__ */ Te(t), this.currentTime = t, this.startTime === null || this.holdTime !== null || this.playbackSpeed === 0 ? this.holdTime = t : this.driver && (this.startTime = this.driver.now() - t / this.playbackSpeed), (r = this.driver) == null || r.start(!1);
+  }
+  get speed() {
+    return this.playbackSpeed;
+  }
+  set speed(t) {
+    this.updateTime(fe.now());
+    const r = this.playbackSpeed !== t;
+    this.playbackSpeed = t, r && (this.time = /* @__PURE__ */ Ce(this.currentTime));
+  }
+  play() {
+    var i, a;
+    if (this.isStopped)
+      return;
+    const { driver: t = ad, startTime: r } = this.options;
+    this.driver || (this.driver = t((o) => this.tick(o))), (a = (i = this.options).onPlay) == null || a.call(i);
+    const n = this.driver.now();
+    this.state === "finished" ? (this.updateFinished(), this.startTime = n) : this.holdTime !== null ? this.startTime = n - this.holdTime : this.startTime || (this.startTime = r ?? n), this.state === "finished" && this.speed < 0 && (this.startTime += this.calculatedDuration), this.holdTime = null, this.state = "running", this.driver.start();
+  }
+  pause() {
+    this.state = "paused", this.updateTime(fe.now()), this.holdTime = this.currentTime;
+  }
+  complete() {
+    this.state !== "running" && this.play(), this.state = "finished", this.holdTime = null;
+  }
+  finish() {
+    var t, r;
+    this.notifyFinished(), this.teardown(), this.state = "finished", (r = (t = this.options).onComplete) == null || r.call(t);
+  }
+  cancel() {
+    var t, r;
+    this.holdTime = null, this.startTime = 0, this.tick(0), this.teardown(), (r = (t = this.options).onCancel) == null || r.call(t);
+  }
+  teardown() {
+    this.state = "idle", this.stopDriver(), this.startTime = this.holdTime = null;
+  }
+  stopDriver() {
+    this.driver && (this.driver.stop(), this.driver = void 0);
+  }
+  sample(t) {
+    return this.startTime = 0, this.tick(t, !0);
+  }
+  attachTimeline(t) {
+    var r;
+    return this.options.allowFlatten && (this.options.type = "keyframes", this.options.ease = "linear", this.initAnimation()), (r = this.driver) == null || r.stop(), t.observe(this);
+  }
+}
+function Td(e) {
+  for (let t = 1; t < e.length; t++)
+    e[t] ?? (e[t] = e[t - 1]);
+}
+const Xe = (e) => e * 180 / Math.PI, Qs = (e) => {
+  const t = Xe(Math.atan2(e[1], e[0]));
+  return er(t);
+}, Sd = {
+  x: 4,
+  y: 5,
+  translateX: 4,
+  translateY: 5,
+  scaleX: 0,
+  scaleY: 3,
+  scale: (e) => (Math.abs(e[0]) + Math.abs(e[3])) / 2,
+  rotate: Qs,
+  rotateZ: Qs,
+  skewX: (e) => Xe(Math.atan(e[1])),
+  skewY: (e) => Xe(Math.atan(e[2])),
+  skew: (e) => (Math.abs(e[1]) + Math.abs(e[2])) / 2
+}, er = (e) => (e = e % 360, e < 0 && (e += 360), e), An = Qs, En = (e) => Math.sqrt(e[0] * e[0] + e[1] * e[1]), Mn = (e) => Math.sqrt(e[4] * e[4] + e[5] * e[5]), Cd = {
+  x: 12,
+  y: 13,
+  z: 14,
+  translateX: 12,
+  translateY: 13,
+  translateZ: 14,
+  scaleX: En,
+  scaleY: Mn,
+  scale: (e) => (En(e) + Mn(e)) / 2,
+  rotateX: (e) => er(Xe(Math.atan2(e[6], e[5]))),
+  rotateY: (e) => er(Xe(Math.atan2(-e[2], e[0]))),
+  rotateZ: An,
+  rotate: An,
+  skewX: (e) => Xe(Math.atan(e[4])),
+  skewY: (e) => Xe(Math.atan(e[1])),
+  skew: (e) => (Math.abs(e[1]) + Math.abs(e[4])) / 2
+};
+function tr(e) {
+  return e.includes("scale") ? 1 : 0;
+}
+function sr(e, t) {
+  if (!e || e === "none")
+    return tr(t);
+  const r = e.match(/^matrix3d\(([-\d.e\s,]+)\)$/u);
+  let n, i;
+  if (r)
+    n = Cd, i = r;
+  else {
+    const l = e.match(/^matrix\(([-\d.e\s,]+)\)$/u);
+    n = Sd, i = l;
+  }
+  if (!i)
+    return tr(t);
+  const a = n[t], o = i[1].split(",").map(_d);
+  return typeof a == "function" ? a(o) : o[a];
+}
+const Pd = (e, t) => {
+  const { transform: r = "none" } = getComputedStyle(e);
+  return sr(r, t);
+};
+function _d(e) {
+  return parseFloat(e.trim());
+}
+const vt = [
+  "transformPerspective",
+  "x",
+  "y",
+  "z",
+  "translateX",
+  "translateY",
+  "translateZ",
+  "scale",
+  "scaleX",
+  "scaleY",
+  "rotate",
+  "rotateX",
+  "rotateY",
+  "rotateZ",
+  "skew",
+  "skewX",
+  "skewY"
+], wt = new Set(vt), Dn = (e) => e === bt || e === L, Ad = /* @__PURE__ */ new Set(["x", "y", "z"]), Ed = vt.filter((e) => !Ad.has(e));
+function Md(e) {
+  const t = [];
+  return Ed.forEach((r) => {
+    const n = e.getValue(r);
+    n !== void 0 && (t.push([r, n.get()]), n.set(r.startsWith("scale") ? 1 : 0));
+  }), t;
+}
+const Je = {
+  // Dimensions
+  width: ({ x: e }, { paddingLeft: t = "0", paddingRight: r = "0" }) => e.max - e.min - parseFloat(t) - parseFloat(r),
+  height: ({ y: e }, { paddingTop: t = "0", paddingBottom: r = "0" }) => e.max - e.min - parseFloat(t) - parseFloat(r),
+  top: (e, { top: t }) => parseFloat(t),
+  left: (e, { left: t }) => parseFloat(t),
+  bottom: ({ y: e }, { top: t }) => parseFloat(t) + (e.max - e.min),
+  right: ({ x: e }, { left: t }) => parseFloat(t) + (e.max - e.min),
+  // Transform
+  x: (e, { transform: t }) => sr(t, "x"),
+  y: (e, { transform: t }) => sr(t, "y")
+};
+Je.translateX = Je.x;
+Je.translateY = Je.y;
+const Qe = /* @__PURE__ */ new Set();
+let rr = !1, nr = !1, ir = !1;
+function jo() {
+  if (nr) {
+    const e = Array.from(Qe).filter((n) => n.needsMeasurement), t = new Set(e.map((n) => n.element)), r = /* @__PURE__ */ new Map();
+    t.forEach((n) => {
+      const i = Md(n);
+      i.length && (r.set(n, i), n.render());
+    }), e.forEach((n) => n.measureInitialState()), t.forEach((n) => {
+      n.render();
+      const i = r.get(n);
+      i && i.forEach(([a, o]) => {
+        var l;
+        (l = n.getValue(a)) == null || l.set(o);
+      });
+    }), e.forEach((n) => n.measureEndState()), e.forEach((n) => {
+      n.suspendedScrollY !== void 0 && window.scrollTo(0, n.suspendedScrollY);
+    });
+  }
+  nr = !1, rr = !1, Qe.forEach((e) => e.complete(ir)), Qe.clear();
+}
+function No() {
+  Qe.forEach((e) => {
+    e.readKeyframes(), e.needsMeasurement && (nr = !0);
+  });
+}
+function Dd() {
+  ir = !0, No(), jo(), ir = !1;
+}
+class Fr {
+  constructor(t, r, n, i, a, o = !1) {
+    this.state = "pending", this.isAsync = !1, this.needsMeasurement = !1, this.unresolvedKeyframes = [...t], this.onComplete = r, this.name = n, this.motionValue = i, this.element = a, this.isAsync = o;
+  }
+  scheduleResolve() {
+    this.state = "scheduled", this.isAsync ? (Qe.add(this), rr || (rr = !0, Z.read(No), Z.resolveKeyframes(jo))) : (this.readKeyframes(), this.complete());
+  }
+  readKeyframes() {
+    const { unresolvedKeyframes: t, name: r, element: n, motionValue: i } = this;
+    if (t[0] === null) {
+      const a = i == null ? void 0 : i.get(), o = t[t.length - 1];
+      if (a !== void 0)
+        t[0] = a;
+      else if (n && r) {
+        const l = n.readValue(r, o);
+        l != null && (t[0] = l);
+      }
+      t[0] === void 0 && (t[0] = o), i && a === void 0 && i.set(t[0]);
+    }
+    Td(t);
+  }
+  setFinalKeyframe() {
+  }
+  measureInitialState() {
+  }
+  renderEndStyles() {
+  }
+  measureEndState() {
+  }
+  complete(t = !1) {
+    this.state = "complete", this.onComplete(this.unresolvedKeyframes, this.finalKeyframe, t), Qe.delete(this);
+  }
+  cancel() {
+    this.state === "scheduled" && (Qe.delete(this), this.state = "pending");
+  }
+  resume() {
+    this.state === "pending" && this.scheduleResolve();
+  }
+}
+const Rd = (e) => e.startsWith("--");
+function Vd(e, t, r) {
+  Rd(t) ? e.style.setProperty(t, r) : e.style[t] = r;
+}
+const Ld = /* @__PURE__ */ Nr(() => window.ScrollTimeline !== void 0), Fd = {};
+function Id(e, t) {
+  const r = /* @__PURE__ */ Nr(e);
+  return () => Fd[t] ?? r();
+}
+const ko = /* @__PURE__ */ Id(() => {
+  try {
+    document.createElement("div").animate({ opacity: 0 }, { easing: "linear(0, 1)" });
+  } catch {
+    return !1;
+  }
+  return !0;
+}, "linearEasing"), Pt = ([e, t, r, n]) => `cubic-bezier(${e}, ${t}, ${r}, ${n})`, Rn = {
+  linear: "linear",
+  ease: "ease",
+  easeIn: "ease-in",
+  easeOut: "ease-out",
+  easeInOut: "ease-in-out",
+  circIn: /* @__PURE__ */ Pt([0, 0.65, 0.55, 1]),
+  circOut: /* @__PURE__ */ Pt([0.55, 0, 1, 0.45]),
+  backIn: /* @__PURE__ */ Pt([0.31, 0.01, 0.66, -0.59]),
+  backOut: /* @__PURE__ */ Pt([0.33, 1.53, 0.69, 0.99])
+};
+function To(e, t) {
+  if (e)
+    return typeof e == "function" ? ko() ? bo(e, t) : "ease-out" : lo(e) ? Pt(e) : Array.isArray(e) ? e.map((r) => To(r, t) || Rn.easeOut) : Rn[e];
+}
+function Od(e, t, r, { delay: n = 0, duration: i = 300, repeat: a = 0, repeatType: o = "loop", ease: l = "easeOut", times: c } = {}, u = void 0) {
+  const d = {
+    [t]: r
+  };
+  c && (d.offset = c);
+  const h = To(l, i);
+  Array.isArray(h) && (d.easing = h);
+  const f = {
+    delay: n,
+    duration: i,
+    easing: Array.isArray(h) ? "linear" : h,
+    fill: "both",
+    iterations: a + 1,
+    direction: o === "reverse" ? "alternate" : "normal"
+  };
+  return u && (f.pseudoElement = u), e.animate(d, f);
+}
+function So(e) {
+  return typeof e == "function" && "applyToOptions" in e;
+}
+function Yd({ type: e, ...t }) {
+  return So(e) && ko() ? e.applyToOptions(t) : (t.duration ?? (t.duration = 300), t.ease ?? (t.ease = "easeOut"), t);
+}
+class Bd extends Vr {
+  constructor(t) {
+    if (super(), this.finishedTime = null, this.isStopped = !1, !t)
+      return;
+    const { element: r, name: n, keyframes: i, pseudoElement: a, allowFlatten: o = !1, finalKeyframe: l, onComplete: c } = t;
+    this.isPseudoElement = !!a, this.allowFlatten = o, this.options = t, Re(typeof t.type != "string", `Mini animate() doesn't support "type" as a string.`, "mini-spring");
+    const u = Yd(t);
+    this.animation = Od(r, n, i, u, a), u.autoplay === !1 && this.animation.pause(), this.animation.onfinish = () => {
+      if (this.finishedTime = this.time, !a) {
+        const d = Rr(i, this.options, l, this.speed);
+        this.updateMotionValue ? this.updateMotionValue(d) : Vd(r, n, d), this.animation.cancel();
+      }
+      c == null || c(), this.notifyFinished();
+    };
+  }
+  play() {
+    this.isStopped || (this.animation.play(), this.state === "finished" && this.updateFinished());
+  }
+  pause() {
+    this.animation.pause();
+  }
+  complete() {
+    var t, r;
+    (r = (t = this.animation).finish) == null || r.call(t);
+  }
+  cancel() {
+    try {
+      this.animation.cancel();
+    } catch {
+    }
+  }
+  stop() {
+    if (this.isStopped)
+      return;
+    this.isStopped = !0;
+    const { state: t } = this;
+    t === "idle" || t === "finished" || (this.updateMotionValue ? this.updateMotionValue() : this.commitStyles(), this.isPseudoElement || this.cancel());
+  }
+  /**
+   * WAAPI doesn't natively have any interruption capabilities.
+   *
+   * In this method, we commit styles back to the DOM before cancelling
+   * the animation.
+   *
+   * This is designed to be overridden by NativeAnimationExtended, which
+   * will create a renderless JS animation and sample it twice to calculate
+   * its current value, "previous" value, and therefore allow
+   * Motion to also correctly calculate velocity for any subsequent animation
+   * while deferring the commit until the next animation frame.
+   */
+  commitStyles() {
+    var t, r;
+    this.isPseudoElement || (r = (t = this.animation).commitStyles) == null || r.call(t);
+  }
+  get duration() {
+    var r, n;
+    const t = ((n = (r = this.animation.effect) == null ? void 0 : r.getComputedTiming) == null ? void 0 : n.call(r).duration) || 0;
+    return /* @__PURE__ */ Ce(Number(t));
+  }
+  get time() {
+    return /* @__PURE__ */ Ce(Number(this.animation.currentTime) || 0);
+  }
+  set time(t) {
+    this.finishedTime = null, this.animation.currentTime = /* @__PURE__ */ Te(t);
+  }
+  /**
+   * The playback speed of the animation.
+   * 1 = normal speed, 2 = double speed, 0.5 = half speed.
+   */
+  get speed() {
+    return this.animation.playbackRate;
+  }
+  set speed(t) {
+    t < 0 && (this.finishedTime = null), this.animation.playbackRate = t;
+  }
+  get state() {
+    return this.finishedTime !== null ? "finished" : this.animation.playState;
+  }
+  get startTime() {
+    return Number(this.animation.startTime);
+  }
+  set startTime(t) {
+    this.animation.startTime = t;
+  }
+  /**
+   * Attaches a timeline to the animation, for instance the `ScrollTimeline`.
+   */
+  attachTimeline({ timeline: t, observe: r }) {
+    var n;
+    return this.allowFlatten && ((n = this.animation.effect) == null || n.updateTiming({ easing: "linear" })), this.animation.onfinish = null, t && Ld() ? (this.animation.timeline = t, je) : r(this);
+  }
+}
+const Co = {
+  anticipate: no,
+  backInOut: ro,
+  circInOut: oo
+};
+function zd(e) {
+  return e in Co;
+}
+function Ud(e) {
+  typeof e.ease == "string" && zd(e.ease) && (e.ease = Co[e.ease]);
+}
+const Vn = 10;
+class $d extends Bd {
+  constructor(t) {
+    Ud(t), wo(t), super(t), t.startTime && (this.startTime = t.startTime), this.options = t;
+  }
+  /**
+   * WAAPI doesn't natively have any interruption capabilities.
+   *
+   * Rather than read commited styles back out of the DOM, we can
+   * create a renderless JS animation and sample it twice to calculate
+   * its current value, "previous" value, and therefore allow
+   * Motion to calculate velocity for any subsequent animation.
+   */
+  updateMotionValue(t) {
+    const { motionValue: r, onUpdate: n, onComplete: i, element: a, ...o } = this.options;
+    if (!r)
+      return;
+    if (t !== void 0) {
+      r.set(t);
+      return;
+    }
+    const l = new Lr({
+      ...o,
+      autoplay: !1
+    }), c = /* @__PURE__ */ Te(this.finishedTime ?? this.time);
+    r.setWithVelocity(l.sample(c - Vn).value, l.sample(c).value, Vn), l.stop();
+  }
+}
+const Ln = (e, t) => t === "zIndex" ? !1 : !!(typeof e == "number" || Array.isArray(e) || typeof e == "string" && // It's animatable if we have a string
+(ze.test(e) || e === "0") && // And it contains numbers and/or colors
+!e.startsWith("url("));
+function Wd(e) {
+  const t = e[0];
+  if (e.length === 1)
+    return !0;
+  for (let r = 0; r < e.length; r++)
+    if (e[r] !== t)
+      return !0;
+}
+function Hd(e, t, r, n) {
+  const i = e[0];
+  if (i === null)
+    return !1;
+  if (t === "display" || t === "visibility")
+    return !0;
+  const a = e[e.length - 1], o = Ln(i, t), l = Ln(a, t);
+  return yt(o === l, `You are trying to animate ${t} from "${i}" to "${a}". "${o ? a : i}" is not an animatable value.`, "value-not-animatable"), !o || !l ? !1 : Wd(e) || (r === "spring" || So(r)) && n;
+}
+function or(e) {
+  e.duration = 0, e.type;
+}
+const Kd = /* @__PURE__ */ new Set([
+  "opacity",
+  "clipPath",
+  "filter",
+  "transform"
+  // TODO: Could be re-enabled now we have support for linear() easing
+  // "background-color"
+]), Gd = /* @__PURE__ */ Nr(() => Object.hasOwnProperty.call(Element.prototype, "animate"));
+function qd(e) {
+  var d;
+  const { motionValue: t, name: r, repeatDelay: n, repeatType: i, damping: a, type: o } = e;
+  if (!(((d = t == null ? void 0 : t.owner) == null ? void 0 : d.current) instanceof HTMLElement))
+    return !1;
+  const { onUpdate: c, transformTemplate: u } = t.owner.getProps();
+  return Gd() && r && Kd.has(r) && (r !== "transform" || !u) && /**
+   * If we're outputting values to onUpdate then we can't use WAAPI as there's
+   * no way to read the value from WAAPI every frame.
+   */
+  !c && !n && i !== "mirror" && a !== 0 && o !== "inertia";
+}
+const Xd = 40;
+class Zd extends Vr {
+  constructor({ autoplay: t = !0, delay: r = 0, type: n = "keyframes", repeat: i = 0, repeatDelay: a = 0, repeatType: o = "loop", keyframes: l, name: c, motionValue: u, element: d, ...h }) {
+    var y;
+    super(), this.stop = () => {
+      var S, C;
+      this._animation && (this._animation.stop(), (S = this.stopTimeline) == null || S.call(this)), (C = this.keyframeResolver) == null || C.cancel();
+    }, this.createdAt = fe.now();
+    const f = {
+      autoplay: t,
+      delay: r,
+      type: n,
+      repeat: i,
+      repeatDelay: a,
+      repeatType: o,
+      name: c,
+      motionValue: u,
+      element: d,
+      ...h
+    }, p = (d == null ? void 0 : d.KeyframeResolver) || Fr;
+    this.keyframeResolver = new p(l, (S, C, j) => this.onKeyframesResolved(S, C, f, !j), c, u, d), (y = this.keyframeResolver) == null || y.scheduleResolve();
+  }
+  onKeyframesResolved(t, r, n, i) {
+    this.keyframeResolver = void 0;
+    const { name: a, type: o, velocity: l, delay: c, isHandoff: u, onUpdate: d } = n;
+    this.resolvedAt = fe.now(), Hd(t, a, o, l) || ((Ve.instantAnimations || !c) && (d == null || d(Rr(t, n, r))), t[0] = t[t.length - 1], or(n), n.repeat = 0);
+    const f = {
+      startTime: i ? this.resolvedAt ? this.resolvedAt - this.createdAt > Xd ? this.resolvedAt : this.createdAt : this.createdAt : void 0,
+      finalKeyframe: r,
+      ...n,
+      keyframes: t
+    }, p = !u && qd(f) ? new $d({
+      ...f,
+      element: f.motionValue.owner.current
+    }) : new Lr(f);
+    p.finished.then(() => this.notifyFinished()).catch(je), this.pendingTimeline && (this.stopTimeline = p.attachTimeline(this.pendingTimeline), this.pendingTimeline = void 0), this._animation = p;
+  }
+  get finished() {
+    return this._animation ? this.animation.finished : this._finished;
+  }
+  then(t, r) {
+    return this.finished.finally(t).then(() => {
+    });
+  }
+  get animation() {
+    var t;
+    return this._animation || ((t = this.keyframeResolver) == null || t.resume(), Dd()), this._animation;
+  }
+  get duration() {
+    return this.animation.duration;
+  }
+  get time() {
+    return this.animation.time;
+  }
+  set time(t) {
+    this.animation.time = t;
+  }
+  get speed() {
+    return this.animation.speed;
+  }
+  get state() {
+    return this.animation.state;
+  }
+  set speed(t) {
+    this.animation.speed = t;
+  }
+  get startTime() {
+    return this.animation.startTime;
+  }
+  attachTimeline(t) {
+    return this._animation ? this.stopTimeline = this.animation.attachTimeline(t) : this.pendingTimeline = t, () => this.stop();
+  }
+  play() {
+    this.animation.play();
+  }
+  pause() {
+    this.animation.pause();
+  }
+  complete() {
+    this.animation.complete();
+  }
+  cancel() {
+    var t;
+    this._animation && this.animation.cancel(), (t = this.keyframeResolver) == null || t.cancel();
+  }
+}
+const Jd = (
+  // eslint-disable-next-line redos-detector/no-unsafe-regex -- false positive, as it can match a lot of words
+  /^var\(--(?:([\w-]+)|([\w-]+), ?([a-zA-Z\d ()%#.,-]+))\)/u
+);
+function Qd(e) {
+  const t = Jd.exec(e);
+  if (!t)
+    return [,];
+  const [, r, n, i] = t;
+  return [`--${r ?? n}`, i];
+}
+const eu = 4;
+function Po(e, t, r = 1) {
+  Re(r <= eu, `Max CSS variable fallback depth detected in property "${e}". This may indicate a circular fallback dependency.`, "max-css-var-depth");
+  const [n, i] = Qd(e);
+  if (!n)
+    return;
+  const a = window.getComputedStyle(t).getPropertyValue(n);
+  if (a) {
+    const o = a.trim();
+    return qi(o) ? parseFloat(o) : o;
+  }
+  return _r(i) ? Po(i, t, r + 1) : i;
+}
+function Ir(e, t) {
+  return (e == null ? void 0 : e[t]) ?? (e == null ? void 0 : e.default) ?? e;
+}
+const _o = /* @__PURE__ */ new Set([
+  "width",
+  "height",
+  "top",
+  "left",
+  "right",
+  "bottom",
+  ...vt
+]), tu = {
+  test: (e) => e === "auto",
+  parse: (e) => e
+}, Ao = (e) => (t) => t.test(e), Eo = [bt, L, Pe, Fe, Wc, $c, tu], Fn = (e) => Eo.find(Ao(e));
+function su(e) {
+  return typeof e == "number" ? e === 0 : e !== null ? e === "none" || e === "0" || Zi(e) : !0;
+}
+const ru = /* @__PURE__ */ new Set(["brightness", "contrast", "saturate", "opacity"]);
+function nu(e) {
+  const [t, r] = e.slice(0, -1).split("(");
+  if (t === "drop-shadow")
+    return e;
+  const [n] = r.match(Ar) || [];
+  if (!n)
+    return e;
+  const i = r.replace(n, "");
+  let a = ru.has(t) ? 1 : 0;
+  return n !== r && (a *= 100), t + "(" + a + i + ")";
+}
+const iu = /\b([a-z-]*)\(.*?\)/gu, ar = {
+  ...ze,
+  getAnimatableNone: (e) => {
+    const t = e.match(iu);
+    return t ? t.map(nu).join(" ") : e;
+  }
+}, In = {
+  ...bt,
+  transform: Math.round
+}, ou = {
+  rotate: Fe,
+  rotateX: Fe,
+  rotateY: Fe,
+  rotateZ: Fe,
+  scale: ss,
+  scaleX: ss,
+  scaleY: ss,
+  scaleZ: ss,
+  skew: Fe,
+  skewX: Fe,
+  skewY: Fe,
+  distance: L,
+  translateX: L,
+  translateY: L,
+  translateZ: L,
+  x: L,
+  y: L,
+  z: L,
+  perspective: L,
+  transformPerspective: L,
+  opacity: It,
+  originX: Tn,
+  originY: Tn,
+  originZ: L
+}, Or = {
+  // Border props
+  borderWidth: L,
+  borderTopWidth: L,
+  borderRightWidth: L,
+  borderBottomWidth: L,
+  borderLeftWidth: L,
+  borderRadius: L,
+  radius: L,
+  borderTopLeftRadius: L,
+  borderTopRightRadius: L,
+  borderBottomRightRadius: L,
+  borderBottomLeftRadius: L,
+  // Positioning props
+  width: L,
+  maxWidth: L,
+  height: L,
+  maxHeight: L,
+  top: L,
+  right: L,
+  bottom: L,
+  left: L,
+  // Spacing props
+  padding: L,
+  paddingTop: L,
+  paddingRight: L,
+  paddingBottom: L,
+  paddingLeft: L,
+  margin: L,
+  marginTop: L,
+  marginRight: L,
+  marginBottom: L,
+  marginLeft: L,
+  // Misc
+  backgroundPositionX: L,
+  backgroundPositionY: L,
+  ...ou,
+  zIndex: In,
+  // SVG
+  fillOpacity: It,
+  strokeOpacity: It,
+  numOctaves: In
+}, au = {
+  ...Or,
+  // Color props
+  color: ne,
+  backgroundColor: ne,
+  outlineColor: ne,
+  fill: ne,
+  stroke: ne,
+  // Border props
+  borderColor: ne,
+  borderTopColor: ne,
+  borderRightColor: ne,
+  borderBottomColor: ne,
+  borderLeftColor: ne,
+  filter: ar,
+  WebkitFilter: ar
+}, Mo = (e) => au[e];
+function Do(e, t) {
+  let r = Mo(e);
+  return r !== ar && (r = ze), r.getAnimatableNone ? r.getAnimatableNone(t) : void 0;
+}
+const lu = /* @__PURE__ */ new Set(["auto", "none", "0"]);
+function cu(e, t, r) {
+  let n = 0, i;
+  for (; n < e.length && !i; ) {
+    const a = e[n];
+    typeof a == "string" && !lu.has(a) && Ot(a).values.length && (i = e[n]), n++;
+  }
+  if (i && r)
+    for (const a of t)
+      e[a] = Do(r, i);
+}
+class du extends Fr {
+  constructor(t, r, n, i, a) {
+    super(t, r, n, i, a, !0);
+  }
+  readKeyframes() {
+    const { unresolvedKeyframes: t, element: r, name: n } = this;
+    if (!r || !r.current)
+      return;
+    super.readKeyframes();
+    for (let c = 0; c < t.length; c++) {
+      let u = t[c];
+      if (typeof u == "string" && (u = u.trim(), _r(u))) {
+        const d = Po(u, r.current);
+        d !== void 0 && (t[c] = d), c === t.length - 1 && (this.finalKeyframe = u);
+      }
+    }
+    if (this.resolveNoneKeyframes(), !_o.has(n) || t.length !== 2)
+      return;
+    const [i, a] = t, o = Fn(i), l = Fn(a);
+    if (o !== l)
+      if (Dn(o) && Dn(l))
+        for (let c = 0; c < t.length; c++) {
+          const u = t[c];
+          typeof u == "string" && (t[c] = parseFloat(u));
+        }
+      else Je[n] && (this.needsMeasurement = !0);
+  }
+  resolveNoneKeyframes() {
+    const { unresolvedKeyframes: t, name: r } = this, n = [];
+    for (let i = 0; i < t.length; i++)
+      (t[i] === null || su(t[i])) && n.push(i);
+    n.length && cu(t, n, r);
+  }
+  measureInitialState() {
+    const { element: t, unresolvedKeyframes: r, name: n } = this;
+    if (!t || !t.current)
+      return;
+    n === "height" && (this.suspendedScrollY = window.pageYOffset), this.measuredOrigin = Je[n](t.measureViewportBox(), window.getComputedStyle(t.current)), r[0] = this.measuredOrigin;
+    const i = r[r.length - 1];
+    i !== void 0 && t.getValue(n, i).jump(i, !1);
+  }
+  measureEndState() {
+    var l;
+    const { element: t, name: r, unresolvedKeyframes: n } = this;
+    if (!t || !t.current)
+      return;
+    const i = t.getValue(r);
+    i && i.jump(this.measuredOrigin, !1);
+    const a = n.length - 1, o = n[a];
+    n[a] = Je[r](t.measureViewportBox(), window.getComputedStyle(t.current)), o !== null && this.finalKeyframe === void 0 && (this.finalKeyframe = o), (l = this.removedTransforms) != null && l.length && this.removedTransforms.forEach(([c, u]) => {
+      t.getValue(c).set(u);
+    }), this.resolveNoneKeyframes();
+  }
+}
+function uu(e, t, r) {
+  if (e instanceof EventTarget)
+    return [e];
+  if (typeof e == "string") {
+    let n = document;
+    const i = (r == null ? void 0 : r[e]) ?? n.querySelectorAll(e);
+    return i ? Array.from(i) : [];
+  }
+  return Array.from(e);
+}
+const Ro = (e, t) => t && typeof e == "number" ? t.transform(e) : e;
+function hu(e) {
+  return Xi(e) && "offsetHeight" in e;
+}
+const On = 30, mu = (e) => !isNaN(parseFloat(e));
+class fu {
+  /**
+   * @param init - The initiating value
+   * @param config - Optional configuration options
+   *
+   * -  `transformer`: A function to transform incoming values with.
+   */
+  constructor(t, r = {}) {
+    this.canTrackVelocity = null, this.events = {}, this.updateAndNotify = (n) => {
+      var a;
+      const i = fe.now();
+      if (this.updatedAt !== i && this.setPrevFrameValue(), this.prev = this.current, this.setCurrent(n), this.current !== this.prev && ((a = this.events.change) == null || a.notify(this.current), this.dependents))
+        for (const o of this.dependents)
+          o.dirty();
+    }, this.hasAnimated = !1, this.setCurrent(t), this.owner = r.owner;
+  }
+  setCurrent(t) {
+    this.current = t, this.updatedAt = fe.now(), this.canTrackVelocity === null && t !== void 0 && (this.canTrackVelocity = mu(this.current));
+  }
+  setPrevFrameValue(t = this.current) {
+    this.prevFrameValue = t, this.prevUpdatedAt = this.updatedAt;
+  }
+  /**
+   * Adds a function that will be notified when the `MotionValue` is updated.
+   *
+   * It returns a function that, when called, will cancel the subscription.
+   *
+   * When calling `onChange` inside a React component, it should be wrapped with the
+   * `useEffect` hook. As it returns an unsubscribe function, this should be returned
+   * from the `useEffect` function to ensure you don't add duplicate subscribers..
+   *
+   * ```jsx
+   * export const MyComponent = () => {
+   *   const x = useMotionValue(0)
+   *   const y = useMotionValue(0)
+   *   const opacity = useMotionValue(1)
+   *
+   *   useEffect(() => {
+   *     function updateOpacity() {
+   *       const maxXY = Math.max(x.get(), y.get())
+   *       const newOpacity = transform(maxXY, [0, 100], [1, 0])
+   *       opacity.set(newOpacity)
+   *     }
+   *
+   *     const unsubscribeX = x.on("change", updateOpacity)
+   *     const unsubscribeY = y.on("change", updateOpacity)
+   *
+   *     return () => {
+   *       unsubscribeX()
+   *       unsubscribeY()
+   *     }
+   *   }, [])
+   *
+   *   return <motion.div style={{ x }} />
+   * }
+   * ```
+   *
+   * @param subscriber - A function that receives the latest value.
+   * @returns A function that, when called, will cancel this subscription.
+   *
+   * @deprecated
+   */
+  onChange(t) {
+    return process.env.NODE_ENV !== "production" && Tr(!1, 'value.onChange(callback) is deprecated. Switch to value.on("change", callback).'), this.on("change", t);
+  }
+  on(t, r) {
+    this.events[t] || (this.events[t] = new kr());
+    const n = this.events[t].add(r);
+    return t === "change" ? () => {
+      n(), Z.read(() => {
+        this.events.change.getSize() || this.stop();
+      });
+    } : n;
+  }
+  clearListeners() {
+    for (const t in this.events)
+      this.events[t].clear();
+  }
+  /**
+   * Attaches a passive effect to the `MotionValue`.
+   */
+  attach(t, r) {
+    this.passiveEffect = t, this.stopPassiveEffect = r;
+  }
+  /**
+   * Sets the state of the `MotionValue`.
+   *
+   * @remarks
+   *
+   * ```jsx
+   * const x = useMotionValue(0)
+   * x.set(10)
+   * ```
+   *
+   * @param latest - Latest value to set.
+   * @param render - Whether to notify render subscribers. Defaults to `true`
+   *
+   * @public
+   */
+  set(t) {
+    this.passiveEffect ? this.passiveEffect(t, this.updateAndNotify) : this.updateAndNotify(t);
+  }
+  setWithVelocity(t, r, n) {
+    this.set(r), this.prev = void 0, this.prevFrameValue = t, this.prevUpdatedAt = this.updatedAt - n;
+  }
+  /**
+   * Set the state of the `MotionValue`, stopping any active animations,
+   * effects, and resets velocity to `0`.
+   */
+  jump(t, r = !0) {
+    this.updateAndNotify(t), this.prev = t, this.prevUpdatedAt = this.prevFrameValue = void 0, r && this.stop(), this.stopPassiveEffect && this.stopPassiveEffect();
+  }
+  dirty() {
+    var t;
+    (t = this.events.change) == null || t.notify(this.current);
+  }
+  addDependent(t) {
+    this.dependents || (this.dependents = /* @__PURE__ */ new Set()), this.dependents.add(t);
+  }
+  removeDependent(t) {
+    this.dependents && this.dependents.delete(t);
+  }
+  /**
+   * Returns the latest state of `MotionValue`
+   *
+   * @returns - The latest state of `MotionValue`
+   *
+   * @public
+   */
+  get() {
+    return this.current;
+  }
+  /**
+   * @public
+   */
+  getPrevious() {
+    return this.prev;
+  }
+  /**
+   * Returns the latest velocity of `MotionValue`
+   *
+   * @returns - The latest velocity of `MotionValue`. Returns `0` if the state is non-numerical.
+   *
+   * @public
+   */
+  getVelocity() {
+    const t = fe.now();
+    if (!this.canTrackVelocity || this.prevFrameValue === void 0 || t - this.updatedAt > On)
+      return 0;
+    const r = Math.min(this.updatedAt - this.prevUpdatedAt, On);
+    return Ji(parseFloat(this.current) - parseFloat(this.prevFrameValue), r);
+  }
+  /**
+   * Registers a new animation to control this `MotionValue`. Only one
+   * animation can drive a `MotionValue` at one time.
+   *
+   * ```jsx
+   * value.start()
+   * ```
+   *
+   * @param animation - A function that starts the provided animation
+   */
+  start(t) {
+    return this.stop(), new Promise((r) => {
+      this.hasAnimated = !0, this.animation = t(r), this.events.animationStart && this.events.animationStart.notify();
+    }).then(() => {
+      this.events.animationComplete && this.events.animationComplete.notify(), this.clearAnimation();
+    });
+  }
+  /**
+   * Stop the currently active animation.
+   *
+   * @public
+   */
+  stop() {
+    this.animation && (this.animation.stop(), this.events.animationCancel && this.events.animationCancel.notify()), this.clearAnimation();
+  }
+  /**
+   * Returns `true` if this value is currently animating.
+   *
+   * @public
+   */
+  isAnimating() {
+    return !!this.animation;
+  }
+  clearAnimation() {
+    delete this.animation;
+  }
+  /**
+   * Destroy and clean up subscribers to this `MotionValue`.
+   *
+   * The `MotionValue` hooks like `useMotionValue` and `useTransform` automatically
+   * handle the lifecycle of the returned `MotionValue`, so this method is only necessary if you've manually
+   * created a `MotionValue` via the `motionValue` function.
+   *
+   * @public
+   */
+  destroy() {
+    var t, r;
+    (t = this.dependents) == null || t.clear(), (r = this.events.destroy) == null || r.notify(), this.clearListeners(), this.stop(), this.stopPassiveEffect && this.stopPassiveEffect();
+  }
+}
+function gt(e, t) {
+  return new fu(e, t);
+}
+const { schedule: Yr } = /* @__PURE__ */ co(queueMicrotask, !1), ke = {
+  x: !1,
+  y: !1
+};
+function Vo() {
+  return ke.x || ke.y;
+}
+function gu(e) {
+  return e === "x" || e === "y" ? ke[e] ? null : (ke[e] = !0, () => {
+    ke[e] = !1;
+  }) : ke.x || ke.y ? null : (ke.x = ke.y = !0, () => {
+    ke.x = ke.y = !1;
+  });
+}
+function Lo(e, t) {
+  const r = uu(e), n = new AbortController(), i = {
+    passive: !0,
+    ...t,
+    signal: n.signal
+  };
+  return [r, i, () => n.abort()];
+}
+function Yn(e) {
+  return !(e.pointerType === "touch" || Vo());
+}
+function pu(e, t, r = {}) {
+  const [n, i, a] = Lo(e, r), o = (l) => {
+    if (!Yn(l))
+      return;
+    const { target: c } = l, u = t(c, l);
+    if (typeof u != "function" || !c)
+      return;
+    const d = (h) => {
+      Yn(h) && (u(h), c.removeEventListener("pointerleave", d));
+    };
+    c.addEventListener("pointerleave", d, i);
+  };
+  return n.forEach((l) => {
+    l.addEventListener("pointerenter", o, i);
+  }), a;
+}
+const Fo = (e, t) => t ? e === t ? !0 : Fo(e, t.parentElement) : !1, Br = (e) => e.pointerType === "mouse" ? typeof e.button != "number" || e.button <= 0 : e.isPrimary !== !1, xu = /* @__PURE__ */ new Set([
+  "BUTTON",
+  "INPUT",
+  "SELECT",
+  "TEXTAREA",
+  "A"
+]);
+function yu(e) {
+  return xu.has(e.tagName) || e.tabIndex !== -1;
+}
+const cs = /* @__PURE__ */ new WeakSet();
+function Bn(e) {
+  return (t) => {
+    t.key === "Enter" && e(t);
+  };
+}
+function Vs(e, t) {
+  e.dispatchEvent(new PointerEvent("pointer" + t, { isPrimary: !0, bubbles: !0 }));
+}
+const bu = (e, t) => {
+  const r = e.currentTarget;
+  if (!r)
+    return;
+  const n = Bn(() => {
+    if (cs.has(r))
+      return;
+    Vs(r, "down");
+    const i = Bn(() => {
+      Vs(r, "up");
+    }), a = () => Vs(r, "cancel");
+    r.addEventListener("keyup", i, t), r.addEventListener("blur", a, t);
+  });
+  r.addEventListener("keydown", n, t), r.addEventListener("blur", () => r.removeEventListener("keydown", n), t);
+};
+function zn(e) {
+  return Br(e) && !Vo();
+}
+function vu(e, t, r = {}) {
+  const [n, i, a] = Lo(e, r), o = (l) => {
+    const c = l.currentTarget;
+    if (!zn(l))
+      return;
+    cs.add(c);
+    const u = t(c, l), d = (p, y) => {
+      window.removeEventListener("pointerup", h), window.removeEventListener("pointercancel", f), cs.has(c) && cs.delete(c), zn(p) && typeof u == "function" && u(p, { success: y });
+    }, h = (p) => {
+      d(p, c === window || c === document || r.useGlobalTarget || Fo(c, p.target));
+    }, f = (p) => {
+      d(p, !1);
+    };
+    window.addEventListener("pointerup", h, i), window.addEventListener("pointercancel", f, i);
+  };
+  return n.forEach((l) => {
+    (r.useGlobalTarget ? window : l).addEventListener("pointerdown", o, i), hu(l) && (l.addEventListener("focus", (u) => bu(u, i)), !yu(l) && !l.hasAttribute("tabindex") && (l.tabIndex = 0));
+  }), a;
+}
+function Io(e) {
+  return Xi(e) && "ownerSVGElement" in e;
+}
+function wu(e) {
+  return Io(e) && e.tagName === "svg";
+}
+const ce = (e) => !!(e && e.getVelocity), ju = [...Eo, ne, ze], Nu = (e) => ju.find(Ao(e)), Oo = Ue({
+  transformPagePoint: (e) => e,
+  isStatic: !1,
+  reducedMotion: "never"
+});
+function ku(e = !0) {
+  const t = le(vr);
+  if (t === null)
+    return [!0, null];
+  const { isPresent: r, onExitComplete: n, register: i } = t, a = Ja();
+  xe(() => {
+    if (e)
+      return i(a);
+  }, [e]);
+  const o = Fi(() => e && n && n(a), [a, n, e]);
+  return !r && n ? [!1, o] : [!0];
+}
+const Yo = Ue({ strict: !1 }), Un = {
+  animation: [
+    "animate",
+    "variants",
+    "whileHover",
+    "whileTap",
+    "exit",
+    "whileInView",
+    "whileFocus",
+    "whileDrag"
+  ],
+  exit: ["exit"],
+  drag: ["drag", "dragControls"],
+  focus: ["whileFocus"],
+  hover: ["whileHover", "onHoverStart", "onHoverEnd"],
+  tap: ["whileTap", "onTap", "onTapStart", "onTapCancel"],
+  pan: ["onPan", "onPanStart", "onPanSessionStart", "onPanEnd"],
+  inView: ["whileInView", "onViewportEnter", "onViewportLeave"],
+  layout: ["layout", "layoutId"]
+}, pt = {};
+for (const e in Un)
+  pt[e] = {
+    isEnabled: (t) => Un[e].some((r) => !!t[r])
+  };
+function Tu(e) {
+  for (const t in e)
+    pt[t] = {
+      ...pt[t],
+      ...e[t]
+    };
+}
+const Su = /* @__PURE__ */ new Set([
+  "animate",
+  "exit",
+  "variants",
+  "initial",
+  "style",
+  "values",
+  "variants",
+  "transition",
+  "transformTemplate",
+  "custom",
+  "inherit",
+  "onBeforeLayoutMeasure",
+  "onAnimationStart",
+  "onAnimationComplete",
+  "onUpdate",
+  "onDragStart",
+  "onDrag",
+  "onDragEnd",
+  "onMeasureDragConstraints",
+  "onDirectionLock",
+  "onDragTransitionEnd",
+  "_dragX",
+  "_dragY",
+  "onHoverStart",
+  "onHoverEnd",
+  "onViewportEnter",
+  "onViewportLeave",
+  "globalTapTarget",
+  "ignoreStrict",
+  "viewport"
+]);
+function xs(e) {
+  return e.startsWith("while") || e.startsWith("drag") && e !== "draggable" || e.startsWith("layout") || e.startsWith("onTap") || e.startsWith("onPan") || e.startsWith("onLayout") || Su.has(e);
+}
+let Bo = (e) => !xs(e);
+function Cu(e) {
+  typeof e == "function" && (Bo = (t) => t.startsWith("on") ? !xs(t) : e(t));
+}
+try {
+  Cu(require("@emotion/is-prop-valid").default);
+} catch {
+}
+function Pu(e, t, r) {
+  const n = {};
+  for (const i in e)
+    i === "values" && typeof e.values == "object" || (Bo(i) || r === !0 && xs(i) || !t && !xs(i) || // If trying to use native HTML drag events, forward drag listeners
+    e.draggable && i.startsWith("onDrag")) && (n[i] = e[i]);
+  return n;
+}
+const js = /* @__PURE__ */ Ue({});
+function Ns(e) {
+  return e !== null && typeof e == "object" && typeof e.start == "function";
+}
+function Yt(e) {
+  return typeof e == "string" || Array.isArray(e);
+}
+const zr = [
+  "animate",
+  "whileInView",
+  "whileFocus",
+  "whileHover",
+  "whileTap",
+  "whileDrag",
+  "exit"
+], Ur = ["initial", ...zr];
+function ks(e) {
+  return Ns(e.animate) || Ur.some((t) => Yt(e[t]));
+}
+function zo(e) {
+  return !!(ks(e) || e.variants);
+}
+function _u(e, t) {
+  if (ks(e)) {
+    const { initial: r, animate: n } = e;
+    return {
+      initial: r === !1 || Yt(r) ? r : void 0,
+      animate: Yt(n) ? n : void 0
+    };
+  }
+  return e.inherit !== !1 ? t : {};
+}
+function Au(e) {
+  const { initial: t, animate: r } = _u(e, le(js));
+  return bs(() => ({ initial: t, animate: r }), [$n(t), $n(r)]);
+}
+function $n(e) {
+  return Array.isArray(e) ? e.join(" ") : e;
+}
+const Bt = {};
+function Eu(e) {
+  for (const t in e)
+    Bt[t] = e[t], Pr(t) && (Bt[t].isCSSVariable = !0);
+}
+function Uo(e, { layout: t, layoutId: r }) {
+  return wt.has(e) || e.startsWith("origin") || (t || r !== void 0) && (!!Bt[e] || e === "opacity");
+}
+const Mu = {
+  x: "translateX",
+  y: "translateY",
+  z: "translateZ",
+  transformPerspective: "perspective"
+}, Du = vt.length;
+function Ru(e, t, r) {
+  let n = "", i = !0;
+  for (let a = 0; a < Du; a++) {
+    const o = vt[a], l = e[o];
+    if (l === void 0)
+      continue;
+    let c = !0;
+    if (typeof l == "number" ? c = l === (o.startsWith("scale") ? 1 : 0) : c = parseFloat(l) === 0, !c || r) {
+      const u = Ro(l, Or[o]);
+      if (!c) {
+        i = !1;
+        const d = Mu[o] || o;
+        n += `${d}(${u}) `;
+      }
+      r && (t[o] = u);
+    }
+  }
+  return n = n.trim(), r ? n = r(t, i ? "" : n) : i && (n = "none"), n;
+}
+function $r(e, t, r) {
+  const { style: n, vars: i, transformOrigin: a } = e;
+  let o = !1, l = !1;
+  for (const c in t) {
+    const u = t[c];
+    if (wt.has(c)) {
+      o = !0;
+      continue;
+    } else if (Pr(c)) {
+      i[c] = u;
+      continue;
+    } else {
+      const d = Ro(u, Or[c]);
+      c.startsWith("origin") ? (l = !0, a[c] = d) : n[c] = d;
+    }
+  }
+  if (t.transform || (o || r ? n.transform = Ru(t, e.transform, r) : n.transform && (n.transform = "none")), l) {
+    const { originX: c = "50%", originY: u = "50%", originZ: d = 0 } = a;
+    n.transformOrigin = `${c} ${u} ${d}`;
+  }
+}
+const Wr = () => ({
+  style: {},
+  transform: {},
+  transformOrigin: {},
+  vars: {}
+});
+function $o(e, t, r) {
+  for (const n in t)
+    !ce(t[n]) && !Uo(n, r) && (e[n] = t[n]);
+}
+function Vu({ transformTemplate: e }, t) {
+  return bs(() => {
+    const r = Wr();
+    return $r(r, t, e), Object.assign({}, r.vars, r.style);
+  }, [t]);
+}
+function Lu(e, t) {
+  const r = e.style || {}, n = {};
+  return $o(n, r, e), Object.assign(n, Vu(e, t)), n;
+}
+function Fu(e, t) {
+  const r = {}, n = Lu(e, t);
+  return e.drag && e.dragListener !== !1 && (r.draggable = !1, n.userSelect = n.WebkitUserSelect = n.WebkitTouchCallout = "none", n.touchAction = e.drag === !0 ? "none" : `pan-${e.drag === "x" ? "y" : "x"}`), e.tabIndex === void 0 && (e.onTap || e.onTapStart || e.whileTap) && (r.tabIndex = 0), r.style = n, r;
+}
+const Iu = {
+  offset: "stroke-dashoffset",
+  array: "stroke-dasharray"
+}, Ou = {
+  offset: "strokeDashoffset",
+  array: "strokeDasharray"
+};
+function Yu(e, t, r = 1, n = 0, i = !0) {
+  e.pathLength = 1;
+  const a = i ? Iu : Ou;
+  e[a.offset] = L.transform(-n);
+  const o = L.transform(t), l = L.transform(r);
+  e[a.array] = `${o} ${l}`;
+}
+function Wo(e, {
+  attrX: t,
+  attrY: r,
+  attrScale: n,
+  pathLength: i,
+  pathSpacing: a = 1,
+  pathOffset: o = 0,
+  // This is object creation, which we try to avoid per-frame.
+  ...l
+}, c, u, d) {
+  if ($r(e, l, u), c) {
+    e.style.viewBox && (e.attrs.viewBox = e.style.viewBox);
+    return;
+  }
+  e.attrs = e.style, e.style = {};
+  const { attrs: h, style: f } = e;
+  h.transform && (f.transform = h.transform, delete h.transform), (f.transform || h.transformOrigin) && (f.transformOrigin = h.transformOrigin ?? "50% 50%", delete h.transformOrigin), f.transform && (f.transformBox = (d == null ? void 0 : d.transformBox) ?? "fill-box", delete h.transformBox), t !== void 0 && (h.x = t), r !== void 0 && (h.y = r), n !== void 0 && (h.scale = n), i !== void 0 && Yu(h, i, a, o, !1);
+}
+const Ho = () => ({
+  ...Wr(),
+  attrs: {}
+}), Ko = (e) => typeof e == "string" && e.toLowerCase() === "svg";
+function Bu(e, t, r, n) {
+  const i = bs(() => {
+    const a = Ho();
+    return Wo(a, t, Ko(n), e.transformTemplate, e.style), {
+      ...a.attrs,
+      style: { ...a.style }
+    };
+  }, [t]);
+  if (e.style) {
+    const a = {};
+    $o(a, e.style, e), i.style = { ...a, ...i.style };
+  }
+  return i;
+}
+const zu = [
+  "animate",
+  "circle",
+  "defs",
+  "desc",
+  "ellipse",
+  "g",
+  "image",
+  "line",
+  "filter",
+  "marker",
+  "mask",
+  "metadata",
+  "path",
+  "pattern",
+  "polygon",
+  "polyline",
+  "rect",
+  "stop",
+  "switch",
+  "symbol",
+  "svg",
+  "text",
+  "tspan",
+  "use",
+  "view"
+];
+function Hr(e) {
+  return (
+    /**
+     * If it's not a string, it's a custom React component. Currently we only support
+     * HTML custom React components.
+     */
+    typeof e != "string" || /**
+     * If it contains a dash, the element is a custom HTML webcomponent.
+     */
+    e.includes("-") ? !1 : (
+      /**
+       * If it's in our list of lowercase SVG tags, it's an SVG component
+       */
+      !!(zu.indexOf(e) > -1 || /**
+       * If it contains a capital letter, it's an SVG component
+       */
+      /[A-Z]/u.test(e))
+    )
+  );
+}
+function Uu(e, t, r, { latestValues: n }, i, a = !1) {
+  const l = (Hr(e) ? Bu : Fu)(t, n, i, e), c = Pu(t, typeof e == "string", a), u = e !== Ii ? { ...c, ...l, ref: r } : {}, { children: d } = t, h = bs(() => ce(d) ? d.get() : d, [d]);
+  return Qa(e, {
+    ...u,
+    children: h
+  });
+}
+function Wn(e) {
+  const t = [{}, {}];
+  return e == null || e.values.forEach((r, n) => {
+    t[0][n] = r.get(), t[1][n] = r.getVelocity();
+  }), t;
+}
+function Kr(e, t, r, n) {
+  if (typeof t == "function") {
+    const [i, a] = Wn(n);
+    t = t(r !== void 0 ? r : e.custom, i, a);
+  }
+  if (typeof t == "string" && (t = e.variants && e.variants[t]), typeof t == "function") {
+    const [i, a] = Wn(n);
+    t = t(r !== void 0 ? r : e.custom, i, a);
+  }
+  return t;
+}
+function ds(e) {
+  return ce(e) ? e.get() : e;
+}
+function $u({ scrapeMotionValuesFromProps: e, createRenderState: t }, r, n, i) {
+  return {
+    latestValues: Wu(r, n, i, e),
+    renderState: t()
+  };
+}
+function Wu(e, t, r, n) {
+  const i = {}, a = n(e, {});
+  for (const f in a)
+    i[f] = ds(a[f]);
+  let { initial: o, animate: l } = e;
+  const c = ks(e), u = zo(e);
+  t && u && !c && e.inherit !== !1 && (o === void 0 && (o = t.initial), l === void 0 && (l = t.animate));
+  let d = r ? r.initial === !1 : !1;
+  d = d || o === !1;
+  const h = d ? l : o;
+  if (h && typeof h != "boolean" && !Ns(h)) {
+    const f = Array.isArray(h) ? h : [h];
+    for (let p = 0; p < f.length; p++) {
+      const y = Kr(e, f[p]);
+      if (y) {
+        const { transitionEnd: S, transition: C, ...j } = y;
+        for (const w in j) {
+          let P = j[w];
+          if (Array.isArray(P)) {
+            const D = d ? P.length - 1 : 0;
+            P = P[D];
+          }
+          P !== null && (i[w] = P);
+        }
+        for (const w in S)
+          i[w] = S[w];
+      }
+    }
+  }
+  return i;
+}
+const Go = (e) => (t, r) => {
+  const n = le(js), i = le(vr), a = () => $u(e, t, n, i);
+  return r ? a() : Tc(a);
+};
+function Gr(e, t, r) {
+  var a;
+  const { style: n } = e, i = {};
+  for (const o in n)
+    (ce(n[o]) || t.style && ce(t.style[o]) || Uo(o, e) || ((a = r == null ? void 0 : r.getValue(o)) == null ? void 0 : a.liveStyle) !== void 0) && (i[o] = n[o]);
+  return i;
+}
+const Hu = /* @__PURE__ */ Go({
+  scrapeMotionValuesFromProps: Gr,
+  createRenderState: Wr
+});
+function qo(e, t, r) {
+  const n = Gr(e, t, r);
+  for (const i in e)
+    if (ce(e[i]) || ce(t[i])) {
+      const a = vt.indexOf(i) !== -1 ? "attr" + i.charAt(0).toUpperCase() + i.substring(1) : i;
+      n[a] = e[i];
+    }
+  return n;
+}
+const Ku = /* @__PURE__ */ Go({
+  scrapeMotionValuesFromProps: qo,
+  createRenderState: Ho
+}), Gu = Symbol.for("motionComponentSymbol");
+function lt(e) {
+  return e && typeof e == "object" && Object.prototype.hasOwnProperty.call(e, "current");
+}
+function qu(e, t, r) {
+  return Fi(
+    (n) => {
+      n && e.onMount && e.onMount(n), t && (n ? t.mount(n) : t.unmount()), r && (typeof r == "function" ? r(n) : lt(r) && (r.current = n));
+    },
+    /**
+     * Only pass a new ref callback to React if we've received a visual element
+     * factory. Otherwise we'll be mounting/remounting every time externalRef
+     * or other dependencies change.
+     */
+    [t]
+  );
+}
+const qr = (e) => e.replace(/([a-z])([A-Z])/gu, "$1-$2").toLowerCase(), Xu = "framerAppearId", Xo = "data-" + qr(Xu), Zo = Ue({});
+function Zu(e, t, r, n, i) {
+  var S, C;
+  const { visualElement: a } = le(js), o = le(Yo), l = le(vr), c = le(Oo).reducedMotion, u = ht(null);
+  n = n || o.renderer, !u.current && n && (u.current = n(e, {
+    visualState: t,
+    parent: a,
+    props: r,
+    presenceContext: l,
+    blockInitialAnimation: l ? l.initial === !1 : !1,
+    reducedMotionConfig: c
+  }));
+  const d = u.current, h = le(Zo);
+  d && !d.projection && i && (d.type === "html" || d.type === "svg") && Ju(u.current, r, i, h);
+  const f = ht(!1);
+  el(() => {
+    d && f.current && d.update(r, l);
+  });
+  const p = r[Xo], y = ht(!!p && !((S = window.MotionHandoffIsComplete) != null && S.call(window, p)) && ((C = window.MotionHasOptimisedAnimation) == null ? void 0 : C.call(window, p)));
+  return Sc(() => {
+    d && (f.current = !0, window.MotionIsMounted = !0, d.updateFeatures(), d.scheduleRenderMicrotask(), y.current && d.animationState && d.animationState.animateChanges());
+  }), xe(() => {
+    d && (!y.current && d.animationState && d.animationState.animateChanges(), y.current && (queueMicrotask(() => {
+      var j;
+      (j = window.MotionHandoffMarkAsComplete) == null || j.call(window, p);
+    }), y.current = !1), d.enteringChildren = void 0);
+  }), d;
+}
+function Ju(e, t, r, n) {
+  const { layoutId: i, layout: a, drag: o, dragConstraints: l, layoutScroll: c, layoutRoot: u, layoutCrossfade: d } = t;
+  e.projection = new r(e.latestValues, t["data-framer-portal-id"] ? void 0 : Jo(e.parent)), e.projection.setOptions({
+    layoutId: i,
+    layout: a,
+    alwaysMeasureLayout: !!o || l && lt(l),
+    visualElement: e,
+    /**
+     * TODO: Update options in an effect. This could be tricky as it'll be too late
+     * to update by the time layout animations run.
+     * We also need to fix this safeToRemove by linking it up to the one returned by usePresence,
+     * ensuring it gets called if there's no potential layout animations.
+     *
+     */
+    animationType: typeof a == "string" ? a : "both",
+    initialPromotionConfig: n,
+    crossfade: d,
+    layoutScroll: c,
+    layoutRoot: u
+  });
+}
+function Jo(e) {
+  if (e)
+    return e.options.allowProjection !== !1 ? e.projection : Jo(e.parent);
+}
+function Ls(e, { forwardMotionProps: t = !1 } = {}, r, n) {
+  r && Tu(r);
+  const i = Hr(e) ? Ku : Hu;
+  function a(l, c) {
+    let u;
+    const d = {
+      ...le(Oo),
+      ...l,
+      layoutId: Qu(l)
+    }, { isStatic: h } = d, f = Au(l), p = i(l, h);
+    if (!h && br) {
+      eh(d, r);
+      const y = th(d);
+      u = y.MeasureLayout, f.visualElement = Zu(e, p, d, n, y.ProjectionNode);
+    }
+    return s.jsxs(js.Provider, { value: f, children: [u && f.visualElement ? s.jsx(u, { visualElement: f.visualElement, ...d }) : null, Uu(e, l, qu(p, f.visualElement, c), p, h, t)] });
+  }
+  a.displayName = `motion.${typeof e == "string" ? e : `create(${e.displayName ?? e.name ?? ""})`}`;
+  const o = tl(a);
+  return o[Gu] = e, o;
+}
+function Qu({ layoutId: e }) {
+  const t = le(Gi).id;
+  return t && e !== void 0 ? t + "-" + e : e;
+}
+function eh(e, t) {
+  const r = le(Yo).strict;
+  if (process.env.NODE_ENV !== "production" && t && r) {
+    const n = "You have rendered a `motion` component within a `LazyMotion` component. This will break tree shaking. Import and render a `m` component instead.";
+    e.ignoreStrict ? yt(!1, n, "lazy-strict-mode") : Re(!1, n, "lazy-strict-mode");
+  }
+}
+function th(e) {
+  const { drag: t, layout: r } = pt;
+  if (!t && !r)
+    return {};
+  const n = { ...t, ...r };
+  return {
+    MeasureLayout: t != null && t.isEnabled(e) || r != null && r.isEnabled(e) ? n.MeasureLayout : void 0,
+    ProjectionNode: n.ProjectionNode
+  };
+}
+function sh(e, t) {
+  if (typeof Proxy > "u")
+    return Ls;
+  const r = /* @__PURE__ */ new Map(), n = (a, o) => Ls(a, o, e, t), i = (a, o) => (process.env.NODE_ENV !== "production" && Tr(!1, "motion() is deprecated. Use motion.create() instead."), n(a, o));
+  return new Proxy(i, {
+    /**
+     * Called when `motion` is referenced with a prop: `motion.div`, `motion.input` etc.
+     * The prop name is passed through as `key` and we can use that to generate a `motion`
+     * DOM component with that name.
+     */
+    get: (a, o) => o === "create" ? n : (r.has(o) || r.set(o, Ls(o, void 0, e, t)), r.get(o))
+  });
+}
+function Qo({ top: e, left: t, right: r, bottom: n }) {
+  return {
+    x: { min: t, max: r },
+    y: { min: e, max: n }
+  };
+}
+function rh({ x: e, y: t }) {
+  return { top: t.min, right: e.max, bottom: t.max, left: e.min };
+}
+function nh(e, t) {
+  if (!t)
+    return e;
+  const r = t({ x: e.left, y: e.top }), n = t({ x: e.right, y: e.bottom });
+  return {
+    top: r.y,
+    left: r.x,
+    bottom: n.y,
+    right: n.x
+  };
+}
+function Fs(e) {
+  return e === void 0 || e === 1;
+}
+function lr({ scale: e, scaleX: t, scaleY: r }) {
+  return !Fs(e) || !Fs(t) || !Fs(r);
+}
+function Ge(e) {
+  return lr(e) || ea(e) || e.z || e.rotate || e.rotateX || e.rotateY || e.skewX || e.skewY;
+}
+function ea(e) {
+  return Hn(e.x) || Hn(e.y);
+}
+function Hn(e) {
+  return e && e !== "0%";
+}
+function ys(e, t, r) {
+  const n = e - r, i = t * n;
+  return r + i;
+}
+function Kn(e, t, r, n, i) {
+  return i !== void 0 && (e = ys(e, i, n)), ys(e, r, n) + t;
+}
+function cr(e, t = 0, r = 1, n, i) {
+  e.min = Kn(e.min, t, r, n, i), e.max = Kn(e.max, t, r, n, i);
+}
+function ta(e, { x: t, y: r }) {
+  cr(e.x, t.translate, t.scale, t.originPoint), cr(e.y, r.translate, r.scale, r.originPoint);
+}
+const Gn = 0.999999999999, qn = 1.0000000000001;
+function ih(e, t, r, n = !1) {
+  const i = r.length;
+  if (!i)
+    return;
+  t.x = t.y = 1;
+  let a, o;
+  for (let l = 0; l < i; l++) {
+    a = r[l], o = a.projectionDelta;
+    const { visualElement: c } = a.options;
+    c && c.props.style && c.props.style.display === "contents" || (n && a.options.layoutScroll && a.scroll && a !== a.root && dt(e, {
+      x: -a.scroll.offset.x,
+      y: -a.scroll.offset.y
+    }), o && (t.x *= o.x.scale, t.y *= o.y.scale, ta(e, o)), n && Ge(a.latestValues) && dt(e, a.latestValues));
+  }
+  t.x < qn && t.x > Gn && (t.x = 1), t.y < qn && t.y > Gn && (t.y = 1);
+}
+function ct(e, t) {
+  e.min = e.min + t, e.max = e.max + t;
+}
+function Xn(e, t, r, n, i = 0.5) {
+  const a = Q(e.min, e.max, i);
+  cr(e, t, r, a, n);
+}
+function dt(e, t) {
+  Xn(e.x, t.x, t.scaleX, t.scale, t.originX), Xn(e.y, t.y, t.scaleY, t.scale, t.originY);
+}
+function sa(e, t) {
+  return Qo(nh(e.getBoundingClientRect(), t));
+}
+function oh(e, t, r) {
+  const n = sa(e, r), { scroll: i } = t;
+  return i && (ct(n.x, i.offset.x), ct(n.y, i.offset.y)), n;
+}
+const Zn = () => ({
+  translate: 0,
+  scale: 1,
+  origin: 0,
+  originPoint: 0
+}), ut = () => ({
+  x: Zn(),
+  y: Zn()
+}), Jn = () => ({ min: 0, max: 0 }), te = () => ({
+  x: Jn(),
+  y: Jn()
+}), dr = { current: null }, ra = { current: !1 };
+function ah() {
+  if (ra.current = !0, !!br)
+    if (window.matchMedia) {
+      const e = window.matchMedia("(prefers-reduced-motion)"), t = () => dr.current = e.matches;
+      e.addEventListener("change", t), t();
+    } else
+      dr.current = !1;
+}
+const lh = /* @__PURE__ */ new WeakMap();
+function ch(e, t, r) {
+  for (const n in t) {
+    const i = t[n], a = r[n];
+    if (ce(i))
+      e.addValue(n, i);
+    else if (ce(a))
+      e.addValue(n, gt(i, { owner: e }));
+    else if (a !== i)
+      if (e.hasValue(n)) {
+        const o = e.getValue(n);
+        o.liveStyle === !0 ? o.jump(i) : o.hasAnimated || o.set(i);
+      } else {
+        const o = e.getStaticValue(n);
+        e.addValue(n, gt(o !== void 0 ? o : i, { owner: e }));
+      }
+  }
+  for (const n in r)
+    t[n] === void 0 && e.removeValue(n);
+  return t;
+}
+const Qn = [
+  "AnimationStart",
+  "AnimationComplete",
+  "Update",
+  "BeforeLayoutMeasure",
+  "LayoutMeasure",
+  "LayoutAnimationStart",
+  "LayoutAnimationComplete"
+];
+class dh {
+  /**
+   * This method takes React props and returns found MotionValues. For example, HTML
+   * MotionValues will be found within the style prop, whereas for Three.js within attribute arrays.
+   *
+   * This isn't an abstract method as it needs calling in the constructor, but it is
+   * intended to be one.
+   */
+  scrapeMotionValuesFromProps(t, r, n) {
+    return {};
+  }
+  constructor({ parent: t, props: r, presenceContext: n, reducedMotionConfig: i, blockInitialAnimation: a, visualState: o }, l = {}) {
+    this.current = null, this.children = /* @__PURE__ */ new Set(), this.isVariantNode = !1, this.isControllingVariants = !1, this.shouldReduceMotion = null, this.values = /* @__PURE__ */ new Map(), this.KeyframeResolver = Fr, this.features = {}, this.valueSubscriptions = /* @__PURE__ */ new Map(), this.prevMotionValues = {}, this.events = {}, this.propEventSubscriptions = {}, this.notifyUpdate = () => this.notify("Update", this.latestValues), this.render = () => {
+      this.current && (this.triggerBuild(), this.renderInstance(this.current, this.renderState, this.props.style, this.projection));
+    }, this.renderScheduledAt = 0, this.scheduleRender = () => {
+      const f = fe.now();
+      this.renderScheduledAt < f && (this.renderScheduledAt = f, Z.render(this.render, !1, !0));
+    };
+    const { latestValues: c, renderState: u } = o;
+    this.latestValues = c, this.baseTarget = { ...c }, this.initialValues = r.initial ? { ...c } : {}, this.renderState = u, this.parent = t, this.props = r, this.presenceContext = n, this.depth = t ? t.depth + 1 : 0, this.reducedMotionConfig = i, this.options = l, this.blockInitialAnimation = !!a, this.isControllingVariants = ks(r), this.isVariantNode = zo(r), this.isVariantNode && (this.variantChildren = /* @__PURE__ */ new Set()), this.manuallyAnimateOnMount = !!(t && t.current);
+    const { willChange: d, ...h } = this.scrapeMotionValuesFromProps(r, {}, this);
+    for (const f in h) {
+      const p = h[f];
+      c[f] !== void 0 && ce(p) && p.set(c[f]);
+    }
+  }
+  mount(t) {
+    var r;
+    this.current = t, lh.set(t, this), this.projection && !this.projection.instance && this.projection.mount(t), this.parent && this.isVariantNode && !this.isControllingVariants && (this.removeFromVariantTree = this.parent.addVariantChild(this)), this.values.forEach((n, i) => this.bindToMotionValue(i, n)), ra.current || ah(), this.shouldReduceMotion = this.reducedMotionConfig === "never" ? !1 : this.reducedMotionConfig === "always" ? !0 : dr.current, process.env.NODE_ENV !== "production" && Tr(this.shouldReduceMotion !== !0, "You have Reduced Motion enabled on your device. Animations may not appear as expected.", "reduced-motion-disabled"), (r = this.parent) == null || r.addChild(this), this.update(this.props, this.presenceContext);
+  }
+  unmount() {
+    var t;
+    this.projection && this.projection.unmount(), Be(this.notifyUpdate), Be(this.render), this.valueSubscriptions.forEach((r) => r()), this.valueSubscriptions.clear(), this.removeFromVariantTree && this.removeFromVariantTree(), (t = this.parent) == null || t.removeChild(this);
+    for (const r in this.events)
+      this.events[r].clear();
+    for (const r in this.features) {
+      const n = this.features[r];
+      n && (n.unmount(), n.isMounted = !1);
+    }
+    this.current = null;
+  }
+  addChild(t) {
+    this.children.add(t), this.enteringChildren ?? (this.enteringChildren = /* @__PURE__ */ new Set()), this.enteringChildren.add(t);
+  }
+  removeChild(t) {
+    this.children.delete(t), this.enteringChildren && this.enteringChildren.delete(t);
+  }
+  bindToMotionValue(t, r) {
+    this.valueSubscriptions.has(t) && this.valueSubscriptions.get(t)();
+    const n = wt.has(t);
+    n && this.onBindTransform && this.onBindTransform();
+    const i = r.on("change", (o) => {
+      this.latestValues[t] = o, this.props.onUpdate && Z.preRender(this.notifyUpdate), n && this.projection && (this.projection.isTransformDirty = !0), this.scheduleRender();
+    });
+    let a;
+    window.MotionCheckAppearSync && (a = window.MotionCheckAppearSync(this, t, r)), this.valueSubscriptions.set(t, () => {
+      i(), a && a(), r.owner && r.stop();
+    });
+  }
+  sortNodePosition(t) {
+    return !this.current || !this.sortInstanceNodePosition || this.type !== t.type ? 0 : this.sortInstanceNodePosition(this.current, t.current);
+  }
+  updateFeatures() {
+    let t = "animation";
+    for (t in pt) {
+      const r = pt[t];
+      if (!r)
+        continue;
+      const { isEnabled: n, Feature: i } = r;
+      if (!this.features[t] && i && n(this.props) && (this.features[t] = new i(this)), this.features[t]) {
+        const a = this.features[t];
+        a.isMounted ? a.update() : (a.mount(), a.isMounted = !0);
+      }
+    }
+  }
+  triggerBuild() {
+    this.build(this.renderState, this.latestValues, this.props);
+  }
+  /**
+   * Measure the current viewport box with or without transforms.
+   * Only measures axis-aligned boxes, rotate and skew must be manually
+   * removed with a re-render to work.
+   */
+  measureViewportBox() {
+    return this.current ? this.measureInstanceViewportBox(this.current, this.props) : te();
+  }
+  getStaticValue(t) {
+    return this.latestValues[t];
+  }
+  setStaticValue(t, r) {
+    this.latestValues[t] = r;
+  }
+  /**
+   * Update the provided props. Ensure any newly-added motion values are
+   * added to our map, old ones removed, and listeners updated.
+   */
+  update(t, r) {
+    (t.transformTemplate || this.props.transformTemplate) && this.scheduleRender(), this.prevProps = this.props, this.props = t, this.prevPresenceContext = this.presenceContext, this.presenceContext = r;
+    for (let n = 0; n < Qn.length; n++) {
+      const i = Qn[n];
+      this.propEventSubscriptions[i] && (this.propEventSubscriptions[i](), delete this.propEventSubscriptions[i]);
+      const a = "on" + i, o = t[a];
+      o && (this.propEventSubscriptions[i] = this.on(i, o));
+    }
+    this.prevMotionValues = ch(this, this.scrapeMotionValuesFromProps(t, this.prevProps, this), this.prevMotionValues), this.handleChildMotionValue && this.handleChildMotionValue();
+  }
+  getProps() {
+    return this.props;
+  }
+  /**
+   * Returns the variant definition with a given name.
+   */
+  getVariant(t) {
+    return this.props.variants ? this.props.variants[t] : void 0;
+  }
+  /**
+   * Returns the defined default transition on this component.
+   */
+  getDefaultTransition() {
+    return this.props.transition;
+  }
+  getTransformPagePoint() {
+    return this.props.transformPagePoint;
+  }
+  getClosestVariantNode() {
+    return this.isVariantNode ? this : this.parent ? this.parent.getClosestVariantNode() : void 0;
+  }
+  /**
+   * Add a child visual element to our set of children.
+   */
+  addVariantChild(t) {
+    const r = this.getClosestVariantNode();
+    if (r)
+      return r.variantChildren && r.variantChildren.add(t), () => r.variantChildren.delete(t);
+  }
+  /**
+   * Add a motion value and bind it to this visual element.
+   */
+  addValue(t, r) {
+    const n = this.values.get(t);
+    r !== n && (n && this.removeValue(t), this.bindToMotionValue(t, r), this.values.set(t, r), this.latestValues[t] = r.get());
+  }
+  /**
+   * Remove a motion value and unbind any active subscriptions.
+   */
+  removeValue(t) {
+    this.values.delete(t);
+    const r = this.valueSubscriptions.get(t);
+    r && (r(), this.valueSubscriptions.delete(t)), delete this.latestValues[t], this.removeValueFromRenderState(t, this.renderState);
+  }
+  /**
+   * Check whether we have a motion value for this key
+   */
+  hasValue(t) {
+    return this.values.has(t);
+  }
+  getValue(t, r) {
+    if (this.props.values && this.props.values[t])
+      return this.props.values[t];
+    let n = this.values.get(t);
+    return n === void 0 && r !== void 0 && (n = gt(r === null ? void 0 : r, { owner: this }), this.addValue(t, n)), n;
+  }
+  /**
+   * If we're trying to animate to a previously unencountered value,
+   * we need to check for it in our state and as a last resort read it
+   * directly from the instance (which might have performance implications).
+   */
+  readValue(t, r) {
+    let n = this.latestValues[t] !== void 0 || !this.current ? this.latestValues[t] : this.getBaseTargetFromProps(this.props, t) ?? this.readValueFromInstance(this.current, t, this.options);
+    return n != null && (typeof n == "string" && (qi(n) || Zi(n)) ? n = parseFloat(n) : !Nu(n) && ze.test(r) && (n = Do(t, r)), this.setBaseTarget(t, ce(n) ? n.get() : n)), ce(n) ? n.get() : n;
+  }
+  /**
+   * Set the base target to later animate back to. This is currently
+   * only hydrated on creation and when we first read a value.
+   */
+  setBaseTarget(t, r) {
+    this.baseTarget[t] = r;
+  }
+  /**
+   * Find the base target for a value thats been removed from all animation
+   * props.
+   */
+  getBaseTarget(t) {
+    var a;
+    const { initial: r } = this.props;
+    let n;
+    if (typeof r == "string" || typeof r == "object") {
+      const o = Kr(this.props, r, (a = this.presenceContext) == null ? void 0 : a.custom);
+      o && (n = o[t]);
+    }
+    if (r && n !== void 0)
+      return n;
+    const i = this.getBaseTargetFromProps(this.props, t);
+    return i !== void 0 && !ce(i) ? i : this.initialValues[t] !== void 0 && n === void 0 ? void 0 : this.baseTarget[t];
+  }
+  on(t, r) {
+    return this.events[t] || (this.events[t] = new kr()), this.events[t].add(r);
+  }
+  notify(t, ...r) {
+    this.events[t] && this.events[t].notify(...r);
+  }
+  scheduleRenderMicrotask() {
+    Yr.render(this.render);
+  }
+}
+class na extends dh {
+  constructor() {
+    super(...arguments), this.KeyframeResolver = du;
+  }
+  sortInstanceNodePosition(t, r) {
+    return t.compareDocumentPosition(r) & 2 ? 1 : -1;
+  }
+  getBaseTargetFromProps(t, r) {
+    return t.style ? t.style[r] : void 0;
+  }
+  removeValueFromRenderState(t, { vars: r, style: n }) {
+    delete r[t], delete n[t];
+  }
+  handleChildMotionValue() {
+    this.childSubscription && (this.childSubscription(), delete this.childSubscription);
+    const { children: t } = this.props;
+    ce(t) && (this.childSubscription = t.on("change", (r) => {
+      this.current && (this.current.textContent = `${r}`);
+    }));
+  }
+}
+function ia(e, { style: t, vars: r }, n, i) {
+  const a = e.style;
+  let o;
+  for (o in t)
+    a[o] = t[o];
+  i == null || i.applyProjectionStyles(a, n);
+  for (o in r)
+    a.setProperty(o, r[o]);
+}
+function uh(e) {
+  return window.getComputedStyle(e);
+}
+class hh extends na {
+  constructor() {
+    super(...arguments), this.type = "html", this.renderInstance = ia;
+  }
+  readValueFromInstance(t, r) {
+    var n;
+    if (wt.has(r))
+      return (n = this.projection) != null && n.isProjecting ? tr(r) : Pd(t, r);
+    {
+      const i = uh(t), a = (Pr(r) ? i.getPropertyValue(r) : i[r]) || 0;
+      return typeof a == "string" ? a.trim() : a;
+    }
+  }
+  measureInstanceViewportBox(t, { transformPagePoint: r }) {
+    return sa(t, r);
+  }
+  build(t, r, n) {
+    $r(t, r, n.transformTemplate);
+  }
+  scrapeMotionValuesFromProps(t, r, n) {
+    return Gr(t, r, n);
+  }
+}
+const oa = /* @__PURE__ */ new Set([
+  "baseFrequency",
+  "diffuseConstant",
+  "kernelMatrix",
+  "kernelUnitLength",
+  "keySplines",
+  "keyTimes",
+  "limitingConeAngle",
+  "markerHeight",
+  "markerWidth",
+  "numOctaves",
+  "targetX",
+  "targetY",
+  "surfaceScale",
+  "specularConstant",
+  "specularExponent",
+  "stdDeviation",
+  "tableValues",
+  "viewBox",
+  "gradientTransform",
+  "pathLength",
+  "startOffset",
+  "textLength",
+  "lengthAdjust"
+]);
+function mh(e, t, r, n) {
+  ia(e, t, void 0, n);
+  for (const i in t.attrs)
+    e.setAttribute(oa.has(i) ? i : qr(i), t.attrs[i]);
+}
+class fh extends na {
+  constructor() {
+    super(...arguments), this.type = "svg", this.isSVGTag = !1, this.measureInstanceViewportBox = te;
+  }
+  getBaseTargetFromProps(t, r) {
+    return t[r];
+  }
+  readValueFromInstance(t, r) {
+    if (wt.has(r)) {
+      const n = Mo(r);
+      return n && n.default || 0;
+    }
+    return r = oa.has(r) ? r : qr(r), t.getAttribute(r);
+  }
+  scrapeMotionValuesFromProps(t, r, n) {
+    return qo(t, r, n);
+  }
+  build(t, r, n) {
+    Wo(t, r, this.isSVGTag, n.transformTemplate, n.style);
+  }
+  renderInstance(t, r, n, i) {
+    mh(t, r, n, i);
+  }
+  mount(t) {
+    this.isSVGTag = Ko(t.tagName), super.mount(t);
+  }
+}
+const gh = (e, t) => Hr(e) ? new fh(t) : new hh(t, {
+  allowProjection: e !== Ii
+});
+function mt(e, t, r) {
+  const n = e.getProps();
+  return Kr(n, t, r !== void 0 ? r : n.custom, e);
+}
+const ur = (e) => Array.isArray(e);
+function ph(e, t, r) {
+  e.hasValue(t) ? e.getValue(t).set(r) : e.addValue(t, gt(r));
+}
+function xh(e) {
+  return ur(e) ? e[e.length - 1] || 0 : e;
+}
+function yh(e, t) {
+  const r = mt(e, t);
+  let { transitionEnd: n = {}, transition: i = {}, ...a } = r || {};
+  a = { ...a, ...n };
+  for (const o in a) {
+    const l = xh(a[o]);
+    ph(e, o, l);
+  }
+}
+function bh(e) {
+  return !!(ce(e) && e.add);
+}
+function hr(e, t) {
+  const r = e.getValue("willChange");
+  if (bh(r))
+    return r.add(t);
+  if (!r && Ve.WillChange) {
+    const n = new Ve.WillChange("auto");
+    e.addValue("willChange", n), n.add(t);
+  }
+}
+function aa(e) {
+  return e.props[Xo];
+}
+const vh = (e) => e !== null;
+function wh(e, { repeat: t, repeatType: r = "loop" }, n) {
+  const i = e.filter(vh), a = t && r !== "loop" && t % 2 === 1 ? 0 : i.length - 1;
+  return i[a];
+}
+const jh = {
+  type: "spring",
+  stiffness: 500,
+  damping: 25,
+  restSpeed: 10
+}, Nh = (e) => ({
+  type: "spring",
+  stiffness: 550,
+  damping: e === 0 ? 2 * Math.sqrt(550) : 30,
+  restSpeed: 10
+}), kh = {
+  type: "keyframes",
+  duration: 0.8
+}, Th = {
+  type: "keyframes",
+  ease: [0.25, 0.1, 0.35, 1],
+  duration: 0.3
+}, Sh = (e, { keyframes: t }) => t.length > 2 ? kh : wt.has(e) ? e.startsWith("scale") ? Nh(t[1]) : jh : Th;
+function Ch({ when: e, delay: t, delayChildren: r, staggerChildren: n, staggerDirection: i, repeat: a, repeatType: o, repeatDelay: l, from: c, elapsed: u, ...d }) {
+  return !!Object.keys(d).length;
+}
+const Xr = (e, t, r, n = {}, i, a) => (o) => {
+  const l = Ir(n, e) || {}, c = l.delay || n.delay || 0;
+  let { elapsed: u = 0 } = n;
+  u = u - /* @__PURE__ */ Te(c);
+  const d = {
+    keyframes: Array.isArray(r) ? r : [null, r],
+    ease: "easeOut",
+    velocity: t.getVelocity(),
+    ...l,
+    delay: -u,
+    onUpdate: (f) => {
+      t.set(f), l.onUpdate && l.onUpdate(f);
+    },
+    onComplete: () => {
+      o(), l.onComplete && l.onComplete();
+    },
+    name: e,
+    motionValue: t,
+    element: a ? void 0 : i
+  };
+  Ch(l) || Object.assign(d, Sh(e, d)), d.duration && (d.duration = /* @__PURE__ */ Te(d.duration)), d.repeatDelay && (d.repeatDelay = /* @__PURE__ */ Te(d.repeatDelay)), d.from !== void 0 && (d.keyframes[0] = d.from);
+  let h = !1;
+  if ((d.type === !1 || d.duration === 0 && !d.repeatDelay) && (or(d), d.delay === 0 && (h = !0)), (Ve.instantAnimations || Ve.skipAnimations) && (h = !0, or(d), d.delay = 0), d.allowFlatten = !l.type && !l.ease, h && !a && t.get() !== void 0) {
+    const f = wh(d.keyframes, l);
+    if (f !== void 0) {
+      Z.update(() => {
+        d.onUpdate(f), d.onComplete();
+      });
+      return;
+    }
+  }
+  return l.isSync ? new Lr(d) : new Zd(d);
+};
+function Ph({ protectedKeys: e, needsAnimating: t }, r) {
+  const n = e.hasOwnProperty(r) && t[r] !== !0;
+  return t[r] = !1, n;
+}
+function la(e, t, { delay: r = 0, transitionOverride: n, type: i } = {}) {
+  let { transition: a = e.getDefaultTransition(), transitionEnd: o, ...l } = t;
+  n && (a = n);
+  const c = [], u = i && e.animationState && e.animationState.getState()[i];
+  for (const d in l) {
+    const h = e.getValue(d, e.latestValues[d] ?? null), f = l[d];
+    if (f === void 0 || u && Ph(u, d))
+      continue;
+    const p = {
+      delay: r,
+      ...Ir(a || {}, d)
+    }, y = h.get();
+    if (y !== void 0 && !h.isAnimating && !Array.isArray(f) && f === y && !p.velocity)
+      continue;
+    let S = !1;
+    if (window.MotionHandoffAnimation) {
+      const j = aa(e);
+      if (j) {
+        const w = window.MotionHandoffAnimation(j, d, Z);
+        w !== null && (p.startTime = w, S = !0);
+      }
+    }
+    hr(e, d), h.start(Xr(d, h, f, e.shouldReduceMotion && _o.has(d) ? { type: !1 } : p, e, S));
+    const C = h.animation;
+    C && c.push(C);
+  }
+  return o && Promise.all(c).then(() => {
+    Z.update(() => {
+      o && yh(e, o);
+    });
+  }), c;
+}
+function ca(e, t, r, n = 0, i = 1) {
+  const a = Array.from(e).sort((u, d) => u.sortNodePosition(d)).indexOf(t), o = e.size, l = (o - 1) * n;
+  return typeof r == "function" ? r(a, o) : i === 1 ? a * n : l - a * n;
+}
+function mr(e, t, r = {}) {
+  var c;
+  const n = mt(e, t, r.type === "exit" ? (c = e.presenceContext) == null ? void 0 : c.custom : void 0);
+  let { transition: i = e.getDefaultTransition() || {} } = n || {};
+  r.transitionOverride && (i = r.transitionOverride);
+  const a = n ? () => Promise.all(la(e, n, r)) : () => Promise.resolve(), o = e.variantChildren && e.variantChildren.size ? (u = 0) => {
+    const { delayChildren: d = 0, staggerChildren: h, staggerDirection: f } = i;
+    return _h(e, t, u, d, h, f, r);
+  } : () => Promise.resolve(), { when: l } = i;
+  if (l) {
+    const [u, d] = l === "beforeChildren" ? [a, o] : [o, a];
+    return u().then(() => d());
+  } else
+    return Promise.all([a(), o(r.delay)]);
+}
+function _h(e, t, r = 0, n = 0, i = 0, a = 1, o) {
+  const l = [];
+  for (const c of e.variantChildren)
+    c.notify("AnimationStart", t), l.push(mr(c, t, {
+      ...o,
+      delay: r + (typeof n == "function" ? 0 : n) + ca(e.variantChildren, c, n, i, a)
+    }).then(() => c.notify("AnimationComplete", t)));
+  return Promise.all(l);
+}
+function Ah(e, t, r = {}) {
+  e.notify("AnimationStart", t);
+  let n;
+  if (Array.isArray(t)) {
+    const i = t.map((a) => mr(e, a, r));
+    n = Promise.all(i);
+  } else if (typeof t == "string")
+    n = mr(e, t, r);
+  else {
+    const i = typeof t == "function" ? mt(e, t, r.custom) : t;
+    n = Promise.all(la(e, i, r));
+  }
+  return n.then(() => {
+    e.notify("AnimationComplete", t);
+  });
+}
+function da(e, t) {
+  if (!Array.isArray(t))
+    return !1;
+  const r = t.length;
+  if (r !== e.length)
+    return !1;
+  for (let n = 0; n < r; n++)
+    if (t[n] !== e[n])
+      return !1;
+  return !0;
+}
+const Eh = Ur.length;
+function ua(e) {
+  if (!e)
+    return;
+  if (!e.isControllingVariants) {
+    const r = e.parent ? ua(e.parent) || {} : {};
+    return e.props.initial !== void 0 && (r.initial = e.props.initial), r;
+  }
+  const t = {};
+  for (let r = 0; r < Eh; r++) {
+    const n = Ur[r], i = e.props[n];
+    (Yt(i) || i === !1) && (t[n] = i);
+  }
+  return t;
+}
+const Mh = [...zr].reverse(), Dh = zr.length;
+function Rh(e) {
+  return (t) => Promise.all(t.map(({ animation: r, options: n }) => Ah(e, r, n)));
+}
+function Vh(e) {
+  let t = Rh(e), r = ei(), n = !0;
+  const i = (c) => (u, d) => {
+    var f;
+    const h = mt(e, d, c === "exit" ? (f = e.presenceContext) == null ? void 0 : f.custom : void 0);
+    if (h) {
+      const { transition: p, transitionEnd: y, ...S } = h;
+      u = { ...u, ...S, ...y };
+    }
+    return u;
+  };
+  function a(c) {
+    t = c(e);
+  }
+  function o(c) {
+    const { props: u } = e, d = ua(e.parent) || {}, h = [], f = /* @__PURE__ */ new Set();
+    let p = {}, y = 1 / 0;
+    for (let C = 0; C < Dh; C++) {
+      const j = Mh[C], w = r[j], P = u[j] !== void 0 ? u[j] : d[j], D = Yt(P), A = j === c ? w.isActive : null;
+      A === !1 && (y = C);
+      let I = P === d[j] && P !== u[j] && D;
+      if (I && n && e.manuallyAnimateOnMount && (I = !1), w.protectedKeys = { ...p }, // If it isn't active and hasn't *just* been set as inactive
+      !w.isActive && A === null || // If we didn't and don't have any defined prop for this animation type
+      !P && !w.prevProp || // Or if the prop doesn't define an animation
+      Ns(P) || typeof P == "boolean")
+        continue;
+      const O = Lh(w.prevProp, P);
+      let k = O || // If we're making this variant active, we want to always make it active
+      j === c && w.isActive && !I && D || // If we removed a higher-priority variant (i is in reverse order)
+      C > y && D, x = !1;
+      const E = Array.isArray(P) ? P : [P];
+      let b = E.reduce(i(j), {});
+      A === !1 && (b = {});
+      const { prevResolvedValues: V = {} } = w, K = {
+        ...V,
+        ...b
+      }, se = ($) => {
+        k = !0, f.has($) && (x = !0, f.delete($)), w.needsAnimating[$] = !0;
+        const B = e.getValue($);
+        B && (B.liveStyle = !1);
+      };
+      for (const $ in K) {
+        const B = b[$], q = V[$];
+        if (p.hasOwnProperty($))
+          continue;
+        let ie = !1;
+        ur(B) && ur(q) ? ie = !da(B, q) : ie = B !== q, ie ? B != null ? se($) : f.add($) : B !== void 0 && f.has($) ? se($) : w.protectedKeys[$] = !0;
+      }
+      w.prevProp = P, w.prevResolvedValues = b, w.isActive && (p = { ...p, ...b }), n && e.blockInitialAnimation && (k = !1);
+      const T = I && O;
+      k && (!T || x) && h.push(...E.map(($) => {
+        const B = { type: j };
+        if (typeof $ == "string" && n && !T && e.manuallyAnimateOnMount && e.parent) {
+          const { parent: q } = e, ie = mt(q, $);
+          if (q.enteringChildren && ie) {
+            const { delayChildren: Ne } = ie.transition || {};
+            B.delay = ca(q.enteringChildren, e, Ne);
+          }
+        }
+        return {
+          animation: $,
+          options: B
+        };
+      }));
+    }
+    if (f.size) {
+      const C = {};
+      if (typeof u.initial != "boolean") {
+        const j = mt(e, Array.isArray(u.initial) ? u.initial[0] : u.initial);
+        j && j.transition && (C.transition = j.transition);
+      }
+      f.forEach((j) => {
+        const w = e.getBaseTarget(j), P = e.getValue(j);
+        P && (P.liveStyle = !0), C[j] = w ?? null;
+      }), h.push({ animation: C });
+    }
+    let S = !!h.length;
+    return n && (u.initial === !1 || u.initial === u.animate) && !e.manuallyAnimateOnMount && (S = !1), n = !1, S ? t(h) : Promise.resolve();
+  }
+  function l(c, u) {
+    var h;
+    if (r[c].isActive === u)
+      return Promise.resolve();
+    (h = e.variantChildren) == null || h.forEach((f) => {
+      var p;
+      return (p = f.animationState) == null ? void 0 : p.setActive(c, u);
+    }), r[c].isActive = u;
+    const d = o(c);
+    for (const f in r)
+      r[f].protectedKeys = {};
+    return d;
+  }
+  return {
+    animateChanges: o,
+    setActive: l,
+    setAnimateFunction: a,
+    getState: () => r,
+    reset: () => {
+      r = ei(), n = !0;
+    }
+  };
+}
+function Lh(e, t) {
+  return typeof t == "string" ? t !== e : Array.isArray(t) ? !da(t, e) : !1;
+}
+function Ke(e = !1) {
+  return {
+    isActive: e,
+    protectedKeys: {},
+    needsAnimating: {},
+    prevResolvedValues: {}
+  };
+}
+function ei() {
+  return {
+    animate: Ke(!0),
+    whileInView: Ke(),
+    whileHover: Ke(),
+    whileTap: Ke(),
+    whileDrag: Ke(),
+    whileFocus: Ke(),
+    exit: Ke()
+  };
+}
+class $e {
+  constructor(t) {
+    this.isMounted = !1, this.node = t;
+  }
+  update() {
+  }
+}
+class Fh extends $e {
+  /**
+   * We dynamically generate the AnimationState manager as it contains a reference
+   * to the underlying animation library. We only want to load that if we load this,
+   * so people can optionally code split it out using the `m` component.
+   */
+  constructor(t) {
+    super(t), t.animationState || (t.animationState = Vh(t));
+  }
+  updateAnimationControlsSubscription() {
+    const { animate: t } = this.node.getProps();
+    Ns(t) && (this.unmountControls = t.subscribe(this.node));
+  }
+  /**
+   * Subscribe any provided AnimationControls to the component's VisualElement
+   */
+  mount() {
+    this.updateAnimationControlsSubscription();
+  }
+  update() {
+    const { animate: t } = this.node.getProps(), { animate: r } = this.node.prevProps || {};
+    t !== r && this.updateAnimationControlsSubscription();
+  }
+  unmount() {
+    var t;
+    this.node.animationState.reset(), (t = this.unmountControls) == null || t.call(this);
+  }
+}
+let Ih = 0;
+class Oh extends $e {
+  constructor() {
+    super(...arguments), this.id = Ih++;
+  }
+  update() {
+    if (!this.node.presenceContext)
+      return;
+    const { isPresent: t, onExitComplete: r } = this.node.presenceContext, { isPresent: n } = this.node.prevPresenceContext || {};
+    if (!this.node.animationState || t === n)
+      return;
+    const i = this.node.animationState.setActive("exit", !t);
+    r && !t && i.then(() => {
+      r(this.id);
+    });
+  }
+  mount() {
+    const { register: t, onExitComplete: r } = this.node.presenceContext || {};
+    r && r(this.id), t && (this.unmount = t(this.id));
+  }
+  unmount() {
+  }
+}
+const Yh = {
+  animation: {
+    Feature: Fh
+  },
+  exit: {
+    Feature: Oh
+  }
+};
+function zt(e, t, r, n = { passive: !0 }) {
+  return e.addEventListener(t, r, n), () => e.removeEventListener(t, r);
+}
+function Gt(e) {
+  return {
+    point: {
+      x: e.pageX,
+      y: e.pageY
+    }
+  };
+}
+const Bh = (e) => (t) => Br(t) && e(t, Gt(t));
+function At(e, t, r, n) {
+  return zt(e, t, Bh(r), n);
+}
+const ha = 1e-4, zh = 1 - ha, Uh = 1 + ha, ma = 0.01, $h = 0 - ma, Wh = 0 + ma;
+function he(e) {
+  return e.max - e.min;
+}
+function Hh(e, t, r) {
+  return Math.abs(e - t) <= r;
+}
+function ti(e, t, r, n = 0.5) {
+  e.origin = n, e.originPoint = Q(t.min, t.max, e.origin), e.scale = he(r) / he(t), e.translate = Q(r.min, r.max, e.origin) - e.originPoint, (e.scale >= zh && e.scale <= Uh || isNaN(e.scale)) && (e.scale = 1), (e.translate >= $h && e.translate <= Wh || isNaN(e.translate)) && (e.translate = 0);
+}
+function Et(e, t, r, n) {
+  ti(e.x, t.x, r.x, n ? n.originX : void 0), ti(e.y, t.y, r.y, n ? n.originY : void 0);
+}
+function si(e, t, r) {
+  e.min = r.min + t.min, e.max = e.min + he(t);
+}
+function Kh(e, t, r) {
+  si(e.x, t.x, r.x), si(e.y, t.y, r.y);
+}
+function ri(e, t, r) {
+  e.min = t.min - r.min, e.max = e.min + he(t);
+}
+function Mt(e, t, r) {
+  ri(e.x, t.x, r.x), ri(e.y, t.y, r.y);
+}
+function we(e) {
+  return [e("x"), e("y")];
+}
+const fa = ({ current: e }) => e ? e.ownerDocument.defaultView : null, ni = (e, t) => Math.abs(e - t);
+function Gh(e, t) {
+  const r = ni(e.x, t.x), n = ni(e.y, t.y);
+  return Math.sqrt(r ** 2 + n ** 2);
+}
+class ga {
+  constructor(t, r, { transformPagePoint: n, contextWindow: i = window, dragSnapToOrigin: a = !1, distanceThreshold: o = 3 } = {}) {
+    if (this.startEvent = null, this.lastMoveEvent = null, this.lastMoveEventInfo = null, this.handlers = {}, this.contextWindow = window, this.updatePoint = () => {
+      if (!(this.lastMoveEvent && this.lastMoveEventInfo))
+        return;
+      const f = Os(this.lastMoveEventInfo, this.history), p = this.startEvent !== null, y = Gh(f.offset, { x: 0, y: 0 }) >= this.distanceThreshold;
+      if (!p && !y)
+        return;
+      const { point: S } = f, { timestamp: C } = oe;
+      this.history.push({ ...S, timestamp: C });
+      const { onStart: j, onMove: w } = this.handlers;
+      p || (j && j(this.lastMoveEvent, f), this.startEvent = this.lastMoveEvent), w && w(this.lastMoveEvent, f);
+    }, this.handlePointerMove = (f, p) => {
+      this.lastMoveEvent = f, this.lastMoveEventInfo = Is(p, this.transformPagePoint), Z.update(this.updatePoint, !0);
+    }, this.handlePointerUp = (f, p) => {
+      this.end();
+      const { onEnd: y, onSessionEnd: S, resumeAnimation: C } = this.handlers;
+      if (this.dragSnapToOrigin && C && C(), !(this.lastMoveEvent && this.lastMoveEventInfo))
+        return;
+      const j = Os(f.type === "pointercancel" ? this.lastMoveEventInfo : Is(p, this.transformPagePoint), this.history);
+      this.startEvent && y && y(f, j), S && S(f, j);
+    }, !Br(t))
+      return;
+    this.dragSnapToOrigin = a, this.handlers = r, this.transformPagePoint = n, this.distanceThreshold = o, this.contextWindow = i || window;
+    const l = Gt(t), c = Is(l, this.transformPagePoint), { point: u } = c, { timestamp: d } = oe;
+    this.history = [{ ...u, timestamp: d }];
+    const { onSessionStart: h } = r;
+    h && h(t, Os(c, this.history)), this.removeListeners = Wt(At(this.contextWindow, "pointermove", this.handlePointerMove), At(this.contextWindow, "pointerup", this.handlePointerUp), At(this.contextWindow, "pointercancel", this.handlePointerUp));
+  }
+  updateHandlers(t) {
+    this.handlers = t;
+  }
+  end() {
+    this.removeListeners && this.removeListeners(), Be(this.updatePoint);
+  }
+}
+function Is(e, t) {
+  return t ? { point: t(e.point) } : e;
+}
+function ii(e, t) {
+  return { x: e.x - t.x, y: e.y - t.y };
+}
+function Os({ point: e }, t) {
+  return {
+    point: e,
+    delta: ii(e, pa(t)),
+    offset: ii(e, qh(t)),
+    velocity: Xh(t, 0.1)
+  };
+}
+function qh(e) {
+  return e[0];
+}
+function pa(e) {
+  return e[e.length - 1];
+}
+function Xh(e, t) {
+  if (e.length < 2)
+    return { x: 0, y: 0 };
+  let r = e.length - 1, n = null;
+  const i = pa(e);
+  for (; r >= 0 && (n = e[r], !(i.timestamp - n.timestamp > /* @__PURE__ */ Te(t))); )
+    r--;
+  if (!n)
+    return { x: 0, y: 0 };
+  const a = /* @__PURE__ */ Ce(i.timestamp - n.timestamp);
+  if (a === 0)
+    return { x: 0, y: 0 };
+  const o = {
+    x: (i.x - n.x) / a,
+    y: (i.y - n.y) / a
+  };
+  return o.x === 1 / 0 && (o.x = 0), o.y === 1 / 0 && (o.y = 0), o;
+}
+function Zh(e, { min: t, max: r }, n) {
+  return t !== void 0 && e < t ? e = n ? Q(t, e, n.min) : Math.max(e, t) : r !== void 0 && e > r && (e = n ? Q(r, e, n.max) : Math.min(e, r)), e;
+}
+function oi(e, t, r) {
+  return {
+    min: t !== void 0 ? e.min + t : void 0,
+    max: r !== void 0 ? e.max + r - (e.max - e.min) : void 0
+  };
+}
+function Jh(e, { top: t, left: r, bottom: n, right: i }) {
+  return {
+    x: oi(e.x, r, i),
+    y: oi(e.y, t, n)
+  };
+}
+function ai(e, t) {
+  let r = t.min - e.min, n = t.max - e.max;
+  return t.max - t.min < e.max - e.min && ([r, n] = [n, r]), { min: r, max: n };
+}
+function Qh(e, t) {
+  return {
+    x: ai(e.x, t.x),
+    y: ai(e.y, t.y)
+  };
+}
+function em(e, t) {
+  let r = 0.5;
+  const n = he(e), i = he(t);
+  return i > n ? r = /* @__PURE__ */ Ft(t.min, t.max - n, e.min) : n > i && (r = /* @__PURE__ */ Ft(e.min, e.max - i, t.min)), De(0, 1, r);
+}
+function tm(e, t) {
+  const r = {};
+  return t.min !== void 0 && (r.min = t.min - e.min), t.max !== void 0 && (r.max = t.max - e.min), r;
+}
+const fr = 0.35;
+function sm(e = fr) {
+  return e === !1 ? e = 0 : e === !0 && (e = fr), {
+    x: li(e, "left", "right"),
+    y: li(e, "top", "bottom")
+  };
+}
+function li(e, t, r) {
+  return {
+    min: ci(e, t),
+    max: ci(e, r)
+  };
+}
+function ci(e, t) {
+  return typeof e == "number" ? e : e[t] || 0;
+}
+const rm = /* @__PURE__ */ new WeakMap();
+class nm {
+  constructor(t) {
+    this.openDragLock = null, this.isDragging = !1, this.currentDirection = null, this.originPoint = { x: 0, y: 0 }, this.constraints = !1, this.hasMutatedConstraints = !1, this.elastic = te(), this.latestPointerEvent = null, this.latestPanInfo = null, this.visualElement = t;
+  }
+  start(t, { snapToCursor: r = !1, distanceThreshold: n } = {}) {
+    const { presenceContext: i } = this.visualElement;
+    if (i && i.isPresent === !1)
+      return;
+    const a = (h) => {
+      const { dragSnapToOrigin: f } = this.getProps();
+      f ? this.pauseAnimation() : this.stopAnimation(), r && this.snapToCursor(Gt(h).point);
+    }, o = (h, f) => {
+      const { drag: p, dragPropagation: y, onDragStart: S } = this.getProps();
+      if (p && !y && (this.openDragLock && this.openDragLock(), this.openDragLock = gu(p), !this.openDragLock))
+        return;
+      this.latestPointerEvent = h, this.latestPanInfo = f, this.isDragging = !0, this.currentDirection = null, this.resolveConstraints(), this.visualElement.projection && (this.visualElement.projection.isAnimationBlocked = !0, this.visualElement.projection.target = void 0), we((j) => {
+        let w = this.getAxisMotionValue(j).get() || 0;
+        if (Pe.test(w)) {
+          const { projection: P } = this.visualElement;
+          if (P && P.layout) {
+            const D = P.layout.layoutBox[j];
+            D && (w = he(D) * (parseFloat(w) / 100));
+          }
+        }
+        this.originPoint[j] = w;
+      }), S && Z.postRender(() => S(h, f)), hr(this.visualElement, "transform");
+      const { animationState: C } = this.visualElement;
+      C && C.setActive("whileDrag", !0);
+    }, l = (h, f) => {
+      this.latestPointerEvent = h, this.latestPanInfo = f;
+      const { dragPropagation: p, dragDirectionLock: y, onDirectionLock: S, onDrag: C } = this.getProps();
+      if (!p && !this.openDragLock)
+        return;
+      const { offset: j } = f;
+      if (y && this.currentDirection === null) {
+        this.currentDirection = im(j), this.currentDirection !== null && S && S(this.currentDirection);
+        return;
+      }
+      this.updateAxis("x", f.point, j), this.updateAxis("y", f.point, j), this.visualElement.render(), C && C(h, f);
+    }, c = (h, f) => {
+      this.latestPointerEvent = h, this.latestPanInfo = f, this.stop(h, f), this.latestPointerEvent = null, this.latestPanInfo = null;
+    }, u = () => we((h) => {
+      var f;
+      return this.getAnimationState(h) === "paused" && ((f = this.getAxisMotionValue(h).animation) == null ? void 0 : f.play());
+    }), { dragSnapToOrigin: d } = this.getProps();
+    this.panSession = new ga(t, {
+      onSessionStart: a,
+      onStart: o,
+      onMove: l,
+      onSessionEnd: c,
+      resumeAnimation: u
+    }, {
+      transformPagePoint: this.visualElement.getTransformPagePoint(),
+      dragSnapToOrigin: d,
+      distanceThreshold: n,
+      contextWindow: fa(this.visualElement)
+    });
+  }
+  /**
+   * @internal
+   */
+  stop(t, r) {
+    const n = t || this.latestPointerEvent, i = r || this.latestPanInfo, a = this.isDragging;
+    if (this.cancel(), !a || !i || !n)
+      return;
+    const { velocity: o } = i;
+    this.startAnimation(o);
+    const { onDragEnd: l } = this.getProps();
+    l && Z.postRender(() => l(n, i));
+  }
+  /**
+   * @internal
+   */
+  cancel() {
+    this.isDragging = !1;
+    const { projection: t, animationState: r } = this.visualElement;
+    t && (t.isAnimationBlocked = !1), this.panSession && this.panSession.end(), this.panSession = void 0;
+    const { dragPropagation: n } = this.getProps();
+    !n && this.openDragLock && (this.openDragLock(), this.openDragLock = null), r && r.setActive("whileDrag", !1);
+  }
+  updateAxis(t, r, n) {
+    const { drag: i } = this.getProps();
+    if (!n || !rs(t, i, this.currentDirection))
+      return;
+    const a = this.getAxisMotionValue(t);
+    let o = this.originPoint[t] + n[t];
+    this.constraints && this.constraints[t] && (o = Zh(o, this.constraints[t], this.elastic[t])), a.set(o);
+  }
+  resolveConstraints() {
+    var a;
+    const { dragConstraints: t, dragElastic: r } = this.getProps(), n = this.visualElement.projection && !this.visualElement.projection.layout ? this.visualElement.projection.measure(!1) : (a = this.visualElement.projection) == null ? void 0 : a.layout, i = this.constraints;
+    t && lt(t) ? this.constraints || (this.constraints = this.resolveRefConstraints()) : t && n ? this.constraints = Jh(n.layoutBox, t) : this.constraints = !1, this.elastic = sm(r), i !== this.constraints && n && this.constraints && !this.hasMutatedConstraints && we((o) => {
+      this.constraints !== !1 && this.getAxisMotionValue(o) && (this.constraints[o] = tm(n.layoutBox[o], this.constraints[o]));
+    });
+  }
+  resolveRefConstraints() {
+    const { dragConstraints: t, onMeasureDragConstraints: r } = this.getProps();
+    if (!t || !lt(t))
+      return !1;
+    const n = t.current;
+    Re(n !== null, "If `dragConstraints` is set as a React ref, that ref must be passed to another component's `ref` prop.", "drag-constraints-ref");
+    const { projection: i } = this.visualElement;
+    if (!i || !i.layout)
+      return !1;
+    const a = oh(n, i.root, this.visualElement.getTransformPagePoint());
+    let o = Qh(i.layout.layoutBox, a);
+    if (r) {
+      const l = r(rh(o));
+      this.hasMutatedConstraints = !!l, l && (o = Qo(l));
+    }
+    return o;
+  }
+  startAnimation(t) {
+    const { drag: r, dragMomentum: n, dragElastic: i, dragTransition: a, dragSnapToOrigin: o, onDragTransitionEnd: l } = this.getProps(), c = this.constraints || {}, u = we((d) => {
+      if (!rs(d, r, this.currentDirection))
+        return;
+      let h = c && c[d] || {};
+      o && (h = { min: 0, max: 0 });
+      const f = i ? 200 : 1e6, p = i ? 40 : 1e7, y = {
+        type: "inertia",
+        velocity: n ? t[d] : 0,
+        bounceStiffness: f,
+        bounceDamping: p,
+        timeConstant: 750,
+        restDelta: 1,
+        restSpeed: 10,
+        ...a,
+        ...h
+      };
+      return this.startAxisValueAnimation(d, y);
+    });
+    return Promise.all(u).then(l);
+  }
+  startAxisValueAnimation(t, r) {
+    const n = this.getAxisMotionValue(t);
+    return hr(this.visualElement, t), n.start(Xr(t, n, 0, r, this.visualElement, !1));
+  }
+  stopAnimation() {
+    we((t) => this.getAxisMotionValue(t).stop());
+  }
+  pauseAnimation() {
+    we((t) => {
+      var r;
+      return (r = this.getAxisMotionValue(t).animation) == null ? void 0 : r.pause();
+    });
+  }
+  getAnimationState(t) {
+    var r;
+    return (r = this.getAxisMotionValue(t).animation) == null ? void 0 : r.state;
+  }
+  /**
+   * Drag works differently depending on which props are provided.
+   *
+   * - If _dragX and _dragY are provided, we output the gesture delta directly to those motion values.
+   * - Otherwise, we apply the delta to the x/y motion values.
+   */
+  getAxisMotionValue(t) {
+    const r = `_drag${t.toUpperCase()}`, n = this.visualElement.getProps(), i = n[r];
+    return i || this.visualElement.getValue(t, (n.initial ? n.initial[t] : void 0) || 0);
+  }
+  snapToCursor(t) {
+    we((r) => {
+      const { drag: n } = this.getProps();
+      if (!rs(r, n, this.currentDirection))
+        return;
+      const { projection: i } = this.visualElement, a = this.getAxisMotionValue(r);
+      if (i && i.layout) {
+        const { min: o, max: l } = i.layout.layoutBox[r];
+        a.set(t[r] - Q(o, l, 0.5));
+      }
+    });
+  }
+  /**
+   * When the viewport resizes we want to check if the measured constraints
+   * have changed and, if so, reposition the element within those new constraints
+   * relative to where it was before the resize.
+   */
+  scalePositionWithinConstraints() {
+    if (!this.visualElement.current)
+      return;
+    const { drag: t, dragConstraints: r } = this.getProps(), { projection: n } = this.visualElement;
+    if (!lt(r) || !n || !this.constraints)
+      return;
+    this.stopAnimation();
+    const i = { x: 0, y: 0 };
+    we((o) => {
+      const l = this.getAxisMotionValue(o);
+      if (l && this.constraints !== !1) {
+        const c = l.get();
+        i[o] = em({ min: c, max: c }, this.constraints[o]);
+      }
+    });
+    const { transformTemplate: a } = this.visualElement.getProps();
+    this.visualElement.current.style.transform = a ? a({}, "") : "none", n.root && n.root.updateScroll(), n.updateLayout(), this.resolveConstraints(), we((o) => {
+      if (!rs(o, t, null))
+        return;
+      const l = this.getAxisMotionValue(o), { min: c, max: u } = this.constraints[o];
+      l.set(Q(c, u, i[o]));
+    });
+  }
+  addListeners() {
+    if (!this.visualElement.current)
+      return;
+    rm.set(this.visualElement, this);
+    const t = this.visualElement.current, r = At(t, "pointerdown", (c) => {
+      const { drag: u, dragListener: d = !0 } = this.getProps();
+      u && d && this.start(c);
+    }), n = () => {
+      const { dragConstraints: c } = this.getProps();
+      lt(c) && c.current && (this.constraints = this.resolveRefConstraints());
+    }, { projection: i } = this.visualElement, a = i.addEventListener("measure", n);
+    i && !i.layout && (i.root && i.root.updateScroll(), i.updateLayout()), Z.read(n);
+    const o = zt(window, "resize", () => this.scalePositionWithinConstraints()), l = i.addEventListener("didUpdate", ({ delta: c, hasLayoutChanged: u }) => {
+      this.isDragging && u && (we((d) => {
+        const h = this.getAxisMotionValue(d);
+        h && (this.originPoint[d] += c[d].translate, h.set(h.get() + c[d].translate));
+      }), this.visualElement.render());
+    });
+    return () => {
+      o(), r(), a(), l && l();
+    };
+  }
+  getProps() {
+    const t = this.visualElement.getProps(), { drag: r = !1, dragDirectionLock: n = !1, dragPropagation: i = !1, dragConstraints: a = !1, dragElastic: o = fr, dragMomentum: l = !0 } = t;
+    return {
+      ...t,
+      drag: r,
+      dragDirectionLock: n,
+      dragPropagation: i,
+      dragConstraints: a,
+      dragElastic: o,
+      dragMomentum: l
+    };
+  }
+}
+function rs(e, t, r) {
+  return (t === !0 || t === e) && (r === null || r === e);
+}
+function im(e, t = 10) {
+  let r = null;
+  return Math.abs(e.y) > t ? r = "y" : Math.abs(e.x) > t && (r = "x"), r;
+}
+class om extends $e {
+  constructor(t) {
+    super(t), this.removeGroupControls = je, this.removeListeners = je, this.controls = new nm(t);
+  }
+  mount() {
+    const { dragControls: t } = this.node.getProps();
+    t && (this.removeGroupControls = t.subscribe(this.controls)), this.removeListeners = this.controls.addListeners() || je;
+  }
+  unmount() {
+    this.removeGroupControls(), this.removeListeners();
+  }
+}
+const di = (e) => (t, r) => {
+  e && Z.postRender(() => e(t, r));
+};
+class am extends $e {
+  constructor() {
+    super(...arguments), this.removePointerDownListener = je;
+  }
+  onPointerDown(t) {
+    this.session = new ga(t, this.createPanHandlers(), {
+      transformPagePoint: this.node.getTransformPagePoint(),
+      contextWindow: fa(this.node)
+    });
+  }
+  createPanHandlers() {
+    const { onPanSessionStart: t, onPanStart: r, onPan: n, onPanEnd: i } = this.node.getProps();
+    return {
+      onSessionStart: di(t),
+      onStart: di(r),
+      onMove: n,
+      onEnd: (a, o) => {
+        delete this.session, i && Z.postRender(() => i(a, o));
+      }
+    };
+  }
+  mount() {
+    this.removePointerDownListener = At(this.node.current, "pointerdown", (t) => this.onPointerDown(t));
+  }
+  update() {
+    this.session && this.session.updateHandlers(this.createPanHandlers());
+  }
+  unmount() {
+    this.removePointerDownListener(), this.session && this.session.end();
+  }
+}
+const us = {
+  /**
+   * Global flag as to whether the tree has animated since the last time
+   * we resized the window
+   */
+  hasAnimatedSinceResize: !0,
+  /**
+   * We set this to true once, on the first update. Any nodes added to the tree beyond that
+   * update will be given a `data-projection-id` attribute.
+   */
+  hasEverUpdated: !1
+};
+function ui(e, t) {
+  return t.max === t.min ? 0 : e / (t.max - t.min) * 100;
+}
+const St = {
+  correct: (e, t) => {
+    if (!t.target)
+      return e;
+    if (typeof e == "string")
+      if (L.test(e))
+        e = parseFloat(e);
+      else
+        return e;
+    const r = ui(e, t.target.x), n = ui(e, t.target.y);
+    return `${r}% ${n}%`;
+  }
+}, lm = {
+  correct: (e, { treeScale: t, projectionDelta: r }) => {
+    const n = e, i = ze.parse(e);
+    if (i.length > 5)
+      return n;
+    const a = ze.createTransformer(e), o = typeof i[0] != "number" ? 1 : 0, l = r.x.scale * t.x, c = r.y.scale * t.y;
+    i[0 + o] /= l, i[1 + o] /= c;
+    const u = Q(l, c, 0.5);
+    return typeof i[2 + o] == "number" && (i[2 + o] /= u), typeof i[3 + o] == "number" && (i[3 + o] /= u), a(i);
+  }
+};
+let Ys = !1;
+class cm extends sl {
+  /**
+   * This only mounts projection nodes for components that
+   * need measuring, we might want to do it for all components
+   * in order to incorporate transforms
+   */
+  componentDidMount() {
+    const { visualElement: t, layoutGroup: r, switchLayoutGroup: n, layoutId: i } = this.props, { projection: a } = t;
+    Eu(dm), a && (r.group && r.group.add(a), n && n.register && i && n.register(a), Ys && a.root.didUpdate(), a.addEventListener("animationComplete", () => {
+      this.safeToRemove();
+    }), a.setOptions({
+      ...a.options,
+      onExitComplete: () => this.safeToRemove()
+    })), us.hasEverUpdated = !0;
+  }
+  getSnapshotBeforeUpdate(t) {
+    const { layoutDependency: r, visualElement: n, drag: i, isPresent: a } = this.props, { projection: o } = n;
+    return o && (o.isPresent = a, Ys = !0, i || t.layoutDependency !== r || r === void 0 || t.isPresent !== a ? o.willUpdate() : this.safeToRemove(), t.isPresent !== a && (a ? o.promote() : o.relegate() || Z.postRender(() => {
+      const l = o.getStack();
+      (!l || !l.members.length) && this.safeToRemove();
+    }))), null;
+  }
+  componentDidUpdate() {
+    const { projection: t } = this.props.visualElement;
+    t && (t.root.didUpdate(), Yr.postRender(() => {
+      !t.currentAnimation && t.isLead() && this.safeToRemove();
+    }));
+  }
+  componentWillUnmount() {
+    const { visualElement: t, layoutGroup: r, switchLayoutGroup: n } = this.props, { projection: i } = t;
+    Ys = !0, i && (i.scheduleCheckAfterUnmount(), r && r.group && r.group.remove(i), n && n.deregister && n.deregister(i));
+  }
+  safeToRemove() {
+    const { safeToRemove: t } = this.props;
+    t && t();
+  }
+  render() {
+    return null;
+  }
+}
+function xa(e) {
+  const [t, r] = ku(), n = le(Gi);
+  return s.jsx(cm, { ...e, layoutGroup: n, switchLayoutGroup: le(Zo), isPresent: t, safeToRemove: r });
+}
+const dm = {
+  borderRadius: {
+    ...St,
+    applyTo: [
+      "borderTopLeftRadius",
+      "borderTopRightRadius",
+      "borderBottomLeftRadius",
+      "borderBottomRightRadius"
+    ]
+  },
+  borderTopLeftRadius: St,
+  borderTopRightRadius: St,
+  borderBottomLeftRadius: St,
+  borderBottomRightRadius: St,
+  boxShadow: lm
+};
+function um(e, t, r) {
+  const n = ce(e) ? e : gt(e);
+  return n.start(Xr("", n, t, r)), n.animation;
+}
+const hm = (e, t) => e.depth - t.depth;
+class mm {
+  constructor() {
+    this.children = [], this.isDirty = !1;
+  }
+  add(t) {
+    wr(this.children, t), this.isDirty = !0;
+  }
+  remove(t) {
+    jr(this.children, t), this.isDirty = !0;
+  }
+  forEach(t) {
+    this.isDirty && this.children.sort(hm), this.isDirty = !1, this.children.forEach(t);
+  }
+}
+function fm(e, t) {
+  const r = fe.now(), n = ({ timestamp: i }) => {
+    const a = i - r;
+    a >= t && (Be(n), e(a - t));
+  };
+  return Z.setup(n, !0), () => Be(n);
+}
+const ya = ["TopLeft", "TopRight", "BottomLeft", "BottomRight"], gm = ya.length, hi = (e) => typeof e == "string" ? parseFloat(e) : e, mi = (e) => typeof e == "number" || L.test(e);
+function pm(e, t, r, n, i, a) {
+  i ? (e.opacity = Q(0, r.opacity ?? 1, xm(n)), e.opacityExit = Q(t.opacity ?? 1, 0, ym(n))) : a && (e.opacity = Q(t.opacity ?? 1, r.opacity ?? 1, n));
+  for (let o = 0; o < gm; o++) {
+    const l = `border${ya[o]}Radius`;
+    let c = fi(t, l), u = fi(r, l);
+    if (c === void 0 && u === void 0)
+      continue;
+    c || (c = 0), u || (u = 0), c === 0 || u === 0 || mi(c) === mi(u) ? (e[l] = Math.max(Q(hi(c), hi(u), n), 0), (Pe.test(u) || Pe.test(c)) && (e[l] += "%")) : e[l] = u;
+  }
+  (t.rotate || r.rotate) && (e.rotate = Q(t.rotate || 0, r.rotate || 0, n));
+}
+function fi(e, t) {
+  return e[t] !== void 0 ? e[t] : e.borderRadius;
+}
+const xm = /* @__PURE__ */ ba(0, 0.5, io), ym = /* @__PURE__ */ ba(0.5, 0.95, je);
+function ba(e, t, r) {
+  return (n) => n < e ? 0 : n > t ? 1 : r(/* @__PURE__ */ Ft(e, t, n));
+}
+function gi(e, t) {
+  e.min = t.min, e.max = t.max;
+}
+function ve(e, t) {
+  gi(e.x, t.x), gi(e.y, t.y);
+}
+function pi(e, t) {
+  e.translate = t.translate, e.scale = t.scale, e.originPoint = t.originPoint, e.origin = t.origin;
+}
+function xi(e, t, r, n, i) {
+  return e -= t, e = ys(e, 1 / r, n), i !== void 0 && (e = ys(e, 1 / i, n)), e;
+}
+function bm(e, t = 0, r = 1, n = 0.5, i, a = e, o = e) {
+  if (Pe.test(t) && (t = parseFloat(t), t = Q(o.min, o.max, t / 100) - o.min), typeof t != "number")
+    return;
+  let l = Q(a.min, a.max, n);
+  e === a && (l -= t), e.min = xi(e.min, t, r, l, i), e.max = xi(e.max, t, r, l, i);
+}
+function yi(e, t, [r, n, i], a, o) {
+  bm(e, t[r], t[n], t[i], t.scale, a, o);
+}
+const vm = ["x", "scaleX", "originX"], wm = ["y", "scaleY", "originY"];
+function bi(e, t, r, n) {
+  yi(e.x, t, vm, r ? r.x : void 0, n ? n.x : void 0), yi(e.y, t, wm, r ? r.y : void 0, n ? n.y : void 0);
+}
+function vi(e) {
+  return e.translate === 0 && e.scale === 1;
+}
+function va(e) {
+  return vi(e.x) && vi(e.y);
+}
+function wi(e, t) {
+  return e.min === t.min && e.max === t.max;
+}
+function jm(e, t) {
+  return wi(e.x, t.x) && wi(e.y, t.y);
+}
+function ji(e, t) {
+  return Math.round(e.min) === Math.round(t.min) && Math.round(e.max) === Math.round(t.max);
+}
+function wa(e, t) {
+  return ji(e.x, t.x) && ji(e.y, t.y);
+}
+function Ni(e) {
+  return he(e.x) / he(e.y);
+}
+function ki(e, t) {
+  return e.translate === t.translate && e.scale === t.scale && e.originPoint === t.originPoint;
+}
+class Nm {
+  constructor() {
+    this.members = [];
+  }
+  add(t) {
+    wr(this.members, t), t.scheduleRender();
+  }
+  remove(t) {
+    if (jr(this.members, t), t === this.prevLead && (this.prevLead = void 0), t === this.lead) {
+      const r = this.members[this.members.length - 1];
+      r && this.promote(r);
+    }
+  }
+  relegate(t) {
+    const r = this.members.findIndex((i) => t === i);
+    if (r === 0)
+      return !1;
+    let n;
+    for (let i = r; i >= 0; i--) {
+      const a = this.members[i];
+      if (a.isPresent !== !1) {
+        n = a;
+        break;
+      }
+    }
+    return n ? (this.promote(n), !0) : !1;
+  }
+  promote(t, r) {
+    const n = this.lead;
+    if (t !== n && (this.prevLead = n, this.lead = t, t.show(), n)) {
+      n.instance && n.scheduleRender(), t.scheduleRender(), t.resumeFrom = n, r && (t.resumeFrom.preserveOpacity = !0), n.snapshot && (t.snapshot = n.snapshot, t.snapshot.latestValues = n.animationValues || n.latestValues), t.root && t.root.isUpdating && (t.isLayoutDirty = !0);
+      const { crossfade: i } = t.options;
+      i === !1 && n.hide();
+    }
+  }
+  exitAnimationComplete() {
+    this.members.forEach((t) => {
+      const { options: r, resumingFrom: n } = t;
+      r.onExitComplete && r.onExitComplete(), n && n.options.onExitComplete && n.options.onExitComplete();
+    });
+  }
+  scheduleRender() {
+    this.members.forEach((t) => {
+      t.instance && t.scheduleRender(!1);
+    });
+  }
+  /**
+   * Clear any leads that have been removed this render to prevent them from being
+   * used in future animations and to prevent memory leaks
+   */
+  removeLeadSnapshot() {
+    this.lead && this.lead.snapshot && (this.lead.snapshot = void 0);
+  }
+}
+function km(e, t, r) {
+  let n = "";
+  const i = e.x.translate / t.x, a = e.y.translate / t.y, o = (r == null ? void 0 : r.z) || 0;
+  if ((i || a || o) && (n = `translate3d(${i}px, ${a}px, ${o}px) `), (t.x !== 1 || t.y !== 1) && (n += `scale(${1 / t.x}, ${1 / t.y}) `), r) {
+    const { transformPerspective: u, rotate: d, rotateX: h, rotateY: f, skewX: p, skewY: y } = r;
+    u && (n = `perspective(${u}px) ${n}`), d && (n += `rotate(${d}deg) `), h && (n += `rotateX(${h}deg) `), f && (n += `rotateY(${f}deg) `), p && (n += `skewX(${p}deg) `), y && (n += `skewY(${y}deg) `);
+  }
+  const l = e.x.scale * t.x, c = e.y.scale * t.y;
+  return (l !== 1 || c !== 1) && (n += `scale(${l}, ${c})`), n || "none";
+}
+const Bs = ["", "X", "Y", "Z"], Tm = 1e3;
+let Sm = 0;
+function zs(e, t, r, n) {
+  const { latestValues: i } = t;
+  i[e] && (r[e] = i[e], t.setStaticValue(e, 0), n && (n[e] = 0));
+}
+function ja(e) {
+  if (e.hasCheckedOptimisedAppear = !0, e.root === e)
+    return;
+  const { visualElement: t } = e.options;
+  if (!t)
+    return;
+  const r = aa(t);
+  if (window.MotionHasOptimisedAnimation(r, "transform")) {
+    const { layout: i, layoutId: a } = e.options;
+    window.MotionCancelOptimisedAnimation(r, "transform", Z, !(i || a));
+  }
+  const { parent: n } = e;
+  n && !n.hasCheckedOptimisedAppear && ja(n);
+}
+function Na({ attachResizeListener: e, defaultParent: t, measureScroll: r, checkIsScrollRoot: n, resetTransform: i }) {
+  return class {
+    constructor(o = {}, l = t == null ? void 0 : t()) {
+      this.id = Sm++, this.animationId = 0, this.animationCommitId = 0, this.children = /* @__PURE__ */ new Set(), this.options = {}, this.isTreeAnimating = !1, this.isAnimationBlocked = !1, this.isLayoutDirty = !1, this.isProjectionDirty = !1, this.isSharedProjectionDirty = !1, this.isTransformDirty = !1, this.updateManuallyBlocked = !1, this.updateBlockedByResize = !1, this.isUpdating = !1, this.isSVG = !1, this.needsReset = !1, this.shouldResetTransform = !1, this.hasCheckedOptimisedAppear = !1, this.treeScale = { x: 1, y: 1 }, this.eventHandlers = /* @__PURE__ */ new Map(), this.hasTreeAnimated = !1, this.updateScheduled = !1, this.scheduleUpdate = () => this.update(), this.projectionUpdateScheduled = !1, this.checkUpdateFailed = () => {
+        this.isUpdating && (this.isUpdating = !1, this.clearAllSnapshots());
+      }, this.updateProjection = () => {
+        this.projectionUpdateScheduled = !1, this.nodes.forEach(_m), this.nodes.forEach(Dm), this.nodes.forEach(Rm), this.nodes.forEach(Am);
+      }, this.resolvedRelativeTargetAt = 0, this.hasProjected = !1, this.isVisible = !0, this.animationProgress = 0, this.sharedNodes = /* @__PURE__ */ new Map(), this.latestValues = o, this.root = l ? l.root || l : this, this.path = l ? [...l.path, l] : [], this.parent = l, this.depth = l ? l.depth + 1 : 0;
+      for (let c = 0; c < this.path.length; c++)
+        this.path[c].shouldResetTransform = !0;
+      this.root === this && (this.nodes = new mm());
+    }
+    addEventListener(o, l) {
+      return this.eventHandlers.has(o) || this.eventHandlers.set(o, new kr()), this.eventHandlers.get(o).add(l);
+    }
+    notifyListeners(o, ...l) {
+      const c = this.eventHandlers.get(o);
+      c && c.notify(...l);
+    }
+    hasListeners(o) {
+      return this.eventHandlers.has(o);
+    }
+    /**
+     * Lifecycles
+     */
+    mount(o) {
+      if (this.instance)
+        return;
+      this.isSVG = Io(o) && !wu(o), this.instance = o;
+      const { layoutId: l, layout: c, visualElement: u } = this.options;
+      if (u && !u.current && u.mount(o), this.root.nodes.add(this), this.parent && this.parent.children.add(this), this.root.hasTreeAnimated && (c || l) && (this.isLayoutDirty = !0), e) {
+        let d, h = 0;
+        const f = () => this.root.updateBlockedByResize = !1;
+        Z.read(() => {
+          h = window.innerWidth;
+        }), e(o, () => {
+          const p = window.innerWidth;
+          p !== h && (h = p, this.root.updateBlockedByResize = !0, d && d(), d = fm(f, 250), us.hasAnimatedSinceResize && (us.hasAnimatedSinceResize = !1, this.nodes.forEach(Ci)));
+        });
+      }
+      l && this.root.registerSharedNode(l, this), this.options.animate !== !1 && u && (l || c) && this.addEventListener("didUpdate", ({ delta: d, hasLayoutChanged: h, hasRelativeLayoutChanged: f, layout: p }) => {
+        if (this.isTreeAnimationBlocked()) {
+          this.target = void 0, this.relativeTarget = void 0;
+          return;
+        }
+        const y = this.options.transition || u.getDefaultTransition() || Om, { onLayoutAnimationStart: S, onLayoutAnimationComplete: C } = u.getProps(), j = !this.targetLayout || !wa(this.targetLayout, p), w = !h && f;
+        if (this.options.layoutRoot || this.resumeFrom || w || h && (j || !this.currentAnimation)) {
+          this.resumeFrom && (this.resumingFrom = this.resumeFrom, this.resumingFrom.resumingFrom = void 0);
+          const P = {
+            ...Ir(y, "layout"),
+            onPlay: S,
+            onComplete: C
+          };
+          (u.shouldReduceMotion || this.options.layoutRoot) && (P.delay = 0, P.type = !1), this.startAnimation(P), this.setAnimationOrigin(d, w);
+        } else
+          h || Ci(this), this.isLead() && this.options.onExitComplete && this.options.onExitComplete();
+        this.targetLayout = p;
+      });
+    }
+    unmount() {
+      this.options.layoutId && this.willUpdate(), this.root.nodes.remove(this);
+      const o = this.getStack();
+      o && o.remove(this), this.parent && this.parent.children.delete(this), this.instance = void 0, this.eventHandlers.clear(), Be(this.updateProjection);
+    }
+    // only on the root
+    blockUpdate() {
+      this.updateManuallyBlocked = !0;
+    }
+    unblockUpdate() {
+      this.updateManuallyBlocked = !1;
+    }
+    isUpdateBlocked() {
+      return this.updateManuallyBlocked || this.updateBlockedByResize;
+    }
+    isTreeAnimationBlocked() {
+      return this.isAnimationBlocked || this.parent && this.parent.isTreeAnimationBlocked() || !1;
+    }
+    // Note: currently only running on root node
+    startUpdate() {
+      this.isUpdateBlocked() || (this.isUpdating = !0, this.nodes && this.nodes.forEach(Vm), this.animationId++);
+    }
+    getTransformTemplate() {
+      const { visualElement: o } = this.options;
+      return o && o.getProps().transformTemplate;
+    }
+    willUpdate(o = !0) {
+      if (this.root.hasTreeAnimated = !0, this.root.isUpdateBlocked()) {
+        this.options.onExitComplete && this.options.onExitComplete();
+        return;
+      }
+      if (window.MotionCancelOptimisedAnimation && !this.hasCheckedOptimisedAppear && ja(this), !this.root.isUpdating && this.root.startUpdate(), this.isLayoutDirty)
+        return;
+      this.isLayoutDirty = !0;
+      for (let d = 0; d < this.path.length; d++) {
+        const h = this.path[d];
+        h.shouldResetTransform = !0, h.updateScroll("snapshot"), h.options.layoutRoot && h.willUpdate(!1);
+      }
+      const { layoutId: l, layout: c } = this.options;
+      if (l === void 0 && !c)
+        return;
+      const u = this.getTransformTemplate();
+      this.prevTransformTemplateValue = u ? u(this.latestValues, "") : void 0, this.updateSnapshot(), o && this.notifyListeners("willUpdate");
+    }
+    update() {
+      if (this.updateScheduled = !1, this.isUpdateBlocked()) {
+        this.unblockUpdate(), this.clearAllSnapshots(), this.nodes.forEach(Ti);
+        return;
+      }
+      if (this.animationId <= this.animationCommitId) {
+        this.nodes.forEach(Si);
+        return;
+      }
+      this.animationCommitId = this.animationId, this.isUpdating ? (this.isUpdating = !1, this.nodes.forEach(Mm), this.nodes.forEach(Cm), this.nodes.forEach(Pm)) : this.nodes.forEach(Si), this.clearAllSnapshots();
+      const l = fe.now();
+      oe.delta = De(0, 1e3 / 60, l - oe.timestamp), oe.timestamp = l, oe.isProcessing = !0, As.update.process(oe), As.preRender.process(oe), As.render.process(oe), oe.isProcessing = !1;
+    }
+    didUpdate() {
+      this.updateScheduled || (this.updateScheduled = !0, Yr.read(this.scheduleUpdate));
+    }
+    clearAllSnapshots() {
+      this.nodes.forEach(Em), this.sharedNodes.forEach(Lm);
+    }
+    scheduleUpdateProjection() {
+      this.projectionUpdateScheduled || (this.projectionUpdateScheduled = !0, Z.preRender(this.updateProjection, !1, !0));
+    }
+    scheduleCheckAfterUnmount() {
+      Z.postRender(() => {
+        this.isLayoutDirty ? this.root.didUpdate() : this.root.checkUpdateFailed();
+      });
+    }
+    /**
+     * Update measurements
+     */
+    updateSnapshot() {
+      this.snapshot || !this.instance || (this.snapshot = this.measure(), this.snapshot && !he(this.snapshot.measuredBox.x) && !he(this.snapshot.measuredBox.y) && (this.snapshot = void 0));
+    }
+    updateLayout() {
+      if (!this.instance || (this.updateScroll(), !(this.options.alwaysMeasureLayout && this.isLead()) && !this.isLayoutDirty))
+        return;
+      if (this.resumeFrom && !this.resumeFrom.instance)
+        for (let c = 0; c < this.path.length; c++)
+          this.path[c].updateScroll();
+      const o = this.layout;
+      this.layout = this.measure(!1), this.layoutCorrected = te(), this.isLayoutDirty = !1, this.projectionDelta = void 0, this.notifyListeners("measure", this.layout.layoutBox);
+      const { visualElement: l } = this.options;
+      l && l.notify("LayoutMeasure", this.layout.layoutBox, o ? o.layoutBox : void 0);
+    }
+    updateScroll(o = "measure") {
+      let l = !!(this.options.layoutScroll && this.instance);
+      if (this.scroll && this.scroll.animationId === this.root.animationId && this.scroll.phase === o && (l = !1), l && this.instance) {
+        const c = n(this.instance);
+        this.scroll = {
+          animationId: this.root.animationId,
+          phase: o,
+          isRoot: c,
+          offset: r(this.instance),
+          wasRoot: this.scroll ? this.scroll.isRoot : c
+        };
+      }
+    }
+    resetTransform() {
+      if (!i)
+        return;
+      const o = this.isLayoutDirty || this.shouldResetTransform || this.options.alwaysMeasureLayout, l = this.projectionDelta && !va(this.projectionDelta), c = this.getTransformTemplate(), u = c ? c(this.latestValues, "") : void 0, d = u !== this.prevTransformTemplateValue;
+      o && this.instance && (l || Ge(this.latestValues) || d) && (i(this.instance, u), this.shouldResetTransform = !1, this.scheduleRender());
+    }
+    measure(o = !0) {
+      const l = this.measurePageBox();
+      let c = this.removeElementScroll(l);
+      return o && (c = this.removeTransform(c)), Ym(c), {
+        animationId: this.root.animationId,
+        measuredBox: l,
+        layoutBox: c,
+        latestValues: {},
+        source: this.id
+      };
+    }
+    measurePageBox() {
+      var u;
+      const { visualElement: o } = this.options;
+      if (!o)
+        return te();
+      const l = o.measureViewportBox();
+      if (!(((u = this.scroll) == null ? void 0 : u.wasRoot) || this.path.some(Bm))) {
+        const { scroll: d } = this.root;
+        d && (ct(l.x, d.offset.x), ct(l.y, d.offset.y));
+      }
+      return l;
+    }
+    removeElementScroll(o) {
+      var c;
+      const l = te();
+      if (ve(l, o), (c = this.scroll) != null && c.wasRoot)
+        return l;
+      for (let u = 0; u < this.path.length; u++) {
+        const d = this.path[u], { scroll: h, options: f } = d;
+        d !== this.root && h && f.layoutScroll && (h.wasRoot && ve(l, o), ct(l.x, h.offset.x), ct(l.y, h.offset.y));
+      }
+      return l;
+    }
+    applyTransform(o, l = !1) {
+      const c = te();
+      ve(c, o);
+      for (let u = 0; u < this.path.length; u++) {
+        const d = this.path[u];
+        !l && d.options.layoutScroll && d.scroll && d !== d.root && dt(c, {
+          x: -d.scroll.offset.x,
+          y: -d.scroll.offset.y
+        }), Ge(d.latestValues) && dt(c, d.latestValues);
+      }
+      return Ge(this.latestValues) && dt(c, this.latestValues), c;
+    }
+    removeTransform(o) {
+      const l = te();
+      ve(l, o);
+      for (let c = 0; c < this.path.length; c++) {
+        const u = this.path[c];
+        if (!u.instance || !Ge(u.latestValues))
+          continue;
+        lr(u.latestValues) && u.updateSnapshot();
+        const d = te(), h = u.measurePageBox();
+        ve(d, h), bi(l, u.latestValues, u.snapshot ? u.snapshot.layoutBox : void 0, d);
+      }
+      return Ge(this.latestValues) && bi(l, this.latestValues), l;
+    }
+    setTargetDelta(o) {
+      this.targetDelta = o, this.root.scheduleUpdateProjection(), this.isProjectionDirty = !0;
+    }
+    setOptions(o) {
+      this.options = {
+        ...this.options,
+        ...o,
+        crossfade: o.crossfade !== void 0 ? o.crossfade : !0
+      };
+    }
+    clearMeasurements() {
+      this.scroll = void 0, this.layout = void 0, this.snapshot = void 0, this.prevTransformTemplateValue = void 0, this.targetDelta = void 0, this.target = void 0, this.isLayoutDirty = !1;
+    }
+    forceRelativeParentToResolveTarget() {
+      this.relativeParent && this.relativeParent.resolvedRelativeTargetAt !== oe.timestamp && this.relativeParent.resolveTargetDelta(!0);
+    }
+    resolveTargetDelta(o = !1) {
+      var f;
+      const l = this.getLead();
+      this.isProjectionDirty || (this.isProjectionDirty = l.isProjectionDirty), this.isTransformDirty || (this.isTransformDirty = l.isTransformDirty), this.isSharedProjectionDirty || (this.isSharedProjectionDirty = l.isSharedProjectionDirty);
+      const c = !!this.resumingFrom || this !== l;
+      if (!(o || c && this.isSharedProjectionDirty || this.isProjectionDirty || (f = this.parent) != null && f.isProjectionDirty || this.attemptToResolveRelativeTarget || this.root.updateBlockedByResize))
+        return;
+      const { layout: d, layoutId: h } = this.options;
+      if (!(!this.layout || !(d || h))) {
+        if (this.resolvedRelativeTargetAt = oe.timestamp, !this.targetDelta && !this.relativeTarget) {
+          const p = this.getClosestProjectingParent();
+          p && p.layout && this.animationProgress !== 1 ? (this.relativeParent = p, this.forceRelativeParentToResolveTarget(), this.relativeTarget = te(), this.relativeTargetOrigin = te(), Mt(this.relativeTargetOrigin, this.layout.layoutBox, p.layout.layoutBox), ve(this.relativeTarget, this.relativeTargetOrigin)) : this.relativeParent = this.relativeTarget = void 0;
+        }
+        if (!(!this.relativeTarget && !this.targetDelta) && (this.target || (this.target = te(), this.targetWithTransforms = te()), this.relativeTarget && this.relativeTargetOrigin && this.relativeParent && this.relativeParent.target ? (this.forceRelativeParentToResolveTarget(), Kh(this.target, this.relativeTarget, this.relativeParent.target)) : this.targetDelta ? (this.resumingFrom ? this.target = this.applyTransform(this.layout.layoutBox) : ve(this.target, this.layout.layoutBox), ta(this.target, this.targetDelta)) : ve(this.target, this.layout.layoutBox), this.attemptToResolveRelativeTarget)) {
+          this.attemptToResolveRelativeTarget = !1;
+          const p = this.getClosestProjectingParent();
+          p && !!p.resumingFrom == !!this.resumingFrom && !p.options.layoutScroll && p.target && this.animationProgress !== 1 ? (this.relativeParent = p, this.forceRelativeParentToResolveTarget(), this.relativeTarget = te(), this.relativeTargetOrigin = te(), Mt(this.relativeTargetOrigin, this.target, p.target), ve(this.relativeTarget, this.relativeTargetOrigin)) : this.relativeParent = this.relativeTarget = void 0;
+        }
+      }
+    }
+    getClosestProjectingParent() {
+      if (!(!this.parent || lr(this.parent.latestValues) || ea(this.parent.latestValues)))
+        return this.parent.isProjecting() ? this.parent : this.parent.getClosestProjectingParent();
+    }
+    isProjecting() {
+      return !!((this.relativeTarget || this.targetDelta || this.options.layoutRoot) && this.layout);
+    }
+    calcProjection() {
+      var y;
+      const o = this.getLead(), l = !!this.resumingFrom || this !== o;
+      let c = !0;
+      if ((this.isProjectionDirty || (y = this.parent) != null && y.isProjectionDirty) && (c = !1), l && (this.isSharedProjectionDirty || this.isTransformDirty) && (c = !1), this.resolvedRelativeTargetAt === oe.timestamp && (c = !1), c)
+        return;
+      const { layout: u, layoutId: d } = this.options;
+      if (this.isTreeAnimating = !!(this.parent && this.parent.isTreeAnimating || this.currentAnimation || this.pendingAnimation), this.isTreeAnimating || (this.targetDelta = this.relativeTarget = void 0), !this.layout || !(u || d))
+        return;
+      ve(this.layoutCorrected, this.layout.layoutBox);
+      const h = this.treeScale.x, f = this.treeScale.y;
+      ih(this.layoutCorrected, this.treeScale, this.path, l), o.layout && !o.target && (this.treeScale.x !== 1 || this.treeScale.y !== 1) && (o.target = o.layout.layoutBox, o.targetWithTransforms = te());
+      const { target: p } = o;
+      if (!p) {
+        this.prevProjectionDelta && (this.createProjectionDeltas(), this.scheduleRender());
+        return;
+      }
+      !this.projectionDelta || !this.prevProjectionDelta ? this.createProjectionDeltas() : (pi(this.prevProjectionDelta.x, this.projectionDelta.x), pi(this.prevProjectionDelta.y, this.projectionDelta.y)), Et(this.projectionDelta, this.layoutCorrected, p, this.latestValues), (this.treeScale.x !== h || this.treeScale.y !== f || !ki(this.projectionDelta.x, this.prevProjectionDelta.x) || !ki(this.projectionDelta.y, this.prevProjectionDelta.y)) && (this.hasProjected = !0, this.scheduleRender(), this.notifyListeners("projectionUpdate", p));
+    }
+    hide() {
+      this.isVisible = !1;
+    }
+    show() {
+      this.isVisible = !0;
+    }
+    scheduleRender(o = !0) {
+      var l;
+      if ((l = this.options.visualElement) == null || l.scheduleRender(), o) {
+        const c = this.getStack();
+        c && c.scheduleRender();
+      }
+      this.resumingFrom && !this.resumingFrom.instance && (this.resumingFrom = void 0);
+    }
+    createProjectionDeltas() {
+      this.prevProjectionDelta = ut(), this.projectionDelta = ut(), this.projectionDeltaWithTransform = ut();
+    }
+    setAnimationOrigin(o, l = !1) {
+      const c = this.snapshot, u = c ? c.latestValues : {}, d = { ...this.latestValues }, h = ut();
+      (!this.relativeParent || !this.relativeParent.options.layoutRoot) && (this.relativeTarget = this.relativeTargetOrigin = void 0), this.attemptToResolveRelativeTarget = !l;
+      const f = te(), p = c ? c.source : void 0, y = this.layout ? this.layout.source : void 0, S = p !== y, C = this.getStack(), j = !C || C.members.length <= 1, w = !!(S && !j && this.options.crossfade === !0 && !this.path.some(Im));
+      this.animationProgress = 0;
+      let P;
+      this.mixTargetDelta = (D) => {
+        const A = D / 1e3;
+        Pi(h.x, o.x, A), Pi(h.y, o.y, A), this.setTargetDelta(h), this.relativeTarget && this.relativeTargetOrigin && this.layout && this.relativeParent && this.relativeParent.layout && (Mt(f, this.layout.layoutBox, this.relativeParent.layout.layoutBox), Fm(this.relativeTarget, this.relativeTargetOrigin, f, A), P && jm(this.relativeTarget, P) && (this.isProjectionDirty = !1), P || (P = te()), ve(P, this.relativeTarget)), S && (this.animationValues = d, pm(d, u, this.latestValues, A, w, j)), this.root.scheduleUpdateProjection(), this.scheduleRender(), this.animationProgress = A;
+      }, this.mixTargetDelta(this.options.layoutRoot ? 1e3 : 0);
+    }
+    startAnimation(o) {
+      var l, c, u;
+      this.notifyListeners("animationStart"), (l = this.currentAnimation) == null || l.stop(), (u = (c = this.resumingFrom) == null ? void 0 : c.currentAnimation) == null || u.stop(), this.pendingAnimation && (Be(this.pendingAnimation), this.pendingAnimation = void 0), this.pendingAnimation = Z.update(() => {
+        us.hasAnimatedSinceResize = !0, this.motionValue || (this.motionValue = gt(0)), this.currentAnimation = um(this.motionValue, [0, 1e3], {
+          ...o,
+          velocity: 0,
+          isSync: !0,
+          onUpdate: (d) => {
+            this.mixTargetDelta(d), o.onUpdate && o.onUpdate(d);
+          },
+          onStop: () => {
+          },
+          onComplete: () => {
+            o.onComplete && o.onComplete(), this.completeAnimation();
+          }
+        }), this.resumingFrom && (this.resumingFrom.currentAnimation = this.currentAnimation), this.pendingAnimation = void 0;
+      });
+    }
+    completeAnimation() {
+      this.resumingFrom && (this.resumingFrom.currentAnimation = void 0, this.resumingFrom.preserveOpacity = void 0);
+      const o = this.getStack();
+      o && o.exitAnimationComplete(), this.resumingFrom = this.currentAnimation = this.animationValues = void 0, this.notifyListeners("animationComplete");
+    }
+    finishAnimation() {
+      this.currentAnimation && (this.mixTargetDelta && this.mixTargetDelta(Tm), this.currentAnimation.stop()), this.completeAnimation();
+    }
+    applyTransformsToTarget() {
+      const o = this.getLead();
+      let { targetWithTransforms: l, target: c, layout: u, latestValues: d } = o;
+      if (!(!l || !c || !u)) {
+        if (this !== o && this.layout && u && ka(this.options.animationType, this.layout.layoutBox, u.layoutBox)) {
+          c = this.target || te();
+          const h = he(this.layout.layoutBox.x);
+          c.x.min = o.target.x.min, c.x.max = c.x.min + h;
+          const f = he(this.layout.layoutBox.y);
+          c.y.min = o.target.y.min, c.y.max = c.y.min + f;
+        }
+        ve(l, c), dt(l, d), Et(this.projectionDeltaWithTransform, this.layoutCorrected, l, d);
+      }
+    }
+    registerSharedNode(o, l) {
+      this.sharedNodes.has(o) || this.sharedNodes.set(o, new Nm()), this.sharedNodes.get(o).add(l);
+      const u = l.options.initialPromotionConfig;
+      l.promote({
+        transition: u ? u.transition : void 0,
+        preserveFollowOpacity: u && u.shouldPreserveFollowOpacity ? u.shouldPreserveFollowOpacity(l) : void 0
+      });
+    }
+    isLead() {
+      const o = this.getStack();
+      return o ? o.lead === this : !0;
+    }
+    getLead() {
+      var l;
+      const { layoutId: o } = this.options;
+      return o ? ((l = this.getStack()) == null ? void 0 : l.lead) || this : this;
+    }
+    getPrevLead() {
+      var l;
+      const { layoutId: o } = this.options;
+      return o ? (l = this.getStack()) == null ? void 0 : l.prevLead : void 0;
+    }
+    getStack() {
+      const { layoutId: o } = this.options;
+      if (o)
+        return this.root.sharedNodes.get(o);
+    }
+    promote({ needsReset: o, transition: l, preserveFollowOpacity: c } = {}) {
+      const u = this.getStack();
+      u && u.promote(this, c), o && (this.projectionDelta = void 0, this.needsReset = !0), l && this.setOptions({ transition: l });
+    }
+    relegate() {
+      const o = this.getStack();
+      return o ? o.relegate(this) : !1;
+    }
+    resetSkewAndRotation() {
+      const { visualElement: o } = this.options;
+      if (!o)
+        return;
+      let l = !1;
+      const { latestValues: c } = o;
+      if ((c.z || c.rotate || c.rotateX || c.rotateY || c.rotateZ || c.skewX || c.skewY) && (l = !0), !l)
+        return;
+      const u = {};
+      c.z && zs("z", o, u, this.animationValues);
+      for (let d = 0; d < Bs.length; d++)
+        zs(`rotate${Bs[d]}`, o, u, this.animationValues), zs(`skew${Bs[d]}`, o, u, this.animationValues);
+      o.render();
+      for (const d in u)
+        o.setStaticValue(d, u[d]), this.animationValues && (this.animationValues[d] = u[d]);
+      o.scheduleRender();
+    }
+    applyProjectionStyles(o, l) {
+      if (!this.instance || this.isSVG)
+        return;
+      if (!this.isVisible) {
+        o.visibility = "hidden";
+        return;
+      }
+      const c = this.getTransformTemplate();
+      if (this.needsReset) {
+        this.needsReset = !1, o.visibility = "", o.opacity = "", o.pointerEvents = ds(l == null ? void 0 : l.pointerEvents) || "", o.transform = c ? c(this.latestValues, "") : "none";
+        return;
+      }
+      const u = this.getLead();
+      if (!this.projectionDelta || !this.layout || !u.target) {
+        this.options.layoutId && (o.opacity = this.latestValues.opacity !== void 0 ? this.latestValues.opacity : 1, o.pointerEvents = ds(l == null ? void 0 : l.pointerEvents) || ""), this.hasProjected && !Ge(this.latestValues) && (o.transform = c ? c({}, "") : "none", this.hasProjected = !1);
+        return;
+      }
+      o.visibility = "";
+      const d = u.animationValues || u.latestValues;
+      this.applyTransformsToTarget();
+      let h = km(this.projectionDeltaWithTransform, this.treeScale, d);
+      c && (h = c(d, h)), o.transform = h;
+      const { x: f, y: p } = this.projectionDelta;
+      o.transformOrigin = `${f.origin * 100}% ${p.origin * 100}% 0`, u.animationValues ? o.opacity = u === this ? d.opacity ?? this.latestValues.opacity ?? 1 : this.preserveOpacity ? this.latestValues.opacity : d.opacityExit : o.opacity = u === this ? d.opacity !== void 0 ? d.opacity : "" : d.opacityExit !== void 0 ? d.opacityExit : 0;
+      for (const y in Bt) {
+        if (d[y] === void 0)
+          continue;
+        const { correct: S, applyTo: C, isCSSVariable: j } = Bt[y], w = h === "none" ? d[y] : S(d[y], u);
+        if (C) {
+          const P = C.length;
+          for (let D = 0; D < P; D++)
+            o[C[D]] = w;
+        } else
+          j ? this.options.visualElement.renderState.vars[y] = w : o[y] = w;
+      }
+      this.options.layoutId && (o.pointerEvents = u === this ? ds(l == null ? void 0 : l.pointerEvents) || "" : "none");
+    }
+    clearSnapshot() {
+      this.resumeFrom = this.snapshot = void 0;
+    }
+    // Only run on root
+    resetTree() {
+      this.root.nodes.forEach((o) => {
+        var l;
+        return (l = o.currentAnimation) == null ? void 0 : l.stop();
+      }), this.root.nodes.forEach(Ti), this.root.sharedNodes.clear();
+    }
+  };
+}
+function Cm(e) {
+  e.updateLayout();
+}
+function Pm(e) {
+  var r;
+  const t = ((r = e.resumeFrom) == null ? void 0 : r.snapshot) || e.snapshot;
+  if (e.isLead() && e.layout && t && e.hasListeners("didUpdate")) {
+    const { layoutBox: n, measuredBox: i } = e.layout, { animationType: a } = e.options, o = t.source !== e.layout.source;
+    a === "size" ? we((h) => {
+      const f = o ? t.measuredBox[h] : t.layoutBox[h], p = he(f);
+      f.min = n[h].min, f.max = f.min + p;
+    }) : ka(a, t.layoutBox, n) && we((h) => {
+      const f = o ? t.measuredBox[h] : t.layoutBox[h], p = he(n[h]);
+      f.max = f.min + p, e.relativeTarget && !e.currentAnimation && (e.isProjectionDirty = !0, e.relativeTarget[h].max = e.relativeTarget[h].min + p);
+    });
+    const l = ut();
+    Et(l, n, t.layoutBox);
+    const c = ut();
+    o ? Et(c, e.applyTransform(i, !0), t.measuredBox) : Et(c, n, t.layoutBox);
+    const u = !va(l);
+    let d = !1;
+    if (!e.resumeFrom) {
+      const h = e.getClosestProjectingParent();
+      if (h && !h.resumeFrom) {
+        const { snapshot: f, layout: p } = h;
+        if (f && p) {
+          const y = te();
+          Mt(y, t.layoutBox, f.layoutBox);
+          const S = te();
+          Mt(S, n, p.layoutBox), wa(y, S) || (d = !0), h.options.layoutRoot && (e.relativeTarget = S, e.relativeTargetOrigin = y, e.relativeParent = h);
+        }
+      }
+    }
+    e.notifyListeners("didUpdate", {
+      layout: n,
+      snapshot: t,
+      delta: c,
+      layoutDelta: l,
+      hasLayoutChanged: u,
+      hasRelativeLayoutChanged: d
+    });
+  } else if (e.isLead()) {
+    const { onExitComplete: n } = e.options;
+    n && n();
+  }
+  e.options.transition = void 0;
+}
+function _m(e) {
+  e.parent && (e.isProjecting() || (e.isProjectionDirty = e.parent.isProjectionDirty), e.isSharedProjectionDirty || (e.isSharedProjectionDirty = !!(e.isProjectionDirty || e.parent.isProjectionDirty || e.parent.isSharedProjectionDirty)), e.isTransformDirty || (e.isTransformDirty = e.parent.isTransformDirty));
+}
+function Am(e) {
+  e.isProjectionDirty = e.isSharedProjectionDirty = e.isTransformDirty = !1;
+}
+function Em(e) {
+  e.clearSnapshot();
+}
+function Ti(e) {
+  e.clearMeasurements();
+}
+function Si(e) {
+  e.isLayoutDirty = !1;
+}
+function Mm(e) {
+  const { visualElement: t } = e.options;
+  t && t.getProps().onBeforeLayoutMeasure && t.notify("BeforeLayoutMeasure"), e.resetTransform();
+}
+function Ci(e) {
+  e.finishAnimation(), e.targetDelta = e.relativeTarget = e.target = void 0, e.isProjectionDirty = !0;
+}
+function Dm(e) {
+  e.resolveTargetDelta();
+}
+function Rm(e) {
+  e.calcProjection();
+}
+function Vm(e) {
+  e.resetSkewAndRotation();
+}
+function Lm(e) {
+  e.removeLeadSnapshot();
+}
+function Pi(e, t, r) {
+  e.translate = Q(t.translate, 0, r), e.scale = Q(t.scale, 1, r), e.origin = t.origin, e.originPoint = t.originPoint;
+}
+function _i(e, t, r, n) {
+  e.min = Q(t.min, r.min, n), e.max = Q(t.max, r.max, n);
+}
+function Fm(e, t, r, n) {
+  _i(e.x, t.x, r.x, n), _i(e.y, t.y, r.y, n);
+}
+function Im(e) {
+  return e.animationValues && e.animationValues.opacityExit !== void 0;
+}
+const Om = {
+  duration: 0.45,
+  ease: [0.4, 0, 0.1, 1]
+}, Ai = (e) => typeof navigator < "u" && navigator.userAgent && navigator.userAgent.toLowerCase().includes(e), Ei = Ai("applewebkit/") && !Ai("chrome/") ? Math.round : je;
+function Mi(e) {
+  e.min = Ei(e.min), e.max = Ei(e.max);
+}
+function Ym(e) {
+  Mi(e.x), Mi(e.y);
+}
+function ka(e, t, r) {
+  return e === "position" || e === "preserve-aspect" && !Hh(Ni(t), Ni(r), 0.2);
+}
+function Bm(e) {
+  var t;
+  return e !== e.root && ((t = e.scroll) == null ? void 0 : t.wasRoot);
+}
+const zm = Na({
+  attachResizeListener: (e, t) => zt(e, "resize", t),
+  measureScroll: () => ({
+    x: document.documentElement.scrollLeft || document.body.scrollLeft,
+    y: document.documentElement.scrollTop || document.body.scrollTop
+  }),
+  checkIsScrollRoot: () => !0
+}), Us = {
+  current: void 0
+}, Ta = Na({
+  measureScroll: (e) => ({
+    x: e.scrollLeft,
+    y: e.scrollTop
+  }),
+  defaultParent: () => {
+    if (!Us.current) {
+      const e = new zm({});
+      e.mount(window), e.setOptions({ layoutScroll: !0 }), Us.current = e;
+    }
+    return Us.current;
+  },
+  resetTransform: (e, t) => {
+    e.style.transform = t !== void 0 ? t : "none";
+  },
+  checkIsScrollRoot: (e) => window.getComputedStyle(e).position === "fixed"
+}), Um = {
+  pan: {
+    Feature: am
+  },
+  drag: {
+    Feature: om,
+    ProjectionNode: Ta,
+    MeasureLayout: xa
+  }
+};
+function Di(e, t, r) {
+  const { props: n } = e;
+  e.animationState && n.whileHover && e.animationState.setActive("whileHover", r === "Start");
+  const i = "onHover" + r, a = n[i];
+  a && Z.postRender(() => a(t, Gt(t)));
+}
+class $m extends $e {
+  mount() {
+    const { current: t } = this.node;
+    t && (this.unmount = pu(t, (r, n) => (Di(this.node, n, "Start"), (i) => Di(this.node, i, "End"))));
+  }
+  unmount() {
+  }
+}
+class Wm extends $e {
+  constructor() {
+    super(...arguments), this.isActive = !1;
+  }
+  onFocus() {
+    let t = !1;
+    try {
+      t = this.node.current.matches(":focus-visible");
+    } catch {
+      t = !0;
+    }
+    !t || !this.node.animationState || (this.node.animationState.setActive("whileFocus", !0), this.isActive = !0);
+  }
+  onBlur() {
+    !this.isActive || !this.node.animationState || (this.node.animationState.setActive("whileFocus", !1), this.isActive = !1);
+  }
+  mount() {
+    this.unmount = Wt(zt(this.node.current, "focus", () => this.onFocus()), zt(this.node.current, "blur", () => this.onBlur()));
+  }
+  unmount() {
+  }
+}
+function Ri(e, t, r) {
+  const { props: n } = e;
+  if (e.current instanceof HTMLButtonElement && e.current.disabled)
+    return;
+  e.animationState && n.whileTap && e.animationState.setActive("whileTap", r === "Start");
+  const i = "onTap" + (r === "End" ? "" : r), a = n[i];
+  a && Z.postRender(() => a(t, Gt(t)));
+}
+class Hm extends $e {
+  mount() {
+    const { current: t } = this.node;
+    t && (this.unmount = vu(t, (r, n) => (Ri(this.node, n, "Start"), (i, { success: a }) => Ri(this.node, i, a ? "End" : "Cancel")), { useGlobalTarget: this.node.props.globalTapTarget }));
+  }
+  unmount() {
+  }
+}
+const gr = /* @__PURE__ */ new WeakMap(), $s = /* @__PURE__ */ new WeakMap(), Km = (e) => {
+  const t = gr.get(e.target);
+  t && t(e);
+}, Gm = (e) => {
+  e.forEach(Km);
+};
+function qm({ root: e, ...t }) {
+  const r = e || document;
+  $s.has(r) || $s.set(r, {});
+  const n = $s.get(r), i = JSON.stringify(t);
+  return n[i] || (n[i] = new IntersectionObserver(Gm, { root: e, ...t })), n[i];
+}
+function Xm(e, t, r) {
+  const n = qm(t);
+  return gr.set(e, r), n.observe(e), () => {
+    gr.delete(e), n.unobserve(e);
+  };
+}
+const Zm = {
+  some: 0,
+  all: 1
+};
+class Jm extends $e {
+  constructor() {
+    super(...arguments), this.hasEnteredView = !1, this.isInView = !1;
+  }
+  startObserver() {
+    this.unmount();
+    const { viewport: t = {} } = this.node.getProps(), { root: r, margin: n, amount: i = "some", once: a } = t, o = {
+      root: r ? r.current : void 0,
+      rootMargin: n,
+      threshold: typeof i == "number" ? i : Zm[i]
+    }, l = (c) => {
+      const { isIntersecting: u } = c;
+      if (this.isInView === u || (this.isInView = u, a && !u && this.hasEnteredView))
+        return;
+      u && (this.hasEnteredView = !0), this.node.animationState && this.node.animationState.setActive("whileInView", u);
+      const { onViewportEnter: d, onViewportLeave: h } = this.node.getProps(), f = u ? d : h;
+      f && f(c);
+    };
+    return Xm(this.node.current, o, l);
+  }
+  mount() {
+    this.startObserver();
+  }
+  update() {
+    if (typeof IntersectionObserver > "u")
+      return;
+    const { props: t, prevProps: r } = this.node;
+    ["amount", "margin", "root"].some(Qm(t, r)) && this.startObserver();
+  }
+  unmount() {
+  }
+}
+function Qm({ viewport: e = {} }, { viewport: t = {} } = {}) {
+  return (r) => e[r] !== t[r];
+}
+const ef = {
+  inView: {
+    Feature: Jm
+  },
+  tap: {
+    Feature: Hm
+  },
+  focus: {
+    Feature: Wm
+  },
+  hover: {
+    Feature: $m
+  }
+}, tf = {
+  layout: {
+    ProjectionNode: Ta,
+    MeasureLayout: xa
+  }
+}, sf = {
+  ...Yh,
+  ...ef,
+  ...Um,
+  ...tf
+}, Ws = /* @__PURE__ */ sh(sf, gh), Hf = () => /* @__PURE__ */ s.jsx("div", { className: "relative min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 flex items-center justify-center", children: /* @__PURE__ */ s.jsxs(
+  Ws.div,
+  {
+    initial: { opacity: 0, y: 20, scale: 0.95 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    transition: { duration: 0.8, ease: "easeOut" },
+    className: "text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-2 border-green-400 rounded-3xl p-8 md:p-12 shadow-2xl shadow-green-500/25 max-w-2xl mx-auto",
+    children: [
+      /* @__PURE__ */ s.jsx(
+        Ws.div,
+        {
+          initial: { scale: 0 },
+          animate: { scale: 1 },
+          transition: { delay: 0.2, type: "spring", stiffness: 260, damping: 20 },
+          className: "mx-auto w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6 border-4 border-green-200 dark:border-green-700",
+          children: /* @__PURE__ */ s.jsx(Vt, { className: "w-12 h-12 text-green-600 dark:text-green-400" })
+        }
+      ),
+      /* @__PURE__ */ s.jsx("h1", { className: "text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 via-teal-600 to-green-800 bg-clip-text text-transparent mb-4", children: "Subscription Successful!" }),
+      /* @__PURE__ */ s.jsx("p", { className: "text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8", children: "Welcome to the Zoroasterverse! You now have access to all premium content." }),
+      /* @__PURE__ */ s.jsx(
+        Ws.a,
+        {
+          href: "/account/reading",
+          whileHover: { scale: 1.05 },
+          whileTap: { scale: 0.95 },
+          className: "inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-8 rounded-full text-lg shadow-lg hover:shadow-xl transition-all duration-300",
+          children: "Start Reading"
+        }
+      )
+    ]
+  }
+) }), rf = $i(
   "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
@@ -4747,151 +9358,152 @@ const fn = ({ count: s = 4, viewMode: n = "grid", className: i }) => {
       size: "default"
     }
   }
-), Ia = ce.forwardRef(
-  ({ className: s, variant: n, size: i, asChild: h = !1, ...m }, f) => {
-    const N = h ? qr : "button";
-    return /* @__PURE__ */ e.jsx(
-      N,
+), nf = _e.forwardRef(
+  ({ className: e, variant: t, size: r, asChild: n = !1, ...i }, a) => {
+    const o = n ? Sl : "button";
+    return /* @__PURE__ */ s.jsx(
+      o,
       {
-        className: ne(Oa({ variant: n, size: i, className: s })),
-        ref: f,
-        ...m
+        className: pe(rf({ variant: t, size: r, className: e })),
+        ref: a,
+        ...i
       }
     );
   }
 );
-Ia.displayName = "Button";
-const za = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx(
+nf.displayName = "Button";
+const of = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx(
   "div",
   {
-    ref: i,
-    className: ne("rounded-lg border bg-card text-card-foreground shadow-sm", s),
-    ...n
+    ref: r,
+    className: pe("rounded-lg border bg-card text-card-foreground shadow-sm", e),
+    ...t
   }
 ));
-za.displayName = "Card";
-const Da = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx(
+of.displayName = "Card";
+const af = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx(
   "div",
   {
-    ref: i,
-    className: ne("flex flex-col space-y-1.5 p-6", s),
-    ...n
+    ref: r,
+    className: pe("flex flex-col space-y-1.5 p-6", e),
+    ...t
   }
 ));
-Da.displayName = "CardHeader";
-const $a = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx(
+af.displayName = "CardHeader";
+const lf = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx(
   "h3",
   {
-    ref: i,
-    className: ne(
+    ref: r,
+    className: pe(
       "text-2xl font-semibold leading-none tracking-tight",
-      s
+      e
     ),
-    ...n
+    ...t
   }
 ));
-$a.displayName = "CardTitle";
-const Wa = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx(
+lf.displayName = "CardTitle";
+const cf = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx(
   "p",
   {
-    ref: i,
-    className: ne("text-sm text-muted-foreground", s),
-    ...n
+    ref: r,
+    className: pe("text-sm text-muted-foreground", e),
+    ...t
   }
 ));
-Wa.displayName = "CardDescription";
-const Ua = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx("div", { ref: i, className: ne("p-6 pt-0", s), ...n }));
-Ua.displayName = "CardContent";
-const qa = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx(
+cf.displayName = "CardDescription";
+const df = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx("div", { ref: r, className: pe("p-6 pt-0", e), ...t }));
+df.displayName = "CardContent";
+const uf = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx(
   "div",
   {
-    ref: i,
-    className: ne("flex items-center p-6 pt-0", s),
-    ...n
+    ref: r,
+    className: pe("flex items-center p-6 pt-0", e),
+    ...t
   }
 ));
-qa.displayName = "CardFooter";
-const Ba = ce.forwardRef(
-  ({ className: s, type: n, ...i }, h) => /* @__PURE__ */ e.jsx(
+uf.displayName = "CardFooter";
+const hf = _e.forwardRef(
+  ({ className: e, type: t, ...r }, n) => /* @__PURE__ */ s.jsx(
     "input",
     {
-      type: n,
-      className: ne(
+      type: t,
+      className: pe(
         "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-        s
+        e
       ),
-      ref: h,
-      ...i
+      ref: n,
+      ...r
     }
   )
 );
-Ba.displayName = "Input";
-const Ha = Ht(
+hf.displayName = "Input";
+const mf = $i(
   "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-), Ga = ce.forwardRef(({ className: s, ...n }, i) => /* @__PURE__ */ e.jsx(
-  Gt.Root,
+), ff = _e.forwardRef(({ className: e, ...t }, r) => /* @__PURE__ */ s.jsx(
+  Wi.Root,
   {
-    ref: i,
-    className: ne(Ha(), s),
-    ...n
+    ref: r,
+    className: pe(mf(), e),
+    ...t
   }
 ));
-Ga.displayName = Gt.Root.displayName;
-const Va = {
+ff.displayName = Wi.Root.displayName;
+const gf = {
   default: "bg-primary text-primary-foreground hover:bg-primary/80 border-transparent",
   secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-transparent",
   destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/80 border-transparent",
   outline: "text-foreground border border-input hover:bg-accent hover:text-accent-foreground",
   success: "bg-green-500 text-white hover:bg-green-600 border-transparent"
-}, Ja = ce.forwardRef(
-  ({ className: s, variant: n = "default", ...i }, h) => /* @__PURE__ */ e.jsx(
+}, pf = _e.forwardRef(
+  ({ className: e, variant: t = "default", ...r }, n) => /* @__PURE__ */ s.jsx(
     "div",
     {
-      ref: h,
-      className: ne(
+      ref: n,
+      className: pe(
         "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-        Va[n],
-        s
+        gf[t],
+        e
       ),
-      ...i
+      ...r
     }
   )
 );
-Ja.displayName = "Badge";
+pf.displayName = "Badge";
 export {
-  dn as AdminProtectedRoute,
-  ln as AdminSideNav,
-  nn as AdminSideNavProvider,
-  on as AdminSideNavToggle,
-  Ja as Badge,
-  Ia as Button,
-  za as Card,
-  Ua as CardContent,
-  Wa as CardDescription,
-  qa as CardFooter,
-  Da as CardHeader,
-  $a as CardTitle,
-  bn as CartIcon,
-  bs as Footer,
-  mn as GlowButton,
-  un as HomePage,
-  Ba as Input,
-  jn as InventoryManagementPage,
-  Ga as Label,
-  hn as Layout,
-  fn as LoadingSkeleton,
-  yn as LoginPage,
-  pn as MagicalParticles,
-  kn as MediaUploadPage,
-  hs as Navbar,
-  wn as OrderManagementPage,
-  gn as OrnateDivider,
-  vn as ProductManagementPage,
-  cn as SimpleDashboardPage,
-  xn as StarsBackground,
-  Ws as WikiNavItem,
-  Nn as WorksManagementPage,
-  Oa as buttonVariants,
-  $s as cn,
-  Jt as useAdminSideNav
+  _f as AdminProtectedRoute,
+  Pf as AdminSideNav,
+  Sf as AdminSideNavProvider,
+  Cf as AdminSideNavToggle,
+  pf as Badge,
+  nf as Button,
+  of as Card,
+  df as CardContent,
+  cf as CardDescription,
+  uf as CardFooter,
+  af as CardHeader,
+  lf as CardTitle,
+  If as CartIcon,
+  ec as Footer,
+  Df as GlowButton,
+  Mf as HomePage,
+  hf as Input,
+  zf as InventoryManagementPage,
+  ff as Label,
+  Ef as Layout,
+  Lf as LoadingSkeleton,
+  Of as LoginPage,
+  Vf as MagicalParticles,
+  $f as MediaUploadPage,
+  Kl as Navbar,
+  Bf as OrderManagementPage,
+  Rf as OrnateDivider,
+  Yf as ProductManagementPage,
+  Af as SimpleDashboardPage,
+  Ff as StarsBackground,
+  Hf as SubscriptionSuccessPage,
+  kc as WikiNavItem,
+  Uf as WorksManagementPage,
+  rf as buttonVariants,
+  Nc as cn,
+  Ki as useAdminSideNav
 };

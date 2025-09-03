@@ -22,6 +22,8 @@ interface AuthContextType {
     isAdmin: boolean;
     isAuthenticated: boolean;
     isLoading: boolean;
+    isSubscribed: boolean;
+    supabaseClient: SupabaseClient;
 }
 export declare const AuthProvider: React.FC<{
     children: React.ReactNode;

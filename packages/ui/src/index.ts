@@ -25,6 +25,7 @@ export { default as OrderManagementPage } from './OrderManagementPage';
 export { default as InventoryManagementPage } from './InventoryManagementPage';
 export { default as WorksManagementPage } from './WorksManagementPage';
 export { default as MediaUploadPage } from './MediaUploadPage';
+export { default as SubscriptionSuccessPage } from './SubscriptionSuccessPage';
 
 // Basic UI Components
 export * from './button';

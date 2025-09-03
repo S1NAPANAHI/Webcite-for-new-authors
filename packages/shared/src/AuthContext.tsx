@@ -157,6 +157,7 @@ export const AuthProvider: React.FC<{
       isAdmin,
       isAuthenticated,
       isLoading,
+      isSubscribed,
       supabaseClient
     }}>
       {children}

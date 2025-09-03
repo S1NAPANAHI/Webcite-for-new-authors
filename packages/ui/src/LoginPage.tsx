@@ -2,7 +2,6 @@ import React, { useState, FormEvent } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import './LoginPage.css';
-import styles from './LoginPage.module.css';
 
 type FormMessage = {
   text: string;
@@ -90,7 +89,6 @@ const LoginPage: React.FC = () => {
       setActiveTab('login');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
-      showMessage(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
@@ -122,181 +120,110 @@ const LoginPage: React.FC = () => {
     setPasswordStrength(strengthLevels[level]);
   };
 
-  // Sacred symbols for floating animation
-  const sacredSymbols = ['☽', '☿', '♃', '⊙', '♆', '⚯', '☯', '✧', '◊', '⬟'];
-
-  // Debug: log styles object to see if CSS modules are working
-  console.log('LoginPage styles object:', styles);
-
   return (
-    <div 
-      className={styles.body} 
-      style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        background: "linear-gradient(135deg, #8B4513 0%, #CD853F 25%, #DEB887 50%, #F4A460 75%, #D2691E 100%)",
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        zIndex: 9999
-      }}
-    >
-      {/* Sacred floating symbols */}
-      <div className={styles.sacredSymbols}>
-        {Array.from({ length: 12 }, (_, i) => (
-          <div 
-            key={i}
-            className={styles.symbol}
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 20}s`,
-              fontSize: `${1.5 + Math.random()}em`
-            }}
-          >
-            {sacredSymbols[Math.floor(Math.random() * sacredSymbols.length)]}
-          </div>
-        ))}
-      </div>
-
-      {/* Main portal container */}
-      <div 
-        className={styles.portalContainer}
-        style={{
-          background: "linear-gradient(145deg, #F5DEB3, #DEB887, #D2B48C)",
-          border: "8px solid #8B4513",
-          borderRadius: "20px",
-          padding: "50px",
-          width: "500px",
-          maxWidth: "90vw",
-          position: "relative",
-          zIndex: 10,
-          boxShadow: "0 0 50px rgba(139, 69, 19, 0.4), inset 0 0 30px rgba(245, 222, 179, 0.3)",
-          maxHeight: "90vh",
-          overflowY: "auto"
-        }}
-      >
-        {/* Decorative corner ornaments */}
-        <div className={`${styles.cornerOrnament} ${styles.topLeft}`}></div>
-        <div className={`${styles.cornerOrnament} ${styles.topRight}`}></div>
-        <div className={`${styles.cornerOrnament} ${styles.bottomLeft}`}></div>
-        <div className={`${styles.cornerOrnament} ${styles.bottomRight}`}></div>
-
+    <div className="auth-page">
+      <div className="auth-container">
         {/* Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Zoroasterverse</h1>
-          <p className={styles.subtitle}>Sacred Portal of Ancient Wisdom</p>
-        </div>
-
-        {/* Sacred quote */}
-        <div className={styles.sacredQuote}>
-          "Truth is best (of all that is) good. As desired, what is being desired is truth for him who (represents) the best truth."
+        <div className="auth-header">
+          <h1>Zoroasterverse</h1>
+          <p>Join our community of readers and writers</p>
         </div>
 
         {/* Messages */}
         {message && (
-          <div className={`${styles.message} ${styles[message.type]} ${styles.show}`}>
+          <div className={`message ${message.type}`}>
             {message.text}
           </div>
         )}
 
         {/* Tab system */}
-        <div className={styles.tabContainer}>
+        <div className="tabs">
           <button
-            className={`${styles.tab} ${activeTab === 'login' ? styles.activeTab : ''}`}
+            className={`tab ${activeTab === 'login' ? 'active' : ''}`}
             onClick={() => setActiveTab('login')}
             type="button"
           >
-            Sacred Entry
+            Sign In
           </button>
           <button
-            className={`${styles.tab} ${activeTab === 'signup' ? styles.activeTab : ''}`}
+            className={`tab ${activeTab === 'signup' ? 'active' : ''}`}
             onClick={() => setActiveTab('signup')}
             type="button"
           >
-            Join the Light
+            Create Account
           </button>
         </div>
 
         {/* Login Form */}
-        <div className={`${styles.formContainer} ${activeTab === 'login' ? styles.activeForm : ''}`}>
-          <form onSubmit={handleLogin}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="loginEmail">Sacred Email</label>
+        {activeTab === 'login' && (
+          <form onSubmit={handleLogin} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="loginEmail">Email Address</label>
               <input
-                className={styles.formInput}
                 type="email"
                 id="loginEmail"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="Enter your sacred email"
+                placeholder="your@email.com"
                 required
                 disabled={loading}
               />
             </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="loginPassword">Sacred Password</label>
+            <div className="form-group">
+              <label htmlFor="loginPassword">Password</label>
               <input
-                className={styles.formInput}
                 type="password"
                 id="loginPassword"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Enter your sacred password"
+                placeholder="Enter your password"
                 required
                 disabled={loading}
               />
             </div>
             <button 
               type="submit" 
-              className={styles.actionBtn}
+              className="btn primary"
               disabled={loading}
             >
-              {loading ? 'Entering Sacred Realm...' : 'Enter Sacred Realm'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
-            <div className={styles.secondaryActions}>
-              <Link to="/forgot-password">Forgotten Sacred Words?</Link>
+            <div className="form-footer">
+              <Link to="/forgot-password">Forgot your password?</Link>
             </div>
           </form>
-        </div>
+        )}
 
         {/* Signup Form */}
-        <div className={`${styles.formContainer} ${activeTab === 'signup' ? styles.activeForm : ''}`}>
-          <form onSubmit={handleSignup}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="signupDisplayName">Sacred Name</label>
+        {activeTab === 'signup' && (
+          <form onSubmit={handleSignup} className="auth-form">
+            <div className="form-group">
+              <label htmlFor="signupDisplayName">Display Name</label>
               <input
-                className={styles.formInput}
                 type="text"
                 id="signupDisplayName"
                 value={signupDisplayName}
                 onChange={(e) => setSignupDisplayName(e.target.value)}
-                placeholder="Enter your sacred name"
+                placeholder="Your name"
                 required
                 disabled={loading}
               />
             </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="signupEmail">Sacred Email</label>
+            <div className="form-group">
+              <label htmlFor="signupEmail">Email Address</label>
               <input
-                className={styles.formInput}
                 type="email"
                 id="signupEmail"
                 value={signupEmail}
                 onChange={(e) => setSignupEmail(e.target.value)}
-                placeholder="your.sacred@email.com"
+                placeholder="your@email.com"
                 required
                 disabled={loading}
               />
             </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="signupPassword">Sacred Password</label>
+            <div className="form-group">
+              <label htmlFor="signupPassword">Password</label>
               <input
-                className={styles.formInput}
                 type="password"
                 id="signupPassword"
                 value={signupPassword}
@@ -304,70 +231,60 @@ const LoginPage: React.FC = () => {
                   setSignupPassword(e.target.value);
                   checkPasswordStrength(e.target.value);
                 }}
-                placeholder="Create a sacred password"
+                placeholder="Create a password"
                 required
                 disabled={loading}
               />
               {passwordStrength && (
-                <div className={`${styles.passwordStrength} ${styles.visible}`}>
-                  <div className={`${styles.strengthBar} ${styles[`strength${passwordStrength.className.charAt(0).toUpperCase() + passwordStrength.className.slice(1)}`]}`}></div>
-                  <div className={styles.strengthText}>
-                    Sacred Power: {passwordStrength.text}
-                  </div>
+                <div className={`password-strength ${passwordStrength.className}`}>
+                  Password strength: {passwordStrength.text}
                 </div>
               )}
             </div>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="confirmPassword">Confirm Sacred Password</label>
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
               <input
-                className={styles.formInput}
                 type="password"
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm your sacred password"
+                placeholder="Confirm your password"
                 required
                 disabled={loading}
               />
             </div>
             <button 
               type="submit" 
-              className={styles.actionBtn}
+              className="btn primary"
               disabled={loading}
             >
-              {loading ? 'Joining Sacred Realm...' : 'Join Sacred Realm'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
-        </div>
-
-        {/* Sacred methods (Social Login) */}
-        <div className={styles.sacredMethods}>
-          <div className={styles.sacredTitle}>Sacred Methods</div>
-          <div className={styles.sacredButtons}>
-            <button
-              className={styles.sacredBtn}
-              onClick={() => showMessage('Google sacred connection is not yet available', 'warning')}
-              disabled={loading}
-            >
-              Google Light
-            </button>
-            <button
-              className={styles.sacredBtn}
-              onClick={() => showMessage('GitHub sacred connection is not yet available', 'warning')}
-              disabled={loading}
-            >
-              GitHub Wisdom
-            </button>
-          </div>
-        </div>
-
-        {/* Loading spinner */}
-        {loading && (
-          <div className={`${styles.loading} ${loading ? styles.showLoading : ''}`}>
-            <span className={styles.spinner}></span>
-            Connecting to Sacred Realm...
-          </div>
         )}
+
+        {/* Social Login */}
+        <div className="auth-divider">or continue with</div>
+        <div className="social-logins">
+          <button
+            className="btn social"
+            onClick={() => showMessage('Google sign-in will be available soon', 'info')}
+            disabled={loading}
+          >
+            Google
+          </button>
+          <button
+            className="btn social"
+            onClick={() => showMessage('GitHub sign-in will be available soon', 'info')}
+            disabled={loading}
+          >
+            GitHub
+          </button>
+        </div>
+
+        <div className="auth-footer">
+          By signing up, you agree to our terms of service and privacy policy.
+        </div>
       </div>
     </div>
   );

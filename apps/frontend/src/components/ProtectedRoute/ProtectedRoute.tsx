@@ -1,26 +1,27 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@zoroaster/shared/AuthContext';
-
+import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '@zoroaster/shared';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  requireSubscription?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth(); // Use the centralized auth state
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireSubscription = false }) => {
+  const { isAuthenticated, isSubscribed, isLoading } = useAuth();
 
   if (isLoading) {
-    // Still checking auth status, render a loading indicator
-    return <div>Loading...</div>; 
+    return <div>Loading...</div>; // Or a loading spinner
   }
 
-  if (!user) {
-    // Not authenticated, redirect to login page
-    return <Navigate to="/login" replace />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
   }
 
-  return <>{children}</>;
+  if (requireSubscription && !isSubscribed) {
+    return <Navigate to="/subscriptions" />;
+  }
+
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

@@ -97,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.user_id;
+  const userId = session.client_reference_id;
   const planId = session.metadata?.plan_id;
 
   if (!userId || !planId) {

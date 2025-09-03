@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate, Outlet, Routes, Route, useLocation, Link } from 'react-router-dom';
+import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute';
 import { useQuery } from '@tanstack/react-query';
 import { supabase, getUserStats, getSubscription, useAuth } from '@zoroaster/shared';
 import type { UserStats, Subscription } from '@zoroaster/shared';
@@ -1774,7 +1775,9 @@ const ProfileDashboard = () => {
                     }
                   />
                   <Route path="profile" element={<ProfileContent />} />
-                  <Route path="reading" element={<ReadingContent />} />
+                  <Route element={<ProtectedRoute requireSubscription={true} />}>
+                    <Route path="reading" element={<ReadingContent />} />
+                  </Route>
                   <Route path="achievements" element={<AchievementsContent />} />
                   <Route path="preferences" element={<PreferencesContent />} />
                   <Route path="security" element={<SecurityContent />} />

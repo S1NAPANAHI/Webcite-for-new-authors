@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-from '@zoroaster/ui'
+import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Navigate, Outlet } from 'react-router-dom';
 
 const ProtectedRoute: React.FC = () => {

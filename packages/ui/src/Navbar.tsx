@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { supabase } from '@zoroaster/shared/supabaseClient';
 import { CartIcon } from './CartIcon';
 import ThemeToggle from './components/ui/ThemeToggle';
-import { Search } from 'lucide-react'; // Import Search icon
+import { Search } from 'lucide-react';
+import styles from './Navbar.module.css';
+
+// Type for the auth state passed as props
+interface NavbarProps {
+  isAuthenticated?: boolean;
+  betaApplicationStatus?: string;
+  onLogout?: () => void;
+}
 
 // Define a type for navigation links, including nested children
 interface NavLinkItem {
@@ -13,38 +20,17 @@ interface NavLinkItem {
   children?: NavLinkItem[]; // Optional children for dropdowns
 }
 
-export const Navbar = () => {
+export const Navbar: React.FC<NavbarProps> = ({ 
+  isAuthenticated = false, 
+  betaApplicationStatus = 'none', 
+  onLogout 
+}) => {
   const [isOpen, setIsOpen] = useState(false); // Keep for mobile menu if needed
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [betaApplicationStatus, setBetaApplicationStatus] = useState('none');
-  // const navigate = useNavigate();
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      if (session?.user?.user_metadata?.betaApplicationStatus) {
-        setBetaApplicationStatus(session.user.user_metadata.betaApplicationStatus);
-      }
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-      if (session?.user?.user_metadata?.betaApplicationStatus) {
-        setBetaApplicationStatus(session.user.user_metadata.betaApplicationStatus);
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    // navigate('/');
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   // New structured navigation links
@@ -82,16 +68,16 @@ export const Navbar = () => {
   }
 
   return (
-    <header className="zoro-header">
-      <div className="logo">
+    <header className={styles.zoroHeader}>
+      <div className={styles.logo}>
         <NavLink to="/">
           <h1>Zoroasterverse</h1>
         </NavLink>
       </div>
 
-      <div className="header-controls">
+      <div className={styles.headerControls}>
         {/* Search Bar */}
-        <form className="search-form">
+        <form className={styles.searchForm}>
           <input type="text" placeholder="Search..." />
           <button type="submit">
             <Search />
@@ -102,24 +88,24 @@ export const Navbar = () => {
         <ThemeToggle />
       </div>
 
-      <nav className="navbar">
-          <ul className="nav-menu">
+      <nav className={styles.navbar}>
+          <ul className={styles.navMenu}>
             {navLinks.map(link => (
-              <li key={link.name} className={link.children ? 'dropdown' : ''}>
+              <li key={link.name} className={link.children ? styles.dropdown : ''}>
                 {link.onClick ? (
-                  <button onClick={link.onClick} className="nav-link">
+                  <button onClick={link.onClick} className={styles.navLink}>
                     {link.name}
                   </button>
                 ) : (
-                  <NavLink to={link.path} className="nav-link">
+                  <NavLink to={link.path} className={styles.navLink}>
                     {link.name} {link.children ? '▾' : ''}
                   </NavLink>
                 )}
                 {link.children && (
-                  <ul className="dropdown-menu">
+                  <ul className={styles.dropdownMenu}>
                     {link.children.map(childLink => (
                       <li key={childLink.name}>
-                        <NavLink to={childLink.path} className="dropdown-menu-item">
+                        <NavLink to={childLink.path} className={styles.dropdownMenuItem}>
                           {childLink.name}
                         </NavLink>
                       </li>

@@ -12,6 +12,8 @@ import {
   List,
   AlertCircle,
   Inbox,
+  Package,
+  ShoppingCart,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -29,25 +31,38 @@ import {
 
 // --- Data Fetching Functions ---
 
-// 1. Fetch Key Metrics
+// 1. Fetch Key Metrics (Enhanced with E-commerce)
 const fetchKeyMetrics = async () => {
   const { count: totalUsers } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
   const { count: activeSubscribers } = await supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'active');
   const { data: viewsData, error: viewsError } = await supabase.from('pages').select('view_count');
-  const { data: revenueData, error: revenueError } = await supabase.from('purchases').select('price_id'); // Simplified for now
+  
+  // Enhanced revenue calculation from orders
+  const { data: ordersData, error: ordersError } = await supabase
+    .from('orders')
+    .select('total_amount, status')
+    .eq('status', 'completed');
+    
+  // Get product and order counts
+  const { count: totalProducts } = await supabase.from('products').select('id', { count: 'exact', head: true }).eq('active', true);
+  const { count: totalOrders } = await supabase.from('orders').select('id', { count: 'exact', head: true });
+  const { count: pendingOrders } = await supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending');
 
-  if (viewsError || revenueError) {
-    console.error('Error fetching key metrics:', { viewsError, revenueError });
+  if (viewsError || ordersError) {
+    console.error('Error fetching key metrics:', { viewsError, ordersError });
   }
 
   const totalViews = viewsData?.reduce((acc, page) => acc + (page.view_count || 0), 0) || 0;
-  const totalRevenue = (revenueData?.length || 0) * 10; // Placeholder
+  const totalRevenue = ordersData?.reduce((acc, order) => acc + order.total_amount, 0) || 0;
 
   return {
     totalUsers: totalUsers || 0,
     activeSubscribers: activeSubscribers || 0,
     totalRevenue,
     totalViews,
+    totalProducts: totalProducts || 0,
+    totalOrders: totalOrders || 0,
+    pendingOrders: pendingOrders || 0,
   };
 };
 
@@ -194,8 +209,21 @@ export const DashboardPage: React.FC = () => {
           <>
             <StatCard title="Total Users" value={metrics?.totalUsers.toLocaleString() ?? '0'} icon={Users} color="blue" />
             <StatCard title="Active Subscribers" value={metrics?.activeSubscribers.toLocaleString() ?? '0'} icon={CheckSquare} color="green" />
-            <StatCard title="Total Revenue" value={`${metrics?.totalRevenue.toLocaleString() ?? '0'}`} icon={DollarSign} color="yellow" />
+            <StatCard title="Total Revenue" value={`$${metrics?.totalRevenue.toFixed(2) ?? '0.00'}`} icon={DollarSign} color="yellow" />
             <StatCard title="Total Page Views" value={metrics?.totalViews.toLocaleString() ?? '0'} icon={Eye} color="purple" />
+          </>
+        )}
+      </div>
+
+      {/* E-commerce Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        {loadingMetrics ? (
+          <p className="text-gray-900 dark:text-white">Loading e-commerce metrics...</p>
+        ) : (
+          <>
+            <StatCard title="Active Products" value={metrics?.totalProducts.toLocaleString() ?? '0'} icon={Package} color="blue" />
+            <StatCard title="Total Orders" value={metrics?.totalOrders.toLocaleString() ?? '0'} icon={ShoppingCart} color="green" />
+            <StatCard title="Pending Orders" value={metrics?.pendingOrders.toLocaleString() ?? '0'} icon={AlertCircle} color="orange" />
           </>
         )}
       </div>

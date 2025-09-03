@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, X, Trash2, Plus, Minus } from 'lucide-react';
-import { useCart } from '@zoroaster/shared/CartContext';
+import { useCart } from '@zoroaster/shared';
 // import { useNavigate } from 'react-router-dom';
 
 export const CartIcon: React.FC = () => {

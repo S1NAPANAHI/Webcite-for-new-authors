@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-from '@zoroaster/ui' // Assuming supabase is exported from here
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 const AuthLoader: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);

@@ -1,4 +1,6 @@
-from '@zoroaster/ui'
+import React from 'react';
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from '@zoroaster/shared';
 
 type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "success"
 

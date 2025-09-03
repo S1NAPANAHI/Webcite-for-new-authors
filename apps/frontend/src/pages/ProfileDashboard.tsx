@@ -1594,7 +1594,12 @@ const ProfileDashboard = () => {
     { id: 'security', name: 'Security', icon: <Shield size={18} />, path: '/account/security' },
   ];
 
-  const tabs = useMemo(() => [...baseTabs], []);
+  // Add admin panel for admin users
+  const adminTabs = isAdmin ? [
+    { id: 'admin', name: 'Admin Control Panel', icon: <Crown size={18} />, path: '/account/admin' },
+  ] : [];
+
+  const tabs = useMemo(() => [...baseTabs, ...adminTabs], [isAdmin]);
 
   const { data: userStats, isLoading: isLoadingStats } = useQuery<UserStats | null>({
     queryKey: ['userStats', user?.id],

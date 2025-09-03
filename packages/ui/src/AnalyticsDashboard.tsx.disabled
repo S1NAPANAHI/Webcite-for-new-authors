@@ -1,0 +1,588 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from './components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './components/ui/table';
+import {
+  ResponsiveContainer,
+  LineChart,
+  AreaChart,
+  BarChart,
+  PieChart,
+  Line,
+  Area,
+  Bar,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ReferenceLine,
+} from 'recharts';
+import {
+  Loader2,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingCart,
+  Users,
+  Package,
+  Calendar,
+  Download,
+  RefreshCw,
+  BarChart3,
+  PieChart as PieChartIcon,
+  Target,
+  Eye,
+} from 'lucide-react';
+
+interface SalesMetrics {
+  totalRevenue: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  conversionRate: number;
+  topProducts: Array<{
+    product_name: string;
+    variant_name?: string;
+    total_sold: number;
+    revenue: number;
+  }>;
+  revenueOverTime: Array<{
+    date: string;
+    revenue: number;
+    orders: number;
+  }>;
+  ordersByStatus: Array<{
+    status: string;
+    count: number;
+  }>;
+  customerInsights: {
+    newCustomers: number;
+    returningCustomers: number;
+    customerLifetimeValue: number;
+  };
+}
+
+interface InventoryMetrics {
+  totalProducts: number;
+  lowStockItems: number;
+  outOfStockItems: number;
+  inventoryTurnover: number;
+  topMovingProducts: Array<{
+    product_name: string;
+    variant_name?: string;
+    movements: number;
+  }>;
+  stockLevels: Array<{
+    category: string;
+    in_stock: number;
+    low_stock: number;
+    out_of_stock: number;
+  }>;
+}
+
+export const AnalyticsDashboard: React.FC = () => {
+  const [salesMetrics, setSalesMetrics] = useState<SalesMetrics | null>(null);
+  const [inventoryMetrics, setInventoryMetrics] = useState<InventoryMetrics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [dateRange, setDateRange] = useState('30d');
+  const [activeTab, setActiveTab] = useState('sales');
+
+  const fetchAnalytics = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch sales metrics
+      const salesResponse = await fetch(`/api/admin/analytics/sales?range=${dateRange}`);
+      const salesData = await salesResponse.json();
+      setSalesMetrics(salesData);
+
+      // Fetch inventory metrics
+      const inventoryResponse = await fetch('/api/admin/analytics/inventory');
+      const inventoryData = await inventoryResponse.json();
+      setInventoryMetrics(inventoryData);
+
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      toast.error('Failed to load analytics data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [dateRange]);
+
+  const exportReport = async (type: 'sales' | 'inventory') => {
+    try {
+      const response = await fetch(`/api/admin/analytics/export/${type}?range=${dateRange}`);
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${type}-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${type} analytics exported successfully`);
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      toast.error('Failed to export analytics report');
+    }
+  };
+
+  const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading analytics...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Analytics & Reporting</h2>
+          <p className="text-muted-foreground">
+            Business insights and performance metrics
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7d">Last 7 days</SelectItem>
+              <SelectItem value="30d">Last 30 days</SelectItem>
+              <SelectItem value="90d">Last 90 days</SelectItem>
+              <SelectItem value="1y">Last year</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={fetchAnalytics}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="sales">Sales Analytics</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory Analytics</TabsTrigger>
+          <TabsTrigger value="customers">Customer Insights</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="sales" className="space-y-6">
+          {/* Sales KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${salesMetrics?.totalRevenue.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Last {dateRange}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {salesMetrics?.totalOrders || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Orders placed
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${salesMetrics?.averageOrderValue.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Per order
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {salesMetrics?.conversionRate.toFixed(1) || '0.0'}%
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Visitor to customer
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Revenue Chart */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BarChart3 className="mr-2 h-5 w-5" />
+                  Revenue Over Time
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={salesMetrics?.revenueOverTime || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value: number, name: string) => [
+                          name === 'revenue' ? `$${value.toFixed(2)}` : value,
+                          name === 'revenue' ? 'Revenue' : 'Orders'
+                        ]}
+                      />
+                      <Legend />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#8884d8" 
+                        fill="#8884d8" 
+                        fillOpacity={0.6}
+                        name="Revenue"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <PieChartIcon className="mr-2 h-5 w-5" />
+                  Orders by Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={salesMetrics?.ordersByStatus || []}
+                        dataKey="count"
+                        nameKey="status"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label={({ status, percent }) => 
+                          `${status}: ${((percent || 0) * 100).toFixed(0)}%`
+                        }
+                      >
+                        {salesMetrics?.ordersByStatus.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Top Products */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Top Performing Products</CardTitle>
+                <CardDescription>Best sellers by revenue and quantity</CardDescription>
+              </div>
+              <Button variant="outline" onClick={() => exportReport('sales')}>
+                <Download className="mr-2 h-4 w-4" />
+                Export Sales Report
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Units Sold</TableHead>
+                    <TableHead>Revenue</TableHead>
+                    <TableHead>Avg Price</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {salesMetrics?.topProducts.map((product, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{product.product_name}</div>
+                          {product.variant_name && (
+                            <div className="text-sm text-muted-foreground">{product.variant_name}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{product.total_sold}</TableCell>
+                      <TableCell>${product.revenue.toFixed(2)}</TableCell>
+                      <TableCell>${(product.revenue / product.total_sold).toFixed(2)}</TableCell>
+                    </TableRow>
+                  )) || (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center">No sales data available</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="inventory" className="space-y-6">
+          {/* Inventory KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                <Package className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {inventoryMetrics?.totalProducts || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Active SKUs
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Low Stock Alerts</CardTitle>
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {inventoryMetrics?.lowStockItems || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Need restocking
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {inventoryMetrics?.outOfStockItems || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Immediate action
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Inventory Turnover</CardTitle>
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {inventoryMetrics?.inventoryTurnover.toFixed(1) || '0.0'}x
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Times per year
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Inventory Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Stock Levels by Category</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={inventoryMetrics?.stockLevels || []}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="in_stock" fill="#22c55e" name="In Stock" />
+                      <Bar dataKey="low_stock" fill="#f59e0b" name="Low Stock" />
+                      <Bar dataKey="out_of_stock" fill="#ef4444" name="Out of Stock" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Top Moving Products</CardTitle>
+                <Button variant="outline" onClick={() => exportReport('inventory')}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Movements</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {inventoryMetrics?.topMovingProducts.map((product, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{product.product_name}</div>
+                            {product.variant_name && (
+                              <div className="text-sm text-muted-foreground">{product.variant_name}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{product.movements}</TableCell>
+                      </TableRow>
+                    )) || (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center">No movement data available</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="customers" className="space-y-6">
+          {/* Customer KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">New Customers</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {salesMetrics?.customerInsights.newCustomers || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Last {dateRange}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Returning Customers</CardTitle>
+                <RefreshCw className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {salesMetrics?.customerInsights.returningCustomers || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Repeat purchases
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Customer LTV</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  ${salesMetrics?.customerInsights.customerLifetimeValue.toFixed(2) || '0.00'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Lifetime value
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Customer Acquisition Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Acquisition</CardTitle>
+              <CardDescription>New vs returning customers over time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={salesMetrics?.revenueOverTime || []}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="orders" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                      name="Total Orders"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};

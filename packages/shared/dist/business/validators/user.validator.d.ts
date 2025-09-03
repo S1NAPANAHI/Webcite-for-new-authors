@@ -55,14 +55,14 @@ export declare const BetaApplicationSchema: z.ZodObject<{
     created_at: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export declare const UpdateUserProfileSchema: z.ZodObject<{
+    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
+    avatar_url: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     beta_reader_status: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
         pending: "pending";
         approved: "approved";
         not_applied: "not_applied";
         rejected: "rejected";
     }>>>;
-    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-    avatar_url: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     display_name: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     username: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     website: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;

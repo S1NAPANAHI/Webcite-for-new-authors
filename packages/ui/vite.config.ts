@@ -19,11 +19,23 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'ZoroasterUI',
-      formats: ['es', 'cjs'],
-      fileName: (format) => `index.${format === 'es' ? 'js' : 'cjs'}`,
+      formats: ['es'],
+      fileName: () => `index.js`,
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', '@zoroaster/shared'],
+      external: [
+        'react', 
+        'react-dom', 
+        'react-router-dom', 
+        '@tanstack/react-query', 
+        '@zoroaster/shared',
+        /^@radix-ui\/.*/,
+        'lucide-react',
+        'clsx',
+        'class-variance-authority',
+        'tailwind-merge',
+        '@supabase/supabase-js'
+      ],
       output: {
         globals: {
           react: 'React',

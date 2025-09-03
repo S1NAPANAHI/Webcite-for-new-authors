@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
-from '@zoroaster/ui'
+import { cn } from '@zoroaster/shared';
 
 const Tabs = TabsPrimitive.Root
 

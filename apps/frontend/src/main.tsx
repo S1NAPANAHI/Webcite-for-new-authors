@@ -3,12 +3,11 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import 'bulma/css/bulma.css'
 import './index.css'
-import '../../../packages/ui/dist/style.css';
+import '@zoroaster/ui/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { BrowserRouter } from 'react-router-dom' // Added import
-import { AuthProvider } from '@zoroaster/shared';
-import { supabase } from '../../../packages/shared/src/supabaseClient';
+import { AuthProvider, supabase } from '@zoroaster/shared';
 
 const queryClient = new QueryClient();
 

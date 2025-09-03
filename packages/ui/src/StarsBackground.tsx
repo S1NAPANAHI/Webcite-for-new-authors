@@ -10,13 +10,17 @@ const StarsBackground: React.FC = () => {
     const numberOfStars = 50;
     const createStar = () => {
       const star = document.createElement('div');
-      star.className = 'star absolute bg-ink rounded-full'; // Use theme-aware ink color
+      star.className = 'star';
+      star.style.position = 'absolute';
+      star.style.backgroundColor = '#ffffff';
+      star.style.borderRadius = '50%';
       star.style.left = Math.random() * 100 + '%';
       star.style.top = Math.random() * 100 + '%';
       const size = Math.random() * 3 + 1; // 1px to 4px
       star.style.width = star.style.height = size + 'px';
       star.style.animationDelay = Math.random() * 3 + 's';
       star.style.animationDuration = (Math.random() * 2 + 2) + 's'; // 2s to 4s
+      star.style.pointerEvents = 'none';
       starsContainer.appendChild(star);
     };
 

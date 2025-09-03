@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 // Import sub-components for tabs (will be created later)
 // import OverviewTab from '../../components/profile/OverviewTab';
 // import ProfileTab from '../../components/profile/ProfileTab';
-from '@zoroaster/ui'
+// Removed corrupted import
 // import AchievementsTab from '../../components/profile/AchievementsTab';
 // import PreferencesTab from '../../components/profile/PreferencesTab';
 // import SecurityTab from '../../components/profile/SecurityTab';
@@ -110,3 +110,4 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-from '@zoroaster/ui'
+// Removed corrupted import
 
 interface Content {
   id: number;
@@ -55,3 +55,4 @@ const ContentList: React.FC = () => {
 };
 
 export default ContentList;
+

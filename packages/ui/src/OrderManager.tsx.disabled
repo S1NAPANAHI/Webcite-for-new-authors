@@ -1,0 +1,702 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
+import { Label } from './components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Badge } from './components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './components/ui/dropdown-menu';
+import {
+  Loader2,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Eye,
+  Package,
+  Truck,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  ExternalLink,
+  Calendar,
+  DollarSign,
+  ShoppingCart,
+  User,
+  CreditCard,
+} from 'lucide-react';
+
+interface OrderItem {
+  id: string;
+  product_id: string;
+  variant_id?: string;
+  quantity: number;
+  unit_price: number;
+  total_price: number;
+  product: {
+    name: string;
+    description?: string;
+  };
+  variant?: {
+    name: string;
+    attributes: Record<string, string>;
+  };
+}
+
+interface Order {
+  id: string;
+  user_id: string;
+  total_amount: number;
+  currency: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
+  stripe_session_id?: string;
+  stripe_payment_intent_id?: string;
+  created_at: string;
+  updated_at: string;
+  items: OrderItem[];
+  user_email?: string;
+  shipping_address?: any;
+  notes?: string;
+}
+
+type OrderStatus = Order['status'];
+
+const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  processing: 'bg-blue-100 text-blue-800',
+  shipped: 'bg-purple-100 text-purple-800',
+  delivered: 'bg-green-100 text-green-800',
+  cancelled: 'bg-red-100 text-red-800',
+  completed: 'bg-green-100 text-green-800',
+};
+
+const ORDER_STATUS_ICONS: Record<OrderStatus, React.ElementType> = {
+  pending: AlertCircle,
+  processing: Package,
+  shipped: Truck,
+  delivered: CheckCircle,
+  cancelled: AlertCircle,
+  completed: CheckCircle,
+};
+
+export const OrderManager: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    status: '',
+    search: '',
+    dateFrom: '',
+    dateTo: '',
+  });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+  });
+
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    try {
+      const params = new URLSearchParams({
+        limit: pagination.limit.toString(),
+        offset: ((pagination.page - 1) * pagination.limit).toString(),
+        ...(filters.status && { status: filters.status }),
+        ...(filters.search && { search: filters.search }),
+        ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
+        ...(filters.dateTo && { dateTo: filters.dateTo }),
+      });
+
+      const response = await fetch(`/api/admin/orders?${params}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setOrders(data.orders || []);
+      setPagination(prev => ({ ...prev, total: data.pagination?.total || 0 }));
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast.error('Failed to load orders');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [pagination.page, pagination.limit]);
+
+  const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus, notes?: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, notes }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update order status');
+      }
+
+      toast.success('Order status updated successfully');
+      await fetchOrders();
+      
+      // Update selected order if it's the one being updated
+      if (selectedOrder?.id === orderId) {
+        setSelectedOrder(prev => prev ? { ...prev, status: newStatus, notes } : null);
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update order status');
+    }
+  };
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, page: 1 }));
+    fetchOrders();
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      status: '',
+      search: '',
+      dateFrom: '',
+      dateTo: '',
+    });
+    setPagination(prev => ({ ...prev, page: 1 }));
+    setTimeout(() => fetchOrders(), 100);
+  };
+
+  const openOrderDetail = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailOpen(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading orders...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Order Management</h2>
+          <p className="text-muted-foreground">
+            Track and manage customer orders and fulfillment
+          </p>
+        </div>
+        <Button onClick={fetchOrders} variant="outline">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{orders.length}</div>
+            <p className="text-xs text-muted-foreground">
+              All time
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {orders.filter(o => o.status === 'pending').length}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Need attention
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${orders.reduce((acc, o) => acc + o.total_amount, 0).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              From completed orders
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Order Value</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${orders.length > 0 ? (orders.reduce((acc, o) => acc + o.total_amount, 0) / orders.length).toFixed(2) : '0.00'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Per order
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <Label>Search Orders</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Order ID, email..."
+                  className="pl-10"
+                  value={filters.search}
+                  onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select
+                value={filters.status}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Date From</Label>
+              <Input
+                type="date"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateFrom: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>Date To</Label>
+              <Input
+                type="date"
+                value={filters.dateTo}
+                onChange={(e) => setFilters(prev => ({ ...prev, dateTo: e.target.value }))}
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button onClick={handleSearch}>
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Orders Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Orders</CardTitle>
+          <CardDescription>
+            View and manage customer orders
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Items</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orders.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                      No orders found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  orders.map((order) => {
+                    const StatusIcon = ORDER_STATUS_ICONS[order.status];
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-medium">
+                          <div className="space-y-1">
+                            <div className="font-mono text-sm">#{order.id.slice(-8)}</div>
+                            {order.stripe_payment_intent_id && (
+                              <div className="text-xs text-muted-foreground">
+                                Stripe: {order.stripe_payment_intent_id.slice(-8)}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <span className="text-sm">
+                              {order.user_email || order.user_id.slice(-8)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={ORDER_STATUS_COLORS[order.status]}>
+                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            ${order.total_amount.toFixed(2)} {order.currency.toUpperCase()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => openOrderDetail(order)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusUpdate(order.id, 'processing')}
+                                disabled={order.status === 'processing'}
+                              >
+                                <Package className="mr-2 h-4 w-4" />
+                                Mark as Processing
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusUpdate(order.id, 'shipped')}
+                                disabled={order.status === 'shipped' || order.status === 'delivered'}
+                              >
+                                <Truck className="mr-2 h-4 w-4" />
+                                Mark as Shipped
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleStatusUpdate(order.id, 'completed')}
+                                disabled={order.status === 'completed'}
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                Mark as Completed
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {order.stripe_payment_intent_id && (
+                                <DropdownMenuItem asChild>
+                                  <a
+                                    href={`https://dashboard.stripe.com/payments/${order.stripe_payment_intent_id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    View in Stripe
+                                  </a>
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          {pagination.total > pagination.limit && (
+            <div className="flex items-center justify-between pt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} orders
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                  disabled={pagination.page === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                  disabled={pagination.page * pagination.limit >= pagination.total}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Order Detail Dialog */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Order Details</DialogTitle>
+          </DialogHeader>
+          {selectedOrder && <OrderDetail order={selectedOrder} onStatusUpdate={handleStatusUpdate} />}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// Order Detail Component
+interface OrderDetailProps {
+  order: Order;
+  onStatusUpdate: (orderId: string, status: OrderStatus, notes?: string) => void;
+}
+
+const OrderDetail: React.FC<OrderDetailProps> = ({ order, onStatusUpdate }) => {
+  const [newStatus, setNewStatus] = useState<OrderStatus>(order.status);
+  const [notes, setNotes] = useState(order.notes || '');
+
+  const StatusIcon = ORDER_STATUS_ICONS[order.status];
+
+  const handleUpdateStatus = () => {
+    if (newStatus !== order.status) {
+      onStatusUpdate(order.id, newStatus, notes);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Order Header */}
+      <div className="grid grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Order Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Order ID:</span>
+              <span className="font-mono">{order.id}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Status:</span>
+              <Badge className={ORDER_STATUS_COLORS[order.status]}>
+                <StatusIcon className="h-3 w-3 mr-1" />
+                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+              </Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Total:</span>
+              <span className="font-bold">${order.total_amount.toFixed(2)} {order.currency.toUpperCase()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Created:</span>
+              <span>{new Date(order.created_at).toLocaleString()}</span>
+            </div>
+            {order.stripe_payment_intent_id && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Stripe Payment:</span>
+                <a
+                  href={`https://dashboard.stripe.com/payments/${order.stripe_payment_intent_id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 flex items-center"
+                >
+                  {order.stripe_payment_intent_id.slice(-8)}
+                  <ExternalLink className="h-3 w-3 ml-1" />
+                </a>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Customer Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Customer ID:</span>
+              <span className="font-mono">{order.user_id.slice(-8)}</span>
+            </div>
+            {order.user_email && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Email:</span>
+                <span>{order.user_email}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Order Items */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Order Items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Variant</TableHead>
+                <TableHead>Quantity</TableHead>
+                <TableHead>Unit Price</TableHead>
+                <TableHead>Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {order.items.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{item.product.name}</div>
+                      {item.product.description && (
+                        <div className="text-sm text-muted-foreground">
+                          {item.product.description}
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {item.variant ? (
+                      <div>
+                        <div className="text-sm">{item.variant.name}</div>
+                        {Object.entries(item.variant.attributes).map(([key, value]) => (
+                          <div key={key} className="text-xs text-muted-foreground">
+                            {key}: {value}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{item.quantity}</TableCell>
+                  <TableCell>${item.unit_price.toFixed(2)}</TableCell>
+                  <TableCell className="font-medium">${item.total_price.toFixed(2)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Status Update */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Update Order Status</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>New Status</Label>
+              <Select value={newStatus} onValueChange={(value: OrderStatus) => setNewStatus(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="processing">Processing</SelectItem>
+                  <SelectItem value="shipped">Shipped</SelectItem>
+                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Notes (Optional)</Label>
+              <Input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Tracking number, notes..."
+              />
+            </div>
+          </div>
+          <Button 
+            onClick={handleUpdateStatus}
+            disabled={newStatus === order.status}
+          >
+            Update Status
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};

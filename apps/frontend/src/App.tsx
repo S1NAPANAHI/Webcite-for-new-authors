@@ -14,7 +14,9 @@ import {
   AdminSideNavToggle,
   SimpleDashboardPage,
   // Import LoginPage from UI package
-  LoginPage
+  LoginPage,
+  // Use UI HomePage temporarily to fix build
+  HomePage
 } from '@zoroaster/ui';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
 import { supabase } from '@zoroaster/shared/supabaseClient';
@@ -24,7 +26,7 @@ import BetaApplication from './components/BetaApplication/BetaApplication';
 import { CartProvider } from '@zoroaster/shared';
 
 // Your LOCAL page components (these are the ones you've customized)
-import HomePage from './pages/HomePage'; // Local HomePage wrapper
+// import HomePage from './pages/HomePage'; // Local HomePage wrapper - temporarily disabled
 import StorePage from './pages/StorePage';
 import LocalWikiPage from './pages/WikiPage'; 
 import BlogPostPage from './pages/BlogPostPage';

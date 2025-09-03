@@ -1,25 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@zoroaster/shared/supabaseClient';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './HomePage.module.css';
 
 // --- TYPE DEFINITIONS ---
-type HomepageContentItem = {
+export type HomepageContentItem = {
   id: number;
   created_at: string;
   title?: string;
   content: string;
   section: string;
 };
-type Post = {
+export type Post = {
   id: string;
   title: string;
   content: string;
   slug: string;
   created_at: string;
 };
-type ReleaseItem = {
+export type ReleaseItem = {
   id: string;
   created_at: string;
   title: string;
@@ -27,30 +25,9 @@ type ReleaseItem = {
   link?: string;
 };
 
-// --- DATA FETCHING FUNCTIONS ---
-const fetchHomepageContent = async (): Promise<HomepageContentItem[]> => {
-  const { data, error } = await supabase.from('homepage_content').select('*');
-  if (error) throw new Error(error.message);
-  return data as HomepageContentItem[];
-};
-const fetchLatestPosts = async (): Promise<Post[]> => {
-  const { data, error } = await supabase
-    .from('posts')
-    .select('id, title, slug, content, created_at')
-    .eq('status', 'published')
-    .order('created_at', { ascending: false })
-    .limit(3);
-  if (error) throw new Error(error.message);
-  return data as Post[];
-};
-const fetchReleaseItems = async (): Promise<ReleaseItem[]> => {
-  const { data, error } = await supabase.from('release_items').select('*').order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
-  return data as ReleaseItem[];
-};
 
 // --- NEW DUAL SCROLLING TEXT PROPHECY COMPONENT ---
-const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>> }> = ({ spinsLeft, setSpinsLeft }) => {
+const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, onSpin?: (spinCount: number) => Promise<void> }> = ({ spinsLeft, setSpinsLeft, onSpin }) => {
     const englishReelRef = useRef<HTMLDivElement>(null);
     const [isSpinning, setIsSpinning] = useState(false);
     const itemHeight = 150; // Must match .prophecyItem height in CSS
@@ -282,7 +259,7 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
         { english: "You are not just in the world; the world is in you—take care of both." },
         { english: "Time is the canvas, your choices the paint, your life the masterpiece—create something beautiful." },
         { english: "I entrust my soul to You, O Mazda, seeking Your protection through good thinking. (Yasna 48.9)" },
-        { english: "The isolated tree falls in the storm; the forest of trees stands strong together." },
+        { english: "The isolated tree falls in the storm; a forest of trees stands strong together." },
         { english: "Sacred living means recognizing the extraordinary within the ordinary, the eternal within the temporal." },
         { english: "The arc of the moral universe bends toward justice only when conscious beings like you and me choose to bend it." },
         { english: "The cosmic order is written in every sunrise, every heartbeat, every act of genuine kindness." },
@@ -439,8 +416,6 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
     ];
 
     const handleSpin = async () => {
-        
-
         if (isSpinning || !englishReelRef.current || spinsLeft <= 0) {
             console.log('No spins left or already spinning.');
             return;
@@ -456,15 +431,12 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
         setIsSpinning(true);
         setSpinsLeft(prev => prev - 1); // Decrement spins left
 
-        // Update spin count in Supabase
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            const today = new Date().toISOString().slice(0, 10);
-            const { error } = await supabase
-                .from('daily_spins')
-                .upsert({ user_id: user.id, spin_date: today, spin_count: 3 - spinsLeft + 1 }, { onConflict: 'user_id, spin_date' });
-            if (error) {
-                console.error('Error updating daily spin count:', error);
+        // Call external spin handler if provided
+        if (onSpin) {
+            try {
+                await onSpin(3 - spinsLeft + 1);
+            } catch (error) {
+                console.error('Error updating spin count:', error);
             }
         }
 
@@ -500,52 +472,50 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
     return (
         <>
             {/* English Reel (Top Left) */}
-            <div className="prophecy-mask english-mask" onClick={handleSpin}>
-                <div ref={englishReelRef} className="prophecy-reel">
+            <div className={styles.prophecyMask} onClick={handleSpin}>
+                <div ref={englishReelRef} className={styles.prophecyReel}>
                     {reelItems.map((item, index) => (
-                        <div key={index} className="prophecy-item">
-                            <span className="english-text">{item.english}</span>
+                        <div key={index} className={styles.prophecyItem}>
+                            <span className={styles.englishText}>{item.english}</span>
                         </div>
                     ))}
                 </div>
             </div>
-
-            
         </>
     );
 }
 
 // --- UI COMPONENTS ---
-const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>> }> = ({ contentMap, spinsLeft, setSpinsLeft }) => {
+const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, onSpin?: (spinCount: number) => Promise<void> }> = ({ contentMap, spinsLeft, setSpinsLeft, onSpin }) => {
     const title = contentMap.get('hero_title')?.content || 'Zoroasterverse';
     const quote = contentMap.get('hero_quote')?.content || '“Happiness comes to them who bring happiness to others.”';
     const intro = contentMap.get('hero_description')?.content || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world’s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
 
     return (
-        <section id="home" className="zr-hero">
-            <div className="zr-hero-content">
-                <h1 className="zr-title">{title}</h1>
-                <p className="zr-quote">{quote}</p>
-                <p className="zr-intro">{intro}</p>
-                <Link className="zr-cta" to="/blog/about">
+        <section id="home" className={styles.zrHero}>
+            <div className={styles.zrHeroContent}>
+                <h1 className={styles.zrTitle}>{title}</h1>
+                <p className={styles.zrQuote}>{quote}</p>
+                <p className={styles.zrIntro}>{intro}</p>
+                <Link className={styles.zrCta} to="/blog/about">
                     Learn More
                 </Link>
             </div>
-            <figure className="zr-hero-art" aria-labelledby="art-caption">
+            <figure className={styles.zrHeroArt} aria-labelledby="art-caption">
                 <video 
                     src="/200716-913538378.mp4" 
                     autoPlay 
                     loop 
                     muted 
                     playsInline 
-                    className="video-fire"
+                    className={styles.videoFire}
                 />
-                <div className="spins-indicator">
+                <div className={styles.spinsIndicator}>
                     {[...Array(3)].map((_, i) => (
-                        <div key={i} className={`spin-dot ${i < spinsLeft ? 'spin-dot-active' : ''}`}></div>
+                        <div key={i} className={`${styles.spinDot} ${i < spinsLeft ? styles.spinDotActive : ''}`}></div>
                     ))}
                 </div>
-                <DualScrollingProphecy spinsLeft={spinsLeft} setSpinsLeft={setSpinsLeft} />
+                <DualScrollingProphecy spinsLeft={spinsLeft} setSpinsLeft={setSpinsLeft} onSpin={onSpin} />
                 <figcaption id="art-caption" className="sr-only">
                     A stylized winged figure above a sacred fire.
                 </figcaption>
@@ -591,60 +561,28 @@ const LatestReleases: React.FC<{ releases: ReleaseItem[] }> = ({ releases }) => 
     );
 };
 
+// Props interface for HomePage
+interface HomePageProps {
+  homepageData?: HomepageContentItem[];
+  latestPosts?: Post[];
+  releaseData?: ReleaseItem[];
+  spinsLeft?: number;
+  isLoading?: boolean;
+  isError?: boolean;
+  onSpin?: (spinCount: number) => Promise<void>;
+}
+
 // --- MAIN HOME PAGE COMPONENT ---
-export const HomePage = () => {
-  const { data: homepageData, isLoading: isLoadingHomepage, isError: isErrorHomepage } = useQuery<HomepageContentItem[]>({ queryKey: ['homepageContent'], queryFn: fetchHomepageContent });
-  const { data: latestPosts, isLoading: isLoadingPosts, isError: isErrorPosts } = useQuery<Post[]>({ queryKey: ['latestPosts'], queryFn: fetchLatestPosts });
-  const { data: releaseData, isLoading: isLoadingReleases, isError: isErrorReleases } = useQuery<ReleaseItem[]>({ queryKey: ['releaseItems'], queryFn: fetchReleaseItems });
-
-  const [spinsLeft, setSpinsLeft] = useState(3); // Default to 3 spins
-  const [lastSpinDate, setLastSpinDate] = useState<string | null>(null);
-
-  useEffect(() => {
-      const fetchSpins = async () => {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-              setSpinsLeft(0); // No spins for unauthenticated users
-              return;
-          }
-
-          const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-
-          const { data, error } = await supabase
-              .from('daily_spins')
-              .select('*')
-              .eq('user_id', user.id)
-              .eq('spin_date', today)
-              .single();
-
-          if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
-              console.error('Error fetching daily spins:', error);
-              setSpinsLeft(0);
-              return;
-          }
-
-          if (data) {
-              setSpinsLeft(3 - data.spin_count);
-              setLastSpinDate(data.spin_date);
-          } else {
-              // No entry for today, user has full spins
-              setSpinsLeft(3);
-              setLastSpinDate(today);
-              // Create a new entry for today
-              const { error: insertError } = await supabase
-                  .from('daily_spins')
-                  .insert({ user_id: user.id, spin_date: today, spin_count: 0 });
-              if (insertError) {
-                  console.error('Error inserting new daily spin entry:', insertError);
-              }
-          }
-      };
-
-      fetchSpins();
-  }, []); // Run once on component mount
-
-  const isLoading = isLoadingHomepage || isLoadingPosts || isLoadingReleases;
-  const isError = isErrorHomepage || isErrorPosts || isErrorReleases;
+export const HomePage: React.FC<HomePageProps> = ({ 
+  homepageData = [], 
+  latestPosts = [], 
+  releaseData = [], 
+  spinsLeft = 0,
+  isLoading = false,
+  isError = false,
+  onSpin
+}) => {
+  const [currentSpinsLeft, setCurrentSpinsLeft] = useState(spinsLeft);
 
   if (isLoading) return <div className="text-center py-8">Loading homepage content...</div>;
   if (isError) return <div className="text-center py-8 text-red-400">Error loading homepage content.</div>;
@@ -653,7 +591,7 @@ export const HomePage = () => {
 
   return (
     <div>
-      <HeroSection contentMap={contentMap} spinsLeft={spinsLeft} setSpinsLeft={setSpinsLeft} />
+      <HeroSection contentMap={contentMap} spinsLeft={currentSpinsLeft} setSpinsLeft={setCurrentSpinsLeft} onSpin={onSpin} />
 
       {/* Statistics Section */}
       <section className={styles.zrSection}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-from '@zoroaster/ui'
+// Removed corrupted import
 import { WikiCategoryManager } from './components/WikiCategoryManager';
 
 export const WikiRoutes: React.FC = () => {
@@ -15,3 +15,4 @@ export const WikiRoutes: React.FC = () => {
 };
 
 export default WikiRoutes;
+

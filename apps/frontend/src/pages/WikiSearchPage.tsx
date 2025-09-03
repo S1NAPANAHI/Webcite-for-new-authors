@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Search, ArrowLeft, BookOpen, Clock, Eye, BookMarked } from 'lucide-react';
-from '@zoroaster/ui'
+// Removed corrupted import
 import { Badge } from '@/components/ui/badge';
 
 const WikiSearchPage: React.FC = () => {
@@ -298,3 +298,4 @@ const WikiSearchPage: React.FC = () => {
 };
 
 export default WikiSearchPage;
+

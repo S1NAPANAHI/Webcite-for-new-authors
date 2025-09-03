@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 
 interface BetaApplicationData {

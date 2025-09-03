@@ -7,7 +7,7 @@ import {
   deleteCategory,
   WikiCategory
 } from '@zoroaster/shared';
-from '@zoroaster/ui'
+// Removed corrupted import
 import { Input } from '@zoroaster/ui';
 import { Label } from '@zoroaster/ui';
 import { Textarea } from '@zoroaster/ui';
@@ -401,3 +401,4 @@ export const WikiCategoryManager: React.FC = () => {
 };
 
 export default WikiCategoryManager;
+

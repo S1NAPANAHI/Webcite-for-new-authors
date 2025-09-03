@@ -1,4 +1,4 @@
-from '@zoroaster/ui'
+import React, { useState } from 'react';
 
 const MagicalParticles = () => {
   const [particles] = useState(() => 

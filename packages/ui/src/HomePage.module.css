@@ -198,6 +198,59 @@
     font-size: 1.2rem; /* Increased font size for English */
     color: var(--gold-1);
     text-shadow: 0 0 10px var(--focus);
+}
+
+.englishText {
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: inherit;
+}
+
+/* Spins indicator styles */
+.spinsIndicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.spinDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.spinDotActive {
+    background: var(--gold-1);
+    border-color: var(--gold-2);
+    box-shadow: 0 0 10px rgba(245, 208, 122, 0.6);
+}
+
+/* Section styles */
+.zrSection {
+    padding: clamp(40px, 8vw, 80px) clamp(20px, 5vw, 60px);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.zrH2 {
+    font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    text-align: center;
+    margin-bottom: clamp(24px, 4vw, 40px);
+    background: linear-gradient(90deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(245, 208, 122, 0.15);
     font-family: 'Cinzel', serif; /* Default for English */
     padding: 0 10px; /* Add some padding */
     text-align: center; /* Center English text */

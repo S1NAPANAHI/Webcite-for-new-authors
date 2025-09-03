@@ -1,4 +1,5 @@
-from '@zoroaster/ui'
+import React from 'react';
+import { cn } from '@zoroaster/shared';
 
 const Table = React.forwardRef<
   HTMLTableElement,

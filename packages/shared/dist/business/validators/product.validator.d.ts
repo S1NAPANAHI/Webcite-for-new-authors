@@ -33,19 +33,19 @@ export declare const PriceSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const CreateProductSchema: z.ZodObject<{
     work_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    name: z.ZodString;
+    active: z.ZodDefault<z.ZodBoolean>;
+    content_grants: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
     product_type: z.ZodDefault<z.ZodEnum<{
         single_issue: "single_issue";
         bundle: "bundle";
         chapter_pass: "chapter_pass";
         arc_pass: "arc_pass";
     }>>;
-    active: z.ZodDefault<z.ZodBoolean>;
-    description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    name: z.ZodString;
-    content_grants: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
     prices: z.ZodArray<z.ZodObject<{
-        active: z.ZodDefault<z.ZodBoolean>;
         currency: z.ZodString;
+        active: z.ZodDefault<z.ZodBoolean>;
         interval: z.ZodNullable<z.ZodOptional<z.ZodEnum<{
             one_time: "one_time";
             month: "month";
@@ -57,18 +57,18 @@ export declare const CreateProductSchema: z.ZodObject<{
     }, z.core.$strip>>;
 }, z.core.$strip>;
 export declare const UpdateProductSchema: z.ZodObject<{
+    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     work_id: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    description: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    name: z.ZodOptional<z.ZodString>;
+    active: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
+    content_grants: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>>;
     product_type: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
         single_issue: "single_issue";
         bundle: "bundle";
         chapter_pass: "chapter_pass";
         arc_pass: "arc_pass";
     }>>>;
-    active: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
-    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-    description: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
-    name: z.ZodOptional<z.ZodString>;
-    content_grants: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>>;
 }, z.core.$strip>;
 export declare const ProductQuerySchema: z.ZodObject<{
     active: z.ZodOptional<z.ZodEnum<{

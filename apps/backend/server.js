@@ -147,8 +147,12 @@ app.post('/api/stripe/create-subscription-intent', async (req, res) => {
   }
 });
 
-// Stripe webhook (set STRIPE_WEBHOOK_SECRET from Dashboard → Developers → Webhooks)
-app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+// Enhanced Stripe webhook for e-commerce and subscriptions
+const handleStripeWebhook = require('./webhooks/stripe-ecommerce');
+app.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
+
+// Legacy webhook endpoint for backward compatibility
+app.post('/webhook-legacy', express.raw({ type: 'application/json' }), (req, res) => {
   let event;
   try {
     const sig = req.headers['stripe-signature'];
@@ -162,13 +166,12 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
     return res.sendStatus(400);
   }
 
-  // Handle subscription lifecycle and invoices
+  // Handle subscription lifecycle and invoices (legacy)
   switch (event.type) {
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object;
       try {
         await upsertInvoice(invoice);
-        // Optionally, provision access here if not handled by subscription.updated
         console.log(`Invoice ${invoice.id} payment succeeded. User: ${invoice.customer_email || invoice.customer}`);
       } catch (e) {
         console.error(`Error handling invoice.payment_succeeded for invoice ${invoice.id}:`, e);
@@ -180,7 +183,6 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
       const invoice = event.data.object;
       try {
         await upsertInvoice(invoice);
-        // Notify user, prompt to update payment method
         console.log(`Invoice ${invoice.id} payment failed. User: ${invoice.customer_email || invoice.customer}`);
       } catch (e) {
         console.error(`Error handling invoice.payment_failed for invoice ${invoice.id}:`, e);
@@ -203,10 +205,9 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
     case 'customer.subscription.deleted': {
       const subscription = event.data.object;
       try {
-        // Mark subscription as canceled in your DB
         const { data, error } = await supabase
           .from('subscriptions')
-          .update({ status: 'canceled' }) // Or 'incomplete_expired' depending on your logic
+          .update({ status: 'canceled' })
           .eq('id', subscription.id);
 
         if (error) throw error;
@@ -226,11 +227,15 @@ app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
 });
 
 const adminRouter = createAdminRoutes(supabase);
+const { createCartRoutes, createOrderRoutes } = require('./routes/cart');
+
 console.log('adminRouter:', adminRouter);
 
 // Routes
 app.use('/api/products', createProductRoutes(supabase));
 app.use('/api/products-v2', createEnhancedProductRoutes(supabase)); // Enhanced version
+app.use('/api/cart', createCartRoutes(supabase, process.env.STRIPE_SECRET_KEY));
+app.use('/api/orders', createOrderRoutes(supabase, process.env.STRIPE_SECRET_KEY));
 app.use('/api/admin', (req, res, next) => {
   console.log('Request received for /api/admin path:', req.originalUrl);
   next();

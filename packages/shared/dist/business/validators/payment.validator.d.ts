@@ -14,10 +14,10 @@ export declare const SubscriptionSchema: z.ZodObject<{
     user_id: z.ZodString;
     plan_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
+        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
-        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
@@ -76,17 +76,17 @@ export declare const OrderSchema: z.ZodObject<{
     updated_at: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export declare const CreateSubscriptionSchema: z.ZodObject<{
-    user_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
+        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
-        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
         paused: "paused";
     }>>;
+    user_id: z.ZodString;
     metadata: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
     cancel_at_period_end: z.ZodDefault<z.ZodBoolean>;
     current_period_end: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -97,10 +97,10 @@ export declare const CreateSubscriptionSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const UpdateSubscriptionSchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
+        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
-        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";
@@ -144,10 +144,10 @@ export declare const PaymentQuerySchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const SubscriptionQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<{
+        active: "active";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
-        active: "active";
         past_due: "past_due";
         canceled: "canceled";
         unpaid: "unpaid";

@@ -1,4 +1,4 @@
-from '@zoroaster/ui'
+import React from 'react';
 import { cn } from '@zoroaster/shared';
 
 export interface InputProps

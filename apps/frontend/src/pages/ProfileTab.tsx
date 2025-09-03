@@ -1,5 +1,5 @@
 import React from 'react';
-from '@zoroaster/ui'
+// Removed corrupted import
 
 interface ProfileTabProps {
   userProfile: UserProfile;

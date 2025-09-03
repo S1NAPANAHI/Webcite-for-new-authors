@@ -1,5 +1,5 @@
 import React from 'react';
-from '@zoroaster/ui'
+import { Link } from 'react-router-dom';
 
 const HomePage: React.FC = () => {
   return (

@@ -13,7 +13,7 @@
     "build:frontend": "pnpm --filter frontend build",
     "start": "pnpm --filter frontend start",
     "lint": "pnpm --filter frontend lint",
-    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build",
+    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build && node -e \"require('fs-extra').copySync('apps/frontend/dist', 'dist')\"",
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "packageManager": "pnpm@8.15.0",
@@ -23,6 +23,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
     "framer-motion": "^12.23.12",
+    "fs-extra": "^11.3.1",
     "marked": "^16.2.0",
     "quill": "^2.0.3"
   },
@@ -41,7 +42,9 @@
       "esbuild": "^0.21.5"
     },
     "peerDependencyRules": {
-      "ignoreMissing": ["@babel/core"]
+      "ignoreMissing": [
+        "@babel/core"
+      ]
     }
   }
 }

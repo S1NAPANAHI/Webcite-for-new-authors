@@ -16,7 +16,7 @@ import {
 } from '@zoroaster/ui';
 
 // Import our custom LoginPage with beautiful Persian/Zoroastrian styling
-import LoginPage from './components/LoginPage';
+import LoginPage from './components/LoginPage.tsx';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';

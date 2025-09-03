@@ -19,7 +19,7 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
-import { SubscriptionSuccessPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage } from '@zoroaster/ui';
 import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { supabase } from '@zoroaster/shared/supabaseClient';
@@ -145,7 +145,7 @@ const App: React.FC = () => {
           <Route path="/store" element={<PlaceholderPage title="Store" />} />
           <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />
           <Route path="/library" element={<LibraryPage />} />
-          <Route path="/subscriptions" element={<PlaceholderPage title="Subscriptions" />} />
+          <Route path="/subscriptions" element={<SubscriptionPage />} />
           <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
           <Route path="/stripe-test" element={<PlaceholderPage title="Stripe Test" />} />
           

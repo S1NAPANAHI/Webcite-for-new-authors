@@ -31,6 +31,7 @@ export { LibraryPage } from './LibraryPage';
 export { BlogPage } from './BlogPage';
 export { CharactersPage } from './CharactersPage';
 export { TimelinesPage } from './TimelinesPage';
+export { WikiViewer } from './WikiViewer';
 
 // Basic UI Components
 export * from './button';

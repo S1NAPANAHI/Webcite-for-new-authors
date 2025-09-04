@@ -20,7 +20,9 @@ import {
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
 import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, CharactersPage, TimelinesPage } from '@zoroaster/ui';
-import { WikiPage, WikiPageWithSections, fetchWikiPage } from '@zoroaster/shared';
+import type { WikiPage, WikiPageWithSections } from '@zoroaster/shared';
+import { fetchWikiPage } from '@zoroaster/shared';
+import { WikiViewer } from '@zoroaster/ui';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 // import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Temporarily disabled
@@ -152,9 +154,9 @@ const App: React.FC = () => {
           
           {/* Wiki Routes */}
           <Route path="/wiki">
-            <Route index element={<WikiPage />} />
-            <Route path=":folderSlug" element={<WikiPageWithSections />} />
-            <Route path=":folderSlug/:pageSlug" element={<WikiPageWithSections />} />
+            <Route index element={<WikiViewer />} />
+            <Route path=":folderSlug" element={<WikiViewer />} />
+            <Route path=":folderSlug/:pageSlug" element={<WikiViewer />} />
           </Route>
           
           <Route path="/timelines" element={<TimelinesPage />} />

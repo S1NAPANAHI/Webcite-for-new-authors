@@ -19,7 +19,7 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
-import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, CharactersPage, TimelinesPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage } from '@zoroaster/ui';
 import type { WikiPage, WikiPageWithSections } from '@zoroaster/shared';
 import { fetchWikiPage } from '@zoroaster/shared';
 import { WikiViewer } from '@zoroaster/ui';
@@ -160,7 +160,7 @@ const App: React.FC = () => {
           </Route>
           
           <Route path="/timelines" element={<TimelinesPage />} />
-          <Route path="/characters" element={<CharactersPage />} />
+          
           <Route path="/locations" element={<LocationsPage />} />
           <Route path="/glossary" element={<GlossaryPage />} />
           <Route path="/reviews" element={<ReviewsPage />} />

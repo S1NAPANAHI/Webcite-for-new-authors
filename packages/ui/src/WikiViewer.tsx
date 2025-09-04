@@ -64,28 +64,12 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       // Search in wiki_pages (title and excerpt)
       const { data: pagesData, error: pagesError } = await supabase
         .from('wiki_pages')
-        .select(`
-          *,
-          content, seo_title, seo_description, seo_keywords, sections,
-          category:wiki_categories(*),
-          user:profiles(*)
-        `)
+        .select('id, title, excerpt, content, slug, created_by, folder_id, category_id, is_published, created_at, updated_at')
         .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%`);
 
       if (pagesError) throw pagesError;
 
       const results: SearchResultItem[] = (pagesData || []).map((page: any) => {
-        // Explicitly handle user and category types
-        let userProfile: Tables<'profiles'> | null = null;
-        if (page.user && typeof page.user === 'object' && !('error' in page.user)) {
-            userProfile = page.user as Tables<'profiles'>;
-        }
-
-        let pageCategory: Tables<'wiki_categories'> | null = null;
-        if (page.category && typeof page.category === 'object' && !('error' in page.category)) {
-            pageCategory = page.category as Tables<'wiki_categories'>;
-        }
-
         return {
           ...page,
           resultType: 'page' as const,
@@ -96,15 +80,15 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
           category_id: page.category_id ?? null,
           folder_id: page.folder_id ?? null,
           created_at: page.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          updated_at: page.updated_at || new Date().toISOString(),
           created_by: page.created_by || '',
           view_count: page.view_count || 0,
           slug: page.slug || '',
-          seo_title: page.seo_title || null,
-          seo_description: page.seo_description || null,
-          seo_keywords: page.seo_keywords || [],
-          category: pageCategory, // Assign the correctly typed category
-          user: userProfile,     // Assign the correctly typed user
+          seo_title: null,
+          seo_description: null,
+          seo_keywords: [],
+          category: null, // No relational data
+          user: null,     // No relational data
         } as WikiPageWithSections & { resultType: 'page' };
       });
 
@@ -126,33 +110,31 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
         // Fetch all pages
         const { data: pagesData, error: pagesError } = await supabase
           .from('wiki_pages')
-          .select('*, content, seo_title, seo_description, seo_keywords, sections, category:wiki_categories(*), user:profiles(*)') // Include these fields
+          .select('id, title, excerpt, content, slug, created_by, folder_id, category_id, is_published, created_at, updated_at')
           .order('title');
 
         if (pagesError) throw pagesError;
 
-        // Explicitly handle user and category for each page
+        // Process pages without trying to access relational data
         const processedPages: WikiPageWithSections[] = (pagesData || []).map((page: any) => {
-            let userProfile: Tables<'profiles'> | null = null;
-            if (page.user && typeof page.user === 'object' && !('error' in page.user)) {
-                userProfile = page.user as Tables<'profiles'>;
-            }
-
-            let pageCategory: Tables<'wiki_categories'> | null = null;
-            if (page.category && typeof page.category === 'object' && !('error' in page.category)) {
-                pageCategory = page.category as Tables<'wiki_categories'>;
-            }
-
             return {
                 ...page,
                 sections: page.sections || [],
                 content: page.content || '',
-                seo_title: page.seo_title || '',
-                seo_description: page.seo_description || '',
-                seo_keywords: page.seo_keywords || [],
-                category: pageCategory,
-                user: userProfile,
-                resultType: 'page', // Add resultType here
+                excerpt: page.excerpt || '',
+                is_published: page.is_published ?? true,
+                category_id: page.category_id ?? null,
+                folder_id: page.folder_id ?? null,
+                created_at: page.created_at || new Date().toISOString(),
+                updated_at: page.updated_at || new Date().toISOString(),
+                created_by: page.created_by || '',
+                view_count: page.view_count || 0,
+                slug: page.slug || '',
+                seo_title: null,
+                seo_description: null,
+                seo_keywords: [],
+                category: null, // No relational data
+                user: null,     // No relational data
             } as WikiPageWithSections;
         });
 

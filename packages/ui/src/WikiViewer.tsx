@@ -30,7 +30,7 @@ const isFolder = (item: SearchResultItem): item is Folder & { resultType: 'folde
 };
 
 interface WikiViewerProps {
-  page: WikiPageWithSections;
+  page?: WikiPageWithSections;
   onEdit?: () => void;
 }
 
@@ -49,7 +49,7 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
   const searchTimeoutRef = useRef<number | null>(null);
   const contentRef = useRef<HTMLElement>(null);
 
-  const content = page.excerpt || '';
+  const content = page?.excerpt || '';
 
   // Handle search functionality
   const handleSearch = async (query: string) => {
@@ -353,9 +353,8 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
     setSearchResults([]);
   }, [folderSlug, pageSlug]);
 
-  if (!page) {
-    return <div>Loading...</div>;
-  }
+  // Use the page prop if provided, otherwise use currentPage or fall back to standalone mode
+  const displayPage = page || currentPage;
 
   return (
     <div className="flex h-screen bg-background">
@@ -535,33 +534,6 @@ export function WikiViewer({ page, onEdit }: WikiViewerProps) {
       </div>
     )}
 
-    {/* WikiViewer component */}
-    <div className="prose dark:prose-invert max-w-none">
-      <h1>{page.title}</h1>
-
-      {page.sections?.length ? (
-        <div className="space-y-6">
-          {page.sections
-            ?.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
-            .map((section) => (
-              <div key={section.id} className="section">
-                {section.title && (
-                  <h2 className="text-2xl font-semibold mb-2">{section.title}</h2>
-                )}
-                <div 
-                  className="prose dark:prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: section.content || '' }}
-                />
-              </div>
-            ))}
-        </div>
-      ) : (
-        <div 
-          className="prose dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{ __html: page.excerpt || '' }}
-        />
-      )}
-    </div>
   </div>
   );
 }

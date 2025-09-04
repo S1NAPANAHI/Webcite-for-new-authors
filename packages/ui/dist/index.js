@@ -1161,7 +1161,7 @@ const Qi = Ue(void 0), ea = () => {
   } else
     a.push({ name: "Login", path: "/login" });
   return /* @__PURE__ */ s.jsxs("header", { className: ce.zoroHeader, children: [
-    /* @__PURE__ */ s.jsx("div", { className: ce.logo, children: /* @__PURE__ */ s.jsx(ds, { to: "/", children: /* @__PURE__ */ s.jsx("h1", { children: "Zoroasterverse" }) }) }),
+    /* @__PURE__ */ s.jsx("div", { className: ce.logo, children: /* @__PURE__ */ s.jsx(ds, { to: "/", children: /* @__PURE__ */ s.jsx("h1", { children: "Zoroastervers" }) }) }),
     /* @__PURE__ */ s.jsxs("div", { className: ce.headerControls, children: [
       /* @__PURE__ */ s.jsxs("form", { className: ce.searchForm, children: [
         /* @__PURE__ */ s.jsx("input", { type: "text", placeholder: "Search..." }),
@@ -1188,12 +1188,12 @@ const Qi = Ue(void 0), ea = () => {
 }, gc = () => /* @__PURE__ */ s.jsx("footer", { className: Fe.zoroFooter, children: /* @__PURE__ */ s.jsxs("div", { className: Fe.footerContent, children: [
   /* @__PURE__ */ s.jsxs("div", { className: Fe.footerColumns, children: [
     /* @__PURE__ */ s.jsxs("div", { className: Fe.column, children: [
-      /* @__PURE__ */ s.jsx("h4", { children: "Zoroasterverse" }),
+      /* @__PURE__ */ s.jsx("h4", { children: "Zoroastervers" }),
       /* @__PURE__ */ s.jsx("p", { children: "“Truth is the architect of happiness.”" }),
       /* @__PURE__ */ s.jsxs("p", { children: [
         "© ",
         (/* @__PURE__ */ new Date()).getFullYear(),
-        " Zoroasterverse. All rights reserved."
+        " Zoroastervers. All rights reserved."
       ] })
     ] }),
     /* @__PURE__ */ s.jsxs("div", { className: Fe.column, children: [
@@ -1201,7 +1201,7 @@ const Qi = Ue(void 0), ea = () => {
       /* @__PURE__ */ s.jsxs("ul", { children: [
         /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/about", children: "About" }) }),
         /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/books", children: "Books" }) }),
-        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/collaborate", children: "Artist Collaboration" }) }),
+        /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/artist-collaboration", children: "Artist Collaboration" }) }),
         /* @__PURE__ */ s.jsx("li", { children: /* @__PURE__ */ s.jsx("a", { href: "/contact", children: "Contact" }) })
       ] })
     ] }),

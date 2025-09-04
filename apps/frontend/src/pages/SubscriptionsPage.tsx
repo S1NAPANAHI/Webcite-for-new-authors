@@ -67,20 +67,14 @@ const SubscriptionsPage: React.FC = () => {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from('user_subscriptions')
-        .select(`
-          *,
-          subscription_plans!inner(name)
-        `)
+        .from('subscriptions')
+        .select('*')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
-      return data ? {
-        ...data,
-        plan_name: data.subscription_plans?.name
-      } : null;
+      return data || null;
     }
   });
 
@@ -187,7 +181,7 @@ const SubscriptionsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-white mb-1">
-                      Currently subscribed to {currentSubscription.plan_name}
+                      Currently subscribed
                     </h3>
                     <p className="text-green-300">
                       Active until {new Date(currentSubscription.current_period_end).toLocaleDateString()}

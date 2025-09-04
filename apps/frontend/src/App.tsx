@@ -152,9 +152,9 @@ const App: React.FC = () => {
           
           {/* Wiki Routes */}
           <Route path="/wiki">
-            <Route index element={<PlaceholderPage title="Wiki" />} />
-            <Route path=":folderSlug" element={<PlaceholderPage title="Wiki Folder" />} />
-            <Route path=":folderSlug/:pageSlug" element={<PlaceholderPage title="Wiki Page" />} />
+            <Route index element={<WikiPage />} />
+            <Route path=":folderSlug" element={<WikiPageWithSections />} />
+            <Route path=":folderSlug/:pageSlug" element={<WikiPageWithSections />} />
           </Route>
           
           <Route path="/timelines" element={<TimelinesPage />} />

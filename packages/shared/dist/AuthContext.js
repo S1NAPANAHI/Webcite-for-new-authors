@@ -43,7 +43,12 @@ export const AuthProvider = ({ children, supabaseClient }) => {
                 }
                 setUserProfile(profile);
                 setIsAdmin(!!(profile?.role === 'admin' || profile?.role === 'super_admin'));
-                const { data: subscription, error: subscriptionError } = await supabaseClient.rpc('get_user_active_subscription', { user_uuid: userId });
+                const { data: subscription, error: subscriptionError } = await supabaseClient
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .in('status', ['active', 'trialing'])
+                    .single();
                 if (subscriptionError) {
                     throw subscriptionError;
                 }

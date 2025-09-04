@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{
         setIsAdmin(!!(profile?.role === 'admin' || profile?.role === 'super_admin'));
 
         const { data: subscription, error: subscriptionError } = await supabaseClient
-          .from('user_subscriptions')
+          .from('subscriptions')
           .select('*')
           .eq('user_id', userId)
           .in('status', ['active', 'trialing'])

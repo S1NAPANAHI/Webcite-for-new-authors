@@ -44,16 +44,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Check if customer already exists in Stripe
     let customerId: string;
 
-    const { data: existingSubscription } = await supabase
-      .from('user_subscriptions')
+    // Check if customer already exists in stripe_customers table
+    const { data: existingCustomer } = await supabase
+      .from('stripe_customers')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
-      .not('stripe_customer_id', 'is', null)
       .limit(1)
       .single();
 
-    if (existingSubscription?.stripe_customer_id) {
-      customerId = existingSubscription.stripe_customer_id;
+    if (existingCustomer?.stripe_customer_id) {
+      customerId = existingCustomer.stripe_customer_id;
     } else {
       // Create new customer
       const customer = await stripe.customers.create({
@@ -64,11 +64,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
       customerId = customer.id;
 
-      // Insert a new record into user_subscriptions to store the customer ID
-      await supabase.from('user_subscriptions').insert({
+      // Insert a new record into stripe_customers to store the customer ID
+      await supabase.from('stripe_customers').insert({
         user_id: user.id,
         stripe_customer_id: customerId,
-        status: 'incomplete',
+        email: user.email,
       });
     }
 

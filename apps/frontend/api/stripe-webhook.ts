@@ -110,54 +110,50 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   
   // Create or update user subscription in Supabase
   await supabase
-    .from('user_subscriptions')
+    .from('subscriptions')
     .upsert({
       user_id: userId,
-      subscription_plan_id: planId,
-      stripe_subscription_id: subscription.id,
-      stripe_customer_id: subscription.customer as string,
+      plan_id: planId,
+      provider_subscription_id: subscription.id,
       status: subscription.status,
       current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
       current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
       trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
       trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
     }, {
-      onConflict: 'stripe_subscription_id'
+      onConflict: 'provider_subscription_id'
     });
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
   await supabase
-    .from('user_subscriptions')
+    .from('subscriptions')
     .update({
       status: subscription.status,
       current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
       current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
       trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
       trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-      canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
-      ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
     })
-    .eq('stripe_subscription_id', subscription.id);
+    .eq('provider_subscription_id', subscription.id);
 }
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   await supabase
-    .from('user_subscriptions')
+    .from('subscriptions')
     .update({
       status: 'canceled',
-      ended_at: new Date().toISOString(),
     })
-    .eq('stripe_subscription_id', subscription.id);
+    .eq('provider_subscription_id', subscription.id);
 }
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   // Update subscription status if needed
   if (invoice.subscription) {
     await supabase
-      .from('user_subscriptions')
+      .from('subscriptions')
       .update({ status: 'active' })
-      .eq('stripe_subscription_id', invoice.subscription as string);
+      .eq('provider_subscription_id', invoice.subscription as string);
   }
 }
 
@@ -165,8 +161,8 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   // Update subscription status to past_due
   if (invoice.subscription) {
     await supabase
-      .from('user_subscriptions')
+      .from('subscriptions')
       .update({ status: 'past_due' })
-      .eq('stripe_subscription_id', invoice.subscription as string);
+      .eq('provider_subscription_id', invoice.subscription as string);
   }
 }

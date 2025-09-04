@@ -8,9 +8,9 @@ export const Footer = () => {
       <div className={styles.footerContent}>
         <div className={styles.footerColumns}>
           <div className={styles.column}>
-            <h4>Zoroasterverse</h4>
+            <h4>Zoroastervers</h4>
             <p>“Truth is the architect of happiness.”</p>
-            <p>© {new Date().getFullYear()} Zoroasterverse. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} Zoroastervers. All rights reserved.</p>
           </div>
           <div className={styles.column}>
             <h4>Explore</h4>

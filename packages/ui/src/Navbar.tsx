@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header className={styles.zoroHeader}>
       <div className={styles.logo}>
         <NavLink to="/">
-          <h1>Zoroasterverse</h1>
+          <h1>Zoroastervers</h1>
         </NavLink>
       </div>
 

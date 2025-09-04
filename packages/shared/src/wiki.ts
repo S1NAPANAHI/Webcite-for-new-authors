@@ -86,7 +86,7 @@ export const fetchPages = async (): Promise<WikiPageWithSections[]> => {
       created_by: page.created_by,
       title: page.title,
       slug: page.slug,
-      excerpt: page.excerpt,
+      excerpt: page.excerpt || '',
       folder_id: page.folder_id,
       is_published: page.is_published,
       category_id: page.category_id,
@@ -268,6 +268,7 @@ export const fetchWikiPages = async ({
 
     return {
       ...page,
+      excerpt: page.excerpt || '', // Explicitly set excerpt
       user: userValue,
       category: categoryValue,
       content: page.content || null,

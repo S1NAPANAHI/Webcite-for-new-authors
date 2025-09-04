@@ -32,7 +32,7 @@ const WikiViewerPage: React.FC = () => {
         
         setLoading(true);
         const pageData = await fetchWikiPage(slug);
-        setPage(pageData);
+        setPage({ ...pageData, excerpt: pageData.excerpt || '' });
       } catch (err) {
         console.error('Error loading wiki page:', err);
         setError('Failed to load wiki page. It may not exist or you may not have permission to view it.');

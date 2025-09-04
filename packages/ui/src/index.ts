@@ -29,7 +29,6 @@ export { default as SubscriptionPage } from './SubscriptionPage';
 export { default as SubscriptionSuccessPage } from './SubscriptionSuccessPage';
 export { LibraryPage } from './LibraryPage';
 export { BlogPage } from './BlogPage';
-export { CharactersPage } from './CharactersPage';
 export { TimelinesPage } from './TimelinesPage';
 export { WikiViewer } from './WikiViewer';
 

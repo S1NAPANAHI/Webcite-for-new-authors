@@ -36,7 +36,7 @@ import { CartProvider } from '@zoroaster/shared';
 // import GenericPage from './pages/GenericPage';
 import ProfileDashboard from './pages/ProfileDashboard';
 import AboutPage from './pages/AboutPage';
-// import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
+import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 // import Timelines from './pages/Timelines';
 // import StripeTest from './pages/StripeTest';
 // import SubscriptionSuccess from './pages/SubscriptionSuccess';
@@ -167,7 +167,7 @@ const App: React.FC = () => {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
           <Route path="/beta/application" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
-          <Route path="/artist-collaboration" element={<PlaceholderPage title="Artist Collaboration" />} />
+          <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />
           <Route path="/read/:workId" element={<WorkReaderPage />} />
           <Route path="/beta/status" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
           

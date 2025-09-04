@@ -64,8 +64,8 @@ export const SubscriptionPage: React.FC = () => {
     }
 
     try {
-      const session = supabase.auth.session();
-      if (!session) {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
         throw new Error('User is not authenticated');
       }
 

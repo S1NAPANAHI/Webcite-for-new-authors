@@ -1,7 +1,7 @@
 export declare const useDailySpins: () => {
     spinsLeft: number;
     loading: boolean;
-    error: string | null;
-    updateSpinCount: (newSpinCount: number) => Promise<boolean | undefined>;
+    error: string;
+    updateSpinCount: (newSpinCount: number) => Promise<boolean>;
 };
 //# sourceMappingURL=useDailySpins.d.ts.map

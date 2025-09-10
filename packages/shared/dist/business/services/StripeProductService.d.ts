@@ -43,7 +43,7 @@ export declare class StripeProductService {
         product_id: string;
         stripe_product_id: string;
         variants: {
-            variant_id: string | undefined;
+            variant_id: string;
             stripe_price_id: string;
             price_amount: number;
         }[];
@@ -90,7 +90,7 @@ export declare class StripeProductService {
         is_valid: boolean;
         issues: string[];
         product_name: string;
-        stripe_product_id: string | null;
+        stripe_product_id: string;
         variants_count: number;
         mapped_variants: number;
     }>;

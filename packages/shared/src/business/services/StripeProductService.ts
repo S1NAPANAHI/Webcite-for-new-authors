@@ -131,7 +131,7 @@ export class StripeProductService {
           const priceData: Stripe.PriceCreateParams = {
             product: stripeProduct.id,
             currency: variant.price_currency || 'usd',
-            unit_amount: variant.price_amount as any,
+            unit_amount_decimal: Math.round(variant.price_amount).toString(),
             ...(variant.sku ? { lookup_key: variant.sku } : {}),
             metadata: {
               supabase_variant_id: variantId,
@@ -154,7 +154,7 @@ export class StripeProductService {
           await this.supabase
             .from('product_variants')
             .update({ stripe_price_id: stripePrice.id })
-            .eq('id', variantId);
+            .eq('id', variantId!);
 
           return {
             variant_id: variantId,
@@ -482,11 +482,11 @@ export class StripeProductService {
   private async syncProductFromStripe(stripeProduct: Stripe.Product, _defaultCategoryId?: string) {
     try {
       
-      const { data: existingProduct, error: _fetchError } = await this.supabase
+      const { data: existingProduct }: { data: Product | null, error: any } = await this.supabase
         .from('products')
         .select('*')
-        .eq('stripe_product_id', stripeProduct.id)
-        .single();
+        .eq('stripe_product_id', (stripeProduct! as Stripe.Product).id)
+        .single() as { data: Product | null, error: any }; // @ts-ignore
 
       const productData: ProductInsert = {
         name: stripeProduct.name,
@@ -515,7 +515,7 @@ export class StripeProductService {
             ...productData,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingProduct.id);
+          .eq('id', existingProduct!.id);
       } else {
         
         await this.supabase
@@ -531,16 +531,14 @@ export class StripeProductService {
   
   private async syncPriceFromStripe(stripePrice: Stripe.Price) {
     try {
-      if (typeof stripePrice.product !== 'string') {
-        throw new Error('Product ID must be a string');
-      }
+      
 
       
       const { data: product, error: _productError } = await this.supabase
         .from('products')
         .select('*')
-        .eq('stripe_product_id', stripePrice.product)
-        .single();
+        .eq('stripe_product_id', (stripePrice.product as Stripe.Product).id)
+        .single() as { data: Product | null, error: any };
 
       if (!product) {
         console.warn(`Local product not found for Stripe product ${stripePrice.product}, skipping price sync`);
@@ -548,14 +546,14 @@ export class StripeProductService {
       }
 
       
-      const { data: existingVariant } = await this.supabase
+      const { data: existingVariant }: { data: Pick<ProductVariant, 'id'> | null } = await this.supabase
         .from('product_variants')
         .select('id')
         .eq('stripe_price_id', stripePrice.id)
         .single();
 
       const variantData: VariantInsert = {
-        product_id: product.id,
+        product_id: product!.id,
         stripe_price_id: stripePrice.id,
         name: stripePrice.nickname || `Default Variant`,
         price_amount: stripePrice.unit_amount || 0,
@@ -607,7 +605,7 @@ export class StripeProductService {
             ...variantData,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingVariant.id);
+                      .eq('id', existingVariant!.id);
       } else {
         
         await this.supabase

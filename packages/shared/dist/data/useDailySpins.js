@@ -48,7 +48,7 @@ export const useDailySpins = () => {
     const updateSpinCount = async (newSpinCount) => {
         if (!user) {
             setError('User not authenticated.');
-            return;
+            return false;
         }
         const today = new Date().toISOString().slice(0, 10);
         const { error } = await supabase

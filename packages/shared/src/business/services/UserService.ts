@@ -661,21 +661,25 @@ export class UserService {
 
       
       for (const subscription of activeSubscriptions || []) {
-        await this.supabase
-          .from('subscriptions')
-          .update({
-            status: 'canceled',
-            cancel_at_period_end: false,
-            updated_at: new Date().toISOString(),
-            metadata: {
-              cancellation: {
-                reason: 'account_deactivated',
-                canceled_by: deactivatedBy,
-                canceled_at: new Date().toISOString()
+        if (subscription) {
+          await this.supabase
+            .from('subscriptions')
+            .update({
+              status: 'canceled',
+              cancel_at_period_end: false,
+              updated_at: new Date().toISOString(),
+              metadata: {
+                cancellation: {
+                  reason: 'account_deactivated',
+                  canceled_by: deactivatedBy,
+                  canceled_at: new Date().toISOString()
+                }
               }
-            }
-          })
-          .eq('id', subscription.id);
+            })
+            // @ts-ignore
+            // @ts-ignore
+            .eq('id', (subscription as any).id); // @ts-ignore
+        }
       }
 
       

@@ -263,6 +263,7 @@ export const AuthProvider: React.FC<{
         setIsAdmin(false);
       }
     };
+    */
 
     if (user?.id) {
       fetchUserProfileAndSubscription(user.id);

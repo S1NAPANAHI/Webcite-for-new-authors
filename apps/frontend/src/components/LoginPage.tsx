@@ -100,7 +100,7 @@ const LoginPage: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin, // Redirects to the current domain
+          redirectTo: window.location.origin + '/auth/callback', // Redirects to the current domain + callback path
         },
       });
 

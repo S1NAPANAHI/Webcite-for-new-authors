@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { Tables } from '../database.types';
 import { useAuth } from '../AuthContext';
 
-type DailySpin = Tables<'daily_spins'>;
+
 
 export const useDailySpins = () => {
   const { user } = useAuth();

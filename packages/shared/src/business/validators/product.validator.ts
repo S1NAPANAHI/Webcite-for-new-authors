@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { Database } from '../../database.types';
 
-type ProductType = Database['public']['Enums']['product_type'];
-type WorkStatus = Database['public']['Enums']['work_status'];
+
 
 // Base product validation schema
 export const ProductSchema = z.object({

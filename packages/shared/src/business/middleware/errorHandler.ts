@@ -20,7 +20,7 @@ export const errorHandler = (
   error: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): void => {
   // Generate request ID for tracking
   const requestId = req.headers['x-request-id'] as string || generateRequestId();
@@ -128,7 +128,7 @@ export const asyncHandler = (fn: Function) => {
 /**
  * Not found handler middleware
  */
-export const notFoundHandler = (req: Request, res: Response, next: NextFunction): void => {
+export const notFoundHandler = (req: Request, res: Response, _next: NextFunction): void => {
   const errorResponse: ErrorResponse = {
     success: false,
     error: {
@@ -145,7 +145,7 @@ export const notFoundHandler = (req: Request, res: Response, next: NextFunction)
  * Request validation middleware factory
  */
 export const validateRequest = (schema: any, source: 'body' | 'query' | 'params' = 'body') => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     try {
       const dataToValidate = req[source];
       const validatedData = schema.parse(dataToValidate);
@@ -163,7 +163,7 @@ export const validateRequest = (schema: any, source: 'body' | 'query' | 'params'
  * Business rules validation middleware factory
  */
 export const validateBusinessRules = (validator: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     try {
       const validation = validator(req.body);
       
@@ -192,7 +192,7 @@ export const validateBusinessRules = (validator: Function) => {
 export const createRateLimiter = (windowMs: number, max: number, message?: string) => {
   const requests = new Map();
   
-  return (req: Request, res: Response, next: NextFunction) => {
+  return (req: Request, _res: Response, next: NextFunction) => {
     const key = req.ip || 'unknown';
     const now = Date.now();
     const windowStart = now - windowMs;

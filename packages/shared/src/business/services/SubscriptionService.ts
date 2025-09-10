@@ -1,10 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import {
-  SubscriptionInput,
   CreateSubscriptionInput,
   UpdateSubscriptionInput,
   SubscriptionQuery,
-  SubscriptionSchema,
   CreateSubscriptionSchema,
   UpdateSubscriptionSchema,
   SubscriptionQuerySchema,
@@ -18,7 +16,6 @@ import {
 } from '../errors';
 import { Database } from '../../database.types';
 
-type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 type SubscriptionStatus = Database['public']['Enums']['subscription_status'];
 
 export class SubscriptionService {
@@ -121,7 +118,7 @@ export class SubscriptionService {
   /**
    * Create a new subscription with business rule validation
    */
-  async createSubscription(input: CreateSubscriptionInput, createdBy: string) {
+  async createSubscription(input: CreateSubscriptionInput, _createdBy: string) {
     try {
       // Validate input
       const validatedInput = CreateSubscriptionSchema.parse(input);
@@ -189,7 +186,7 @@ export class SubscriptionService {
   /**
    * Update subscription with business rule validation
    */
-  async updateSubscription(id: string, input: UpdateSubscriptionInput, updatedBy: string) {
+  async updateSubscription(id: string, input: UpdateSubscriptionInput, _updatedBy: string) {
     try {
       // Check if subscription exists
       const existingSubscription = await this.getSubscriptionById(id);
@@ -468,7 +465,7 @@ export class SubscriptionService {
         return;
       }
 
-      const productType = (plan as any).products?.[0]?.product_type;
+      const _productType = (plan as any).products?.[0]?.product_type;
       const contentGrants = (plan as any).products?.[0]?.content_grants as any;
 
       if (!contentGrants) {
@@ -478,7 +475,7 @@ export class SubscriptionService {
 
       // Grant entitlements based on content grants
       for (const grant of contentGrants.grants || []) {
-        const { data: entitlement, error: entitlementError } = await this.supabase
+        const { data: _entitlement, error: entitlementError } = await this.supabase
           .from('entitlements')
           .insert({
             user_id: userId,
@@ -526,7 +523,7 @@ export class SubscriptionService {
   /**
    * Send status change notification
    */
-  private async sendStatusChangeNotification(subscription: any, oldStatus: string, newStatus: string) {
+  private async sendStatusChangeNotification(subscription: any, _oldStatus: string, newStatus: string) {
     try {
       // Import email service (would need to be implemented)
       // const { sendSubscriptionEmail } = require('../../services/emailService');
@@ -553,7 +550,7 @@ export class SubscriptionService {
    */
   async getSubscriptionAnalytics(startDate?: string, endDate?: string) {
     try {
-      const dateFilter = startDate && endDate 
+      const _dateFilter = startDate && endDate 
         ? { gte: startDate, lte: endDate }
         : {};
 
@@ -597,7 +594,7 @@ export class SubscriptionService {
       }, 0) || 0;
 
       // Calculate churn rate
-      const { data: churnData, error: churnError } = await this.supabase
+      const { data: churnData, error: _churnError } = await this.supabase
         .from('subscriptions')
         .select('status, updated_at')
         .eq('status', 'canceled')

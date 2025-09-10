@@ -32,7 +32,7 @@ interface AuthenticatedRequest extends Request {
  * Enhanced authentication middleware
  */
 export const authenticate = (supabase: SupabaseClient) => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       const authHeader = req.headers.authorization;
       
@@ -86,7 +86,7 @@ export const authenticate = (supabase: SupabaseClient) => {
  * Authorization middleware factory for role-based access
  */
 export const authorize = (allowedRoles: UserRole[] | UserRole) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AuthenticationError('User not authenticated');
@@ -109,7 +109,7 @@ export const authorize = (allowedRoles: UserRole[] | UserRole) => {
  * Resource ownership middleware
  */
 export const authorizeResourceOwnership = (resourceIdParam: string = 'id', allowAdminAccess: boolean = true) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AuthenticationError('User not authenticated');
@@ -140,7 +140,7 @@ export const authorizeResourceOwnership = (resourceIdParam: string = 'id', allow
  * Action-based authorization using business rules
  */
 export const authorizeAction = (action: string, getTargetUserRole?: (req: AuthenticatedRequest) => Promise<UserRole>) => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AuthenticationError('User not authenticated');
@@ -173,7 +173,7 @@ export const authorizeAction = (action: string, getTargetUserRole?: (req: Authen
  * Subscription access middleware
  */
 export const authorizeSubscriptionAccess = (supabase: SupabaseClient) => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AuthenticationError('User not authenticated');
@@ -202,7 +202,7 @@ export const authorizeSubscriptionAccess = (supabase: SupabaseClient) => {
         throw new DatabaseError('Failed to verify subscription ownership');
       }
 
-      if (subscription['user_id'] !== req.user.id) {
+      if ((subscription as any)['user_id'] !== req.user.id) {
         throw new AuthorizationError('Access denied: Subscription ownership required');
       }
 
@@ -217,7 +217,7 @@ export const authorizeSubscriptionAccess = (supabase: SupabaseClient) => {
  * Content access middleware
  */
 export const authorizeContentAccess = (supabase: SupabaseClient, contentType: string) => {
-  return async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return async (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       // Public content is accessible to everyone
       if (contentType === 'public') {
@@ -230,7 +230,7 @@ export const authorizeContentAccess = (supabase: SupabaseClient, contentType: st
       }
 
       // Get user's subscription status
-      const { data: subscription, error: subscriptionError } = await supabase
+      const { data: subscription, error: _subscriptionError } = await supabase
         .from('subscriptions')
         .select('status')
         .eq('user_id', req.user.id)
@@ -265,7 +265,7 @@ export const createUserRateLimiter = (
 ) => {
   const requests = new Map();
 
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id || req.ip || 'anonymous';
       const userRole = req.user?.role || 'user';

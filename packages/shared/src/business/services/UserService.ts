@@ -1,12 +1,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import {
-  UserProfileInput,
   UpdateUserProfileInput,
   UserStatsInput,
   BetaApplicationInput,
   UpdateUserRoleInput,
   UserQuery,
-  UserProfileSchema,
   UpdateUserProfileSchema,
   UserStatsSchema,
   BetaApplicationSchema,
@@ -24,7 +22,6 @@ import {
 } from '../errors';
 import { Database } from '../../database.types';
 
-type UserProfile = Database['public']['Tables']['profiles']['Row'];
 type UserRole = Database['public']['Enums']['user_role'];
 type BetaReaderStatus = Database['public']['Enums']['beta_reader_status'];
 
@@ -134,7 +131,7 @@ export class UserService {
   /**
    * Update user profile with business rule validation
    */
-  async updateUserProfile(id: string, input: UpdateUserProfileInput, updatedBy: string) {
+  async updateUserProfile(id: string, input: UpdateUserProfileInput, _updatedBy: string) {
     try {
       // Check if profile exists
       const existingProfile = await this.getUserProfile(id);
@@ -584,6 +581,16 @@ export class UserService {
       // Get user profile with stats
       const profile = await this.getUserProfile(userId);
 
+      // Ensure user_stats is not undefined before accessing
+      if (!profile.user_stats) {
+        profile.user_stats = {
+          books_read: 0,
+          reading_hours: 0,
+          achievements: 0,
+          currently_reading: ''
+        };
+      }
+
       // Get user's active subscriptions
       const { data: subscriptions, error: subscriptionError } = await this.supabase
         .from('subscriptions')
@@ -645,7 +652,7 @@ export class UserService {
   /**
    * Deactivate user account with business rules
    */
-  async deactivateUser(userId: string, deactivatedBy: string, reason?: string) {
+  async deactivateUser(userId: string, deactivatedBy: string, _reason?: string) {
     try {
       // Validate admin access
       await this.validateAdminAccess(deactivatedBy);

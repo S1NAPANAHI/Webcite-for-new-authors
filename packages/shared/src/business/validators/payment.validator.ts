@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Database } from '../../database.types';
 
-type SubscriptionStatus = Database['public']['Enums']['subscription_status'];
+
 
 // Stripe checkout session schema
 export const CheckoutSessionSchema = z.object({

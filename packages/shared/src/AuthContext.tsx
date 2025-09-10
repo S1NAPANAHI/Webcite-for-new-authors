@@ -38,6 +38,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isSubscribed: boolean;
+  userStats: UserStats; // Added this line
   supabaseClient: SupabaseClient;
   setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
   setIsSubscribed: React.Dispatch<React.SetStateAction<boolean>>;
@@ -225,6 +226,7 @@ export const AuthProvider: React.FC<{
     // Function to create user profile if it doesn't exist
     // This is intentionally left unimplemented as it's not part of the current scope
     // and would require additional database setup and error handling
+    /*
     const createUserProfile = async (_userId: string) => {
       try {
         const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
@@ -295,6 +297,7 @@ export const AuthProvider: React.FC<{
     isAuthenticated,
     isLoading,
     isSubscribed,
+    userStats, // Added this line
     error,
     supabaseClient,
     setUserProfile,

@@ -1,8 +1,7 @@
 import { z } from 'zod';
 import { Database } from '../../database.types';
 
-type UserRole = Database['public']['Enums']['user_role'];
-type BetaReaderStatus = Database['public']['Enums']['beta_reader_status'];
+
 
 // User profile validation schema
 export const UserProfileSchema = z.object({

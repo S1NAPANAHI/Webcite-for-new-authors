@@ -272,7 +272,7 @@ export class BusinessRulesEngine {
     /**
      * Profile completeness requirements
      */
-    getProfileCompletenessRequirements(userRole: UserRole): string[] {
+    getProfileCompletenessRequirements(_userRole: UserRole): string[] {
       const baseRequirements = ['display_name'];
       
       const roleRequirements: Record<UserRole, string[]> = {
@@ -283,7 +283,7 @@ export class BusinessRulesEngine {
         'super_admin': [...baseRequirements, 'username', 'avatar_url']
       };
       
-      return roleRequirements[userRole] || baseRequirements;
+      return roleRequirements[_userRole] || baseRequirements;
     }
   };
 

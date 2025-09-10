@@ -1,10 +1,8 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { 
-  ProductInput, 
   CreateProductInput, 
   UpdateProductInput, 
   ProductQuery,
-  ProductSchema,
   CreateProductSchema,
   UpdateProductSchema,
   ProductQuerySchema,
@@ -19,8 +17,7 @@ import {
 } from '../errors';
 import { Database } from '../../database.types';
 
-type Product = Database['public']['Tables']['products']['Row'];
-type Price = Database['public']['Tables']['prices']['Row'];
+
 
 export class ProductService {
   constructor(private supabase: SupabaseClient) {}
@@ -122,7 +119,7 @@ export class ProductService {
   /**
    * Create a new product with prices
    */
-  async createProduct(input: CreateProductInput, createdBy: string) {
+  async createProduct(input: CreateProductInput, _createdBy: string) {
     try {
       // Validate input
       const validatedInput = CreateProductSchema.parse(input);
@@ -216,7 +213,7 @@ export class ProductService {
   /**
    * Update an existing product
    */
-  async updateProduct(id: string, input: UpdateProductInput, updatedBy: string) {
+    async updateProduct(id: string, input: UpdateProductInput, _updatedBy: string) {
     try {
       // Check if product exists
       const existingProduct = await this.getProductById(id);
@@ -282,7 +279,7 @@ export class ProductService {
   /**
    * Delete a product (soft delete by setting active = false)
    */
-  async deleteProduct(id: string, deletedBy: string) {
+  async deleteProduct(id: string, _deletedBy: string) {
     try {
       // Check if product exists
       await this.getProductById(id);
@@ -475,7 +472,7 @@ export class ProductService {
   /**
    * Validate pricing rules for a product
    */
-  private async validatePricingRules(productId: string, prices: any[]) {
+  private async _validatePricingRules(productId: string, prices: any[]) {
     const errors: string[] = [];
 
     // Check for duplicate currencies for the same interval

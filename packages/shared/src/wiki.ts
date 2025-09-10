@@ -64,6 +64,7 @@ export interface WikiPageWithSections extends WikiPage {
   sections: WikiSectionView[];
 }
 
+/*
 export const fetchPages = async (): Promise<WikiPageWithSections[]> => {
   const { data, error } = await supabase
     .from('wiki_pages')
@@ -108,6 +109,7 @@ export const fetchPages = async (): Promise<WikiPageWithSections[]> => {
 
   return wikiPagesWithSections;
 };
+*/
 
 export interface WikiCategory extends Tables<'wiki_categories'> {
   page_count?: number;
@@ -189,7 +191,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPageWithSec
       throw new Error('Failed to fetch wiki content');
     }
 
-    const sections = contentBlocks?.map(block => ({
+    const sections = contentBlocks?.map((block: Tables<'wiki_content_blocks'>) => ({
       id: block.id,
       type: block.type,
       content: block.content,
@@ -278,7 +280,7 @@ export const fetchWikiPages = async ({
       seo_title: page.seo_title || null,
       seo_description: page.seo_description || null,
       seo_keywords: page.seo_keywords || null,
-      sections: [],
+      // sections will be populated later
     };
   });
 

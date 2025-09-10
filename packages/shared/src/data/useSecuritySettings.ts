@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
-import { AuthError } from '@supabase/supabase-js';
+
 
 export const useSecuritySettings = () => {
   const [loading, setLoading] = useState(false);
@@ -14,7 +14,7 @@ export const useSecuritySettings = () => {
     setError(null);
     setSuccess(null);
     try {
-      const { data, error } = await supabase.auth.updateUser({
+      const { data: _data, error } = await supabase.auth.updateUser({
         password: newPassword,
       });
       if (error) throw error;

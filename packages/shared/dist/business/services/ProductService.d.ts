@@ -66,11 +66,11 @@ export declare class ProductService {
     /**
      * Create a new product with prices
      */
-    createProduct(input: CreateProductInput, createdBy: string): Promise<any>;
+    createProduct(input: CreateProductInput, _createdBy: string): Promise<any>;
     /**
      * Update an existing product
      */
-    updateProduct(id: string, input: UpdateProductInput, updatedBy: string): Promise<{
+    updateProduct(id: string, input: UpdateProductInput, _updatedBy: string): Promise<{
         id: any;
         name: any;
         description: any;
@@ -93,7 +93,7 @@ export declare class ProductService {
     /**
      * Delete a product (soft delete by setting active = false)
      */
-    deleteProduct(id: string, deletedBy: string): Promise<any>;
+    deleteProduct(id: string, _deletedBy: string): Promise<any>;
     /**
      * Get products by type with business logic
      */
@@ -144,10 +144,6 @@ export declare class ProductService {
             active: any;
         }[];
     }[]>;
-    /**
-     * Validate pricing rules for a product
-     */
-    private validatePricingRules;
     /**
      * Update product availability based on work status
      */

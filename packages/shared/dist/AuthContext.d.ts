@@ -17,6 +17,14 @@ interface UserProfile {
     full_name?: string;
     [key: string]: unknown;
 }
+type UserStats = {
+    user_id: string;
+    books_read: number;
+    reading_hours: number;
+    achievements: number;
+    currently_reading: string;
+    [key: string]: unknown;
+};
 interface AuthContextType {
     user: User | null;
     session: Session | null;
@@ -25,6 +33,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     isSubscribed: boolean;
+    userStats: UserStats;
     supabaseClient: SupabaseClient;
     setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
     setIsSubscribed: React.Dispatch<React.SetStateAction<boolean>>;

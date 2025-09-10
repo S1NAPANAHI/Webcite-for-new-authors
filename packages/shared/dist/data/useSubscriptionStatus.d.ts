@@ -1,9 +1,14 @@
 export declare const useSubscriptionStatus: (userId: string | undefined) => {
     subscription: {
+        billing_cycle_anchor: string | null;
         cancel_at_period_end: boolean | null;
+        canceled_at: string | null;
+        collection_method: import("..").Database["public"]["Enums"]["collection_method"] | null;
         created_at: string;
         current_period_end: string | null;
         current_period_start: string | null;
+        days_until_due: number | null;
+        ended_at: string | null;
         id: string;
         metadata: import("..").Json | null;
         plan_id: string | null;
@@ -14,7 +19,7 @@ export declare const useSubscriptionStatus: (userId: string | undefined) => {
         trial_end: string | null;
         trial_start: string | null;
         updated_at: string;
-        user_id: string | null;
+        user_id: string;
     } | null;
     loading: boolean;
     error: string | null;

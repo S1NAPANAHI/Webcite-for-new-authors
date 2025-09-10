@@ -21,9 +21,9 @@ export declare const PriceSchema: z.ZodObject<{
     currency: z.ZodString;
     unit_amount: z.ZodNumber;
     interval: z.ZodNullable<z.ZodOptional<z.ZodEnum<{
-        one_time: "one_time";
         month: "month";
         year: "year";
+        one_time: "one_time";
     }>>>;
     nickname: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     trial_days: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
@@ -32,6 +32,7 @@ export declare const PriceSchema: z.ZodObject<{
     updated_at: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export declare const CreateProductSchema: z.ZodObject<{
+    active: z.ZodDefault<z.ZodBoolean>;
     work_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     product_type: z.ZodDefault<z.ZodEnum<{
         single_issue: "single_issue";
@@ -39,24 +40,24 @@ export declare const CreateProductSchema: z.ZodObject<{
         chapter_pass: "chapter_pass";
         arc_pass: "arc_pass";
     }>>;
-    active: z.ZodDefault<z.ZodBoolean>;
     description: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     name: z.ZodString;
     content_grants: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
     prices: z.ZodArray<z.ZodObject<{
         active: z.ZodDefault<z.ZodBoolean>;
         currency: z.ZodString;
+        unit_amount: z.ZodNumber;
         interval: z.ZodNullable<z.ZodOptional<z.ZodEnum<{
-            one_time: "one_time";
             month: "month";
             year: "year";
+            one_time: "one_time";
         }>>>;
         nickname: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         trial_days: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
-        unit_amount: z.ZodNumber;
     }, z.core.$strip>>;
 }, z.core.$strip>;
 export declare const UpdateProductSchema: z.ZodObject<{
+    active: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     work_id: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     product_type: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
         single_issue: "single_issue";
@@ -64,7 +65,6 @@ export declare const UpdateProductSchema: z.ZodObject<{
         chapter_pass: "chapter_pass";
         arc_pass: "arc_pass";
     }>>>;
-    active: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     description: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     name: z.ZodOptional<z.ZodString>;
@@ -91,8 +91,8 @@ export declare const ProductQuerySchema: z.ZodObject<{
         price: "price";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        asc: "asc";
         desc: "desc";
+        asc: "asc";
     }>>;
 }, z.core.$strip>;
 export declare const validateProductBusinessRules: (product: z.infer<typeof ProductSchema>) => {

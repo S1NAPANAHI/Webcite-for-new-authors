@@ -25,7 +25,7 @@ export declare class BaseError extends Error {
     readonly code: ErrorCode;
     readonly statusCode: number;
     readonly isOperational: boolean;
-    readonly context?: Record<string, any>;
+    readonly context: Record<string, any> | undefined;
     constructor(message: string, code: ErrorCode, statusCode: number, isOperational?: boolean, context?: Record<string, any>);
 }
 export declare class ValidationError extends BaseError {

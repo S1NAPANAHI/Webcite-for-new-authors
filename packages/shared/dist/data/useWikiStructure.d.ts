@@ -1,24 +1,25 @@
-import { Tables } from '../database.types';
-type Folder = Tables<'wiki_folders'> & {
+type Folder = {
+    id: string;
+    name: string;
+    slug: string;
+    parent_id: string | null;
+    created_at: string;
+    updated_at: string;
     is_expanded?: boolean;
     children?: Folder[];
 };
+type Page = {
+    id: string;
+    title: string;
+    slug: string;
+    folder_id: string | null;
+    created_at: string;
+    updated_at: string;
+    content: string;
+};
 export declare const useWikiStructure: () => {
     folders: Folder[];
-    pages: {
-        category_id: string | null;
-        content: string | null;
-        created_at: string;
-        created_by: string | null;
-        excerpt: string | null;
-        folder_id: string | null;
-        id: string;
-        is_published: boolean | null;
-        slug: string;
-        title: string;
-        updated_at: string;
-        view_count: number | null;
-    }[];
+    pages: Page[];
     loading: boolean;
     error: string | null;
     fetchData: () => Promise<void>;

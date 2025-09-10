@@ -86,7 +86,7 @@ export declare class BusinessRulesEngine {
         /**
          * Profile completeness requirements
          */
-        getProfileCompletenessRequirements(userRole: UserRole): string[];
+        getProfileCompletenessRequirements(_userRole: UserRole): string[];
     };
     /**
      * Beta Program Rules
@@ -103,7 +103,7 @@ export declare class BusinessRulesEngine {
         /**
          * Can apply for beta program
          */
-        canApplyForBeta(userRole: UserRole, betaStatus: string): boolean;
+        canApplyForBeta(_userRole: UserRole, betaStatus: string): boolean;
     };
     /**
      * Validate multiple business rules at once

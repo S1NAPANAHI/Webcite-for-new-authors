@@ -4,12 +4,8 @@ export class UserService {
     constructor(supabase) {
         this.supabase = supabase;
     }
-    /**
-     * Get all users with filtering and pagination
-     */
     async getUsers(query, requestingUserId) {
         try {
-            // Validate requesting user has admin permissions
             await this.validateAdminAccess(requestingUserId);
             const validatedQuery = UserQuerySchema.parse(query);
             let supabaseQuery = this.supabase
@@ -18,7 +14,6 @@ export class UserService {
           id, username, display_name, avatar_url, website, role, beta_reader_status, created_at, updated_at,
           user_stats:user_stats(books_read, reading_hours, achievements, currently_reading)
         `);
-            // Apply filters
             if (validatedQuery.role) {
                 supabaseQuery = supabaseQuery.eq('role', validatedQuery.role);
             }
@@ -28,10 +23,8 @@ export class UserService {
             if (validatedQuery.search) {
                 supabaseQuery = supabaseQuery.or(`username.ilike.%${validatedQuery.search}%,display_name.ilike.%${validatedQuery.search}%`);
             }
-            // Apply sorting
             const ascending = validatedQuery.sort_order === 'asc';
             supabaseQuery = supabaseQuery.order(validatedQuery.sort_by, { ascending });
-            // Apply pagination
             supabaseQuery = supabaseQuery.range(validatedQuery.offset, validatedQuery.offset + validatedQuery.limit - 1);
             const { data: users, error, count } = await supabaseQuery;
             if (error) {
@@ -53,12 +46,8 @@ export class UserService {
             throw new DatabaseError('Unexpected error while fetching users');
         }
     }
-    /**
-     * Get user profile by ID
-     */
     async getUserProfile(id, requestingUserId) {
         try {
-            // Check if requesting user can access this profile
             if (requestingUserId && requestingUserId !== id) {
                 await this.validateProfileAccess(id, requestingUserId);
             }
@@ -85,20 +74,13 @@ export class UserService {
             throw new DatabaseError('Unexpected error while fetching user profile');
         }
     }
-    /**
-     * Update user profile with business rule validation
-     */
-    async updateUserProfile(id, input, updatedBy) {
+    async updateUserProfile(id, input, _updatedBy) {
         try {
-            // Check if profile exists
             const existingProfile = await this.getUserProfile(id);
-            // Validate input
             const validatedInput = UpdateUserProfileSchema.parse(input);
-            // Check username uniqueness if being updated
-            if (validatedInput.username && validatedInput.username !== existingProfile.username) {
+            if (validatedInput.username && existingProfile && validatedInput.username !== existingProfile.username) {
                 await this.validateUsernameUniqueness(validatedInput.username, id);
             }
-            // Validate business rules
             const mergedProfile = { ...existingProfile, ...validatedInput };
             const businessValidation = validateUserBusinessRules(mergedProfile);
             if (!businessValidation.isValid) {
@@ -128,31 +110,23 @@ export class UserService {
             throw new DatabaseError('Unexpected error while updating user profile');
         }
     }
-    /**
-     * Update user role (admin only)
-     */
     async updateUserRole(input, requestingUserId) {
         try {
-            // Validate requesting user has super admin permissions for role changes
             await this.validateSuperAdminAccess(requestingUserId);
             const validatedInput = UpdateUserRoleSchema.parse(input);
-            // Check if target user exists
             await this.getUserProfile(validatedInput.user_id);
-            // Business rule: Can't change super_admin role unless you're super_admin
             if (validatedInput.role === 'super_admin') {
                 const requestingUser = await this.getUserProfile(requestingUserId);
-                if (requestingUser.role !== 'super_admin') {
+                if (requestingUser && requestingUser.role !== 'super_admin') {
                     throw new AuthorizationError('Only super admins can grant super admin role');
                 }
             }
-            // Business rule: Can't remove your own super_admin role
             if (validatedInput.user_id === requestingUserId) {
                 const currentUser = await this.getUserProfile(requestingUserId);
-                if (currentUser.role === 'super_admin' && validatedInput.role !== 'super_admin') {
+                if (currentUser && currentUser.role === 'super_admin' && validatedInput.role !== 'super_admin') {
                     throw new BusinessRuleError('Cannot remove your own super admin role');
                 }
             }
-            // Update role in user_roles table
             const { data: roleUpdate, error: roleError } = await this.supabase
                 .from('user_roles')
                 .upsert({
@@ -166,7 +140,6 @@ export class UserService {
             if (roleError) {
                 throw new DatabaseError('Failed to update user role', { supabaseError: roleError });
             }
-            // Also update role in profiles table for quick access
             const { error: profileError } = await this.supabase
                 .from('profiles')
                 .update({
@@ -187,20 +160,15 @@ export class UserService {
             throw new DatabaseError('Unexpected error while updating user role');
         }
     }
-    /**
-     * Submit beta application with validation
-     */
     async submitBetaApplication(input, userId) {
         try {
             const validatedInput = BetaApplicationSchema.parse(input);
-            // Validate business rules
             const businessValidation = validateBetaApplicationBusinessRules(validatedInput);
             if (!businessValidation.isValid) {
                 throw new BusinessRuleError('Beta application validation failed', {
                     violations: businessValidation.errors
                 });
             }
-            // Check if user already has a pending or approved application
             if (userId) {
                 const { data: existingApplication, error: existingError } = await this.supabase
                     .from('beta_applications')
@@ -212,7 +180,6 @@ export class UserService {
                     throw new BusinessRuleError(`User already has a ${existingApplication.status} beta application`);
                 }
             }
-            // Check for duplicate email applications
             const { data: emailApplication, error: emailError } = await this.supabase
                 .from('beta_applications')
                 .select('id, status')
@@ -222,7 +189,6 @@ export class UserService {
             if (!emailError && emailApplication) {
                 throw new BusinessRuleError(`An application with this email is already ${emailApplication.status}`);
             }
-            // Create beta application
             const { data: application, error } = await this.supabase
                 .from('beta_applications')
                 .insert({
@@ -236,7 +202,6 @@ export class UserService {
             if (error) {
                 throw new DatabaseError('Failed to submit beta application', { supabaseError: error });
             }
-            // Update user's beta reader status if user is logged in
             if (userId) {
                 await this.supabase
                     .from('profiles')
@@ -255,13 +220,9 @@ export class UserService {
             throw new DatabaseError('Unexpected error while submitting beta application');
         }
     }
-    /**
-     * Update user stats with validation
-     */
     async updateUserStats(input) {
         try {
             const validatedInput = UserStatsSchema.parse(input);
-            // Check if user exists
             await this.getUserProfile(validatedInput.user_id);
             const { data: stats, error } = await this.supabase
                 .from('user_stats')
@@ -280,12 +241,8 @@ export class UserService {
             throw new DatabaseError('Unexpected error while updating user stats');
         }
     }
-    /**
-     * Get user activity with analytics
-     */
     async getUserActivity(userId, limit = 20) {
         try {
-            // Check if user exists
             await this.getUserProfile(userId);
             const { data: activities, error } = await this.supabase
                 .from('user_activities')
@@ -305,9 +262,6 @@ export class UserService {
             throw new DatabaseError('Unexpected error while fetching user activity');
         }
     }
-    /**
-     * Validate admin access
-     */
     async validateAdminAccess(userId) {
         try {
             const { data: profile, error } = await this.supabase
@@ -329,9 +283,6 @@ export class UserService {
             throw new DatabaseError('Failed to validate admin access');
         }
     }
-    /**
-     * Validate super admin access
-     */
     async validateSuperAdminAccess(userId) {
         try {
             const { data: profile, error } = await this.supabase
@@ -353,16 +304,11 @@ export class UserService {
             throw new DatabaseError('Failed to validate super admin access');
         }
     }
-    /**
-     * Validate profile access permissions
-     */
     async validateProfileAccess(profileId, requestingUserId) {
         try {
-            // Users can always access their own profile
             if (profileId === requestingUserId) {
                 return;
             }
-            // Check if requesting user is admin
             const { data: requestingProfile, error } = await this.supabase
                 .from('profiles')
                 .select('role')
@@ -382,9 +328,6 @@ export class UserService {
             throw new DatabaseError('Failed to validate profile access');
         }
     }
-    /**
-     * Validate username uniqueness
-     */
     async validateUsernameUniqueness(username, excludeUserId) {
         try {
             let query = this.supabase
@@ -409,12 +352,8 @@ export class UserService {
             throw new DatabaseError('Unexpected error while validating username');
         }
     }
-    /**
-     * Create user profile with business rules
-     */
     async createUserProfile(userId, userEmail, userMetadata) {
         try {
-            // Check if profile already exists
             const { data: existingProfile, error: existingError } = await this.supabase
                 .from('profiles')
                 .select('id')
@@ -423,11 +362,9 @@ export class UserService {
             if (!existingError && existingProfile) {
                 throw new BusinessRuleError('User profile already exists');
             }
-            // Generate unique username from email
             const baseUsername = userEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
             let username = baseUsername;
             let counter = 1;
-            // Ensure username uniqueness
             while (true) {
                 try {
                     await this.validateUsernameUniqueness(username);
@@ -463,7 +400,6 @@ export class UserService {
             if (error) {
                 throw new DatabaseError('Failed to create user profile', { supabaseError: error });
             }
-            // Create initial user stats
             await this.supabase
                 .from('user_stats')
                 .insert({
@@ -482,14 +418,20 @@ export class UserService {
             throw new DatabaseError('Unexpected error while creating user profile');
         }
     }
-    /**
-     * Get user dashboard data
-     */
     async getUserDashboard(userId) {
         try {
-            // Get user profile with stats
             const profile = await this.getUserProfile(userId);
-            // Get user's active subscriptions
+            if (!profile) {
+                throw new ResourceNotFoundError('User profile', userId);
+            }
+            if (profile && profile.user_stats === null) {
+                profile.user_stats = {
+                    books_read: 0,
+                    reading_hours: 0,
+                    achievements: 0,
+                    currently_reading: ''
+                };
+            }
             const { data: subscriptions, error: subscriptionError } = await this.supabase
                 .from('subscriptions')
                 .select(`
@@ -500,7 +442,6 @@ export class UserService {
             if (subscriptionError) {
                 throw new DatabaseError('Failed to fetch user subscriptions');
             }
-            // Get recent orders
             const { data: orders, error: ordersError } = await this.supabase
                 .from('purchases')
                 .select(`
@@ -514,7 +455,6 @@ export class UserService {
             if (ordersError) {
                 throw new DatabaseError('Failed to fetch user orders');
             }
-            // Get reading progress
             const { data: readingProgress, error: progressError } = await this.supabase
                 .from('reading_progress')
                 .select(`
@@ -541,25 +481,19 @@ export class UserService {
             throw new DatabaseError('Unexpected error while fetching user dashboard');
         }
     }
-    /**
-     * Deactivate user account with business rules
-     */
-    async deactivateUser(userId, deactivatedBy, reason) {
+    async deactivateUser(userId, deactivatedBy, _reason) {
         try {
-            // Validate admin access
             await this.validateAdminAccess(deactivatedBy);
-            // Check if user exists
-            await this.getUserProfile(userId);
-            // Business rule: Can't deactivate super admin accounts
             const userProfile = await this.getUserProfile(userId);
+            if (!userProfile) {
+                throw new ResourceNotFoundError('User profile', userId);
+            }
             if (userProfile.role === 'super_admin') {
                 throw new BusinessRuleError('Cannot deactivate super admin accounts');
             }
-            // Business rule: Can't deactivate your own account
             if (userId === deactivatedBy) {
                 throw new BusinessRuleError('Cannot deactivate your own account');
             }
-            // Cancel all active subscriptions
             const { data: activeSubscriptions, error: subscriptionError } = await this.supabase
                 .from('subscriptions')
                 .select('id')
@@ -568,7 +502,6 @@ export class UserService {
             if (subscriptionError) {
                 throw new DatabaseError('Failed to fetch user subscriptions for deactivation');
             }
-            // Cancel subscriptions
             for (const subscription of activeSubscriptions || []) {
                 await this.supabase
                     .from('subscriptions')
@@ -586,7 +519,6 @@ export class UserService {
                 })
                     .eq('id', subscription.id);
             }
-            // Revoke all entitlements
             await this.supabase
                 .from('entitlements')
                 .update({

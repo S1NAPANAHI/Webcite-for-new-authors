@@ -5,6 +5,7 @@ export declare const useUserStats: (userId: string | undefined) => {
         chapters_read: number;
         created_at: string;
         current_streak_days: number;
+        currently_reading: string | null;
         last_activity_date: string | null;
         level_reached: number;
         total_reading_minutes: number;

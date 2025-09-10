@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 /**
  * Centralized error handling middleware
  */
-export declare const errorHandler: (error: Error, req: Request, res: Response, next: NextFunction) => void;
+export declare const errorHandler: (error: Error, req: Request, res: Response, _next: NextFunction) => void;
 /**
  * Async wrapper to catch errors in async route handlers
  */
@@ -10,19 +10,19 @@ export declare const asyncHandler: (fn: Function) => (req: Request, res: Respons
 /**
  * Not found handler middleware
  */
-export declare const notFoundHandler: (req: Request, res: Response, next: NextFunction) => void;
+export declare const notFoundHandler: (req: Request, res: Response, _next: NextFunction) => void;
 /**
  * Request validation middleware factory
  */
-export declare const validateRequest: (schema: any, source?: "body" | "query" | "params") => (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateRequest: (schema: any, source?: "body" | "query" | "params") => (req: Request, _res: Response, next: NextFunction) => void;
 /**
  * Business rules validation middleware factory
  */
-export declare const validateBusinessRules: (validator: Function) => (req: Request, res: Response, next: NextFunction) => void;
+export declare const validateBusinessRules: (validator: Function) => (req: Request, _res: Response, next: NextFunction) => void;
 /**
  * Rate limiting middleware factory
  */
-export declare const createRateLimiter: (windowMs: number, max: number, message?: string) => (req: Request, res: Response, next: NextFunction) => void;
+export declare const createRateLimiter: (windowMs: number, max: number, message?: string) => (req: Request, _res: Response, next: NextFunction) => void;
 /**
  * Success response helper
  */

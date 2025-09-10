@@ -160,42 +160,44 @@ export const AuthProvider = ({ children, supabaseClient }) => {
         // Function to create user profile if it doesn't exist
         // This is intentionally left unimplemented as it's not part of the current scope
         // and would require additional database setup and error handling
-        const createUserProfile = async (_userId) => {
-            try {
-                const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-                if (userError || !user) {
-                    console.error('Error getting user info for profile creation:', userError);
-                    return;
-                }
-                const { data: newProfile, error: createError } = await supabaseClient
-                    .from('profiles')
-                    .insert({
-                    id: userId,
-                    username: user.email?.split('@')[0] || null,
-                    display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-                    email: user.email,
-                    role: 'user',
-                    subscription_status: 'inactive',
-                    beta_reader_status: 'none'
-                })
-                    .select()
-                    .single();
-                if (createError) {
-                    console.error('Error creating user profile:', createError);
-                    setUserProfile(null);
-                    setIsAdmin(false);
-                }
-                else {
-                    setUserProfile(newProfile);
-                    setIsAdmin(!!(newProfile?.role === 'admin' || newProfile?.role === 'super_admin'));
-                }
+        /*
+        const createUserProfile = async (_userId: string) => {
+          try {
+            const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+            if (userError || !user) {
+              console.error('Error getting user info for profile creation:', userError);
+              return;
             }
-            catch (error) {
-                console.error('Error in createUserProfile:', error);
-                setUserProfile(null);
-                setIsAdmin(false);
+    
+            const { data: newProfile, error: createError } = await supabaseClient
+              .from('profiles')
+              .insert({
+                id: _userId,
+                username: user.email?.split('@')[0] || null,
+                display_name: user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User',
+                email: user.email,
+                role: 'user',
+                subscription_status: 'inactive',
+                beta_reader_status: 'none'
+              })
+              .select()
+              .single();
+    
+            if (createError) {
+              console.error('Error creating user profile:', createError);
+              setUserProfile(null);
+              setIsAdmin(false);
+            } else {
+              setUserProfile(newProfile as UserProfile);
+              setIsAdmin(!!(newProfile?.role === 'admin' || newProfile?.role === 'super_admin'));
             }
+          } catch (error) {
+            console.error('Error in createUserProfile:', error);
+            setUserProfile(null);
+            setIsAdmin(false);
+          }
         };
+        */
         if (user?.id) {
             fetchUserProfileAndSubscription(user.id);
             setIsAuthenticated(true);
@@ -228,6 +230,7 @@ export const AuthProvider = ({ children, supabaseClient }) => {
         isAuthenticated,
         isLoading,
         isSubscribed,
+        userStats, // Added this line
         error,
         supabaseClient,
         setUserProfile,

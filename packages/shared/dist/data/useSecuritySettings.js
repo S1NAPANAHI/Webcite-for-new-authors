@@ -11,7 +11,7 @@ export const useSecuritySettings = () => {
         setError(null);
         setSuccess(null);
         try {
-            const { data, error } = await supabase.auth.updateUser({
+            const { data: _data, error } = await supabase.auth.updateUser({
                 password: newPassword,
             });
             if (error)

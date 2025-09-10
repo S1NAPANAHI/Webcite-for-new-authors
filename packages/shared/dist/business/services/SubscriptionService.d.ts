@@ -73,11 +73,11 @@ export declare class SubscriptionService {
     /**
      * Create a new subscription with business rule validation
      */
-    createSubscription(input: CreateSubscriptionInput, createdBy: string): Promise<any>;
+    createSubscription(input: CreateSubscriptionInput, _createdBy: string): Promise<any>;
     /**
      * Update subscription with business rule validation
      */
-    updateSubscription(id: string, input: UpdateSubscriptionInput, updatedBy: string): Promise<{
+    updateSubscription(id: string, input: UpdateSubscriptionInput, _updatedBy: string): Promise<{
         id: any;
         user_id: any;
         plan_id: any;

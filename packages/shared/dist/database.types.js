@@ -12,13 +12,7 @@ export const Constants = {
                 "achievement_earned",
             ],
             beta_application_status: ["pending", "approved", "denied"],
-            beta_reader_status: [
-                "not_applied",
-                "pending",
-                "approved",
-                "rejected",
-                "none",
-            ],
+            beta_reader_status: ["not_applied", "pending", "approved", "rejected"],
             collection_method: ["charge_automatically", "send_invoice"],
             content_block_type: [
                 "heading_1",
@@ -41,8 +35,7 @@ export const Constants = {
                 "on_hold",
                 "archived",
             ],
-            content_type: ["book", "volume", "saga", "arc", "issue", "chapter"],
-            discount_type: ["percentage", "fixed_amount"],
+            discount_type: ["percentage", "fixed_amount", "free_shipping"],
             fulfillment_status: [
                 "unfulfilled",
                 "fulfilled",
@@ -51,9 +44,13 @@ export const Constants = {
                 "delivered",
                 "returned",
                 "cancelled",
-                "label_printed",
             ],
             invoice_status: ["draft", "open", "paid", "void", "uncollectible"],
+            learn_section_type: [
+                "authors_journey",
+                "educational_resources",
+                "professional_services",
+            ],
             order_status: [
                 "draft",
                 "pending",
@@ -91,6 +88,11 @@ export const Constants = {
                 "chapter_pass",
                 "arc_pass",
                 "subscription",
+                "arc_bundle",
+                "saga_bundle",
+                "volume_bundle",
+                "book_bundle",
+                "subscription_tier",
             ],
             profile_visibility: ["public", "private", "friends_only"],
             refund_status: [
@@ -111,7 +113,14 @@ export const Constants = {
                 "unpaid",
                 "paused",
             ],
-            user_role: ["admin", "support", "accountant", "user", "super_admin"],
+            user_role: [
+                "admin",
+                "support",
+                "accountant",
+                "user",
+                "super_admin",
+                "beta_reader",
+            ],
             wiki_content_type: [
                 "heading_1",
                 "heading_2",

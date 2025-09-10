@@ -1,5 +1,5 @@
 export declare const useSubscriptionPlans: () => {
-    plans: never[];
+    plans: unknown[];
     loading: boolean;
     error: string | null;
 };

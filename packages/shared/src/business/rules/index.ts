@@ -23,7 +23,8 @@ export class BusinessRulesEngine {
         'support': 5,
         'accountant': 5,
         'admin': 10,
-        'super_admin': 50
+        'super_admin': 50,
+        'beta_reader': 5
       };
       return limits[role] || 2;
     },
@@ -53,7 +54,12 @@ export class BusinessRulesEngine {
         'bundle': 0, // One-time purchase
         'chapter_pass': 30, // 30 days minimum
         'arc_pass': 90, // 90 days minimum
-        'subscription': 30 // 30 days minimum for subscription
+        'subscription': 30, // 30 days minimum for subscription
+        'arc_bundle': 0,
+        'saga_bundle': 0,
+        'volume_bundle': 0,
+        'book_bundle': 0,
+        'subscription_tier': 30
       };
       return durations[productType] || 0;
     },
@@ -86,7 +92,12 @@ export class BusinessRulesEngine {
         'bundle': 299, // $2.99
         'chapter_pass': 499, // $4.99/month
         'arc_pass': 999, // $9.99/month
-        'subscription': 999 // $9.99/month
+        'subscription': 999, // $9.99/month
+        'arc_bundle': 1999,
+        'saga_bundle': 2999,
+        'volume_bundle': 3999,
+        'book_bundle': 4999,
+        'subscription_tier': 999
       };
       return minimums[productType] || 99;
     },
@@ -100,7 +111,12 @@ export class BusinessRulesEngine {
         'bundle': 9999, // $99.99
         'chapter_pass': 2999, // $29.99/month
         'arc_pass': 4999, // $49.99/month
-        'subscription': 0 // Subscriptions might not have a fixed maximum price
+        'subscription': 0, // Subscriptions might not have a fixed maximum price
+        'arc_bundle': 9999,
+        'saga_bundle': 19999,
+        'volume_bundle': 29999,
+        'book_bundle': 39999,
+        'subscription_tier': 0
       };
       return maximums[productType] || 4999;
     },
@@ -131,7 +147,8 @@ export class BusinessRulesEngine {
         'support': 50,
         'accountant': 75,
         'admin': 90,
-        'super_admin': 100
+        'super_admin': 100,
+        'beta_reader': 30
       };
       return discounts[userRole] || 20;
     }
@@ -158,7 +175,7 @@ export class BusinessRulesEngine {
       
       // Beta content requires beta reader status or admin
       if (contentType === 'beta') {
-        return ['admin', 'super_admin'].includes(userRole);
+        return ['admin', 'super_admin', 'beta_reader'].includes(userRole);
       }
       
       return false;
@@ -173,7 +190,8 @@ export class BusinessRulesEngine {
         'support': { daily: 50, concurrent: 5 },
         'accountant': { daily: 50, concurrent: 5 },
         'admin': { daily: 100, concurrent: 10 },
-        'super_admin': { daily: -1, concurrent: -1 } // Unlimited
+        'super_admin': { daily: -1, concurrent: -1 }, // Unlimited
+        'beta_reader': { daily: 20, concurrent: 5 }
       };
       return limits[userRole] || limits['user'];
     },
@@ -210,7 +228,8 @@ export class BusinessRulesEngine {
         'support': ['read_profiles', 'update_user_profiles', 'manage_tickets'],
         'accountant': ['read_profiles', 'view_financial_data', 'manage_refunds'],
         'admin': ['manage_users', 'manage_content', 'view_analytics', 'manage_subscriptions'],
-        'super_admin': ['*'] // All permissions
+        'super_admin': ['*'], // All permissions
+        'beta_reader': ['read_own_profile', 'update_own_profile', 'read_beta_content']
       };
 
       const userPermissions = permissions[userRole] || [];
@@ -228,7 +247,8 @@ export class BusinessRulesEngine {
             'support': 2,
             'accountant': 2,
             'admin': 3,
-            'super_admin': 4
+            'super_admin': 4,
+            'beta_reader': 2
           };
           
           return roleHierarchy[userRole] > roleHierarchy[targetUserRole];
@@ -280,7 +300,8 @@ export class BusinessRulesEngine {
         'support': [...baseRequirements, 'username'],
         'accountant': [...baseRequirements, 'username'],
         'admin': [...baseRequirements, 'username', 'avatar_url'],
-        'super_admin': [...baseRequirements, 'username', 'avatar_url']
+        'super_admin': [...baseRequirements, 'username', 'avatar_url'],
+        'beta_reader': [...baseRequirements, 'username']
       };
       
       return roleRequirements[_userRole] || baseRequirements;
@@ -344,7 +365,7 @@ export class BusinessRulesEngine {
     /**
      * Can apply for beta program
      */
-    canApplyForBeta(userRole: UserRole, betaStatus: string): boolean {
+    canApplyForBeta(_userRole: UserRole, betaStatus: string): boolean {
       // Already approved or pending
       if (['approved', 'pending'].includes(betaStatus)) return false;
       

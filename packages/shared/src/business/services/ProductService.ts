@@ -15,7 +15,7 @@ import {
   BusinessRuleError,
   DatabaseError 
 } from '../errors';
-import { Database } from '../../database.types';
+
 
 
 
@@ -469,42 +469,7 @@ export class ProductService {
     }
   }
 
-  /**
-   * Validate pricing rules for a product
-   */
-  private async _validatePricingRules(productId: string, prices: any[]) {
-    const errors: string[] = [];
-
-    // Check for duplicate currencies for the same interval
-    const currencyIntervalMap = new Map();
-    
-    for (const price of prices) {
-      const key = `${price.currency}_${price.interval || 'one_time'}`;
-      if (currencyIntervalMap.has(key)) {
-        errors.push(`Duplicate price found for ${price.currency} ${price.interval || 'one-time'}`);
-      }
-      currencyIntervalMap.set(key, true);
-    }
-
-    // Subscription products should have at least one recurring price
-    const { data: product } = await this.supabase
-      .from('products')
-      .select('product_type')
-      .eq('id', productId)
-      .single();
-
-    if (product && ['chapter_pass', 'arc_pass'].includes(product.product_type)) {
-      const hasRecurringPrice = prices.some(p => p.interval && p.interval !== 'one_time');
-      if (!hasRecurringPrice) {
-        errors.push('Subscription products must have at least one recurring price');
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors
-    };
-  }
+  
 
   /**
    * Update product availability based on work status

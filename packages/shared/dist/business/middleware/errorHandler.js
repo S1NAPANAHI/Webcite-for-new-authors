@@ -3,7 +3,7 @@ import { ZodError } from 'zod';
 /**
  * Centralized error handling middleware
  */
-export const errorHandler = (error, req, res, next) => {
+export const errorHandler = (error, req, res, _next) => {
     // Generate request ID for tracking
     const requestId = req.headers['x-request-id'] || generateRequestId();
     // Log error for debugging
@@ -109,7 +109,7 @@ export const asyncHandler = (fn) => {
 /**
  * Not found handler middleware
  */
-export const notFoundHandler = (req, res, next) => {
+export const notFoundHandler = (req, res, _next) => {
     const errorResponse = {
         success: false,
         error: {
@@ -125,7 +125,7 @@ export const notFoundHandler = (req, res, next) => {
  * Request validation middleware factory
  */
 export const validateRequest = (schema, source = 'body') => {
-    return (req, res, next) => {
+    return (req, _res, next) => {
         try {
             const dataToValidate = req[source];
             const validatedData = schema.parse(dataToValidate);
@@ -142,7 +142,7 @@ export const validateRequest = (schema, source = 'body') => {
  * Business rules validation middleware factory
  */
 export const validateBusinessRules = (validator) => {
-    return (req, res, next) => {
+    return (req, _res, next) => {
         try {
             const validation = validator(req.body);
             if (!validation.isValid) {
@@ -162,7 +162,7 @@ export const validateBusinessRules = (validator) => {
  */
 export const createRateLimiter = (windowMs, max, message) => {
     const requests = new Map();
-    return (req, res, next) => {
+    return (req, _res, next) => {
         const key = req.ip || 'unknown';
         const now = Date.now();
         const windowStart = now - windowMs;

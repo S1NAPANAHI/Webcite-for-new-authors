@@ -18,27 +18,27 @@ interface AuthenticatedRequest extends Request {
 /**
  * Enhanced authentication middleware
  */
-export declare const authenticate: (supabase: SupabaseClient) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const authenticate: (supabase: SupabaseClient) => (req: AuthenticatedRequest, _res: Response, next: NextFunction) => Promise<void>;
 /**
  * Authorization middleware factory for role-based access
  */
-export declare const authorize: (allowedRoles: UserRole[] | UserRole) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => void;
+export declare const authorize: (allowedRoles: UserRole[] | UserRole) => (req: AuthenticatedRequest, _res: Response, next: NextFunction) => void;
 /**
  * Resource ownership middleware
  */
-export declare const authorizeResourceOwnership: (resourceIdParam?: string, allowAdminAccess?: boolean) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => void;
+export declare const authorizeResourceOwnership: (resourceIdParam?: string, allowAdminAccess?: boolean) => (req: AuthenticatedRequest, _res: Response, next: NextFunction) => void;
 /**
  * Action-based authorization using business rules
  */
-export declare const authorizeAction: (action: string, getTargetUserRole?: (req: AuthenticatedRequest) => Promise<UserRole>) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const authorizeAction: (action: string, getTargetUserRole?: (req: AuthenticatedRequest) => Promise<UserRole>) => (req: AuthenticatedRequest, _res: Response, next: NextFunction) => Promise<void>;
 /**
  * Subscription access middleware
  */
-export declare const authorizeSubscriptionAccess: (supabase: SupabaseClient) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const authorizeSubscriptionAccess: (supabase: SupabaseClient) => (req: AuthenticatedRequest, _res: Response, next: NextFunction) => Promise<void>;
 /**
  * Content access middleware
  */
-export declare const authorizeContentAccess: (supabase: SupabaseClient, contentType: string) => (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
+export declare const authorizeContentAccess: (supabase: SupabaseClient, contentType: string) => (req: AuthenticatedRequest, _res: Response, next: NextFunction) => Promise<void>;
 /**
  * Rate limiting middleware with user-based limits
  */
@@ -46,7 +46,7 @@ export declare const createUserRateLimiter: (baseWindowMs: number, getMaxRequest
 /**
  * Input sanitization middleware
  */
-export declare const sanitizeInput: (req: Request, res: Response, next: NextFunction) => void;
+export declare const sanitizeInput: (req: Request, _res: Response, next: NextFunction) => void;
 /**
  * Request ID middleware for tracking
  */
@@ -54,6 +54,6 @@ export declare const addRequestId: (req: Request, res: Response, next: NextFunct
 /**
  * Security headers middleware
  */
-export declare const securityHeaders: (req: Request, res: Response, next: NextFunction) => void;
+export declare const securityHeaders: (_req: Request, res: Response, next: NextFunction) => void;
 export {};
 //# sourceMappingURL=auth.d.ts.map

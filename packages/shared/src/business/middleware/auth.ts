@@ -115,7 +115,7 @@ export const authorizeResourceOwnership = (resourceIdParam: string = 'id', allow
         throw new AuthenticationError('User not authenticated');
       }
 
-      const resourceId = req.params[resourceIdParam] || req.body.user_id || req.query.user_id;
+      const resourceId = req.params[resourceIdParam] || req.body['user_id'] || req.query['user_id'];
       
       // User can access their own resources
       if (resourceId === req.user.id) {
@@ -265,7 +265,7 @@ export const createUserRateLimiter = (
 ) => {
   const requests = new Map();
 
-  return (req: AuthenticatedRequest, _res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id || req.ip || 'anonymous';
       const userRole = req.user?.role || 'user';
@@ -306,7 +306,7 @@ export const createUserRateLimiter = (
 /**
  * Input sanitization middleware
  */
-export const sanitizeInput = (req: Request, res: Response, next: NextFunction) => {
+export const sanitizeInput = (req: Request, _res: Response, next: NextFunction) => {
   try {
     // Recursively sanitize object
     const sanitizeObject = (obj: any): any => {
@@ -371,7 +371,7 @@ export const addRequestId = (req: Request, res: Response, next: NextFunction) =>
 /**
  * Security headers middleware
  */
-export const securityHeaders = (req: Request, res: Response, next: NextFunction) => {
+export const securityHeaders = (_req: Request, res: Response, next: NextFunction) => {
   // Add security headers
   res.set({
     'X-Content-Type-Options': 'nosniff',

@@ -1,5 +1,5 @@
 export declare const useUserActivities: (userId: string | undefined) => {
-    activities: never[];
+    activities: unknown[];
     loading: boolean;
     error: string | null;
 };

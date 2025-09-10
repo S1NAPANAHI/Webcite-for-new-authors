@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js';
 // Check if we're in the browser environment
 const isBrowser = typeof window !== 'undefined';
 // Get environment variables with fallbacks
-const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env?.['VITE_SUPABASE_URL'] || process.env['VITE_SUPABASE_URL'] || '';
+const supabaseAnonKey = import.meta.env?.['VITE_SUPABASE_ANON_KEY'] || process.env['VITE_SUPABASE_ANON_KEY'] || '';
 // Debug mode
-const isDebug = import.meta.env?.VITE_DEBUG === 'true' || process.env.VITE_DEBUG === 'true';
+const isDebug = import.meta.env?.['VITE_DEBUG'] === 'true' || process.env['VITE_DEBUG'] === 'true';
 if (isDebug) {
     console.log('Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
     console.log('Supabase Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');

@@ -1,9 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
-import { Tables } from '../database.types';
 
-type Folder = Tables<'wiki_folders'> & { is_expanded?: boolean; children?: Folder[]; };
-type Page = Tables<'wiki_pages'>;
+type Folder = {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+  is_expanded?: boolean;
+  children?: Folder[];
+};
+
+type Page = {
+  id: string;
+  title: string;
+  slug: string;
+  folder_id: string | null;
+  created_at: string;
+  updated_at: string;
+  content: string;
+};
 
 export const useWikiStructure = () => {
   const [folders, setFolders] = useState<Folder[]>([]);

@@ -3,9 +3,6 @@ import { UpdateUserProfileInput, UserStatsInput, BetaApplicationInput, UpdateUse
 export declare class UserService {
     private supabase;
     constructor(supabase: SupabaseClient);
-    /**
-     * Get all users with filtering and pagination
-     */
     getUsers(query: UserQuery, requestingUserId: string): Promise<{
         users: {
             id: any;
@@ -30,9 +27,6 @@ export declare class UserService {
             total: number;
         };
     }>;
-    /**
-     * Get user profile by ID
-     */
     getUserProfile(id: string, requestingUserId?: string): Promise<{
         id: any;
         username: any;
@@ -50,49 +44,16 @@ export declare class UserService {
             currently_reading: any;
         }[];
     }>;
-    /**
-     * Update user profile with business rule validation
-     */
-    updateUserProfile(id: string, input: UpdateUserProfileInput, updatedBy: string): Promise<any>;
-    /**
-     * Update user role (admin only)
-     */
+    updateUserProfile(id: string, input: UpdateUserProfileInput, _updatedBy: string): Promise<any>;
     updateUserRole(input: UpdateUserRoleInput, requestingUserId: string): Promise<any>;
-    /**
-     * Submit beta application with validation
-     */
     submitBetaApplication(input: BetaApplicationInput, userId?: string): Promise<any>;
-    /**
-     * Update user stats with validation
-     */
     updateUserStats(input: UserStatsInput): Promise<any>;
-    /**
-     * Get user activity with analytics
-     */
     getUserActivity(userId: string, limit?: number): Promise<any[]>;
-    /**
-     * Validate admin access
-     */
     private validateAdminAccess;
-    /**
-     * Validate super admin access
-     */
     private validateSuperAdminAccess;
-    /**
-     * Validate profile access permissions
-     */
     private validateProfileAccess;
-    /**
-     * Validate username uniqueness
-     */
     private validateUsernameUniqueness;
-    /**
-     * Create user profile with business rules
-     */
     createUserProfile(userId: string, userEmail: string, userMetadata?: any): Promise<any>;
-    /**
-     * Get user dashboard data
-     */
     getUserDashboard(userId: string): Promise<{
         profile: {
             id: any;
@@ -147,10 +108,7 @@ export declare class UserService {
             }[];
         }[];
     }>;
-    /**
-     * Deactivate user account with business rules
-     */
-    deactivateUser(userId: string, deactivatedBy: string, reason?: string): Promise<{
+    deactivateUser(userId: string, deactivatedBy: string, _reason?: string): Promise<{
         success: boolean;
     }>;
 }

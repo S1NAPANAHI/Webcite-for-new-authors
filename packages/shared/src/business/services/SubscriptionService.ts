@@ -465,7 +465,7 @@ export class SubscriptionService {
         return;
       }
 
-      const _productType = (plan as any).products?.[0]?.product_type;
+      
       const contentGrants = (plan as any).products?.[0]?.content_grants as any;
 
       if (!contentGrants) {
@@ -550,9 +550,7 @@ export class SubscriptionService {
    */
   async getSubscriptionAnalytics(startDate?: string, endDate?: string) {
     try {
-      const _dateFilter = startDate && endDate 
-        ? { gte: startDate, lte: endDate }
-        : {};
+      
 
       // Total subscriptions by status
       const { data: statusCounts, error: statusError } = await this.supabase

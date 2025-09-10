@@ -86,7 +86,7 @@ export class SubscriptionService {
     /**
      * Create a new subscription with business rule validation
      */
-    async createSubscription(input, createdBy) {
+    async createSubscription(input, _createdBy) {
         try {
             // Validate input
             const validatedInput = CreateSubscriptionSchema.parse(input);
@@ -144,7 +144,7 @@ export class SubscriptionService {
     /**
      * Update subscription with business rule validation
      */
-    async updateSubscription(id, input, updatedBy) {
+    async updateSubscription(id, input, _updatedBy) {
         try {
             // Check if subscription exists
             const existingSubscription = await this.getSubscriptionById(id);
@@ -387,7 +387,6 @@ export class SubscriptionService {
                 console.error('Failed to fetch plan for entitlement granting:', planError);
                 return;
             }
-            const productType = plan.products?.[0]?.product_type;
             const contentGrants = plan.products?.[0]?.content_grants;
             if (!contentGrants) {
                 console.warn('No content grants defined for subscription plan');
@@ -395,7 +394,7 @@ export class SubscriptionService {
             }
             // Grant entitlements based on content grants
             for (const grant of contentGrants.grants || []) {
-                const { data: entitlement, error: entitlementError } = await this.supabase
+                const { data: _entitlement, error: entitlementError } = await this.supabase
                     .from('entitlements')
                     .insert({
                     user_id: userId,
@@ -441,7 +440,7 @@ export class SubscriptionService {
     /**
      * Send status change notification
      */
-    async sendStatusChangeNotification(subscription, oldStatus, newStatus) {
+    async sendStatusChangeNotification(subscription, _oldStatus, newStatus) {
         try {
             // Import email service (would need to be implemented)
             // const { sendSubscriptionEmail } = require('../../services/emailService');
@@ -466,9 +465,6 @@ export class SubscriptionService {
      */
     async getSubscriptionAnalytics(startDate, endDate) {
         try {
-            const dateFilter = startDate && endDate
-                ? { gte: startDate, lte: endDate }
-                : {};
             // Total subscriptions by status
             const { data: statusCounts, error: statusError } = await this.supabase
                 .from('subscriptions')
@@ -503,7 +499,7 @@ export class SubscriptionService {
                 return total;
             }, 0) || 0;
             // Calculate churn rate
-            const { data: churnData, error: churnError } = await this.supabase
+            const { data: churnData, error: _churnError } = await this.supabase
                 .from('subscriptions')
                 .select('status, updated_at')
                 .eq('status', 'canceled')

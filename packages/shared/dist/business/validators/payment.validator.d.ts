@@ -14,13 +14,13 @@ export declare const SubscriptionSchema: z.ZodObject<{
     user_id: z.ZodString;
     plan_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
+        unpaid: "unpaid";
+        canceled: "canceled";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
         active: "active";
         past_due: "past_due";
-        canceled: "canceled";
-        unpaid: "unpaid";
         paused: "paused";
     }>>;
     current_period_start: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -57,10 +57,10 @@ export declare const OrderSchema: z.ZodObject<{
     price_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
         pending: "pending";
-        canceled: "canceled";
         completed: "completed";
         refunded: "refunded";
         failed: "failed";
+        canceled: "canceled";
     }>>;
     amount_cents: z.ZodNumber;
     currency: z.ZodString;
@@ -78,13 +78,13 @@ export declare const OrderSchema: z.ZodObject<{
 export declare const CreateSubscriptionSchema: z.ZodObject<{
     user_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
+        unpaid: "unpaid";
+        canceled: "canceled";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
         active: "active";
         past_due: "past_due";
-        canceled: "canceled";
-        unpaid: "unpaid";
         paused: "paused";
     }>>;
     metadata: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
@@ -97,13 +97,13 @@ export declare const CreateSubscriptionSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const UpdateSubscriptionSchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
+        unpaid: "unpaid";
+        canceled: "canceled";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
         active: "active";
         past_due: "past_due";
-        canceled: "canceled";
-        unpaid: "unpaid";
         paused: "paused";
     }>>>;
     updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
@@ -118,10 +118,10 @@ export declare const UpdateSubscriptionSchema: z.ZodObject<{
 export declare const PaymentQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<{
         pending: "pending";
-        canceled: "canceled";
         completed: "completed";
         refunded: "refunded";
         failed: "failed";
+        canceled: "canceled";
     }>>;
     provider: z.ZodOptional<z.ZodEnum<{
         paypal: "paypal";
@@ -138,19 +138,19 @@ export declare const PaymentQuerySchema: z.ZodObject<{
         amount_cents: "amount_cents";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        asc: "asc";
         desc: "desc";
+        asc: "asc";
     }>>;
 }, z.core.$strip>;
 export declare const SubscriptionQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<{
+        unpaid: "unpaid";
+        canceled: "canceled";
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
         trialing: "trialing";
         active: "active";
         past_due: "past_due";
-        canceled: "canceled";
-        unpaid: "unpaid";
         paused: "paused";
     }>>;
     user_id: z.ZodOptional<z.ZodString>;
@@ -163,8 +163,8 @@ export declare const SubscriptionQuerySchema: z.ZodObject<{
         current_period_end: "current_period_end";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        asc: "asc";
         desc: "desc";
+        asc: "asc";
     }>>;
 }, z.core.$strip>;
 export declare const validatePaymentBusinessRules: (order: z.infer<typeof OrderSchema>) => {

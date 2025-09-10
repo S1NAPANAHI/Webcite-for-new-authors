@@ -1,1 +1,1 @@
-{"version":3,"file":"useUserSubscription.d.ts","sourceRoot":"","sources":["../../src/data/useUserSubscription.ts"],"names":[],"mappings":"AAOA,eAAO,MAAM,mBAAmB;;;;;;;;;;;;gBAwC07vC,+BAAmB,SAAS;;;;;;;;;CAAr/vC,CAAC"}
+{"version":3,"file":"useUserSubscription.d.ts","sourceRoot":"","sources":["../../src/data/useUserSubscription.ts"],"names":[],"mappings":"AAOA,eAAO,MAAM,mBAAmB;;;;;2BAwCmglF,+BAAmB,SAAS;;;;;;;;;;;;gBAA8b,+BAAmB,SAAS;;;;;;;;;CAAxhmF,CAAC"}

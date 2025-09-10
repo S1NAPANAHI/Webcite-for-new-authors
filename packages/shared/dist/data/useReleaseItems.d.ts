@@ -3,11 +3,8 @@ export declare const useReleaseItems: () => {
         created_at: string;
         description: string | null;
         id: string;
-        is_featured: boolean | null;
         link: string | null;
-        purchase_link: string | null;
-        release_date: string;
-        status: string | null;
+        release_date: string | null;
         title: string;
         type: string;
         updated_at: string;

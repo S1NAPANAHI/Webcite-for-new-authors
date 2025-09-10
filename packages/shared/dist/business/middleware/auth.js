@@ -11,7 +11,7 @@ class ValidationError extends Error {
  * Enhanced authentication middleware
  */
 export const authenticate = (supabase) => {
-    return async (req, res, next) => {
+    return async (req, _res, next) => {
         try {
             const authHeader = req.headers.authorization;
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -56,7 +56,7 @@ export const authenticate = (supabase) => {
  * Authorization middleware factory for role-based access
  */
 export const authorize = (allowedRoles) => {
-    return (req, res, next) => {
+    return (req, _res, next) => {
         try {
             if (!req.user) {
                 throw new AuthenticationError('User not authenticated');
@@ -76,12 +76,12 @@ export const authorize = (allowedRoles) => {
  * Resource ownership middleware
  */
 export const authorizeResourceOwnership = (resourceIdParam = 'id', allowAdminAccess = true) => {
-    return (req, res, next) => {
+    return (req, _res, next) => {
         try {
             if (!req.user) {
                 throw new AuthenticationError('User not authenticated');
             }
-            const resourceId = req.params[resourceIdParam] || req.body.user_id || req.query.user_id;
+            const resourceId = req.params[resourceIdParam] || req.body['user_id'] || req.query['user_id'];
             // User can access their own resources
             if (resourceId === req.user.id) {
                 next();
@@ -103,7 +103,7 @@ export const authorizeResourceOwnership = (resourceIdParam = 'id', allowAdminAcc
  * Action-based authorization using business rules
  */
 export const authorizeAction = (action, getTargetUserRole) => {
-    return async (req, res, next) => {
+    return async (req, _res, next) => {
         try {
             if (!req.user) {
                 throw new AuthenticationError('User not authenticated');
@@ -127,7 +127,7 @@ export const authorizeAction = (action, getTargetUserRole) => {
  * Subscription access middleware
  */
 export const authorizeSubscriptionAccess = (supabase) => {
-    return async (req, res, next) => {
+    return async (req, _res, next) => {
         try {
             if (!req.user) {
                 throw new AuthenticationError('User not authenticated');
@@ -137,7 +137,7 @@ export const authorizeSubscriptionAccess = (supabase) => {
                 next();
                 return;
             }
-            const subscriptionId = req.params.id || req.params.subscriptionId;
+            const subscriptionId = req.params['id'] || req.params['subscriptionId'];
             if (!subscriptionId) {
                 throw new AuthorizationError('Subscription ID required');
             }
@@ -150,7 +150,7 @@ export const authorizeSubscriptionAccess = (supabase) => {
             if (error) {
                 throw new DatabaseError('Failed to verify subscription ownership');
             }
-            if (subscription.user_id !== req.user.id) {
+            if (subscription['user_id'] !== req.user.id) {
                 throw new AuthorizationError('Access denied: Subscription ownership required');
             }
             next();
@@ -164,7 +164,7 @@ export const authorizeSubscriptionAccess = (supabase) => {
  * Content access middleware
  */
 export const authorizeContentAccess = (supabase, contentType) => {
-    return async (req, res, next) => {
+    return async (req, _res, next) => {
         try {
             // Public content is accessible to everyone
             if (contentType === 'public') {
@@ -175,7 +175,7 @@ export const authorizeContentAccess = (supabase, contentType) => {
                 throw new AuthenticationError('Authentication required for this content');
             }
             // Get user's subscription status
-            const { data: subscription, error: subscriptionError } = await supabase
+            const { data: subscription, error: _subscriptionError } = await supabase
                 .from('subscriptions')
                 .select('status')
                 .eq('user_id', req.user.id)
@@ -234,7 +234,7 @@ export const createUserRateLimiter = (baseWindowMs, getMaxRequests) => {
 /**
  * Input sanitization middleware
  */
-export const sanitizeInput = (req, res, next) => {
+export const sanitizeInput = (req, _res, next) => {
     try {
         // Recursively sanitize object
         const sanitizeObject = (obj) => {
@@ -289,7 +289,7 @@ export const addRequestId = (req, res, next) => {
 /**
  * Security headers middleware
  */
-export const securityHeaders = (req, res, next) => {
+export const securityHeaders = (_req, res, next) => {
     // Add security headers
     res.set({
         'X-Content-Type-Options': 'nosniff',

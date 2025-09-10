@@ -1,12 +1,11 @@
 export declare const useHomepageContent: () => {
     homepageContent: {
-        content: string;
+        content: string | null;
         created_at: string;
-        id: number;
-        is_active: boolean | null;
+        id: string;
         order_position: number | null;
-        section: string;
-        title: string | null;
+        section: string | null;
+        title: string;
         updated_at: string;
     }[];
     loading: boolean;

@@ -42,6 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       children: [
         // Removed Store and Subscriptions
         { name: 'Library', path: '/library' },
+        { name: 'Learn', path: '/learn' },
         { name: 'Wiki', path: '/wiki' },
         { name: 'Timelines', path: '/timelines' },
         { name: 'Characters', path: '/characters' },

@@ -96,6 +96,26 @@ button:focus {
   border: 1px solid var(--line);
 }
 
+/* New gradient background classes for LearnAdmin */
+.bg-gradient-authors-journey {
+  background: linear-gradient(to right, #4a0e0e, #8b0000); /* Dark red to red */
+}
+
+.bg-gradient-educational-resources {
+  background: linear-gradient(to right, #0e4a0e, #008b00); /* Dark green to green */
+}
+
+.bg-gradient-professional-services {
+  background: linear-gradient(to right, #0e0e4a, #00008b); /* Dark blue to blue */
+}
+
+/* New glass effect with silver background */
+.glass-effect-silver {
+  background: rgba(192, 192, 192, 0.7); /* Silver with transparency */
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+}
+
 .product-card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);

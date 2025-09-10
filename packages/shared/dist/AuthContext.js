@@ -9,6 +9,14 @@ export const AuthProvider = ({ children, supabaseClient }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [userStats, setUserStats] = useState({
+        user_id: '',
+        books_read: 0,
+        reading_hours: 0,
+        achievements: 0,
+        currently_reading: 'None'
+    });
+    const [error, setError] = useState(null);
     useEffect(() => {
         const { data: authListener } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
             setSession(session);
@@ -25,43 +33,124 @@ export const AuthProvider = ({ children, supabaseClient }) => {
             authListener.subscription.unsubscribe();
         };
     }, [supabaseClient]);
+    // Function to safely fetch subscription with minimal assumptions about the table structure
+    const fetchUserSubscription = async (userId) => {
+        try {
+            // Try a minimal query to check if the table exists and is accessible
+            const { data: subscription, error } = await supabaseClient
+                .from('subscriptions')
+                .select('id') // Only request the ID to minimize data transfer
+                .eq('user_id', userId)
+                .maybeSingle()
+                .then(({ data, error }) => {
+                // Handle common error cases
+                if (error) {
+                    // No rows found - not an error, just no subscription
+                    if (error.code === 'PGRST116') {
+                        return { data: null, error: null };
+                    }
+                    // Table or column doesn't exist
+                    if (error.code === '42P01' || error.code === '42703') {
+                        console.warn('Subscription table issue:', error.message);
+                        return { data: null, error: null };
+                    }
+                    // For other errors, return them to be handled below
+                    return { data: null, error };
+                }
+                return { data, error: null };
+            });
+            // If we got an error in the .then() handler, log it
+            if (error) {
+                console.error('Error checking subscription:', error);
+                return null;
+            }
+            // If we got here, the table exists and we have a subscription
+            if (subscription) {
+                // Now fetch the full subscription data
+                const { data: fullSubscription, error: fetchError } = await supabaseClient
+                    .from('subscriptions')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .in('status', ['active', 'trialing', 'past_due', 'unpaid'])
+                    .maybeSingle();
+                if (fetchError) {
+                    console.error('Error fetching full subscription:', fetchError);
+                    return null;
+                }
+                return fullSubscription;
+            }
+            return null;
+        }
+        catch (error) {
+            console.error('Exception when fetching subscription:', error);
+            return null;
+        }
+    };
     // Fetch user profile and subscription when user changes
     useEffect(() => {
         const fetchUserProfileAndSubscription = async (userId) => {
             try {
+                setIsLoading(true);
+                // Fetch user profile
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
-                    .single();
+                    .maybeSingle();
                 if (profileError) {
-                    if (profileError.code === 'PGRST116') {
-                        await createUserProfile(userId);
-                        return;
-                    }
-                    throw profileError;
+                    console.error('Error fetching profile:', profileError);
+                    throw new Error('Failed to load user profile');
                 }
-                setUserProfile(profile);
-                setIsAdmin(!!(profile?.role === 'admin' || profile?.role === 'super_admin'));
-                const { data: subscription, error: subscriptionError } = await supabaseClient
-                    .from('subscriptions')
-                    .select('*')
-                    .eq('user_id', userId)
-                    .in('status', ['active', 'trialing'])
-                    .single();
-                if (subscriptionError) {
-                    throw subscriptionError;
+                if (!profile) {
+                    console.warn('No profile found for user:', userId);
+                    setUserProfile(null);
                 }
+                else {
+                    setUserProfile(profile);
+                }
+                // Fetch subscription using the safe function
+                const subscription = await fetchUserSubscription(userId);
                 setIsSubscribed(!!subscription);
+                // Get user stats with proper error handling
+                try {
+                    const { data: stats } = await supabaseClient
+                        .from('user_stats')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .maybeSingle();
+                    const fullName = stats ? stats['full_name'] : undefined;
+                    setUserStats({
+                        user_id: userId,
+                        books_read: stats?.books_read ?? 0,
+                        reading_hours: stats?.reading_hours ?? 0,
+                        achievements: stats?.achievements ?? 0,
+                        currently_reading: stats?.currently_reading ?? 'None',
+                        ...(stats || {}), // Safely spread stats if it exists
+                        ...(fullName && { full_name: fullName }) // Handle full_name specially
+                    });
+                }
+                catch (error) {
+                    console.error('Error fetching user stats:', error);
+                    // Set default stats on error
+                    setUserStats({
+                        user_id: userId,
+                        books_read: 0,
+                        reading_hours: 0,
+                        achievements: 0,
+                        currently_reading: 'None'
+                    });
+                }
             }
             catch (error) {
-                console.error('Error fetching user profile or subscription:', error);
-                setUserProfile(null);
-                setIsAdmin(false);
-                setIsSubscribed(false);
+                console.error('Error in fetchUserProfileAndSubscription:', error);
+                setError(error instanceof Error ? error.message : 'Failed to load user data');
+                setIsLoading(false);
             }
         };
-        const createUserProfile = async (userId) => {
+        // Function to create user profile if it doesn't exist
+        // This is intentionally left unimplemented as it's not part of the current scope
+        // and would require additional database setup and error handling
+        const createUserProfile = async (_userId) => {
             try {
                 const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
                 if (userError || !user) {
@@ -108,16 +197,34 @@ export const AuthProvider = ({ children, supabaseClient }) => {
             setIsAuthenticated(false);
         }
     }, [user, supabaseClient]);
-    return (_jsx(AuthContext.Provider, { value: {
-            user,
-            session,
-            userProfile,
-            isAdmin,
-            isAuthenticated,
-            isLoading,
-            isSubscribed,
-            supabaseClient
-        }, children: children }));
+    // Update isAuthenticated based on session
+    useEffect(() => {
+        setIsAuthenticated(!!session);
+        if (session?.user) {
+            // Check if user is admin
+            const appMetadata = session.user.app_metadata;
+            const userMetadata = session.user.user_metadata;
+            const isUserAdmin = appMetadata?.role === 'admin' ||
+                userMetadata?.role === 'admin';
+            setIsAdmin(isUserAdmin);
+        }
+    }, [session]);
+    // Create the context value
+    const contextValue = {
+        user,
+        session,
+        userProfile,
+        isAdmin,
+        isAuthenticated,
+        isLoading,
+        isSubscribed,
+        error,
+        supabaseClient,
+        setUserProfile,
+        setIsSubscribed,
+        setError
+    };
+    return (_jsx(AuthContext.Provider, { value: contextValue, children: children }));
 };
 export const useAuth = () => {
     const context = useContext(AuthContext);
@@ -126,3 +233,4 @@ export const useAuth = () => {
     }
     return context;
 };
+//# sourceMappingURL=AuthContext.js.map

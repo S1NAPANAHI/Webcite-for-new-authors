@@ -59,15 +59,15 @@ export declare const OrderSchema: z.ZodObject<{
         pending: "pending";
         canceled: "canceled";
         completed: "completed";
-        failed: "failed";
         refunded: "refunded";
+        failed: "failed";
     }>>;
     amount_cents: z.ZodNumber;
     currency: z.ZodString;
     customer_email: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     provider: z.ZodDefault<z.ZodEnum<{
-        stripe: "stripe";
         paypal: "paypal";
+        stripe: "stripe";
     }>>;
     provider_session_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     provider_payment_intent_id: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -76,6 +76,7 @@ export declare const OrderSchema: z.ZodObject<{
     updated_at: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export declare const CreateSubscriptionSchema: z.ZodObject<{
+    user_id: z.ZodString;
     status: z.ZodDefault<z.ZodEnum<{
         incomplete: "incomplete";
         incomplete_expired: "incomplete_expired";
@@ -86,7 +87,6 @@ export declare const CreateSubscriptionSchema: z.ZodObject<{
         unpaid: "unpaid";
         paused: "paused";
     }>>;
-    user_id: z.ZodString;
     metadata: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
     cancel_at_period_end: z.ZodDefault<z.ZodBoolean>;
     current_period_end: z.ZodNullable<z.ZodOptional<z.ZodString>>;
@@ -120,12 +120,12 @@ export declare const PaymentQuerySchema: z.ZodObject<{
         pending: "pending";
         canceled: "canceled";
         completed: "completed";
-        failed: "failed";
         refunded: "refunded";
+        failed: "failed";
     }>>;
     provider: z.ZodOptional<z.ZodEnum<{
-        stripe: "stripe";
         paypal: "paypal";
+        stripe: "stripe";
     }>>;
     user_id: z.ZodOptional<z.ZodString>;
     start_date: z.ZodOptional<z.ZodString>;
@@ -138,8 +138,8 @@ export declare const PaymentQuerySchema: z.ZodObject<{
         amount_cents: "amount_cents";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        desc: "desc";
         asc: "asc";
+        desc: "desc";
     }>>;
 }, z.core.$strip>;
 export declare const SubscriptionQuerySchema: z.ZodObject<{
@@ -163,8 +163,8 @@ export declare const SubscriptionQuerySchema: z.ZodObject<{
         current_period_end: "current_period_end";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        desc: "desc";
         asc: "asc";
+        desc: "desc";
     }>>;
 }, z.core.$strip>;
 export declare const validatePaymentBusinessRules: (order: z.infer<typeof OrderSchema>) => {
@@ -188,3 +188,4 @@ export type RefundInput = z.infer<typeof RefundSchema>;
 export type OrderInput = z.infer<typeof OrderSchema>;
 export type PaymentQuery = z.infer<typeof PaymentQuerySchema>;
 export type SubscriptionQuery = z.infer<typeof SubscriptionQuerySchema>;
+//# sourceMappingURL=payment.validator.d.ts.map

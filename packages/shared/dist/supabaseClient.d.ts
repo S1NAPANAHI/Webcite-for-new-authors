@@ -4,3 +4,4 @@ export type { Database };
 declare let supabase: ReturnType<typeof createClient<Database>>;
 export { supabase };
 export default supabase;
+//# sourceMappingURL=supabaseClient.d.ts.map

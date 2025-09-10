@@ -14,6 +14,8 @@ interface UserProfile {
     reading_hours?: number;
     reading_streak?: number;
     achievements_count?: number;
+    full_name?: string;
+    [key: string]: unknown;
 }
 interface AuthContextType {
     user: User | null;
@@ -24,6 +26,10 @@ interface AuthContextType {
     isLoading: boolean;
     isSubscribed: boolean;
     supabaseClient: SupabaseClient;
+    setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>;
+    setIsSubscribed: React.Dispatch<React.SetStateAction<boolean>>;
+    setError: React.Dispatch<React.SetStateAction<string | null>>;
+    error: string | null;
 }
 export declare const AuthProvider: React.FC<{
     children: React.ReactNode;
@@ -31,3 +37,4 @@ export declare const AuthProvider: React.FC<{
 }>;
 export declare const useAuth: () => AuthContextType;
 export {};
+//# sourceMappingURL=AuthContext.d.ts.map

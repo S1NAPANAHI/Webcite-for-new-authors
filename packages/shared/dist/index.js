@@ -13,3 +13,4 @@ export * from './database.types';
 export * from './business';
 // Export specific utilities
 export { supabase } from './supabaseClient';
+//# sourceMappingURL=index.js.map

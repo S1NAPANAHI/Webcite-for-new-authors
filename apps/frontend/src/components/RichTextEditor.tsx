@@ -5,7 +5,7 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Button } from './ui/button';
-import { Bold, Italic, Strikethrough, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Undo, Redo } from 'lucide-react';
+import { Bold, Italic, Strikethrough, List, ListOrdered, Link as LinkIcon, Image as ImageIcon, Undo, Redo, Heading1, Heading2, Heading3 } from 'lucide-react';
 
 type RichTextEditorProps = {
   content: string;
@@ -17,7 +17,12 @@ type RichTextEditorProps = {
 export function RichTextEditor({ content, onChange, placeholder = 'Start writing...', className = '' }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        // Configure headings to allow levels 1, 2, and 3
+        heading: {
+          levels: [1, 2, 3],
+        },
+      }),
       Link.configure({
         openOnClick: false,
       }),
@@ -43,7 +48,7 @@ export function RichTextEditor({ content, onChange, placeholder = 'Start writing
 
   if (!editor) {
     return <div>Loading editor...</div>;
-  }
+  };
 
   const addImage = () => {
     const url = window.prompt('Enter the URL of the image:');
@@ -103,6 +108,37 @@ export function RichTextEditor({ content, onChange, placeholder = 'Start writing
           aria-label="Strikethrough"
         >
           <Strikethrough className="h-4 w-4" />
+        </Button>
+        <div className="h-8 border-l mx-1"></div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+          className={editor.isActive('heading', { level: 1 }) ? 'bg-gray-200' : ''}
+          aria-label="Heading 1"
+        >
+          <Heading1 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          className={editor.isActive('heading', { level: 2 }) ? 'bg-gray-200' : ''}
+          aria-label="Heading 2"
+        >
+          <Heading2 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          className={editor.isActive('heading', { level: 3 }) ? 'bg-gray-200' : ''}
+          aria-label="Heading 3"
+        >
+          <Heading3 className="h-4 w-4" />
         </Button>
         <div className="h-8 border-l mx-1"></div>
         <Button

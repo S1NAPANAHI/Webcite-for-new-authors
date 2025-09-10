@@ -1,0 +1,603 @@
+import React, { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/types/supabase';
+import { 
+  Button, 
+  Card, 
+  Input, 
+  Textarea, 
+  Tabs, 
+  Tab, 
+  Spinner, 
+  Switch, 
+  Modal, 
+  ModalContent, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter, 
+  useDisclosure 
+} from '@nextui-org/react';
+import { 
+  PlusIcon, 
+  PencilIcon, 
+  TrashIcon, 
+  ArrowUpIcon, 
+  ArrowDownIcon 
+} from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+
+type LearnSection = Database['public']['Tables']['learn_sections']['Row'] & {
+  section_type: 'authors_journey' | 'educational_resources' | 'professional_services';
+};
+
+type LearnCard = Database['public']['Tables']['learn_cards']['Row'] & {
+  title: string;
+  description: string | null;
+  action_text: string | null;
+  action_link: string | null;
+  image_url: string | null;
+  is_active: boolean;
+  display_order: number;
+  isEditing?: boolean;
+};
+
+export default function LearnPageAdmin() {
+  const supabase = createClientComponentClient<Database>();
+  const router = useRouter();
+  const [sections, setSections] = useState<LearnSection[]>([]);
+  const [cards, setCards] = useState<Record<string, LearnCard[]>>({});
+  const [activeTab, setActiveTab] = useState<LearnSection['section_type']>('authors_journey');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [editingCard, setEditingCard] = useState<Partial<LearnCard> | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Fetch sections
+        const { data: sectionsData, error: sectionsError } = await supabase
+          .from('learn_sections')
+          .select('*')
+          .order('section_type');
+
+        if (sectionsError) throw sectionsError;
+        
+        if (sectionsData && sectionsData.length > 0) {
+          const typedSections = sectionsData as LearnSection[];
+          setSections(typedSections);
+          
+          if (!activeTab && typedSections.length > 0) {
+            setActiveTab(typedSections[0].section_type);
+          }
+          
+          // Fetch cards for each section
+          const cardsBySection: Record<string, LearnCard[]> = {};
+          
+          for (const section of typedSections) {
+            const { data: cardsData, error: cardsError } = await supabase
+              .from('learn_cards')
+              .select('*')
+              .eq('section_id', section.id)
+              .order('display_order');
+              
+            if (cardsError) throw cardsError;
+            
+            cardsBySection[section.id] = (cardsData as LearnCard[]) || [];
+          }
+          
+          setCards(cardsBySection);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [supabase, activeTab]);
+
+  const handleSaveSection = async (section: LearnSection) => {
+    try {
+      setIsSaving(true);
+      
+      const updates = {
+        title: section.title,
+        description: section.description,
+        updated_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabase
+        .from('learn_sections')
+        .update(updates)
+        .eq('id', section.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setSections(sections.map(s => s.id === section.id ? { ...s, ...data } : s));
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error updating section:', error);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveCard = async (card: Partial<LearnCard>) => {
+    try {
+      if (!card.section_id) {
+        throw new Error('Section ID is required');
+      }
+      
+      setIsSaving(true);
+      
+      if (card.id) {
+        // Update existing card
+        const updates = {
+          title: card.title,
+          description: card.description,
+          action_text: card.action_text,
+          action_link: card.action_link,
+          image_url: card.image_url,
+          is_active: card.is_active,
+          updated_at: new Date().toISOString()
+        };
+        
+        const { data, error } = await supabase
+          .from('learn_cards')
+          .update(updates)
+          .eq('id', card.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        
+        if (data) {
+          setCards(prev => ({
+            ...prev,
+            [data.section_id]: (prev[data.section_id] || []).map(c => 
+              c.id === data.id ? { ...c, ...data } : c
+            )
+          }));
+          return data as LearnCard;
+        }
+      } else {
+        // Create new card
+        const section = sections.find(s => s.section_type === activeTab);
+        if (!section) throw new Error('Section not found');
+        
+        const { count } = await supabase
+          .from('learn_cards')
+          .select('*', { count: 'exact', head: true })
+          .eq('section_id', section.id);
+          
+        const newCardData = {
+          section_id: section.id,
+          title: card.title || '',
+          description: card.description || null,
+          action_text: card.action_text || null,
+          action_link: card.action_link || null,
+          image_url: card.image_url || null,
+          display_order: (count || 0) + 1,
+          is_active: true
+        };
+        
+        const { data, error } = await supabase
+          .from('learn_cards')
+          .insert(newCardData)
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        if (data) {
+          const newCard = data as LearnCard;
+          setCards(prev => ({
+            ...prev,
+            [section.id]: [...(prev[section.id] || []), newCard]
+          }));
+          return newCard;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error saving card:', error);
+      throw error;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteCard = async (cardId: string, sectionId: string) => {
+    if (!confirm('Are you sure you want to delete this card? This action cannot be undone.')) {
+      return false;
+    }
+    
+    try {
+      setIsSaving(true);
+      
+      const { error } = await supabase
+        .from('learn_cards')
+        .delete()
+        .eq('id', cardId);
+        
+      if (error) throw error;
+      
+      setCards(prev => ({
+        ...prev,
+        [sectionId]: (prev[sectionId] || []).filter(card => card.id !== cardId)
+      }));
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting card:', error);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleMoveCard = async (cardId: string, sectionId: string, direction: 'up' | 'down') => {
+    try {
+      setIsSaving(true);
+      
+      const sectionCards = [...(cards[sectionId] || [])];
+      const cardIndex = sectionCards.findIndex(card => card.id === cardId);
+      
+      if (cardIndex === -1) return false;
+      
+      const newIndex = direction === 'up' ? cardIndex - 1 : cardIndex + 1;
+      
+      if (newIndex < 0 || newIndex >= sectionCards.length) {
+        return false;
+      }
+      
+      const updatedCards = [...sectionCards];
+      [updatedCards[cardIndex], updatedCards[newIndex]] = [
+        updatedCards[newIndex],
+        updatedCards[cardIndex]
+      ];
+      
+      const updates = updatedCards.map((card, index) => ({
+        ...card,
+        display_order: index + 1
+      }));
+      
+      const { data, error } = await supabase
+        .from('learn_cards')
+        .upsert(updates.map(({ id, display_order }) => ({ id, display_order })))
+        .select();
+      
+      if (error) throw error;
+      
+      if (data) {
+        setCards(prev => ({
+          ...prev,
+          [sectionId]: updates
+        }));
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error moving card:', error);
+      return false;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const openEditCardModal = (card?: LearnCard) => {
+    if (card) {
+      setEditingCard({ ...card });
+    } else {
+      const activeSection = sections.find(s => s.section_type === activeTab);
+      if (!activeSection) return;
+      
+      setEditingCard({
+        section_id: activeSection.id,
+        title: '',
+        description: '',
+        action_text: '',
+        action_link: '',
+        image_url: '',
+        is_active: true,
+        display_order: (cards[activeSection.id]?.length || 0) + 1
+      });
+    }
+    onOpen();
+  };
+
+  const handleSaveCardModal = async () => {
+    if (!editingCard) return;
+    
+    try {
+      await handleSaveCard(editingCard);
+      onClose();
+    } catch (error) {
+      console.error('Error saving card:', error);
+    }
+  };
+
+  const activeSection = sections.find(s => s.section_type === activeTab);
+  const activeSectionCards = activeSection ? cards[activeSection.id] || [] : [];
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Learn Page Management</h1>
+      </div>
+      
+      <Tabs 
+        selectedKey={activeTab}
+        onSelectionChange={(key) => setActiveTab(key as LearnSection['section_type'])}
+        className="mb-6"
+      >
+        {sections.map(section => (
+          <Tab key={section.section_type} title={section.title} />
+        ))}
+      </Tabs>
+      
+      {activeSection && (
+        <div className="mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Section Content</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Section Title
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    value={activeSection.title}
+                    onChange={(e) => {
+                      const updatedSection = { ...activeSection, title: e.target.value };
+                      setSections(sections.map(s => 
+                        s.id === activeSection.id ? updatedSection : s
+                      ));
+                    }}
+                    onBlur={() => handleSaveSection(activeSection)}
+                    disabled={isSaving}
+                    className="flex-1"
+                  />
+                  <Button 
+                    color="primary" 
+                    onPress={() => handleSaveSection(activeSection)}
+                    isLoading={isSaving}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Description
+                </label>
+                <Textarea
+                  value={activeSection.description || ''}
+                  onChange={(e) => {
+                    const updatedSection = { ...activeSection, description: e.target.value };
+                    setSections(sections.map(s => 
+                      s.id === activeSection.id ? updatedSection : s
+                    ));
+                  }}
+                  onBlur={() => handleSaveSection(activeSection)}
+                  disabled={isSaving}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="flex justify-end">
+                <Button 
+                  color="primary" 
+                  startContent={<PlusIcon className="h-5 w-5" />}
+                  onPress={() => openEditCardModal()}
+                  isDisabled={isSaving}
+                >
+                  Add Card
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {activeSectionCards.length > 0 ? (
+                  activeSectionCards.map((card, index) => (
+                    <Card key={card.id} className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="font-medium">{card.title}</h3>
+                          {card.description && (
+                            <p className="text-gray-600 mt-1">{card.description}</p>
+                          )}
+                          {card.action_text && card.action_link && (
+                            <a 
+                              href={card.action_link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline mt-2 inline-block"
+                            >
+                              {card.action_text}
+                            </a>
+                          )}
+                          {card.image_url && (
+                            <div className="mt-2">
+                              <img 
+                                src={card.image_url} 
+                                alt={card.title} 
+                                className="h-32 object-cover rounded"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = 'none';
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onPress={() => handleMoveCard(card.id, activeSection.id, 'up')}
+                            isDisabled={index === 0 || isSaving}
+                          >
+                            <ArrowUpIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onPress={() => handleMoveCard(card.id, activeSection.id, 'down')}
+                            isDisabled={index === activeSectionCards.length - 1 || isSaving}
+                          >
+                            <ArrowDownIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            onPress={() => openEditCardModal(card)}
+                            isDisabled={isSaving}
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                            color="danger"
+                            onPress={() => handleDeleteCard(card.id, activeSection.id)}
+                            isDisabled={isSaving}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                          <Switch
+                            isSelected={card.is_active !== false}
+                            onValueChange={(isSelected) => 
+                              handleSaveCard({ ...card, is_active: isSelected })
+                            }
+                            color="success"
+                            size="sm"
+                            isDisabled={isSaving}
+                          >
+                            {card.is_active ? 'Active' : 'Inactive'}
+                          </Switch>
+                        </div>
+                      </div>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    No cards found. Click the "Add Card" button to create one.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Edit Card Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="2xl">
+        <ModalContent>
+          <ModalHeader>
+            {editingCard?.id ? 'Edit Card' : 'Add New Card'}
+          </ModalHeader>
+          <ModalBody>
+            {editingCard && (
+              <div className="space-y-4">
+                <Input
+                  label="Title"
+                  value={editingCard.title || ''}
+                  onChange={(e) => setEditingCard({ ...editingCard, title: e.target.value })}
+                  isRequired
+                />
+                <Textarea
+                  label="Description"
+                  value={editingCard.description || ''}
+                  onChange={(e) => setEditingCard({ ...editingCard, description: e.target.value })}
+                  placeholder="Enter a detailed description for this card"
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Input
+                    label="Action Text (optional)"
+                    value={editingCard.action_text || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, action_text: e.target.value })}
+                    placeholder="e.g., Learn More, View Details"
+                  />
+                  <Input
+                    label="Action Link (optional)"
+                    value={editingCard.action_link || ''}
+                    onChange={(e) => setEditingCard({ ...editingCard, action_link: e.target.value })}
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <Input
+                  label="Image URL (optional)"
+                  value={editingCard.image_url || ''}
+                  onChange={(e) => setEditingCard({ ...editingCard, image_url: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                />
+                {editingCard.image_url && (
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500 mb-1">Image Preview:</p>
+                    <img 
+                      src={editingCard.image_url} 
+                      alt="Preview" 
+                      className="h-32 object-cover rounded"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                <Switch
+                  isSelected={editingCard.is_active !== false}
+                  onValueChange={(isSelected) => 
+                    setEditingCard({ ...editingCard, is_active: isSelected })
+                  }
+                  color="success"
+                >
+                  Active
+                </Switch>
+              </div>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={onClose} isDisabled={isSaving}>
+              Cancel
+            </Button>
+            <Button 
+              color="primary" 
+              onPress={handleSaveCardModal}
+              isLoading={isSaving}
+              isDisabled={!editingCard?.title}
+            >
+              {editingCard?.id ? 'Save Changes' : 'Add Card'}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </div>
+  );
+}

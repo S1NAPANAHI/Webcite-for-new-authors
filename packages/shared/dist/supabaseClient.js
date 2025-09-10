@@ -47,3 +47,4 @@ catch (error) {
 }
 export { supabase };
 export default supabase;
+//# sourceMappingURL=supabaseClient.js.map

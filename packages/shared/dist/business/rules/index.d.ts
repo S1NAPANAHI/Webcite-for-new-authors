@@ -111,3 +111,4 @@ export declare class BusinessRulesEngine {
     static validateRules(rules: Array<() => boolean>, errorMessage: string): void;
 }
 export {};
+//# sourceMappingURL=index.d.ts.map

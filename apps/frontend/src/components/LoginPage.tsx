@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { supabase } from '@zoroaster/shared/supabaseClient';
+import { supabase } from '@zoroaster/shared';
 import { useNavigate, Link } from 'react-router-dom';
 
 type FormMessage = {

@@ -595,3 +595,4 @@ export class SubscriptionService {
         return Math.max(0, Math.round(baseScore - expiringPenalty - cancelingPenalty));
     }
 }
+//# sourceMappingURL=SubscriptionService.js.map

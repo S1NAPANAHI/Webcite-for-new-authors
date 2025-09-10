@@ -56,3 +56,4 @@ export declare const addRequestId: (req: Request, res: Response, next: NextFunct
  */
 export declare const securityHeaders: (req: Request, res: Response, next: NextFunction) => void;
 export {};
+//# sourceMappingURL=auth.d.ts.map

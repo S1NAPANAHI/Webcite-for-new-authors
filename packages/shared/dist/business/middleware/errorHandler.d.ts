@@ -35,3 +35,4 @@ export declare const sendPaginatedResponse: (res: Response, data: any[], paginat
     offset: number;
     total?: number;
 }, message?: string) => void;
+//# sourceMappingURL=errorHandler.d.ts.map

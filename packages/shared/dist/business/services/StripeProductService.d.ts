@@ -6,7 +6,7 @@ interface CreateProductRequest {
     description?: string;
     product_type: Database['public']['Enums']['product_type'];
     category_id?: string;
-    images?: string[];
+    cover_image_url?: string | null;
     work_id?: string;
     content_grants?: any[];
     track_inventory?: boolean;
@@ -16,8 +16,8 @@ interface CreateProductRequest {
 interface CreateVariantRequest {
     name?: string;
     sku?: string;
-    unit_amount: number;
-    currency?: string;
+    price_amount: number;
+    price_currency?: string;
     recurring_interval?: 'day' | 'week' | 'month' | 'year';
     recurring_interval_count?: number;
     inventory_quantity?: number;
@@ -46,9 +46,9 @@ export declare class StripeProductService {
         product_id: string;
         stripe_product_id: string;
         variants: {
-            variant_id: string;
+            variant_id: string | undefined;
             stripe_price_id: string;
-            unit_amount: number;
+            price_amount: number;
         }[];
     }>;
     /**
@@ -65,7 +65,7 @@ export declare class StripeProductService {
     attachStripePrice(request: AttachStripePriceRequest): Promise<{
         variant_id: string;
         stripe_price_id: string;
-        unit_amount: number;
+        price_amount: number;
         currency: string;
         synced_at: string;
     }>;
@@ -84,7 +84,7 @@ export declare class StripeProductService {
     }): Promise<{
         products_synced: number;
         items_failed: number;
-        sync_log_id: string;
+        sync_log_id: any;
     }>;
     /**
      * Sync individual product from Stripe to Supabase
@@ -119,7 +119,7 @@ export declare class StripeProductService {
     /**
      * Update inventory levels
      */
-    updateInventory(variantId: string, quantityChange: number, reason: string, referenceType?: string, referenceId?: string, userId?: string): Promise<boolean>;
+    updateInventory(variantId: string, quantityChange: number): Promise<number>;
     /**
      * Get inventory movements history
      */
@@ -135,9 +135,10 @@ export declare class StripeProductService {
         is_valid: boolean;
         issues: string[];
         product_name: string;
-        stripe_product_id: string;
+        stripe_product_id: string | null;
         variants_count: number;
         mapped_variants: number;
     }>;
 }
 export {};
+//# sourceMappingURL=StripeProductService.d.ts.map

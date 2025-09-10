@@ -158,7 +158,7 @@ export declare class ProductService {
     getProductAnalytics(productId: string, startDate?: string, endDate?: string): Promise<{
         sales: {
             totalSales: number;
-            totalRevenue: any;
+            totalRevenue: number;
             averageOrderValue: number;
         };
         reviews: {
@@ -167,3 +167,4 @@ export declare class ProductService {
         };
     }>;
 }
+//# sourceMappingURL=ProductService.d.ts.map

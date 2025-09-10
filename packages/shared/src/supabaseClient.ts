@@ -1,29 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+
 export type { Database };
 
 // Check if we're in the browser environment
 const isBrowser = typeof window !== 'undefined';
 
-
-
 // Get environment variables with fallbacks
-// Use import.meta.env for Vite compatibility, fallback to process.env for other environments
 const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
-// Debug log to check if environment variables are loaded
-console.log('DEBUG: supabaseUrl (raw):', supabaseUrl);
-console.log('DEBUG: supabaseAnonKey (raw):', supabaseAnonKey);
+// Debug mode
+const isDebug = import.meta.env?.VITE_DEBUG === 'true' || process.env.VITE_DEBUG === 'true';
 
-
-if (import.meta.env?.VITE_DEBUG === 'true' || process.env.VITE_DEBUG === 'true') {
+if (isDebug) {
   console.log('Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
   console.log('Supabase Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
 }
 
-// Validate environment variables
-if ((!supabaseUrl || !supabaseAnonKey) && isBrowser) {
+// Validate environment variables in browser only
+if (isBrowser && (!supabaseUrl || !supabaseAnonKey)) {
   const errorMessage = `
     Missing Supabase environment variables.
     Please check your .env file and ensure the following are set:
@@ -34,29 +30,74 @@ if ((!supabaseUrl || !supabaseAnonKey) && isBrowser) {
   throw new Error(errorMessage);
 }
 
-// Create a singleton instance of the Supabase client
-let supabase: ReturnType<typeof createClient<Database>>;
+// Global variable to hold the Supabase client instance
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
-try {
-  // Create the Supabase client with minimal configuration
-  supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+/**
+ * Get or create the Supabase client instance
+ * Ensures only one instance is created
+ */
+const getSupabase = () => {
+  // Use a global variable to ensure a single instance across hot reloads and multiple module evaluations
+  if (typeof window !== 'undefined' && (window as any).__SUPABASE_CLIENT_INSTANCE__) {
+    return (window as any).__SUPABASE_CLIENT_INSTANCE__;
+  }
+
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase URL and Anon Key are required');
+  }
+
+  // Create a new instance with proper typing and configuration
+  const newInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
-      persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      persistSession: true,
+      detectSessionInUrl: isBrowser,
       storage: isBrowser ? window.localStorage : undefined,
+    },
+    global: {
+      // Get the latest record instead of from local cache
+      fetch: (url, options) => {
+        const actualOptions = options || {};
+        const { headers = {}, ...restOptions } = actualOptions;
+        return fetch(url, {
+          ...restOptions,
+          headers: {
+            ...headers,
+            'Cache-Control': 'no-cache',
+          },
+        });
+      },
     }
   });
 
-  // Log initialization in development
-  const isDev = (typeof process !== 'undefined' && process.env?.NODE_ENV === 'development');
-  if (isDev && isBrowser) {
-    console.log('Supabase client initialized with URL:', supabaseUrl);
+  supabaseInstance = newInstance;
+  if (typeof window !== 'undefined') {
+    (window as any).__SUPABASE_CLIENT_INSTANCE__ = newInstance;
   }
-} catch (error) {
-  console.error('Error initializing Supabase client:', error);
-  throw error;
+
+  if (isDebug) {
+    console.log('New Supabase client instance created');
+  }
+
+  return supabaseInstance;
+};
+
+// Export the singleton instance
+export const supabase = getSupabase();
+
+// For debugging
+if (isBrowser && isDebug) {
+  // @ts-ignore - Attach to window for debugging
+  window.__SUPABASE_DEBUG__ = {
+    supabase: supabase,
+    getSession: () => supabase.auth.getSession(),
+    getUser: () => supabase.auth.getUser(),
+  };
 }
 
-export { supabase };
 export default supabase;

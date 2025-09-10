@@ -52,3 +52,4 @@ export declare class DatabaseError extends BaseError {
 export declare class RateLimitError extends BaseError {
     constructor(message?: string, context?: Record<string, any>);
 }
+//# sourceMappingURL=index.d.ts.map

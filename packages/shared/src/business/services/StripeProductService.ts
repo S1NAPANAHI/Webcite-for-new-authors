@@ -13,12 +13,17 @@ type ProductVariant = Database['public']['Tables']['product_variants']['Row'];
 type ProductInsert = Database['public']['Tables']['products']['Insert'];
 type VariantInsert = Database['public']['Tables']['product_variants']['Insert'];
 
+interface CreateProductWithVariantsResult {
+  product_id: string;
+  variant_ids: string[];
+}
+
 interface CreateProductRequest {
   name: string;
   description?: string;
   product_type: Database['public']['Enums']['product_type'];
   category_id?: string;
-  images?: string[];
+  cover_image_url?: string | null;
   work_id?: string;
   content_grants?: any[];
   track_inventory?: boolean;
@@ -29,8 +34,8 @@ interface CreateProductRequest {
 interface CreateVariantRequest {
   name?: string;
   sku?: string;
-  unit_amount: number;
-  currency?: string;
+  price_amount: number;
+  price_currency?: string;
   recurring_interval?: 'day' | 'week' | 'month' | 'year';
   recurring_interval_count?: number;
   inventory_quantity?: number;
@@ -77,7 +82,7 @@ export class StripeProductService {
       const stripeProduct = await this.stripe.products.create({
         name: request.name,
         description: request.description || undefined,
-        images: request.images || [],
+        images: request.cover_image_url ? [request.cover_image_url] : [],
         metadata: {
           created_via: 'zoroasterverse_admin',
           created_by: createdBy,
@@ -93,14 +98,14 @@ export class StripeProductService {
             description: request.description,
             product_type: request.product_type,
             category_id: request.category_id,
-            images: request.images || [],
+            cover_image_url: request.cover_image_url || null,
             track_inventory: request.track_inventory || false,
             active: request.active !== false,
             work_id: request.work_id,
             content_grants: request.content_grants || []
           },
           p_variants_data: request.variants as any
-        });
+        }) as { data: CreateProductWithVariantsResult | null, error: any };
 
       if (createError || !createResult) {
         // Cleanup Stripe product on failure
@@ -124,8 +129,8 @@ export class StripeProductService {
           
           const priceData: Stripe.PriceCreateParams = {
             product: stripeProduct.id,
-            currency: variant.currency || 'usd',
-            unit_amount: variant.unit_amount,
+            currency: variant.price_currency || 'usd',
+            price_amount: variant.price_amount,
             metadata: {
               supabase_variant_id: variantId,
               sku: variant.sku || '',
@@ -152,7 +157,7 @@ export class StripeProductService {
           return {
             variant_id: variantId,
             stripe_price_id: stripePrice.id,
-            unit_amount: variant.unit_amount
+            price_amount: variant.price_amount
           };
         })
       );
@@ -185,14 +190,17 @@ export class StripeProductService {
       }
 
       // Check if product exists in Supabase
-      const { data: product, error: productError } = await this.supabase
+      const { data, error: productError }: { data: Product[] | null, error: any | null } = await this.supabase
         .from('products')
-        .select('*')
-        .eq('id', request.product_id)
-        .single();
+        .select('id, name, description, cover_image_url, active, stripe_product_id')
+        .eq('id', request.product_id);
 
-      if (productError || !product) {
+      let product: Product;
+
+      if (productError || !data || data.length === 0) {
         throw new ResourceNotFoundError('Product', request.product_id);
+      } else {
+        product = (data as any)[0] as Product;
       }
 
       // Check if Stripe product is already attached to another product
@@ -209,16 +217,21 @@ export class StripeProductService {
       }
 
       // Update product with Stripe product ID and sync basic info
+      const updateData: Partial<Database['public']['Tables']['products']['Update']> = {
+        stripe_product_id: request.stripe_product_id,
+        name: stripeProduct.name, // Sync name from Stripe
+        description: stripeProduct.description || product.description || null,
+        active: stripeProduct.active && product.active,
+        updated_at: new Date().toISOString(),
+        // Only update cover_image_url if we have images from Stripe
+        ...(stripeProduct.images && stripeProduct.images.length > 0 ? {
+          cover_image_url: stripeProduct.images[0]
+        } : {})
+      };
+
       await this.supabase
         .from('products')
-        .update({
-          stripe_product_id: request.stripe_product_id,
-          name: stripeProduct.name, // Sync name from Stripe
-          description: stripeProduct.description || product.description,
-          images: stripeProduct.images || product.images,
-          active: stripeProduct.active && product.active,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('id', request.product_id);
 
       // Optionally sync variants if requested
@@ -231,7 +244,6 @@ export class StripeProductService {
         stripe_product_id: request.stripe_product_id,
         synced_at: new Date().toISOString()
       };
-
     } catch (error) {
       console.error('Error attaching Stripe product:', error);
       if (error instanceof ValidationError || error instanceof ResourceNotFoundError || 
@@ -255,14 +267,17 @@ export class StripeProductService {
       }
 
       // Check if variant exists
-      const { data: variant, error: variantError } = await this.supabase
+      const { data, error: variantError } = await this.supabase
         .from('product_variants')
-        .select('*, products!inner(*)')
-        .eq('id', request.variant_id)
-        .single();
+        .select('id, price_amount, price_currency, recurring_interval, recurring_interval_count, active, products!inner(stripe_product_id, name)')
+        .eq('id', request.variant_id);
 
-      if (variantError || !variant) {
+      let variant: ProductVariant & { products: Product };
+
+      if (variantError || !data || data.length === 0) {
         throw new ResourceNotFoundError('Product variant', request.variant_id);
+      } else {
+        variant = (data as any)[0] as ProductVariant & { products: Product };
       }
 
       // Check if price is already attached to another variant
@@ -291,11 +306,11 @@ export class StripeProductService {
         .from('product_variants')
         .update({
           stripe_price_id: request.stripe_price_id,
-          unit_amount: stripePrice.unit_amount || variant.unit_amount,
+          price_amount: stripePrice.unit_amount || variant.price_amount,
           currency: stripePrice.currency,
           recurring_interval: stripePrice.recurring?.interval || null,
           recurring_interval_count: stripePrice.recurring?.interval_count || null,
-          active: stripePrice.active && variant.active,
+          is_active: stripePrice.active && variant.is_active,
           updated_at: new Date().toISOString()
         })
         .eq('id', request.variant_id);
@@ -303,11 +318,10 @@ export class StripeProductService {
       return {
         variant_id: request.variant_id,
         stripe_price_id: request.stripe_price_id,
-        unit_amount: stripePrice.unit_amount,
+                    price_amount: stripePrice.unit_amount || 0,
         currency: stripePrice.currency,
         synced_at: new Date().toISOString()
       };
-
     } catch (error) {
       console.error('Error attaching Stripe price:', error);
       if (error instanceof ValidationError || error instanceof ResourceNotFoundError || 
@@ -343,11 +357,11 @@ export class StripeProductService {
             product_id: productId,
             stripe_price_id: price.id,
             name: price.nickname || 'Standard',
-            currency: price.currency,
-            unit_amount: price.unit_amount || 0,
+            currency: price.currency as string,
+            price_amount: price.unit_amount || 0,
             recurring_interval: price.recurring?.interval || null,
             recurring_interval_count: price.recurring?.interval_count || null,
-            active: price.active,
+            is_active: price.active as boolean,
             is_default: prices.data.indexOf(price) === 0 // First price as default
           };
 
@@ -374,12 +388,12 @@ export class StripeProductService {
       
       // Start sync log
       const { data: syncLog, error: logError } = await this.supabase
-        .from('stripe_sync_logs')
+        .from('stripe_sync_logs' as 'stripe_sync_logs')
         .insert({
           sync_type: 'products',
           status: 'processing',
           started_at: new Date().toISOString()
-        })
+        } as Database['public']['Tables']['stripe_sync_logs']['Insert'])
         .select('id')
         .single();
 
@@ -431,7 +445,7 @@ export class StripeProductService {
 
         // Update sync log with results
         await this.supabase
-          .from('stripe_sync_logs')
+          .from('stripe_sync_logs' as 'stripe_sync_logs')
           .update({
             status: itemsFailed > 0 ? 'partial' : 'success',
             completed_at: new Date().toISOString(),
@@ -454,7 +468,7 @@ export class StripeProductService {
       } catch (error) {
         // Update sync log with error
         await this.supabase
-          .from('stripe_sync_logs')
+          .from('stripe_sync_logs' as 'stripe_sync_logs')
           .update({
             status: 'error',
             completed_at: new Date().toISOString(),
@@ -479,22 +493,30 @@ export class StripeProductService {
    */
   private async syncProductFromStripe(stripeProduct: Stripe.Product, defaultCategoryId?: string) {
     try {
-      // Check if product already exists
-      const { data: existingProduct } = await this.supabase
+      // Check if product already exists in our DB
+      const { data: existingProduct, error: fetchError } = await this.supabase
         .from('products')
-        .select('id')
+        .select('*')
         .eq('stripe_product_id', stripeProduct.id)
         .single();
 
       const productData: ProductInsert = {
         name: stripeProduct.name,
         description: stripeProduct.description || null,
-        images: stripeProduct.images || [],
+        product_type: (stripeProduct.metadata?.product_type as Database['public']['Enums']['product_type']) || 'single_issue',
         active: stripeProduct.active,
+        is_subscription: stripeProduct.metadata?.subscription === 'true',
+        is_bundle: stripeProduct.metadata?.bundle === 'true',
+        is_premium: stripeProduct.metadata?.premium !== 'false',
+        cover_image_url: stripeProduct.images?.[0] || null,
+        status: stripeProduct.active ? 'active' : 'inactive',
         stripe_product_id: stripeProduct.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         slug: this.generateSlug(stripeProduct.name),
-        // Extract product type from metadata or default to single_issue
-        product_type: (stripeProduct.metadata?.product_type as any) || 'single_issue'
+        title: stripeProduct.name,
+        file_key: null,
+        published_at: stripeProduct.active ? new Date().toISOString() : null
       };
 
       if (existingProduct) {
@@ -523,24 +545,19 @@ export class StripeProductService {
    */
   private async syncPriceFromStripe(stripePrice: Stripe.Price) {
     try {
-      // Get the product for this price
-      const productId = typeof stripePrice.product === 'string' 
-        ? stripePrice.product 
-        : stripePrice.product?.id;
-
-      if (!productId) {
-        throw new Error('Price has no associated product');
+      if (typeof stripePrice.product !== 'string') {
+        throw new Error('Product ID must be a string');
       }
 
-      // Find the local product
-      const { data: localProduct } = await this.supabase
+      // Find the product in our database
+      const { data: product, error: productError } = await this.supabase
         .from('products')
-        .select('id')
-        .eq('stripe_product_id', productId)
+        .select('*')
+        .eq('stripe_product_id', stripePrice.product)
         .single();
 
-      if (!localProduct) {
-        console.warn(`Local product not found for Stripe product ${productId}, skipping price sync`);
+      if (!product) {
+        console.warn(`Local product not found for Stripe product ${stripePrice.product}, skipping price sync`);
         return;
       }
 
@@ -552,14 +569,52 @@ export class StripeProductService {
         .single();
 
       const variantData: VariantInsert = {
-        product_id: localProduct.id,
+        product_id: product.id,
         stripe_price_id: stripePrice.id,
-        name: stripePrice.nickname || 'Standard',
-        currency: stripePrice.currency,
-        unit_amount: stripePrice.unit_amount || 0,
-        recurring_interval: stripePrice.recurring?.interval || null,
-        recurring_interval_count: stripePrice.recurring?.interval_count || null,
-        active: stripePrice.active
+        name: stripePrice.nickname || `Default Variant`,
+        price_amount: stripePrice.unit_amount || 0,
+        price_currency: stripePrice.currency,
+        active: stripePrice.active,
+        is_default: true,
+        sku: stripePrice.lookup_key || null,
+        tax_included: stripePrice.tax_behavior === 'inclusive',
+        track_inventory: false,
+        requires_shipping: false,
+        is_digital: true,
+        inventory_policy: 'deny',
+        inventory_quantity: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        available_for_sale: stripePrice.active,
+        is_active: stripePrice.active,
+        position: 1,
+        metadata: { 
+          type: 'stripe',
+          recurring_interval: stripePrice.recurring?.interval,
+          recurring_interval_count: stripePrice.recurring?.interval_count || 1,
+          currency: stripePrice.currency
+        } as any,
+        digital_file_name: null,
+        digital_file_size_bytes: null,
+        digital_file_url: null,
+        dimension_unit: null,
+        height_cm: null,
+        width_cm: null,
+        depth_cm: null,
+        weight_grams: null,
+        weight_unit: null,
+        barcode: null,
+        barcode_type: null,
+        compare_at_amount: null,
+        cost_amount: null,
+        cost_currency: null,
+        description: null,
+        inventory_management: null,
+        low_stock_threshold: null,
+        option1: null,
+        option2: null,
+        option3: null,
+        tax_code: null
       };
 
       if (existingVariant) {
@@ -591,7 +646,7 @@ export class StripeProductService {
       // Get current product with Stripe ID
       const { data: product, error } = await this.supabase
         .from('products')
-        .select('stripe_product_id, name, description, images')
+        .select('stripe_product_id, name, description, cover_image_url')
         .eq('id', productId)
         .single();
 
@@ -605,7 +660,7 @@ export class StripeProductService {
         {
           name: updates.name || product.name,
           description: updates.description || product.description,
-          images: updates.images || product.images,
+          cover_image_url: updates.cover_image_url || product.cover_image_url,
           ...updates
         }
       );
@@ -616,7 +671,7 @@ export class StripeProductService {
         .update({
           name: updatedProduct.name,
           description: updatedProduct.description,
-          images: updatedProduct.images || [],
+          cover_image_url: updatedProduct.cover_image_url || null,
           active: updatedProduct.active,
           updated_at: new Date().toISOString()
         })
@@ -672,7 +727,7 @@ export class StripeProductService {
         .from('product_variants')
         .update({
           stripe_price_id: newPrice.id,
-          unit_amount: newPrice.unit_amount || 0,
+          price_amount: newPrice.unit_amount || 0,
           currency: newPrice.currency,
           recurring_interval: newPrice.recurring?.interval || null,
           recurring_interval_count: newPrice.recurring?.interval_count || null,
@@ -802,22 +857,13 @@ export class StripeProductService {
    */
   async updateInventory(
     variantId: string,
-    quantityChange: number,
-    reason: string,
-    referenceType?: string,
-    referenceId?: string,
-    userId?: string
+    quantityChange: number
   ) {
     try {
       const { data, error } = await this.supabase
         .rpc('update_inventory', {
           p_variant_id: variantId,
-          p_quantity_change: quantityChange,
-          p_movement_type: quantityChange > 0 ? 'in' : 'out',
-          p_reason: reason,
-          p_reference_type: referenceType,
-          p_reference_id: referenceId,
-          p_user_id: userId
+          p_quantity_change: quantityChange
         });
 
       if (error) {

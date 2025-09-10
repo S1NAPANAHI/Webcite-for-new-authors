@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HomePage as UIHomePage, type HomepageContentItem, type Post, type ReleaseItem } from '@zoroaster/ui';
-import { supabase } from '@zoroaster/shared/supabaseClient';
+import { supabase } from '@zoroaster/shared';
 import { useQuery } from '@tanstack/react-query';
 
 // Data fetching functions

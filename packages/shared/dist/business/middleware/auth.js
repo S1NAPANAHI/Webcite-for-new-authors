@@ -300,3 +300,4 @@ export const securityHeaders = (req, res, next) => {
     });
     next();
 };
+//# sourceMappingURL=auth.js.map

@@ -20,11 +20,14 @@ import {
 } from '@zoroaster/ui';
 import { useAuth } from '@zoroaster/shared';
 import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage } from '@zoroaster/ui';
+import LearnPage from './pages/LearnPage';
+import AuthorJourneyPostPage from './pages/learn/AuthorJourneyPostPage';
+import WritingGuidePage from './pages/learn/WritingGuidePage';
 import type { WikiPage, WikiPageWithSections } from '@zoroaster/shared';
 import { fetchWikiPage } from '@zoroaster/shared';
 import { WikiViewer } from '@zoroaster/ui';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { supabase } from '@zoroaster/shared/supabaseClient';
+import { supabase } from '@zoroaster/shared';
 // import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Temporarily disabled
 // import BetaApplicationsManager from './admin/BetaApplicationsManager'; // Temporarily disabled
 import BetaApplication from './components/BetaApplication/BetaApplication';
@@ -51,6 +54,7 @@ import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 // Admin pages
 import SubscriptionManagementPage from './admin/SubscriptionManagementPage';
 import { ProductManagementPage, OrderManagementPage, InventoryManagementPage, WorksManagementPage, MediaUploadPage } from '@zoroaster/ui';
+import LearnPageAdmin from './pages/admin/LearnPageAdmin';
 
 // Placeholder components for routes that don't have implementations yet
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -127,6 +131,8 @@ const AuthenticatedLayout: React.FC = () => {
   );
 };
 
+import { Toaster } from 'react-hot-toast';
+
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
   const params = useParams();
@@ -140,6 +146,7 @@ const App: React.FC = () => {
 
   return (
     <CartProvider className="bg-red-500">
+      <Toaster />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         {/* Public and general routes with the main layout */}
@@ -170,6 +177,9 @@ const App: React.FC = () => {
           <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
           <Route path="/beta/application" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
           <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />
+          <Route path="/learn" element={<LearnPage />} />
+          <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />
+          <Route path="/learn/writing-guides/:slug" element={<WritingGuidePage />} />
           <Route path="/read/:workId" element={<WorkReaderPage />} />
           <Route path="/beta/status" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
           
@@ -207,6 +217,7 @@ const App: React.FC = () => {
                   <Route path="orders" element={<OrderManagementPage />} />
                   <Route path="inventory" element={<InventoryManagementPage />} />
                   <Route path="analytics" element={<AdminPlaceholderPage title="Analytics" />} />
+                  <Route path="learn" element={<LearnPageAdmin />} />
                   <Route path="timeline/events" element={<AdminPlaceholderPage title="Timeline Events" />} />
                   <Route path="webhooks" element={<AdminPlaceholderPage title="Webhook Management" />} />
                   <Route path="settings" element={<AdminPlaceholderPage title="Admin Settings" />} />

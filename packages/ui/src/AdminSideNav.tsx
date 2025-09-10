@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@zoroaster/shared/utils';
-import { useAuth } from '@zoroaster/shared/AuthContext';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import {
   LayoutDashboard,
@@ -96,7 +95,53 @@ export const AdminSideNavToggle: React.FC = () => {
 export const AdminSideNav: React.FC = () => {
   const { isOpen, close } = useAdminSideNav();
   const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        if (profile) {
+          setUserProfile(profile);
+        }
+      }
+    };
+
+    getInitialSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) {
+        // Fetch user profile when auth state changes
+        supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            if (profile) {
+              setUserProfile(profile);
+            }
+          });
+      } else {
+        setUserProfile(null);
+      }
+    });
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

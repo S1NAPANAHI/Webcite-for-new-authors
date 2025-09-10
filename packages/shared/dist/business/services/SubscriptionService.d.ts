@@ -94,7 +94,7 @@ export declare class SubscriptionService {
     /**
      * Cancel subscription with business rules
      */
-    cancelSubscription(id: string, cancelAtPeriodEnd: boolean, canceledBy: string, reason?: string): Promise<any>;
+    cancelSubscription(id: string, cancelAtPeriodEnd: boolean | undefined, canceledBy: string, reason?: string): Promise<any>;
     /**
      * Reactivate a canceled subscription
      */
@@ -135,7 +135,7 @@ export declare class SubscriptionService {
             pastDueSubscriptions: any;
         };
         revenue: {
-            monthlyRecurringRevenue: any;
+            monthlyRecurringRevenue: number;
             churnRate: number;
         };
         statusBreakdown: any;
@@ -147,7 +147,7 @@ export declare class SubscriptionService {
         activeCount: number;
         expiringSoonCount: number;
         pendingCancellationsCount: number;
-        totalMonthlyValue: any;
+        totalMonthlyValue: number;
         healthScore: number;
     }>;
     /**
@@ -155,3 +155,4 @@ export declare class SubscriptionService {
      */
     private calculateHealthScore;
 }
+//# sourceMappingURL=SubscriptionService.d.ts.map

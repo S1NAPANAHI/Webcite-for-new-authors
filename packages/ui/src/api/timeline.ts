@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.js';
+import { supabase } from '@zoroaster/shared';
 import { 
   TimelineEvent, 
   TimelineNestedEvent, 

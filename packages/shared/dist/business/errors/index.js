@@ -82,3 +82,4 @@ export class RateLimitError extends BaseError {
         super(message, ErrorCode.RATE_LIMIT_EXCEEDED, 429, true, context);
     }
 }
+//# sourceMappingURL=index.js.map

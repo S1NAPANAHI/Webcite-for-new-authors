@@ -1,6 +1,6 @@
 import type { PostgrestSingleResponse } from '@supabase/postgrest-js';
 
-export { supabase } from '../../../../packages/shared/src/supabaseClient';
+export { supabase } from '@zoroaster/shared';
 
 interface ITimelineEvent {
   id: string;

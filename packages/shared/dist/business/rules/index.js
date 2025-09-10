@@ -60,7 +60,8 @@ BusinessRulesEngine.subscription = {
             'single_issue': 0, // One-time purchase
             'bundle': 0, // One-time purchase
             'chapter_pass': 30, // 30 days minimum
-            'arc_pass': 90 // 90 days minimum
+            'arc_pass': 90, // 90 days minimum
+            'subscription': 30 // 30 days minimum for subscription
         };
         return durations[productType] || 0;
     },
@@ -90,7 +91,8 @@ BusinessRulesEngine.pricing = {
             'single_issue': 99, // $0.99
             'bundle': 299, // $2.99
             'chapter_pass': 499, // $4.99/month
-            'arc_pass': 999 // $9.99/month
+            'arc_pass': 999, // $9.99/month
+            'subscription': 999 // $9.99/month
         };
         return minimums[productType] || 99;
     },
@@ -102,7 +104,9 @@ BusinessRulesEngine.pricing = {
             'single_issue': 4999, // $49.99
             'bundle': 9999, // $99.99
             'chapter_pass': 2999, // $29.99/month
-            'arc_pass': 4999 // $49.99/month
+            'arc_pass': 4999, // $49.99/month
+            'subscription': 4999, // $49.99/month
+            'subscription': 0 // Subscriptions might not have a fixed maximum price
         };
         return maximums[productType] || 4999;
     },
@@ -324,3 +328,4 @@ BusinessRulesEngine.beta = {
         return true;
     }
 };
+//# sourceMappingURL=index.js.map

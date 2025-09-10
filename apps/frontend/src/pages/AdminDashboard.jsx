@@ -65,7 +65,18 @@ const AdminDashboard = () => {
                 Timeline Manager
               </Link>
             </li>
-            {/* Add more navigation links as needed */}
+            <li style={{ marginBottom: '15px' }}>
+              <Link to="/account/admin/learn" style={{
+                color: 'white',
+                textDecoration: 'none',
+                padding: '10px 15px',
+                display: 'block',
+                borderRadius: '5px',
+                transition: 'background-color 0.3s ease',
+              }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#34495e'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#2c3e50'}>
+                Learn Page Manager
+              </Link>
+            </li>
           </ul>
         </nav>
       </aside>

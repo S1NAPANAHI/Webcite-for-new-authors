@@ -927,10 +927,10 @@ export class StripeProductService {
         .select(`
           *,
           created_by_profile:profiles!created_by(username, display_name)
-        `) as { data: InventoryMovement[] | null, error: any } // Cast here
+        `) // Cast here
         .eq('variant_id', variantId)
         .order('created_at', { ascending: false })
-        .limit(limit);
+        .limit(limit) as { data: InventoryMovement[] | null, error: any };
 
       if (error) {
         throw new DatabaseError('Failed to fetch inventory movements');

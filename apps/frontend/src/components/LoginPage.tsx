@@ -94,6 +94,26 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin, // Redirects to the current domain
+        },
+      });
+
+      if (error) throw error;
+      // No direct navigation here, as Supabase will handle the redirect
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google';
+      showMessage(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const checkPasswordStrength = (password: string) => {
     if (!password) {
       setPasswordStrength(null);
@@ -473,7 +493,7 @@ const LoginPage: React.FC = () => {
                 letterSpacing: "1px",
                 cursor: "pointer",
               }}
-              onClick={() => showMessage('Google sacred connection is not yet available', 'info')}
+              onClick={handleGoogleLogin}
               disabled={loading}
             >
               Google Light

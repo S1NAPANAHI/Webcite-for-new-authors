@@ -100,7 +100,6 @@ export class BusinessRulesEngine {
         'bundle': 9999, // $99.99
         'chapter_pass': 2999, // $29.99/month
         'arc_pass': 4999, // $49.99/month
-        'subscription': 4999, // $49.99/month
         'subscription': 0 // Subscriptions might not have a fixed maximum price
       };
       return maximums[productType] || 4999;

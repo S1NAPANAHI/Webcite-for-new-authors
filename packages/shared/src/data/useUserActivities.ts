@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Tables } from '../database.types';
 
-type UserActivity = Tables<'user_activities'>;
+type UserActivity = Tables<any>;
 
 export const useUserActivities = (userId: string | undefined) => {
   const [activities, setActivities] = useState<UserActivity[]>([]);
@@ -20,7 +20,7 @@ export const useUserActivities = (userId: string | undefined) => {
 
     try {
       const { data, error } = await supabase
-        .from('user_activities')
+        .from('user_activities' as any)
         .select('*')
         .eq('user_id', userId)
         .order('timestamp', { ascending: false })

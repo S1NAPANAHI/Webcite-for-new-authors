@@ -185,7 +185,7 @@ export const authorizeSubscriptionAccess = (supabase: SupabaseClient) => {
         return;
       }
 
-      const subscriptionId = req.params.id || req.params.subscriptionId;
+      const subscriptionId = req.params['id'] || req.params['subscriptionId'];
       
       if (!subscriptionId) {
         throw new AuthorizationError('Subscription ID required');
@@ -202,7 +202,7 @@ export const authorizeSubscriptionAccess = (supabase: SupabaseClient) => {
         throw new DatabaseError('Failed to verify subscription ownership');
       }
 
-      if (subscription.user_id !== req.user.id) {
+      if (subscription['user_id'] !== req.user.id) {
         throw new AuthorizationError('Access denied: Subscription ownership required');
       }
 

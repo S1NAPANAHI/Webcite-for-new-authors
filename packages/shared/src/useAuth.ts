@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
-import { User } from '@supabase/supabase-js'; // Import User type
+import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'; // Import User type
 import { UserProfile } from './profile';
 
 interface AuthState {
@@ -83,7 +83,7 @@ export const useAuth = (): AuthState => {
     fetchSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, _session) => {
+      (_event: AuthChangeEvent, _session: Session | null) => {
         console.log('🔄 [useAuth] Auth state changed, event:', _event);
         fetchSessionAndProfile();
       }

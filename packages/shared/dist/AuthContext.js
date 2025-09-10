@@ -89,29 +89,35 @@ export const AuthProvider = ({ children, supabaseClient }) => {
     // Fetch user profile and subscription when user changes
     useEffect(() => {
         const fetchUserProfileAndSubscription = async (userId) => {
+            console.log('AuthContext: fetchUserProfileAndSubscription START for user:', userId);
             try {
                 setIsLoading(true);
                 // Fetch user profile
+                console.log('AuthContext: Fetching profile...');
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
                     .maybeSingle();
                 if (profileError) {
-                    console.error('Error fetching profile:', profileError);
+                    console.error('AuthContext: Error fetching profile:', profileError);
                     throw new Error('Failed to load user profile');
                 }
                 if (!profile) {
-                    console.warn('No profile found for user:', userId);
+                    console.warn('AuthContext: No profile found for user:', userId);
                     setUserProfile(null);
                 }
                 else {
+                    console.log('AuthContext: Profile fetched successfully:', profile);
                     setUserProfile(profile);
                 }
                 // Fetch subscription using the safe function
+                console.log('AuthContext: Fetching subscription...');
                 const subscription = await fetchUserSubscription(userId);
                 setIsSubscribed(!!subscription);
+                console.log('AuthContext: Subscription status:', !!subscription);
                 // Get user stats with proper error handling
+                console.log('AuthContext: Fetching user stats...');
                 try {
                     const { data: stats } = await supabaseClient
                         .from('user_stats')
@@ -128,9 +134,10 @@ export const AuthProvider = ({ children, supabaseClient }) => {
                         ...(stats || {}), // Safely spread stats if it exists
                         ...(fullName && { full_name: fullName }) // Handle full_name specially
                     });
+                    console.log('AuthContext: User stats fetched successfully:', stats);
                 }
                 catch (error) {
-                    console.error('Error fetching user stats:', error);
+                    console.error('AuthContext: Error fetching user stats:', error);
                     // Set default stats on error
                     setUserStats({
                         user_id: userId,
@@ -140,10 +147,13 @@ export const AuthProvider = ({ children, supabaseClient }) => {
                         currently_reading: 'None'
                     });
                 }
+                console.log('AuthContext: Setting isLoading(false) - SUCCESS PATH');
+                setIsLoading(false);
             }
-            catch (error) {
-                console.error('Error in fetchUserProfileAndSubscription:', error);
-                setError(error instanceof Error ? error.message : 'Failed to load user data');
+            catch (err) {
+                console.error('AuthContext: Error in fetchUserProfileAndSubscription:', err);
+                setError(err instanceof Error ? err.message : 'Failed to load user data');
+                console.log('AuthContext: Setting isLoading(false) - ERROR PATH');
                 setIsLoading(false);
             }
         };

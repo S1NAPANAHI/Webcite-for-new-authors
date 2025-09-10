@@ -236,9 +236,9 @@ export const AuthProvider: React.FC<{
         const { data: newProfile, error: createError } = await supabaseClient
           .from('profiles')
           .insert({
-            id: userId,
+            id: _userId,
             username: user.email?.split('@')[0] || null,
-            display_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            display_name: user.user_metadata?.['full_name'] || user.email?.split('@')[0] || 'User',
             email: user.email,
             role: 'user',
             subscription_status: 'inactive',

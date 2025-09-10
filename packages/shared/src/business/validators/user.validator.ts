@@ -154,8 +154,9 @@ export const validateBetaApplicationBusinessRules = (application: z.infer<typeof
 
   // Validate email domain (optional business rule)
   const suspiciousDomains = ['tempmail.com', '10minutemail.com'];
-  const emailDomain = application.email.split('@')[1];
-  if (suspiciousDomains.includes(emailDomain)) {
+  const emailParts = application.email.split('@');
+  const emailDomain = emailParts[1];
+  if (emailDomain && suspiciousDomains.includes(emailDomain)) {
     errors.push('Temporary email addresses are not allowed');
   }
 

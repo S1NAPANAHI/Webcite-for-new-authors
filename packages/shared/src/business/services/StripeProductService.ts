@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from '../../database.types';
+import { Database, Json } from '../../database.types';
 import { 
   ResourceNotFoundError, 
   ValidationError, 
@@ -56,6 +56,43 @@ interface AttachStripePriceRequest {
   stripe_price_id: string;
 }
 
+interface StripeSyncLog {
+  id: string;
+  sync_type: string;
+  status: string;
+  started_at: string;
+  completed_at?: string | null;
+  items_processed?: number | null;
+  items_synced?: number | null;
+  items_failed?: number | null;
+  error_details?: string | null;
+  result?: Json | null;
+}
+
+interface StripeSyncLogInsert {
+  sync_type: string;
+  status: string;
+  started_at: string;
+  completed_at?: string | null;
+  items_processed?: number | null;
+  items_synced?: number | null;
+  items_failed?: number | null;
+  error_details?: string | null;
+  result?: Json | null;
+}
+
+interface InventoryMovement {
+  id: string; // Assuming 'id' is always present
+  // Add other fields from 'inventory_movements' table if needed
+  created_at: string; // Assuming created_at is always present
+  variant_id: string; // Assuming variant_id is always present
+  quantity_change: number; // Assuming quantity_change is always present
+  created_by_profile: {
+    username: string | null;
+    display_name: string | null;
+  } | null;
+}
+
 export class StripeProductService {
   private stripe: Stripe;
 
@@ -81,13 +118,13 @@ export class StripeProductService {
       // Start by creating the Stripe product
       const stripeProduct = await this.stripe.products.create({
         name: request.name,
-        description: request.description || undefined,
+        description: request.description || null,
         images: request.cover_image_url ? [request.cover_image_url] : [],
         metadata: {
-          created_via: 'zoroasterverse_admin',
+          created_via: 'zoroaster-api',
           created_by: createdBy,
-          product_type: request.product_type
-        }
+          product_type: request.product_type,
+        },
       });
 
       // Create product in Supabase using the atomic function
@@ -131,6 +168,7 @@ export class StripeProductService {
             product: stripeProduct.id,
             currency: variant.price_currency || 'usd',
             price_amount: variant.price_amount,
+            lookup_key: variant.sku || null, // Using SKU as lookup_key
             metadata: {
               supabase_variant_id: variantId,
               sku: variant.sku || '',
@@ -192,7 +230,7 @@ export class StripeProductService {
       // Check if product exists in Supabase
       const { data, error: productError }: { data: Product[] | null, error: any | null } = await this.supabase
         .from('products')
-        .select('id, name, description, cover_image_url, active, stripe_product_id')
+        .select('*')
         .eq('id', request.product_id);
 
       let product: Product;
@@ -307,7 +345,7 @@ export class StripeProductService {
         .update({
           stripe_price_id: request.stripe_price_id,
           price_amount: stripePrice.unit_amount || variant.price_amount,
-          currency: stripePrice.currency,
+          currency: stripePrice.currency || 'usd',
           recurring_interval: stripePrice.recurring?.interval || null,
           recurring_interval_count: stripePrice.recurring?.interval_count || null,
           is_active: stripePrice.active && variant.is_active,
@@ -317,7 +355,7 @@ export class StripeProductService {
 
       return {
         variant_id: request.variant_id,
-        stripe_price_id: request.stripe_price_id,
+        stripe_price_id: stripePrice.id,
                     price_amount: stripePrice.unit_amount || 0,
         currency: stripePrice.currency,
         synced_at: new Date().toISOString()
@@ -388,7 +426,7 @@ export class StripeProductService {
       
       // Start sync log
       const { data: syncLog, error: logError } = await this.supabase
-        .from('stripe_sync_logs' as 'stripe_sync_logs')
+        .from('stripe_sync_logs')
         .insert({
           sync_type: 'products',
           status: 'processing',
@@ -410,7 +448,7 @@ export class StripeProductService {
         const products = await this.stripe.products.list({
           limit,
           active: active_only,
-          created: created_after ? { gte: created_after } : undefined
+          ...(created_after ? { created: { gte: created_after } } : {})
         });
 
         for (const stripeProduct of products.data) {
@@ -428,7 +466,7 @@ export class StripeProductService {
         const prices = await this.stripe.prices.list({
           limit,
           active: active_only,
-          created: created_after ? { gte: created_after } : undefined,
+          ...(created_after ? { created: { gte: created_after } } : {}),
           expand: ['data.product']
         });
 
@@ -445,7 +483,7 @@ export class StripeProductService {
 
         // Update sync log with results
         await this.supabase
-          .from('stripe_sync_logs' as 'stripe_sync_logs')
+          .from('stripe_sync_logs')
           .update({
             status: itemsFailed > 0 ? 'partial' : 'success',
             completed_at: new Date().toISOString(),
@@ -468,7 +506,7 @@ export class StripeProductService {
       } catch (error) {
         // Update sync log with error
         await this.supabase
-          .from('stripe_sync_logs' as 'stripe_sync_logs')
+          .from('stripe_sync_logs')
           .update({
             status: 'error',
             completed_at: new Date().toISOString(),
@@ -591,8 +629,7 @@ export class StripeProductService {
         metadata: { 
           type: 'stripe',
           recurring_interval: stripePrice.recurring?.interval,
-          recurring_interval_count: stripePrice.recurring?.interval_count || 1,
-          currency: stripePrice.currency
+          recurring_interval_count: stripePrice.recurring?.interval_count || 1
         } as any,
         digital_file_name: null,
         digital_file_size_bytes: null,
@@ -660,7 +697,7 @@ export class StripeProductService {
         {
           name: updates.name || product.name,
           description: updates.description || product.description,
-          cover_image_url: updates.cover_image_url || product.cover_image_url,
+          images: updates.cover_image_url ? [updates.cover_image_url] : (product.cover_image_url ? [product.cover_image_url] : undefined),
           ...updates
         }
       );
@@ -671,7 +708,7 @@ export class StripeProductService {
         .update({
           name: updatedProduct.name,
           description: updatedProduct.description,
-          cover_image_url: updatedProduct.cover_image_url || null,
+          cover_image_url: updatedProduct.images?.[0] || null,
           active: updatedProduct.active,
           updated_at: new Date().toISOString()
         })
@@ -890,7 +927,7 @@ export class StripeProductService {
         .select(`
           *,
           created_by_profile:profiles!created_by(username, display_name)
-        `)
+        `) as { data: InventoryMovement[] | null, error: any } // Cast here
         .eq('variant_id', variantId)
         .order('created_at', { ascending: false })
         .limit(limit);

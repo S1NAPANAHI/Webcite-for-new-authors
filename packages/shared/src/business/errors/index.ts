@@ -37,7 +37,7 @@ export class BaseError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: number;
   public readonly isOperational: boolean;
-  public readonly context?: Record<string, any>;
+  public readonly context: Record<string, any> | undefined;
 
   constructor(
     message: string,

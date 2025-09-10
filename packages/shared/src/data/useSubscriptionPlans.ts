@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { Tables } from '../database.types';
 
-type SubscriptionPlan = Tables<'subscription_plans'>;
+type SubscriptionPlan = Tables<any>;
 
 export const useSubscriptionPlans = () => {
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
@@ -14,7 +14,7 @@ export const useSubscriptionPlans = () => {
     setError(null);
     try {
       const { data, error } = await supabase
-        .from('subscription_plans')
+        .from('subscription_plans' as any)
         .select('*')
         .eq('is_active', true)
         .order('sort_order');

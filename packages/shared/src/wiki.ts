@@ -10,6 +10,9 @@ interface SupabaseSelectError {
 export type WikiPageQueryResult = Tables<'wiki_pages'> & {
   user: Tables<'profiles'> | SupabaseSelectError | null;
   category: Tables<'wiki_categories'> | SupabaseSelectError | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string[] | null;
 };
 
 export type Folder = Tables<'wiki_folders'> & {
@@ -96,7 +99,7 @@ export const fetchPages = async (): Promise<WikiPageWithSections[]> => {
       seo_title: page.seo_title || '',
       seo_description: page.seo_description || '',
       seo_keywords: page.seo_keywords || [],
-            sections: [],
+            sections: page.sections || [], // Ensure sections is always an array
             category: categoryValue,
             user: userValue,
         };
@@ -293,7 +296,7 @@ export const fetchWikiPages = async ({
     }
 
     const pageSectionsMap = new Map<string, WikiSectionView[]>();
-    for (const block of contentBlocks || []) {
+    for (const block of contentBlocks || [] as Tables<'wiki_content_blocks'>[]) {
       const section: WikiSectionView = {
         id: block.id,
         type: block.type,

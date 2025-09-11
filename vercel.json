@@ -3,6 +3,11 @@
   "outputDirectory": "dist",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
+  "functions": {
+    "apps/backend/server.js": {
+      "runtime": "nodejs18.x" 
+    }
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/apps/backend/server.js" },
     { "source": "/(.*)", "destination": "/index.html" }
@@ -12,6 +17,6 @@
     "PNPM_VERSION": "8.15.0",
     "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
     "VITE_SUPABASE_URL": "https://opukvvmumyegtkukqint.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdWt2dm11bXllZ3RrdWtxaW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMDM3ODQsImV4cCI6MjA3MDg3OTc4NH0.rqMHc03LOI4z5j1V0b0LHeW6J1fCQOiBm-I10tF82_s"
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdWt2dm11bXllZ3RrdWtxaW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMDM3ODQsImexdCI6MjA3MDg3OTc4NH0.rqMHc03LOI4z5j1V0b0LHeW6J1fCQOiBm-I10tF82_s"
   }
 }

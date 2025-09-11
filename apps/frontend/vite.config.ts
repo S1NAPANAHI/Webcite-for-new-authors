@@ -69,7 +69,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       sourcemap: mode === 'development',
       rollupOptions: {
-        external: ['@zoroaster/shared'],
+        external: [],
         output: {
           manualChunks: {
             react: ['react', 'react-dom'],

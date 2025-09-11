@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import { useAuth } from '@zoroaster/shared/AuthContext';
+// import { useAuth } from '@zoroaster/shared/AuthContext';
 import { supabase } from '@zoroaster/shared';
 import { BookOpen, Clock, Star, CheckCircle, ArrowRight, Crown } from 'lucide-react';
 
@@ -18,7 +18,23 @@ interface SubscriptionPlan {
 }
 
 export const SubscriptionPage: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  // const { isAuthenticated } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check initial auth state
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const PUBLISHABLE_KEY = import.meta?.env?.VITE_STRIPE_PUBLISHABLE_KEY;
 
   const subscriptionPlans: SubscriptionPlan[] = [
@@ -69,7 +85,7 @@ export const SubscriptionPage: React.FC = () => {
         throw new Error('User is not authenticated');
       }
 
-      const res = await fetch('/api/create-checkout-session', {
+      const res = await fetch('/api/stripe/create-subscription-intent', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

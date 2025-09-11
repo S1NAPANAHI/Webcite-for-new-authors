@@ -26,12 +26,16 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: [
         { find: '@', replacement: path.resolve(__dirname, './src') },
+        // Add explicit aliases for react and react-dom
+        { find: 'react', replacement: path.resolve(__dirname, '../../node_modules/react') },
+        { find: 'react-dom', replacement: path.resolve(__dirname, '../../node_modules/react-dom') },
         
         { find: 'lexical', replacement: path.resolve(__dirname, '../../node_modules/lexical') },
         { find: '@lexical/react', replacement: path.resolve(__dirname, '../../node_modules/@lexical/react') },
         { find: 'quill', replacement: path.resolve(__dirname, '../../node_modules/quill') },
       ],
       extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+      preserveSymlinks: true,
     },
     optimizeDeps: {
       include: ['react', 'react-dom', 'react-router-dom', 'react-quill', 'quill'],
@@ -65,6 +69,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       sourcemap: mode === 'development',
       rollupOptions: {
+        external: ['react', 'react-dom', '@zoroaster/shared'],
         output: {
           manualChunks: {
             react: ['react', 'react-dom'],

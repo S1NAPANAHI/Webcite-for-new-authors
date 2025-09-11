@@ -1,4 +1,4 @@
-import { BaseError, ErrorCode } from '../errors/index';
+import { BaseError, ErrorCode } from '../errors/index.js';
 import { ZodError } from 'zod';
 /**
  * Centralized error handling middleware

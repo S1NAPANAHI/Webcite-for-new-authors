@@ -21,9 +21,9 @@ const {
   createRateLimiter 
 } = require('../../packages/shared/dist/business/middleware/errorHandler');
 
-const createProductRoutes = require('../../packages/shared/dist/routes/products');
-const createEnhancedProductRoutes = require('../../packages/shared/dist/routes/products.enhanced');
-const createAdminRoutes = require('../../packages/shared/dist/routes/admin');
+const createProductRoutes = require('../../packages/shared/dist/routes/products.js');
+const createEnhancedProductRoutes = require('../../packages/shared/dist/routes/products.enhanced.js');
+const createAdminRoutes = require('../../packages/shared/dist/routes/admin.js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -152,7 +152,7 @@ const handleStripeWebhook = require('./webhooks/stripe-ecommerce');
 app.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
 // Legacy webhook endpoint for backward compatibility
-app.post('/webhook-legacy', express.raw({ type: 'application/json' }), (req, res) => {
+app.post('/webhook-legacy', express.raw({ type: 'application/json' }), async (req, res) => {
   let event;
   try {
     const sig = req.headers['stripe-signature'];
@@ -226,55 +226,64 @@ app.post('/webhook-legacy', express.raw({ type: 'application/json' }), (req, res
   res.json({ received: true });
 });
 
-const adminRouter = createAdminRoutes(supabase);
-const { createCartRoutes, createOrderRoutes } = require('./routes/cart');
+async function startServer() {
+  const { default: createProductRoutes } = await import('../../packages/shared/dist/routes/products.js');
+  const { default: createEnhancedProductRoutes } = await import('../../packages/shared/dist/routes/products.enhanced.js');
+  const { default: createAdminRoutes } = await import('../../packages/shared/dist/routes/admin.js');
 
-console.log('adminRouter:', adminRouter);
+  const { createCartRoutes, createOrderRoutes } = await import('./routes/cart.js');
 
-// Routes
-app.use('/api/products', createProductRoutes(supabase));
-app.use('/api/products-v2', createEnhancedProductRoutes(supabase)); // Enhanced version
-app.use('/api/cart', createCartRoutes(supabase, process.env.STRIPE_SECRET_KEY));
-app.use('/api/orders', createOrderRoutes(supabase, process.env.STRIPE_SECRET_KEY));
-app.use('/api/admin', (req, res, next) => {
-  console.log('Request received for /api/admin path:', req.originalUrl);
-  next();
-}, adminRouter);
+  const adminRouter = createAdminRoutes(supabase);
 
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Zoroasterverse Backend API is running!',
-    version: '2.0.0',
-    timestamp: new Date().toISOString(),
-    features: {
-      businessLogic: true,
-      validation: true,
-      errorHandling: true,
-      security: true
-    }
+  console.log('adminRouter:', adminRouter);
+
+  // Routes
+  app.use('/api/products', createProductRoutes(supabase));
+  app.use('/api/products-v2', createEnhancedProductRoutes(supabase)); // Enhanced version
+  app.use('/api/cart', createCartRoutes(supabase, process.env.STRIPE_SECRET_KEY));
+  app.use('/api/orders', createOrderRoutes(supabase, process.env.STRIPE_SECRET_KEY));
+  app.use('/api/admin', (req, res, next) => {
+    console.log('Request received for /api/admin path:', req.originalUrl);
+    next();
+  }, adminRouter);
+
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'Zoroasterverse Backend API is running!',
+      version: '2.0.0',
+      timestamp: new Date().toISOString(),
+      features: {
+        businessLogic: true,
+        validation: true,
+        errorHandling: true,
+        security: true
+      }
+    });
   });
-});
 
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
   });
-});
 
-// 404 handler for undefined routes
-app.use(notFoundHandler);
+  // 404 handler for undefined routes
+  app.use(notFoundHandler);
 
-// Global error handler (must be last)
-app.use(errorHandler);
+  // Global error handler (must be last)
+  app.use(errorHandler);
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Zoroasterverse Backend running on port ${PORT}`);
-  console.log(`📊 Enhanced business logic enabled`);
-  console.log(`🔒 Security middleware active`);
-  console.log(`✅ Validation layer active`);
-});
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Zoroasterverse Backend running on port ${PORT}`);
+    console.log(`📊 Enhanced business logic enabled`);
+    console.log(`🔒 Security middleware active`);
+    console.log(`✅ Validation layer active`);
+  });
+}
+
+startServer();

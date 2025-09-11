@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Route, Routes, useParams } from 'react-router-dom';
+import { Route, Routes, Outlet, useParams } from 'react-router-dom';
 import { 
   Layout, 
   StarsBackground,
@@ -18,7 +18,7 @@ import {
   // Use UI HomePage temporarily to fix build
   HomePage
 } from '@zoroaster/ui';
-import { useAuth } from '@zoroaster/shared';
+import { useAuth } from '@zoroaster/shared/AuthContext';
 import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage } from '@zoroaster/ui';
 import LearnPage from './pages/LearnPage';
 import AuthorJourneyPostPage from './pages/learn/AuthorJourneyPostPage';
@@ -126,7 +126,9 @@ const AuthenticatedLayout: React.FC = () => {
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={betaApplicationStatus}
         onLogout={handleLogout}
-      />
+      >
+        <Outlet /> {/* Add Outlet here to render nested routes */}
+      </Layout>
     </>
   );
 };

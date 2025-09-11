@@ -20,9 +20,9 @@ export declare const useUserSubscription: () => {
         trial_start: string | null;
         updated_at: string;
         user_id: string;
-    } | null;
+    };
     loading: boolean;
-    error: string | null;
+    error: string;
     fetchSubscription: () => Promise<void>;
 };
 //# sourceMappingURL=useUserSubscription.d.ts.map

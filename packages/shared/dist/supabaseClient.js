@@ -3,16 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 const isBrowser = typeof window !== 'undefined';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-// Validate environment variables in browser only (this check will now pass if hardcoded values are valid)
-if (isBrowser && (!supabaseUrl || !supabaseAnonKey)) {
-    const errorMessage = `
-    Missing Supabase environment variables.
-    Please check your .env file and ensure the following are set:
-    - VITE_SUPABASE_URL
-    - VITE_SUPABASE_ANON_KEY
-  `;
-    console.error(errorMessage);
-    throw new Error(errorMessage);
+if (!supabaseUrl) {
+    throw new Error("VITE_SUPABASE_URL is not defined. Please check your .env file and restart the server.");
+}
+if (!supabaseAnonKey) {
+    throw new Error("VITE_SUPABASE_ANON_KEY is not defined. Please check your .env file and restart the server.");
 }
 // Global variable to hold the Supabase client instance
 let supabaseInstance = null;
@@ -40,20 +35,20 @@ const getSupabase = () => {
             detectSessionInUrl: isBrowser,
             storage: isBrowser ? window.localStorage : undefined,
         },
-        global: {
-            // Get the latest record instead of from local cache
-            fetch: (url, options) => {
-                const actualOptions = options || {};
-                const { headers = {}, ...restOptions } = actualOptions;
-                return fetch(url, {
-                    ...restOptions,
-                    headers: {
-                        ...headers,
-                        'Cache-Control': 'no-cache',
-                    },
-                });
-            },
-        }
+        // global: {
+        //   // Get the latest record instead of from local cache
+        //   fetch: (url, options) => {
+        //     const actualOptions = options || {};
+        //     const { headers = {}, ...restOptions } = actualOptions;
+        //     return fetch(url, {
+        //       ...restOptions,
+        //       headers: {
+        //         ...headers,
+        //         'Cache-Control': 'no-cache',
+        //       },
+        //     });
+        //   },
+        // }
     });
     supabaseInstance = newInstance;
     if (typeof window !== 'undefined') {

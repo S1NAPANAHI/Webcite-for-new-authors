@@ -1,21 +1,22 @@
-const express = require('express');
-const { getAllUsers } = require('../services/userService');
+import express from 'express';
+// import { getAllUsers } from '../services/userService'; // Removed as it's unused
 
-function createAdminRoutes(supabase) {
+function createAdminRoutes(supabase: any) {
   const router = express.Router();
 
-  router.get('/test', async (req, res) => {
+  // Test endpoint
+  router.get('/test', async (_req: any, res: any) => {
     const { data, error } = await supabase
       .from('audit_log')
       .select('*')
       .limit(5);
 
     if (error) return res.status(500).json({ error });
-    res.json({ message: 'Admin route works!', data });
+    return res.json({ message: 'Admin route works!', data });
   });
 
   // Add users endpoint
-  router.get('/users', async (req, res) => {
+  router.get('/users', async (_req: any, res: any) => {
     try {
       console.log('🔍 [Admin API] Fetching all users...');
       
@@ -53,9 +54,9 @@ function createAdminRoutes(supabase) {
       console.log('✅ [Admin API] Got subscriptions:', subscriptions?.length || 0);
 
       // Combine the data
-      const combinedUsers = authUsers.users.map(authUser => {
-        const userProfile = profiles.find(p => p.id === authUser.id);
-        const userSubscriptions = subscriptions.filter(s => s.user_id === authUser.id);
+      const combinedUsers = authUsers.users.map((authUser: any) => {
+        const userProfile = profiles.find((p: any) => p.id === authUser.id);
+        const userSubscriptions = subscriptions.filter((s: any) => s.user_id === authUser.id);
 
         return {
           id: authUser.id,
@@ -72,17 +73,17 @@ function createAdminRoutes(supabase) {
       });
 
       console.log('✅ [Admin API] Combined users:', combinedUsers.length);
-      res.json(combinedUsers);
-    } catch (err) {
+      return res.json(combinedUsers);
+    } catch (err: any) {
       console.error('❌ [Admin API] Error in GET /admin/users:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
   // Orders management endpoints
-  router.get('/orders', async (req, res) => {
+  router.get('/orders', async (_req: any, res: any) => {
     try {
-      const { limit = 20, offset = 0, status, search, dateFrom, dateTo } = req.query;
+      const { limit = 20, offset = 0, status, search, dateFrom, dateTo } = _req.query;
       
       let query = supabase
         .from('orders')
@@ -104,43 +105,42 @@ function createAdminRoutes(supabase) {
 
       const { data: orders, error, count } = await query
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .range(parseInt(offset as string), parseInt(offset as string) + parseInt(limit as string) - 1);
 
       if (error) throw error;
 
-      res.json({
+      return res.json({
         orders: orders || [],
-        pagination: { total: count, limit: parseInt(limit), offset: parseInt(offset) }
+        pagination: { total: count, limit: parseInt(limit as string), offset: parseInt(offset as string) }
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching orders:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
   // Inventory management endpoints
-  router.get('/inventory', async (req, res) => {
+  router.get('/inventory', async (_req: any, res: any) => {
     try {
       const { data: inventory, error } = await supabase
         .from('inventory')
         .select(`
           *,
-          products ( name, category ),
-          product_variants ( name )
+          products ( name, category )
         `);
 
       if (error) throw error;
 
-      res.json({ inventory: inventory || [] });
-    } catch (err) {
+      return res.json({ inventory: inventory || [] });
+    } catch (err: any) {
       console.error('Error fetching inventory:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
-  router.get('/inventory/movements', async (req, res) => {
+  router.get('/inventory/movements', async (_req: any, res: any) => {
     try {
-      const { limit = 50 } = req.query;
+      const { limit = 50 } = _req.query;
       
       const { data: movements, error } = await supabase
         .from('inventory_movements')
@@ -150,18 +150,18 @@ function createAdminRoutes(supabase) {
           product_variants ( name )
         `)
         .order('created_at', { ascending: false })
-        .limit(limit);
+        .limit(parseInt(limit as string));
 
       if (error) throw error;
 
-      res.json({ movements: movements || [] });
-    } catch (err) {
+      return res.json({ movements: movements || [] });
+    } catch (err: any) {
       console.error('Error fetching inventory movements:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
-  router.get('/inventory/alerts', async (req, res) => {
+  router.get('/inventory/alerts', async (_req: any, res: any) => {
     try {
       const { data: alerts, error } = await supabase
         .from('stock_alerts')
@@ -174,17 +174,17 @@ function createAdminRoutes(supabase) {
 
       if (error) throw error;
 
-      res.json({ alerts: alerts || [] });
-    } catch (err) {
+      return res.json({ alerts: alerts || [] });
+    } catch (err: any) {
       console.error('Error fetching stock alerts:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
   // Analytics endpoints
-  router.get('/analytics/sales', async (req, res) => {
+  router.get('/analytics/sales', async (_req: any, res: any) => {
     try {
-      const { range = '30d' } = req.query;
+      const { range = '30d' } = _req.query;
       
       // Calculate date range
       const days = range === '7d' ? 7 : range === '30d' ? 30 : range === '90d' ? 90 : 365;
@@ -209,17 +209,17 @@ function createAdminRoutes(supabase) {
 
       if (error) throw error;
 
-      const completedOrders = orders.filter(o => o.status === 'completed');
-      const totalRevenue = completedOrders.reduce((acc, o) => acc + o.total_amount, 0);
+      const completedOrders = orders.filter((o: any) => o.status === 'completed');
+      const totalRevenue = completedOrders.reduce((acc: any, o: any) => acc + o.total_amount, 0);
       const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
 
       // Group orders by status
-      const ordersByStatus = orders.reduce((acc, order) => {
+      const ordersByStatus = orders.reduce((acc: any, order: any) => {
         acc[order.status] = (acc[order.status] || 0) + 1;
         return acc;
       }, {});
 
-      res.json({
+      return res.json({
         totalRevenue,
         totalOrders: orders.length,
         averageOrderValue,
@@ -233,13 +233,13 @@ function createAdminRoutes(supabase) {
           customerLifetimeValue: 0 // TODO: Implement
         }
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching sales analytics:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
-  router.get('/analytics/inventory', async (req, res) => {
+  router.get('/analytics/inventory', async (_req: any, res: any) => {
     try {
       const { data: inventory, error } = await supabase
         .from('inventory')
@@ -250,28 +250,17 @@ function createAdminRoutes(supabase) {
 
       if (error) throw error;
 
-      const totalProducts = inventory.length;
-      const lowStockItems = inventory.filter(item => item.available_quantity <= item.low_stock_threshold).length;
-      const outOfStockItems = inventory.filter(item => item.available_quantity === 0).length;
-
-      res.json({
-        totalProducts,
-        lowStockItems,
-        outOfStockItems,
-        inventoryTurnover: 2.5, // Placeholder
-        topMovingProducts: [], // TODO: Implement
-        stockLevels: [] // TODO: Implement
-      });
-    } catch (err) {
+      return res.json({ inventory: inventory || [] });
+    } catch (err: any) {
       console.error('Error fetching inventory analytics:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
   // Webhook management endpoints
-  router.get('/webhooks/events', async (req, res) => {
+  router.get('/webhooks/events', async (_req: any, res: any) => {
     try {
-      const { limit = 50, offset = 0, eventType, status, search, dateFrom, dateTo } = req.query;
+      const { limit = 50, offset = 0, eventType, status, search, dateFrom, dateTo } = _req.query;
       
       let query = supabase
         .from('webhook_events')
@@ -280,7 +269,6 @@ function createAdminRoutes(supabase) {
       if (eventType) query = query.ilike('event_type', `%${eventType}%`);
       if (status === 'success') query = query.eq('success', true).eq('processed', true);
       if (status === 'failed') query = query.eq('success', false).eq('processed', true);
-      if (status === 'pending') query = query.eq('processed', false);
       if (dateFrom) query = query.gte('created_at', dateFrom);
       if (dateTo) query = query.lte('created_at', dateTo);
       if (search) {
@@ -289,21 +277,21 @@ function createAdminRoutes(supabase) {
 
       const { data: events, error, count } = await query
         .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+        .range(parseInt(offset as string), parseInt(offset as string) + parseInt(limit as string) - 1);
 
       if (error) throw error;
 
-      res.json({
+      return res.json({
         events: events || [],
-        pagination: { total: count, limit: parseInt(limit), offset: parseInt(offset) }
+        pagination: { total: count, limit: parseInt(limit as string), offset: parseInt(offset as string) }
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching webhook events:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
-  router.get('/webhooks/stats', async (req, res) => {
+  router.get('/webhooks/stats', async (_req: any, res: any) => {
     try {
       const { data: events, error } = await supabase
         .from('webhook_events')
@@ -312,17 +300,17 @@ function createAdminRoutes(supabase) {
       if (error) throw error;
 
       const totalEvents = events.length;
-      const successfulEvents = events.filter(e => e.processed && e.success).length;
-      const failedEvents = events.filter(e => e.processed && !e.success).length;
-      const pendingEvents = events.filter(e => !e.processed).length;
+      const successfulEvents = events.filter((e: any) => e.processed && e.success).length;
+      const failedEvents = events.filter((e: any) => e.processed && !e.success).length;
+      const pendingEvents = events.filter((e: any) => !e.processed).length;
       
-      const processedEvents = events.filter(e => e.processed && e.processing_time_ms);
+      const processedEvents = events.filter((e: any) => e.processed && e.processing_time_ms);
       const averageProcessingTime = processedEvents.length > 0 
-        ? processedEvents.reduce((acc, e) => acc + e.processing_time_ms, 0) / processedEvents.length
+        ? processedEvents.reduce((acc: any, e: any) => acc + e.processing_time_ms, 0) / processedEvents.length
         : 0;
 
       // Group by event type
-      const eventsByType = events.reduce((acc, event) => {
+      const eventsByType = events.reduce((acc: any, event: any) => {
         if (!acc[event.event_type]) {
           acc[event.event_type] = { total: 0, successful: 0 };
         }
@@ -333,7 +321,7 @@ function createAdminRoutes(supabase) {
         return acc;
       }, {});
 
-      const eventTypeStats = Object.entries(eventsByType).map(([event_type, stats]) => ({
+      const eventTypeStats = Object.entries(eventsByType).map(([event_type, stats]: [string, any]) => ({
         event_type,
         count: stats.total,
         success_rate: stats.total > 0 ? (stats.successful / stats.total) * 100 : 0
@@ -341,15 +329,15 @@ function createAdminRoutes(supabase) {
 
       // Recent errors
       const recentErrors = events
-        .filter(e => e.processed && !e.success && e.error_message)
+        .filter((e: any) => e.processed && !e.success && e.error_message)
         .slice(0, 10)
-        .map(e => ({
+        .map((e: any) => ({
           event_type: e.event_type,
           error_message: e.error_message,
           created_at: e.created_at
         }));
 
-      res.json({
+      return res.json({
         totalEvents,
         successfulEvents,
         failedEvents,
@@ -358,13 +346,13 @@ function createAdminRoutes(supabase) {
         eventsByType: eventTypeStats,
         recentErrors
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching webhook stats:', err);
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     }
   });
 
   return router;
 }
 
-module.exports = createAdminRoutes;
+export default createAdminRoutes;

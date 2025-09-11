@@ -1,33 +1,33 @@
-const express = require('express');
-const multer = require('multer');
+import express from 'express';
+// import multer from 'multer'; // Commented out as file functionality is disabled
 // const { getRows, getRow, insert, update, remove } = require('../database/connection');
 // const { uploadFile, generateSecureKey, validateFile } = require('../services/s3Service');
 
-module.exports = (supabase) => {
+export default (supabase: any) => {
   const router = express.Router();
 
-  // Configure multer for file uploads
-  const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-      fileSize: 100 * 1024 * 1024, // 100MB limit
-    },
-    fileFilter: (req, file, cb) => {
-      const allowedFormats = ['pdf', 'epub', 'mobi'];
-      const format = file.originalname.split('.').pop().toLowerCase();
-      
-      if (allowedFormats.includes(format)) {
-        cb(null, true);
-      } else {
-        cb(new Error(`Invalid file format. Allowed formats: ${allowedFormats.join(', ')}`));
-      }
-    }
-  });
+  // Configure multer for file uploads (Commented out as file functionality is disabled)
+  // const upload = multer({
+  //   storage: multer.memoryStorage(),
+  //   limits: {
+  //     fileSize: 100 * 1024 * 1024, // 100MB limit
+  //   },
+  //   fileFilter: (req, file, cb) => {
+  //     const allowedFormats = ['pdf', 'epub', 'mobi'];
+  //     const format = file.originalname.split('.').pop()?.toLowerCase();
+  //     
+  //     if (allowedFormats.includes(format || '')) {
+  //       cb(null, true);
+  //     } else {
+  //       cb(new Error(`Invalid file format. Allowed formats: ${allowedFormats.join(', ')}`));
+  //     }
+  //   }
+  // });
 
   // Get all products
-  router.get('/', async (req, res) => {
+  router.get('/', async (_req, res) => {
   try {
-    const { active, product_type, limit = 50, offset = 0 } = req.query;
+    const { active, product_type, limit = 50, offset = 0 } = _req.query;
     
     console.log('🔍 [Products API] Fetching products with filters:', { active, product_type, limit, offset });
     
@@ -50,7 +50,7 @@ module.exports = (supabase) => {
     
     query = query
       .order('created_at', { ascending: false })
-      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
+      .range(parseInt(offset as string), parseInt(offset as string) + parseInt(limit as string) - 1);
     
     const { data: products, error } = await query;
     
@@ -61,18 +61,18 @@ module.exports = (supabase) => {
     
     console.log('✅ [Products API] Found products:', products?.length || 0);
     
-    res.json({
+    return res.json({
       products: products || [],
       pagination: {
-        limit: parseInt(limit),
-        offset: parseInt(offset),
+        limit: parseInt(limit as string),
+        offset: parseInt(offset as string),
         total: products?.length || 0
       }
     });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error fetching products:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch products',
       message: error.message
     });
@@ -109,11 +109,11 @@ router.get('/:id', async (req, res) => {
     }
     
     console.log('✅ [Products API] Found product:', product?.name);
-    res.json({ product });
+    return res.json({ product });
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error fetching product:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to fetch product',
       message: error.message
     });

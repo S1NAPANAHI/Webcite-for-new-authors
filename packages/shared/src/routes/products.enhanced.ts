@@ -1,28 +1,29 @@
-const express = require('express');
-const { ProductService } = require('../business/services/ProductService');
-const { 
+import express from 'express';
+import { ProductService } from '../business/services/ProductService';
+import { 
   authenticate, 
   authorize, 
   sanitizeInput, 
   addRequestId, 
-  securityHeaders 
-} = require('../business/middleware/auth');
-const { 
+  securityHeaders, 
+  authorizeResourceOwnership
+} from '../business/middleware/auth';
+import { 
   validateRequest, 
   validateBusinessRules,
   asyncHandler,
   sendSuccess,
   sendPaginatedResponse,
   errorHandler 
-} = require('../business/middleware/errorHandler');
-const {
+} from '../business/middleware/errorHandler';
+import {
   ProductQuerySchema,
   CreateProductSchema,
   UpdateProductSchema,
   validateProductBusinessRules
-} = require('../business/validators/product.validator');
+} from '../business/validators/product.validator';
 
-module.exports = (supabase) => {
+export default (supabase: any) => {
   const router = express.Router();
   const productService = new ProductService(supabase);
 
@@ -38,9 +39,9 @@ module.exports = (supabase) => {
    */
   router.get('/', 
     validateRequest(ProductQuerySchema, 'query'),
-    asyncHandler(async (req, res) => {
-      const result = await productService.getProducts(req.query);
-      sendPaginatedResponse(res, result.products, result.pagination, 'Products retrieved successfully');
+    asyncHandler(async (_req: any, res: any) => {
+      const result = await productService.getProducts(_req.query);
+      return sendPaginatedResponse(res, result.products, result.pagination, 'Products retrieved successfully');
     })
   );
 
@@ -49,9 +50,9 @@ module.exports = (supabase) => {
    * Get a specific product by ID
    */
   router.get('/:id',
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const product = await productService.getProductById(req.params.id);
-      sendSuccess(res, { product }, 'Product retrieved successfully');
+      return sendSuccess(res, { product }, 'Product retrieved successfully');
     })
   );
 
@@ -60,7 +61,7 @@ module.exports = (supabase) => {
    * Get products by type (single_issue, bundle, chapter_pass, arc_pass)
    */
   router.get('/type/:productType',
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const { productType } = req.params;
       const { active = 'true' } = req.query;
       
@@ -69,7 +70,7 @@ module.exports = (supabase) => {
         active === 'true'
       );
       
-      sendSuccess(res, { products }, `${productType} products retrieved successfully`);
+      return sendSuccess(res, { products }, `${productType} products retrieved successfully`);
     })
   );
 
@@ -80,14 +81,14 @@ module.exports = (supabase) => {
   router.get('/:id/analytics',
     authenticate(supabase),
     authorize(['admin', 'super_admin', 'accountant']),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const { start_date, end_date } = req.query;
       const analytics = await productService.getProductAnalytics(
         req.params.id,
         start_date,
         end_date
       );
-      sendSuccess(res, { analytics }, 'Product analytics retrieved successfully');
+      return sendSuccess(res, { analytics }, 'Product analytics retrieved successfully');
     })
   );
 
@@ -98,13 +99,13 @@ module.exports = (supabase) => {
   router.get('/user/:userId/recommendations',
     authenticate(supabase),
     authorizeResourceOwnership('userId'),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const { limit = 6 } = req.query;
       const products = await productService.getRecommendedProducts(
         req.params.userId,
-        parseInt(limit)
+        parseInt(limit as string)
       );
-      sendSuccess(res, { products }, 'Recommended products retrieved successfully');
+      return sendSuccess(res, { products }, 'Recommended products retrieved successfully');
     })
   );
 
@@ -117,9 +118,9 @@ module.exports = (supabase) => {
     authorize(['admin', 'super_admin']),
     validateRequest(CreateProductSchema),
     validateBusinessRules(validateProductBusinessRules),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const product = await productService.createProduct(req.body, req.user.id);
-      sendSuccess(res, { product }, 'Product created successfully', 201);
+      return sendSuccess(res, { product }, 'Product created successfully', 201);
     })
   );
 
@@ -131,13 +132,13 @@ module.exports = (supabase) => {
     authenticate(supabase),
     authorize(['admin', 'super_admin']),
     validateRequest(UpdateProductSchema),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const product = await productService.updateProduct(
         req.params.id, 
         req.body, 
         req.user.id
       );
-      sendSuccess(res, { product }, 'Product updated successfully');
+      return sendSuccess(res, { product }, 'Product updated successfully');
     })
   );
 
@@ -148,9 +149,9 @@ module.exports = (supabase) => {
   router.delete('/:id',
     authenticate(supabase),
     authorize(['admin', 'super_admin']),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const product = await productService.deleteProduct(req.params.id, req.user.id);
-      sendSuccess(res, { product }, 'Product deleted successfully');
+      return sendSuccess(res, { product }, 'Product deleted successfully');
     })
   );
 
@@ -160,12 +161,12 @@ module.exports = (supabase) => {
    */
   router.post('/:id/access-check',
     authenticate(supabase),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req: any, res: any) => {
       const hasAccess = await productService.validateProductAccess(
         req.params.id,
         req.user.id
       );
-      sendSuccess(res, { hasAccess }, 'Access validation completed');
+      return sendSuccess(res, { hasAccess }, 'Access validation completed');
     })
   );
 

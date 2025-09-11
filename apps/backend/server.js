@@ -125,11 +125,19 @@ app.use(express.json({ limit: '10mb' }));
 app.use(apiLimiter);
 
 // Create subscription in default_incomplete to collect payment with Payment Element
-app.post('/api/stripe/create-subscription-intent', async (req, res) => {
+app.all('/api/stripe/create-subscription-intent', async (req, res) => {
+  if (req.method !== 'POST') {
+    console.error(`Method Not Allowed: Received ${req.method} request for /api/stripe/create-subscription-intent`);
+    return res.status(405).json({ error: `Method Not Allowed. Expected POST, received ${req.method}` });
+  }
+
   try {
     console.log('Received create-subscription-intent request. Body:', req.body);
     const { email, priceId, userId } = req.body;
-    if (!email || !priceId || !userId) return res.status(400).json({ error: 'Missing email, priceId, or userId' });
+    if (!email || !priceId || !userId) {
+      console.error('Validation Error: Missing email, priceId, or userId in create-subscription-intent request.');
+      return res.status(400).json({ error: 'Missing email, priceId, or userId' });
+    }
 
     const customer = await getOrCreateCustomer(email);
 
@@ -149,8 +157,60 @@ app.post('/api/stripe/create-subscription-intent', async (req, res) => {
       customerId: customer.id,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Error in create-subscription-intent:', err);
+    // Ensure a JSON response is always sent, even for unexpected errors
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message || 'An unknown error occurred' });
+    }
+  }
+});
+
+// Endpoint to create a Stripe Checkout Session for subscriptions
+app.post('/api/create-checkout-session', async (req, res) => {
+  try {
+    console.log('Received create-checkout-session request. Body:', req.body);
+    const { priceId, userId } = req.body;
+
+    if (!priceId || !userId) {
+      console.error('Validation Error: Missing priceId or userId in create-checkout-session request.');
+      return res.status(400).json({ error: 'Missing priceId or userId' });
+    }
+
+    // Fetch user email from Supabase to pre-fill checkout and create customer
+    const { data: user, error: userError } = await supabase.auth.admin.getUserById(userId);
+    if (userError || !user) {
+      console.error('Error fetching user from Supabase:', userError);
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const customer = await getOrCreateCustomer(user.user.email);
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customer.id,
+      mode: 'subscription',
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      success_url: `${process.env.FRONTEND_URL}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL}/subscriptions`,
+      metadata: {
+        user_id: userId,
+        // You can add more metadata here if needed
+      },
+      subscription_data: {
+        metadata: {
+          user_id: userId,
+        },
+      },
+    });
+
+    res.json({ sessionId: session.id });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

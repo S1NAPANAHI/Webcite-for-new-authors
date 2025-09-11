@@ -15,26 +15,36 @@ import {
 import { Check, Crown, Zap, Star, Shield, Heart } from 'lucide-react';
 
 // Types
-interface SubscriptionPlan {
-  id: string;
+// Types
+interface Product {
+  id: string; // UUID from Supabase
+  stripe_product_id: string; // Stripe's product ID (prod_...)
   name: string;
   description: string;
-  features: string[];
-  price_amount: number;
+  active: boolean;
+  image?: string;
+  metadata?: Record<string, any>;
+  product_variants: ProductVariant[]; // Joined from product_variants table
+}
+
+interface ProductVariant {
+  id: string; // UUID from Supabase
+  stripe_price_id: string; // Stripe's price ID (price_...)
+  name: string; // e.g., "Monthly", "Annual"
+  unit_amount: number; // Amount in cents
   currency: string;
-  billing_interval: string;
-  stripe_price_id: string;
-  privileges: Record<string, boolean | number>;
-  is_active: boolean;
-  sort_order: number;
+  recurring_interval?: string; // e.g., "month", "year"
+  recurring_interval_count?: number;
+  active: boolean;
+  is_default: boolean;
 }
 
 interface UserSubscription {
   id: string;
   status: string;
   current_period_end: string;
-  subscription_plan_id: string;
-  plan_name: string;
+  price_id: string; // References Stripe Price ID
+  // Add other fields from your 'subscriptions' table as needed
 }
 
 // Initialize Stripe
@@ -44,16 +54,34 @@ const SubscriptionsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch subscription plans
-  const { data: plans = [], isLoading: plansLoading } = useQuery<SubscriptionPlan[]>({
-    queryKey: ['subscription-plans'],
+  // Fetch products and their variants (prices) from Supabase
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
+    queryKey: ['subscription-products'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order');
-      
+        .from('products')
+        .select(`
+          id,
+          stripe_product_id,
+          name,
+          description,
+          active,
+          image,
+          metadata,
+          product_variants (
+            id,
+            stripe_price_id,
+            name,
+            unit_amount,
+            currency,
+            recurring_interval,
+            recurring_interval_count,
+            active,
+            is_default
+          )
+        `)
+        .eq('active', true); // Only fetch active products
+
       if (error) throw error;
       return data;
     }
@@ -68,12 +96,15 @@ const SubscriptionsPage: React.FC = () => {
 
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('*')
+        .select('*') // Select all fields from the subscriptions table
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'trialing']) // Consider 'trialing' as active
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code === 'PGRST116') { // No rows found
+        return null;
+      }
+      if (error) throw error;
       return data || null;
     }
   });
@@ -96,7 +127,10 @@ const SubscriptionsPage: React.FC = () => {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to create checkout session');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout session.');
+      }
       
       const { sessionId } = await response.json();
       
@@ -110,14 +144,52 @@ const SubscriptionsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['current-subscription'] });
     },
+    onError: (error) => {
+      console.error('Error creating subscription:', error);
+      alert(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(null); // Reset loading state after mutation
+    }
   });
 
-  const formatPrice = (amount: number, currency: string, interval: string) => {
+  // Handle managing subscription via Stripe Billing Portal
+  const manageSubscription = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Please log in to manage your subscription');
+
+      const response = await fetch('/api/manage-billing-portal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create billing portal session.');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url; // Redirect to Stripe Billing Portal
+    },
+    onError: (error) => {
+      console.error('Error managing subscription:', error);
+      alert(error.message);
+    },
+    onSettled: () => {
+      setIsLoading(null); // Reset loading state after mutation
+    }
+  });
+
+  const formatPrice = (amount: number, currency: string, interval?: string) => {
     const price = (amount / 100).toLocaleString('en-US', {
       style: 'currency',
       currency: currency.toUpperCase(),
     });
-    return `${price}/${interval}`;
+    return interval ? `${price}/${interval}` : price;
   };
 
   const getPlanIcon = (planName: string) => {
@@ -136,11 +208,13 @@ const SubscriptionsPage: React.FC = () => {
     return 'from-gray-500 to-gray-600';
   };
 
-  const isCurrentPlan = (planId: string) => {
-    return currentSubscription?.subscription_plan_id === planId;
+  // Check if the current user is subscribed to any variant of this product
+  const isCurrentPlan = (productStripeId: string, priceStripeId: string) => {
+    // Check if the current subscription's price_id matches any of the product's variants
+    return currentSubscription?.price_id === priceStripeId;
   };
 
-  if (plansLoading) {
+  if (productsLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
@@ -191,6 +265,15 @@ const SubscriptionsPage: React.FC = () => {
                     Active
                   </Badge>
                 </div>
+                <div className="mt-4 text-right">
+                  <Button
+                    onClick={() => manageSubscription.mutate()}
+                    disabled={manageSubscription.isPending}
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+                  >
+                    {manageSubscription.isPending ? 'Loading...' : 'Manage Subscription'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -198,18 +281,20 @@ const SubscriptionsPage: React.FC = () => {
 
         {/* Subscription Plans */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan) => (
+          {products.map((product) => (
+            // Render a card for each product
             <Card 
-              key={plan.id} 
+              key={product.id} 
               className={`relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                isCurrentPlan(plan.id) 
+                // Check if any variant of this product is the current plan
+                product.product_variants.some(variant => isCurrentPlan(product.stripe_product_id, variant.stripe_price_id))
                   ? 'ring-2 ring-yellow-500 bg-gradient-to-br from-yellow-500/5 to-yellow-600/5' 
                   : 'bg-gradient-to-br from-slate-800/50 to-slate-900/50 hover:from-slate-700/50 hover:to-slate-800/50'
               } border-slate-700`}
             >
               {/* Plan Icon & Popular Badge */}
               <div className="absolute top-4 right-4">
-                {plan.name.toLowerCase().includes('premium') && (
+                {product.name.toLowerCase().includes('premium') && (
                   <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                     Most Popular
                   </Badge>
@@ -218,65 +303,77 @@ const SubscriptionsPage: React.FC = () => {
 
               <CardHeader className="pb-4">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className={`p-3 rounded-full bg-gradient-to-r ${getPlanColor(plan.name)}`}>
-                    {getPlanIcon(plan.name)}
+                  <div className={`p-3 rounded-full bg-gradient-to-r ${getPlanColor(product.name)}`}>
+                    {getPlanIcon(product.name)}
                   </div>
                   <div>
                     <CardTitle className="text-2xl text-white font-['Cinzel']">
-                      {plan.name}
+                      {product.name}
                     </CardTitle>
                     <CardDescription className="text-gray-300 mt-1">
-                      {plan.description}
+                      {product.description}
                     </CardDescription>
                   </div>
                 </div>
                 
-                <div className="text-center">
-                  <span className="text-4xl font-bold text-white">
-                    {formatPrice(plan.price_amount, plan.currency, plan.billing_interval)}
-                  </span>
-                </div>
+                {/* Render each variant (price option) for the product */}
+                {product.product_variants.map((variant) => (
+                  <div key={variant.id} className="text-center mb-4">
+                    <span className="text-4xl font-bold text-white">
+                      {formatPrice(variant.unit_amount, variant.currency, variant.recurring_interval)}
+                    </span>
+                    <p className="text-gray-400 text-sm">{variant.name}</p> {/* Display variant name */}
+                  </div>
+                ))}
               </CardHeader>
 
               <CardContent className="pt-0">
-                {/* Features */}
+                {/* Features - Assuming features are part of the product description or metadata */}
+                {/* You might need to adjust this part based on where your features are stored */}
                 <div className="space-y-3 mb-8">
-                  {plan.features.map((feature, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-gray-300 leading-relaxed">{feature}</span>
-                    </div>
-                  ))}
+                  {/* Placeholder for features, adapt as needed */}
+                  <div className="flex items-start space-x-3">
+                    <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300 leading-relaxed">Access to exclusive content</span>
+                  </div>
+                  <div className="flex items-start space-x-3">
+                    <Check className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-300 leading-relaxed">Priority support</span>
+                  </div>
+                  {/* Add more features based on your product data */}
                 </div>
 
-                {/* CTA Button */}
-                <Button
-                  onClick={() => {
-                    setIsLoading(plan.id);
-                    createSubscription.mutate(plan.stripe_price_id);
-                  }}
-                  disabled={isCurrentPlan(plan.id) || isLoading !== null}
-                  className={`w-full py-3 text-lg font-semibold transition-all duration-300 ${
-                    isCurrentPlan(plan.id)
-                      ? 'bg-green-500/20 text-green-300 cursor-not-allowed'
-                      : `bg-gradient-to-r ${getPlanColor(plan.name)} hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5`
-                  }`}
-                >
-                  {isLoading === plan.id ? (
-                    <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-                      <span>Processing...</span>
-                    </div>
-                  ) : isCurrentPlan(plan.id) ? (
-                    'Current Plan'
-                  ) : (
-                    'Choose Plan'
-                  )}
-                </Button>
+                {/* CTA Button for each variant */}
+                {product.product_variants.map((variant) => (
+                  <Button
+                    key={variant.id}
+                    onClick={() => {
+                      setIsLoading(variant.stripe_price_id); // Use price ID for loading state
+                      createSubscription.mutate(variant.stripe_price_id);
+                    }}
+                    disabled={isCurrentPlan(product.stripe_product_id, variant.stripe_price_id) || isLoading !== null}
+                    className={`w-full py-3 text-lg font-semibold transition-all duration-300 mb-2 ${
+                      isCurrentPlan(product.stripe_product_id, variant.stripe_price_id)
+                        ? 'bg-green-500/20 text-green-300 cursor-not-allowed'
+                        : `bg-gradient-to-r ${getPlanColor(product.name)} hover:shadow-lg hover:shadow-purple-500/25 transform hover:-translate-y-0.5`
+                    }`}
+                  >
+                    {isLoading === variant.stripe_price_id ? (
+                      <div className="flex items-center justify-center space-x-2">
+                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                        <span>Processing...</span>
+                      </div>
+                    ) : isCurrentPlan(product.stripe_product_id, variant.stripe_price_id) ? (
+                      'Current Plan'
+                    ) : (
+                      `Choose ${variant.name} Plan`
+                    )}
+                  </Button>
+                ))}
 
-                {isCurrentPlan(plan.id) && (
+                {product.product_variants.some(variant => isCurrentPlan(product.stripe_product_id, variant.stripe_price_id)) && (
                   <p className="text-center text-sm text-green-300 mt-2">
-                    You're currently subscribed to this plan
+                    You're currently subscribed to a variant of this plan
                   </p>
                 )}
               </CardContent>

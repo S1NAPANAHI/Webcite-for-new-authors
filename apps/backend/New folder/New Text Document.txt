@@ -1,0 +1,400 @@
+# Complete Stripe Subscription Setup for React/Next.js with Supabase
+
+I'll help you set up Stripe subscriptions from scratch and fix those specific errors you're encountering. The **405 Method Not Allowed** and **"Unexpected end of JSON input"** errors are common issues with API route setup that I'll address directly.
+
+## Root Cause Analysis of Your Errors
+
+**405 Error**: Your API route isn't properly handling POST requests
+**JSON Parsing Error**: Your server is likely returning HTML error pages instead of JSON responses
+
+## Complete Solution from 0 to 100%
+
+### Step 1: Install Required Dependencies
+
+```bash
+npm install stripe @stripe/stripe-js @supabase/supabase-js
+```
+
+### Step 2: Environment Variables Setup
+
+Create `.env.local`:
+```bash
+STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+### Step 3: Fix Your API Route (Solves Your 405 Error)
+
+**For Next.js App Router** - Create `app/api/create-checkout-session/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-06-20',
+});
+
+export async function POST(request: NextRequest) {
+  try {
+    // Proper JSON parsing with error handling (fixes JSON parsing error)
+    const body = await request.json().catch(() => ({}));
+    const { priceId, customerId } = body;
+
+    if (!priceId) {
+      return NextResponse.json(
+        { error: 'Price ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      billing_address_collection: 'auto',
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${request.headers.get('origin')}/pricing`,
+      customer: customerId,
+    });
+
+    // Always return JSON responses (prevents parsing errors)
+    return NextResponse.json({ sessionId: session.id, url: session.url });
+  } catch (error: any) {
+    console.error('Error creating checkout session:', error);
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+**For Pages Router** - Create `pages/api/create-checkout-session.ts`:
+
+```typescript
+import { NextApiRequest, NextApiResponse } from 'next';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-06-20',
+});
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  // THIS FIXES YOUR 405 ERROR
+  if (req.method !== 'POST') {
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+  
+  try {
+    const { priceId, customerId } = req.body;
+    
+    if (!priceId) {
+      return res.status(400).json({ error: 'Price ID is required' });
+    }
+    
+    const session = await stripe.checkout.sessions.create({
+      billing_address_collection: 'auto',
+      line_items: [{ price: priceId, quantity: 1 }],
+      mode: 'subscription',
+      success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/pricing`,
+      customer: customerId,
+    });
+    
+    // Always return JSON (prevents parsing errors)
+    res.status(200).json({ sessionId: session.id, url: session.url });
+  } catch (error: any) {
+    console.error('Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+}
+```
+
+### Step 4: Frontend Component with Robust Error Handling
+
+```typescript
+'use client';
+import { useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+export default function SubscriptionButton({ priceId, planName }: { priceId: string, planName: string }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ priceId }),
+      });
+
+      // THIS FIXES YOUR JSON PARSING ERROR
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('HTTP Error:', response.status, errorText);
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          throw new Error(errorData.error || 'Request failed');
+        } catch {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      }
+
+      const data = await response.json();
+      
+      if (!data.sessionId) {
+        throw new Error('No session ID returned from server');
+      }
+      
+      const stripe = await stripePromise;
+      if (!stripe) throw new Error('Stripe failed to load');
+
+      const { error: stripeError } = await stripe.redirectToCheckout({
+        sessionId: data.sessionId,
+      });
+
+      if (stripeError) {
+        throw new Error(stripeError.message);
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      {error && (
+        <div className="text-red-500 mb-2 text-sm">{error}</div>
+      )}
+      <button
+        onClick={handleCheckout}
+        disabled={loading}
+        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+      >
+        {loading ? 'Processing...' : `Subscribe to ${planName}`}
+      </button>
+    </div>
+  );
+}
+```
+
+### Step 5: Database Setup in Supabase
+
+Run this SQL in your Supabase SQL editor:
+
+```sql
+-- Create subscriptions table
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id TEXT PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  customer_id TEXT NOT NULL,
+  status TEXT NOT NULL,
+  price_id TEXT NOT NULL,
+  current_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+  current_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+  created TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create customers table
+CREATE TABLE IF NOT EXISTS customers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  stripe_customer_id TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+
+-- Create policies
+CREATE POLICY "Users can read own subscriptions" ON subscriptions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can read own customer data" ON customers
+  FOR SELECT USING (auth.uid() = user_id);
+```
+
+### Step 6: Webhook Handler
+
+Create `app/api/webhooks/stripe/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { headers } from 'next/headers';
+import Stripe from 'stripe';
+import { createClient } from '@supabase/supabase-js';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-06-20',
+});
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
+export async function POST(request: NextRequest) {
+  const body = await request.text();
+  const signature = headers().get('stripe-signature');
+
+  if (!signature) {
+    return NextResponse.json({ error: 'No signature' }, { status: 400 });
+  }
+
+  let event: Stripe.Event;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
+  } catch (error) {
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+  }
+
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session;
+      
+      if (session.mode === 'subscription') {
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription as string
+        );
+        
+        // Store subscription in database
+        await supabase.from('subscriptions').upsert({
+          id: subscription.id,
+          user_id: session.client_reference_id,
+          customer_id: subscription.customer as string,
+          status: subscription.status,
+          price_id: subscription.items.data[0].price.id,
+          current_period_start: new Date(subscription.current_period_start * 1000),
+          current_period_end: new Date(subscription.current_period_end * 1000),
+          created: new Date(subscription.created * 1000),
+        });
+      }
+      break;
+    }
+  }
+
+  return NextResponse.json({ received: true });
+}
+```
+
+### Step 7: Local Testing Setup
+
+1. **Install Stripe CLI**: `brew install stripe/stripe-cli/stripe`
+2. **Login**: `stripe login`
+3. **Forward webhooks**: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
+4. **Copy webhook secret** to your `.env.local`
+
+### Debugging Your Specific Issues
+
+**For 405 errors:**
+- Ensure you're using `POST` method in your API route
+- Check that your route exports the correct function name (`POST` for App Router)
+- Verify your fetch request is using `method: 'POST'`
+
+**For JSON parsing errors:**
+- Always return JSON responses with `NextResponse.json()` or `res.json()`
+- Add proper error handling to catch and return JSON errors
+- Check your Network tab to see what's actually being returned
+## Quick Start Usage
+
+```typescript
+// In your pricing page component
+import SubscriptionButton from '@/components/SubscriptionButton';
+
+export default function PricingPage() {
+  return (
+    <div>
+      <SubscriptionButton 
+        priceId="price_1234567890" // Your actual Stripe price ID
+        planName="Pro Plan"
+      />
+    </div>
+  );
+}
+```
+
+This complete implementation addresses your specific errors and provides a production-ready Stripe subscription system. The 405 and JSON parsing errors should be completely resolved with the proper API route handling and error management shown above.[1][2][3][4][5][6]
+
+[1](https://www.linkedin.com/pulse/stripe-full-stack-payment-system-handbook-rimsha-riaz-c7wvf)
+[2](https://www.youtube.com/watch?v=cheDHoEazPs)
+[3](https://buildship.com/blog/store-your-stripe-subscriptions-to-supabase-database)
+[4](https://www.reddit.com/r/learnjavascript/comments/vu73mk/im_getting_a_405_method_not_allowed_on_this_code/)
+[5](https://stackoverflow.com/questions/63647002/error-returning-json-data-while-setting-up-stripe-payment-gateway-uncaught-in)
+[6](https://www.pedroalonso.net/blog/stripe-checkout-nextjs/)
+[7](https://www.youtube.com/watch?v=tqt9Vo7CXWM)
+[8](https://www.reddit.com/r/reactjs/comments/1fma9jc/help_with_stripe_checkout_session_in_nodejs_and/)
+[9](https://www.reddit.com/r/SaaS/comments/1gzgmbw/need_advice_integrating_stripe_for_saas/)
+[10](https://www.reddit.com/r/nextjs/comments/1g3lwxd/integrating_stripe_with_nextjs_a_comprehensive/)
+[11](https://www.bigscal.com/blogs/backend/how-to-integrate-stripe-payment-apis-using-node-js/)
+[12](https://supabase.com/docs/guides/database/extensions/wrappers/stripe)
+[13](https://docs.stripe.com/billing/subscriptions/build-subscriptions?platform=react-native)
+[14](https://deployapps.dev/blog/integrate-stripe-payments/)
+[15](https://www.youtube.com/watch?v=lcG2vFvu9hY)
+[16](https://www.nimblechapps.com/blog/stripe-integration-in-reactjs-application-subscription-integration)
+[17](https://stackoverflow.com/questions/68266238/stripe-checkout-session-not-working-nodejs)
+[18](https://vercel.com/templates/next.js/subscription-starter)
+[19](https://www.youtube.com/watch?v=d9HGdw8zwvc)
+[20](https://docs.stripe.com/api/checkout/sessions/create?lang=node)
+[21](https://dev.to/alexzrlu/nextjs-supabase-stripe-subscriptions-integration-818)
+[22](https://stackoverflow.com/questions/74682201/how-to-use-stripe-payment-element-with-subscription)
+[23](https://docs.stripe.com/api/checkout/sessions)
+[24](https://stackademic.com/blog/integrating-stripe-checkout-mode-with-next-js-13)
+[25](https://github.com/stripe/stripe-node/issues/2063)
+[26](https://www.reddit.com/r/react/comments/18jiklj/how_to_fix_syntaxerror_unexpected_end_of_json/)
+[27](https://vercel.com/guides/getting-started-with-nextjs-typescript-stripe)
+[28](https://forum.opencart.com/viewtopic.php?t=163937)
+[29](https://www.pedroalonso.net/blog/stripe-subscriptions-nextjs/)
+[30](https://community.render.com/t/syntaxerror-unexpected-end-of-json-input/20069)
+[31](https://docs.stripe.com/checkout/quickstart?client=next)
+[32](https://github.com/vercel/next.js/discussions/48885)
+[33](https://support.stripe.com/questions/how-to-fix-syntaxerror-unexpected-token-in-json-at-position-0)
+[34](https://hackernoon.com/integrating-stripe-checkout-with-nextjs-is-easier-than-you-think)
+[35](https://stackoverflow.com/questions/76418672/why-am-i-getting-a-405-error-when-my-django-stripe-checkout-integration-returns)
+[36](https://github.com/woocommerce/woocommerce-gateway-paypal-express-checkout/issues/876)
+[37](https://dev.to/flnzba/33-stripe-integration-guide-for-nextjs-15-with-supabase-13b5)
+[38](https://docs.stripe.com/error-codes)
+[39](https://laracasts.com/discuss/channels/laravel/error-syntaxerror-unexpected-end-of-json-input-how-do-i-trim-a-json-object)
+[40](https://docs.stripe.com/billing/subscriptions/webhooks)
+[41](https://www.wisp.blog/blog/handling-stripe-subscription-callback-with-nextjs-14)
+[42](https://dev.to/stripe/managing-webhook-events-for-connected-accounts-m3m)
+[43](https://www.reddit.com/r/Supabase/comments/1dhqyn9/supabase_schema_for_user_management_and/)
+[44](https://www.reddit.com/r/SaaS/comments/1afdqsj/what_stripe_webhook_events_should_be_implemented/)
+[45](https://www.youtube.com/watch?v=fgbEwVWlpsI)
+[46](https://www.reddit.com/r/Supabase/comments/1cak772/stripe_where_to_store_data/)
+[47](https://docs.stripe.com/webhooks)
+[48](https://nextjs.org/blog/building-apis-with-nextjs)
+[49](https://supabase.com/blog/stripe-engine-as-sync-library)
+[50](https://docs.stripe.com/webhooks?lang=dotnet)
+[51](https://www.youtube.com/watch?v=R9PwoQwVpPQ)
+[52](https://stackoverflow.com/questions/72189399/which-stripe-webhooks-confirm-subscription-and-product-payments)
+[53](https://blog.stackademic.com/integrating-stripe-payment-elements-with-next-js-14-app-router-webhooks-typescript-4d6eb7710c40)
+[54](https://supabase-sql.vercel.app/stripe-subscriptions)

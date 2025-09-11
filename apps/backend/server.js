@@ -214,84 +214,48 @@ app.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
+// Endpoint to manage Stripe Billing Portal
+app.post('/api/manage-billing-portal', async (req, res) => {
+  try {
+    console.log('Received manage-billing-portal request. Body:', req.body);
+    const { userId } = req.body;
+
+    if (!userId) {
+      console.error('Validation Error: Missing userId in manage-billing-portal request.');
+      return res.status(400).json({ error: 'Missing userId' });
+    }
+
+    // Fetch the user's Stripe customer ID from your Supabase 'customers' table
+    const { data: customerData, error: customerError } = await supabase
+      .from('customers')
+      .select('stripe_customer_id')
+      .eq('id', userId)
+      .single();
+
+    if (customerError || !customerData || !customerData.stripe_customer_id) {
+      console.error('Error fetching customer ID from Supabase:', customerError || 'Stripe customer ID not found for user.');
+      return res.status(404).json({ error: 'Stripe customer ID not found for user.' });
+    }
+
+    const customerId = customerData.stripe_customer_id;
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${process.env.FRONTEND_URL}/subscriptions`, // URL to return to after managing subscription
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error creating billing portal session:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Enhanced Stripe webhook for e-commerce and subscriptions
 const handleStripeWebhook = require('./webhooks/stripe-ecommerce');
 app.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);
 
-// Legacy webhook endpoint for backward compatibility
-app.post('/webhook-legacy', express.raw({ type: 'application/json' }), async (req, res) => {
-  let event;
-  try {
-    const sig = req.headers['stripe-signature'];
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error('Webhook signature verification failed.', err.message);
-    return res.sendStatus(400);
-  }
 
-  // Handle subscription lifecycle and invoices (legacy)
-  switch (event.type) {
-    case 'invoice.payment_succeeded': {
-      const invoice = event.data.object;
-      try {
-        await upsertInvoice(invoice);
-        console.log(`Invoice ${invoice.id} payment succeeded. User: ${invoice.customer_email || invoice.customer}`);
-      } catch (e) {
-        console.error(`Error handling invoice.payment_succeeded for invoice ${invoice.id}:`, e);
-        return res.status(500).json({ error: 'Webhook handler failed' });
-      }
-      break;
-    }
-    case 'invoice.payment_failed': {
-      const invoice = event.data.object;
-      try {
-        await upsertInvoice(invoice);
-        console.log(`Invoice ${invoice.id} payment failed. User: ${invoice.customer_email || invoice.customer}`);
-      } catch (e) {
-        console.error(`Error handling invoice.payment_failed for invoice ${invoice.id}:`, e);
-        return res.status(500).json({ error: 'Webhook handler failed' });
-      }
-      break;
-    }
-    case 'customer.subscription.updated':
-    case 'customer.subscription.created': {
-      const subscription = event.data.object;
-      try {
-        await upsertSubscription(subscription);
-        console.log(`Subscription ${subscription.id} status updated/created to ${subscription.status}. User: ${subscription.customer}`);
-      } catch (e) {
-        console.error(`Error handling customer.subscription.updated/created for subscription ${subscription.id}:`, e);
-        return res.status(500).json({ error: 'Webhook handler failed' });
-      }
-      break;
-    }
-    case 'customer.subscription.deleted': {
-      const subscription = event.data.object;
-      try {
-        const { data, error } = await supabase
-          .from('subscriptions')
-          .update({ status: 'canceled' })
-          .eq('id', subscription.id);
-
-        if (error) throw error;
-        console.log(`Subscription ${subscription.id} deleted. User: ${subscription.customer}`);
-      } catch (e) {
-        console.error(`Error handling customer.subscription.deleted for subscription ${subscription.id}:`, e);
-        return res.status(500).json({ error: 'Webhook handler failed' });
-      }
-      break;
-    }
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-      break;
-  }
-
-  res.json({ received: true });
-});
 
 async function startServer() {
   const { default: createProductRoutes } = await import('../../packages/shared/dist/routes/products.js');

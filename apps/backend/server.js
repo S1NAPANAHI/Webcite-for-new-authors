@@ -95,6 +95,12 @@ const apiLimiter = createRateLimiter(
 
 const app = express();
 
+// Log all incoming requests
+app.use((req, res, next) => {
+  console.log(`Incoming Request: ${req.method} ${req.url}`);
+  next();
+});
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -121,6 +127,7 @@ app.use(apiLimiter);
 // Create subscription in default_incomplete to collect payment with Payment Element
 app.post('/api/stripe/create-subscription-intent', async (req, res) => {
   try {
+    console.log('Received create-subscription-intent request. Body:', req.body);
     const { email, priceId, userId } = req.body;
     if (!email || !priceId || !userId) return res.status(400).json({ error: 'Missing email, priceId, or userId' });
 

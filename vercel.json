@@ -3,11 +3,6 @@
   "outputDirectory": "dist",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
-  "functions": {
-    "apps/backend/server.js": {
-      "runtime": "node@18.x"
-    }
-  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/apps/backend/server.js" },
     { "source": "/(.*)", "destination": "/index.html" }

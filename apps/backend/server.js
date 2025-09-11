@@ -277,6 +277,16 @@ async function startServer() {
   // Global error handler (must be last)
   app.use(errorHandler);
 
+  if (!process.env.VERCEL_ENV) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Zoroasterverse Backend running on port ${PORT}`);
+      console.log(`📊 Enhanced business logic enabled`);
+      console.log(`🔒 Security middleware active`);
+      console.log(`✅ Validation layer active`);
+    });
+  }
+
   return app;
 }
 

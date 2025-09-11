@@ -1,5 +1,5 @@
 {
-  "name": "zoroasterverse-backend",
+  "name": "backend",
   "version": "1.0.0",
   "description": "Backend API for Zoroasterverse e-commerce platform",
   "main": "server.js",

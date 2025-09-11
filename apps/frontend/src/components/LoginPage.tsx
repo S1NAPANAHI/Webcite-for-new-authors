@@ -95,6 +95,7 @@ const LoginPage: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
+    console.log('handleGoogleLogin called');
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({

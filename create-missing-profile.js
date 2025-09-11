@@ -70,7 +70,7 @@ async function createMissingProfiles() {
           email: user.email,
           role: 'user',
           subscription_status: 'inactive',
-          beta_reader_status: 'none'
+          beta_reader_status: 'not_applied'
         })
         .select()
         .single();

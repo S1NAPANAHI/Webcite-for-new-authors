@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       include: ['react', 'react-dom', 'react-router-dom', 'react-quill', 'quill'],
+      exclude: ['@zoroaster/shared'], // Add this line
       esbuildOptions: {
         target: 'es2020',
       },
@@ -47,10 +48,7 @@ export default defineConfig(({ mode }) => {
         ],
       },
     },
-    define: {
-      ...definedEnv,
-      __APP_ENV__: JSON.stringify(env.NODE_ENV || 'development'),
-    },
+    define: definedEnv,
     server: {
       port: 5173,
       strictPort: true,

@@ -67,6 +67,22 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
+-- Set up default roles for new users
+DROP FUNCTION IF EXISTS public.setup_default_roles(uuid) CASCADE;
+CREATE OR REPLACE FUNCTION public.setup_default_roles(p_user_id UUID)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    INSERT INTO public.user_roles (user_id, role)
+    VALUES (p_user_id, 'user'::public.user_role) -- Assuming 'user' is a default role and user_role is an ENUM type
+    ON CONFLICT (user_id) DO NOTHING; -- Prevents error if role already exists (e.g., if run multiple times)
+EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'Error in setup_default_roles for user %: %', p_user_id, SQLERRM;
+END;
+$$;
+
 -- Handle new user registration
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -79,7 +95,18 @@ DECLARE
     v_username TEXT;
 BEGIN
     -- Generate a username from email (before @ symbol)
-    v_username := split_part(NEW.email, '@', 1);
+    DECLARE
+        v_user_email TEXT;
+        v_display_name TEXT;
+    BEGIN
+    -- Get email from NEW.email or raw_user_meta_data
+    v_user_email := COALESCE(NEW.email, NEW.raw_user_meta_data->>'email');
+
+    -- Get display name from raw_user_meta_data or generate from email
+    v_display_name := COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'user_name', split_part(v_user_email, '@', 1));
+
+    -- Generate a username from email (before @ symbol)
+    v_username := split_part(v_user_email, '@', 1);
     
     -- Ensure username is unique by appending a number if needed
     IF EXISTS (SELECT 1 FROM public.profiles WHERE username = v_username) THEN
@@ -88,7 +115,7 @@ BEGIN
     
     -- Create profile for new user
     INSERT INTO public.profiles (id, username, email, display_name)
-    VALUES (NEW.id, v_username, NEW.email, split_part(NEW.email, '@', 1));
+    VALUES (NEW.id, v_username, v_user_email, v_display_name);
     
     -- Create user stats
     INSERT INTO public.user_stats (user_id)
@@ -98,6 +125,7 @@ BEGIN
     PERFORM public.setup_default_roles(NEW.id);
     
     RETURN NEW;
+    END; -- Added END for the inner block
 EXCEPTION WHEN OTHERS THEN
     RAISE WARNING 'Error in handle_new_user: %', SQLERRM;
     RETURN NEW;
@@ -280,13 +308,13 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Check if a user has an active subscription
-DROP FUNCTION IF EXISTS public.has_active_subscription(uuid) CASCADE;
+DROP FUNCTION IF EXISTS public.has_active_subscription(p_user_id UUID);
 CREATE OR REPLACE FUNCTION public.has_active_subscription(p_user_id UUID)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
-AS $$
+AS $
 BEGIN
     RETURN EXISTS (
         SELECT 1
@@ -295,7 +323,7 @@ BEGIN
         AND status IN ('active', 'trialing')
     );
 END;
-$$;
+$;
 
 -- Create wiki page
 DROP FUNCTION IF EXISTS public.create_wiki_page(text, text, jsonb, text, uuid, uuid, text, text, text[]) CASCADE;
@@ -461,7 +489,7 @@ BEGIN
         p_product_data->>'cover_image_url',
         p_product_data->>'thumbnail_url',
         p_product_data->>'preview_url',
-        p_product_data->>'file_key',
+        (p_product_data->>'file_key')::text,
         (p_product_data->>'file_size_bytes')::bigint,
         p_product_data->>'file_type',
         (p_product_data->>'page_count')::integer,

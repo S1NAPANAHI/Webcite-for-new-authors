@@ -94,6 +94,27 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    console.log('handleGoogleLogin called');
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/auth/callback', // Redirects to the current domain + callback path
+        },
+      });
+
+      if (error) throw error;
+      // No direct navigation here, as Supabase will handle the redirect
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google';
+      showMessage(errorMessage, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const checkPasswordStrength = (password: string) => {
     if (!password) {
       setPasswordStrength(null);
@@ -268,7 +289,7 @@ const LoginPage: React.FC = () => {
         <div className="social-logins">
           <button
             className="btn social"
-            onClick={() => showMessage('Google sign-in will be available soon', 'info')}
+            onClick={handleGoogleLogin}
             disabled={loading}
           >
             Google

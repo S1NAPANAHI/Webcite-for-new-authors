@@ -208,7 +208,7 @@ export const AuthProvider = ({ children, supabaseClient }) => {
             setIsSubscribed(false);
             setIsAuthenticated(false);
         }
-    }, [user, supabaseClient]);
+    }, [session, supabaseClient]);
     // Update isAuthenticated based on session
     useEffect(() => {
         setIsAuthenticated(!!session);

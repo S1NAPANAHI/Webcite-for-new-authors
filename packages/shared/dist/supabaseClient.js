@@ -1,16 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 // Check if we're in the browser environment
 const isBrowser = typeof window !== 'undefined';
-// Get environment variables with fallbacks
-const supabaseUrl = import.meta.env?.['VITE_SUPABASE_URL'] || process.env['VITE_SUPABASE_URL'] || '';
-const supabaseAnonKey = import.meta.env?.['VITE_SUPABASE_ANON_KEY'] || process.env['VITE_SUPABASE_ANON_KEY'] || '';
-// Debug mode
-const isDebug = import.meta.env?.['VITE_DEBUG'] === 'true' || process.env['VITE_DEBUG'] === 'true';
-if (isDebug) {
-    console.log('Supabase URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
-    console.log('Supabase Anon Key:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
-}
-// Validate environment variables in browser only
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Validate environment variables in browser only (this check will now pass if hardcoded values are valid)
 if (isBrowser && (!supabaseUrl || !supabaseAnonKey)) {
     const errorMessage = `
     Missing Supabase environment variables.
@@ -35,6 +28,7 @@ const getSupabase = () => {
     if (supabaseInstance) {
         return supabaseInstance;
     }
+    // This check will now pass if hardcoded values are valid
     if (!supabaseUrl || !supabaseAnonKey) {
         throw new Error('Supabase URL and Anon Key are required');
     }
@@ -65,21 +59,9 @@ const getSupabase = () => {
     if (typeof window !== 'undefined') {
         window.__SUPABASE_CLIENT_INSTANCE__ = newInstance;
     }
-    if (isDebug) {
-        console.log('New Supabase client instance created');
-    }
     return supabaseInstance;
 };
 // Export the singleton instance
 export const supabase = getSupabase();
-// For debugging
-if (isBrowser && isDebug) {
-    // @ts-ignore - Attach to window for debugging
-    window.__SUPABASE_DEBUG__ = {
-        supabase: supabase,
-        getSession: () => supabase.auth.getSession(),
-        getUser: () => supabase.auth.getUser(),
-    };
-}
 export default supabase;
 //# sourceMappingURL=supabaseClient.js.map

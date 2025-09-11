@@ -274,7 +274,7 @@ export const AuthProvider: React.FC<{
       setIsSubscribed(false);
       setIsAuthenticated(false);
     }
-  }, [user, supabaseClient]);
+  }, [session, supabaseClient]);
 
   // Update isAuthenticated based on session
   useEffect(() => {

@@ -30,7 +30,6 @@
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
     "exactOptionalPropertyTypes": true,
-    "noUncheckedIndexedAccess": true,
     "types": ["node"],
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",

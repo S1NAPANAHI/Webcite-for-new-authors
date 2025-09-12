@@ -251,6 +251,91 @@ app.post('/api/manage-billing-portal', async (req, res) => {
   }
 });
 
+app.post('/api/stripe/create-subscription', async (req, res) => {
+  try {
+    const { paymentMethodId, priceId } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('Error fetching user from Supabase:', userError);
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    let customerId;
+
+    // Check if customer exists in our database
+    const { data: existingCustomer, error: customerFetchError } = await supabase
+      .from('stripe_customers')
+      .select('stripe_customer_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (customerFetchError && customerFetchError.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.error('Error fetching existing customer:', customerFetchError);
+      throw new Error('Database error fetching customer.');
+    }
+
+    if (existingCustomer) {
+      customerId = existingCustomer.stripe_customer_id;
+    } else {
+      // Create a new customer in Stripe
+      const stripeCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: { user_id: user.id },
+      });
+      customerId = stripeCustomer.id;
+
+      // Store customer ID in our database
+      const { error: insertError } = await supabase
+        .from('stripe_customers')
+        .insert({
+          user_id: user.id,
+          stripe_customer_id: customerId,
+          email: user.email,
+        });
+
+      if (insertError) {
+        console.error('Error inserting new customer into DB:', insertError);
+        throw new Error('Database error storing new customer.');
+      }
+    }
+
+    // Attach payment method to customer
+    await stripe.paymentMethods.attach(
+      paymentMethodId,
+      { customer: customerId }
+    );
+
+    // Set as default payment method
+    await stripe.customers.update(customerId, {
+      invoice_settings: { default_payment_method: paymentMethodId },
+    });
+
+    // Create subscription
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: priceId }],
+      expand: ['latest_invoice.payment_intent'],
+      metadata: { user_id: user.id },
+    });
+
+    // Update our database with the new subscription
+    await upsertSubscription(subscription);
+
+    res.json({ subscriptionId: subscription.id, clientSecret: subscription.latest_invoice.payment_intent.client_secret });
+
+  } catch (error) {
+    console.error('Error creating subscription:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Enhanced Stripe webhook for e-commerce and subscriptions
 const handleStripeWebhook = require('./webhooks/stripe-ecommerce');
 app.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook);

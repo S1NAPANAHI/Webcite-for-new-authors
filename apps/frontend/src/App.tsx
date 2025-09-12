@@ -86,8 +86,12 @@ const ProtectedLayout: React.FC = () => {
 };
 
 import { Toaster } from 'react-hot-toast';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 import CheckoutPage from './pages/CheckoutPage';
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();
@@ -129,7 +133,7 @@ const AppContent: React.FC = () => {
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout" element={<Elements stripe={stripePromise}><CheckoutPage /></Elements>} />
         <Route path="/read/:workId" element={<PlaceholderPage title="Work Reader" />} />
         <Route path="/beta/application" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/status" element={<BetaApplication supabaseClient={supabase} user={user} />} />

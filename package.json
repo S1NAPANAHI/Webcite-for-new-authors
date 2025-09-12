@@ -13,7 +13,7 @@
     "build:frontend": "pnpm --filter frontend build",
     "start": "pnpm --filter frontend start",
     "lint": "pnpm --filter frontend lint",
-    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build && pnpm --filter backend build",
+    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build && pnpm --filter backend build && mkdir -p dist && cp -r apps/frontend/dist/* dist/",
     "generate-types": "tsx scripts/generate-types.ts"
   },
   "packageManager": "pnpm@8.15.0",

@@ -2,7 +2,7 @@
   "buildCommand": "pnpm -w run vercel-build",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
-  "outputDirectory": "apps/frontend/dist",
+  "outputDirectory": "dist",
   "functions": {
     "apps/backend/server.js": {
       "runtime": "nodejs@20.x"

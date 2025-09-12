@@ -43,7 +43,10 @@ interface UserSubscription {
   id: string;
   status: string;
   current_period_end: string;
-  price_id: string; // References Stripe Price ID
+  plan_price_id: string; // The UUID foreign key from the 'subscriptions' table
+  prices: { // This comes from the join with the 'prices' table
+    price_id: string; // The actual Stripe Price ID (e.g., price_...)
+  } | null;
   // Add other fields from your 'subscriptions' table as needed
 }
 
@@ -87,7 +90,7 @@ const SubscriptionsPage: React.FC = () => {
     }
   });
 
-  // Fetch user's current subscription
+  // Fetch user's current subscription, joining with the prices table
   const { data: currentSubscription } = useQuery<UserSubscription | null>({
     queryKey: ['current-subscription'],
     queryFn: async () => {
@@ -96,15 +99,23 @@ const SubscriptionsPage: React.FC = () => {
 
       const { data, error } = await supabase
         .from('subscriptions')
-        .select('*') // Select all fields from the subscriptions table
+        .select(`
+          *,
+          prices (
+            price_id
+          )
+        `)
         .eq('user_id', user.id)
-        .in('status', ['active', 'trialing']) // Consider 'trialing' as active
+        .in('status', ['active', 'trialing'])
         .single();
 
       if (error && error.code === 'PGRST116') { // No rows found
         return null;
       }
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching subscription:", error);
+        throw error;
+      }
       return data || null;
     }
   });
@@ -208,10 +219,14 @@ const SubscriptionsPage: React.FC = () => {
     return 'from-gray-500 to-gray-600';
   };
 
-  // Check if the current user is subscribed to any variant of this product
+  // Check if the current user is subscribed to a specific price
   const isCurrentPlan = (productStripeId: string, priceStripeId: string) => {
-    // Check if the current subscription's price_id matches any of the product's variants
-    return currentSubscription?.price_id === priceStripeId;
+    // The join with the 'prices' table gives us access to the Stripe price_id
+    if (!currentSubscription || !currentSubscription.prices) {
+      return false;
+    }
+    // Supabase returns a single object for a to-one join.
+    return currentSubscription.prices.price_id === priceStripeId;
   };
 
   if (productsLoading) {

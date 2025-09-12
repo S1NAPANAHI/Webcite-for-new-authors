@@ -98,43 +98,104 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   const userId = session.client_reference_id;
-  const planId = session.metadata?.plan_id;
+  const planId = session.metadata?.plan_id; // This is subscription_plans.id
 
   if (!userId || !planId) {
-    console.error('Missing metadata in checkout session');
+    console.error('Missing metadata in checkout session', session);
     return;
   }
 
-  // Get the subscription from Stripe
   const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-  
-  // Create or update user subscription in Supabase
+
+  const stripePriceId = subscription.items.data[0]?.price.id;
+  if (!stripePriceId) {
+    console.error('No price ID found in subscription items', subscription);
+    return;
+  }
+
+  // Find the corresponding price record in our database
+  const { data: priceRecord, error: priceError } = await supabase
+    .from('prices')
+    .select('id')
+    .eq('price_id', stripePriceId)
+    .single();
+
+  if (priceError || !priceRecord) {
+    console.error(`Price record not found for Stripe Price ID: ${stripePriceId}`, priceError);
+    return;
+  }
+
+  const subscriptionData = {
+    user_id: userId,
+    plan_id: planId,
+    plan_price_id: priceRecord.id,
+    provider_subscription_id: subscription.id,
+    status: subscription.status,
+    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+    trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+    metadata: subscription.metadata,
+    cancel_at_period_end: subscription.cancel_at_period_end,
+    canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+    ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
+  };
+
   await supabase
     .from('subscriptions')
-    .upsert({
-      user_id: userId,
-      plan_id: planId,
-      provider_subscription_id: subscription.id,
-      status: subscription.status,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-    }, {
+    .upsert(subscriptionData, {
       onConflict: 'provider_subscription_id'
     });
 }
 
 async function handleSubscriptionUpdate(subscription: Stripe.Subscription) {
+  const stripePriceId = subscription.items.data[0]?.price.id;
+  if (!stripePriceId) {
+    console.error('No price ID found in subscription items for update', subscription);
+    return;
+  }
+
+  const { data: priceRecord, error: priceError } = await supabase
+    .from('prices')
+    .select('id')
+    .eq('price_id', stripePriceId)
+    .single();
+
+  if (priceError || !priceRecord) {
+    console.error(`Price record not found for Stripe Price ID: ${stripePriceId}`, priceError);
+    return;
+  }
+
+  // Also get the stripe product id to find our internal plan id
+  const stripeProductId = subscription.items.data[0]?.price.product as string;
+  const { data: productRecord, error: productError } = await supabase
+    .from('products') // Query the 'products' table instead of 'subscription_plans'
+    .select('id')
+    .eq('stripe_product_id', stripeProductId)
+    .single();
+
+  if (productError || !productRecord) {
+    console.error(`Product not found for Stripe Product ID: ${stripeProductId}`, productError);
+    // Decide if you want to proceed without a productRecord
+  }
+
+  const subscriptionUpdateData = {
+    status: subscription.status,
+    plan_id: productRecord?.id, // Use the id from the product record
+    plan_price_id: priceRecord.id,
+    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
+    trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
+    metadata: subscription.metadata,
+    cancel_at_period_end: subscription.cancel_at_period_end,
+    canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+    ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
+  };
+
   await supabase
     .from('subscriptions')
-    .update({
-      status: subscription.status,
-      current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-      current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
-      trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
-      trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
-    })
+    .update(subscriptionUpdateData)
     .eq('provider_subscription_id', subscription.id);
 }
 

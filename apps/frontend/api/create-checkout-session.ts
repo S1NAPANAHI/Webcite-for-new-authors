@@ -30,15 +30,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Get the subscription plan from Supabase
-    const { data: plan, error: planError } = await supabase
-      .from('subscription_plans')
-      .select('*')
+    // Get the product variant from Supabase using the Stripe Price ID
+    const { data: variant, error: variantError } = await supabase
+      .from('product_variants')
+      .select('id, product_id') // We need the product_id to act as the "plan id"
       .eq('stripe_price_id', priceId)
       .single();
 
-    if (planError || !plan) {
-      return res.status(400).json({ error: 'Invalid subscription plan' });
+    if (variantError || !variant) {
+      console.error('Error fetching product variant:', variantError);
+      return res.status(400).json({ error: 'Invalid subscription plan variant.' });
     }
 
     // Check if customer already exists in Stripe
@@ -87,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5173'}/subscriptions`,
       metadata: {
         user_id: user.id,
-        plan_id: plan.id,
+        plan_id: variant.product_id, // Use the product_id as the plan_id
       },
       client_reference_id: user.id,
     });

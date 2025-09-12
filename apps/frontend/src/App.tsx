@@ -1,24 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Route, Routes, Outlet, useParams } from 'react-router-dom';
+import React from 'react';
+import { Route, Routes, Outlet, useParams, useNavigate } from 'react-router-dom';
 import { 
   Layout, 
   StarsBackground,
   LoadingSkeleton,
-  GlowButton,
-  OrnateDivider,
-  MagicalParticles,
-  // Admin components - YouTube-like side navigation
-  AdminProtectedRoute,
-  AdminSideNavProvider,
-  AdminSideNav,
-  AdminSideNavToggle,
-  SimpleDashboardPage,
   // Import LoginPage from UI package
   LoginPage,
   // Use UI HomePage temporarily to fix build
   HomePage
 } from '@zoroaster/ui';
-import { useAuth } from '@zoroaster/shared/AuthContext';
+import { AuthProvider, useAuth, supabase } from '@zoroaster/shared';
 import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage } from '@zoroaster/ui';
 import LearnPage from './pages/LearnPage';
 import AuthorJourneyPostPage from './pages/learn/AuthorJourneyPostPage';
@@ -27,31 +18,11 @@ import type { WikiPage, WikiPageWithSections } from '@zoroaster/shared';
 import { fetchWikiPage } from '@zoroaster/shared';
 import { WikiViewer } from '@zoroaster/ui';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
-import { supabase } from '@zoroaster/shared';
-// import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute'; // Temporarily disabled
-// import BetaApplicationsManager from './admin/BetaApplicationsManager'; // Temporarily disabled
 import BetaApplication from './components/BetaApplication/BetaApplication';
 import { CartProvider } from '@zoroaster/shared';
-
-// Your LOCAL page components (temporarily disabled to fix Vercel build)
-// All local pages replaced with placeholders until module resolution is fixed
-// import StorePage from './pages/StorePage';
-// import LocalWikiPage from './pages/WikiPage'; 
-// import BlogPostPage from './pages/BlogPostPage';
-// import GenericPage from './pages/GenericPage';
 import ProfileDashboard from './pages/ProfileDashboard';
 import AboutPage from './pages/AboutPage';
 import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
-// import Timelines from './pages/Timelines';
-// import StripeTest from './pages/StripeTest';
-// import SubscriptionSuccess from './pages/SubscriptionSuccess';
-// import SubscriptionsPage from './pages/SubscriptionsPage';
-// import AboutPage from './pages/AboutPage';
-
-// Components (also temporarily disabled)
-// import PayPalButton from './components/PayPalButton/PayPalButton';
-
-// Admin pages
 import SubscriptionManagementPage from './admin/SubscriptionManagementPage';
 import { ProductManagementPage, OrderManagementPage, InventoryManagementPage, WorksManagementPage, MediaUploadPage } from '@zoroaster/ui';
 import LearnPageAdmin from './pages/admin/LearnPageAdmin';
@@ -64,58 +35,20 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
-// Simple admin placeholder page - no wrapper needed
-const AdminPlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
-  <div className="p-6 text-center">
-    <h1 className="text-4xl font-bold mb-4">{title}</h1>
-    <p className="text-gray-600">This admin page is under construction.</p>
-  </div>
-);
-
-
-
-const LocationsPage = () => <PlaceholderPage title="Locations" />;
-const GlossaryPage = () => <PlaceholderPage title="Glossary" />;
-const ReviewsPage = () => <PlaceholderPage title="Reviews" />;
-
 const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
-const BetaPortalPage = () => <PlaceholderPage title="Beta Portal" />;
-const BetaApplicationStatusPage = () => <PlaceholderPage title="Beta Application Status" />;
-const WorkReaderPage = () => <PlaceholderPage title="Work Reader" />;
-const BetaReaderHandbookPage = () => <PlaceholderPage title="Beta Reader Handbook" />;
-const OperationalTimelinePage = () => <PlaceholderPage title="Operational Timeline" />;
-const ViewNDAPage = () => <PlaceholderPage title="NDA" />;
-const BetaFeedbackPage = () => <PlaceholderPage title="Beta Feedback" />;
-const AdminStorePage = () => <PlaceholderPage title="Admin Store" />;
 
 // Layout wrapper that handles authentication
 const AuthenticatedLayout: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [betaApplicationStatus, setBetaApplicationStatus] = useState('none');
-  const [loading, setLoading] = useState(true);
+  const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check initial auth state
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      setLoading(false);
-    });
+    if (!isLoading && !isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isLoading, isAuthenticated, navigate]);
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAuthenticated(!!session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setIsAuthenticated(false);
-  };
-
-  if (loading) {
+  if (isLoading) {
     return <LoadingSkeleton />;
   }
 
@@ -124,10 +57,10 @@ const AuthenticatedLayout: React.FC = () => {
       <StarsBackground />
       <Layout 
         isAuthenticated={isAuthenticated}
-        betaApplicationStatus={betaApplicationStatus}
-        onLogout={handleLogout}
+        betaApplicationStatus={"none"} // This needs to be updated with real data
+        onLogout={() => supabase.auth.signOut()}
       >
-        <Outlet /> {/* Add Outlet here to render nested routes */}
+        <Outlet />
       </Layout>
     </>
   );
@@ -135,10 +68,10 @@ const AuthenticatedLayout: React.FC = () => {
 
 import { Toaster } from 'react-hot-toast';
 
-const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
-  const params = useParams();
+const AppContent: React.FC = () => {
   const { supabaseClient, user } = useAuth();
+  const params = useParams();
+  const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
 
   React.useEffect(() => {
     if (params.pageSlug) {
@@ -147,90 +80,63 @@ const App: React.FC = () => {
   }, [params.pageSlug]);
 
   return (
-    <CartProvider className="bg-red-500">
-      <Toaster />
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        {/* Public and general routes with the main layout */}
-        <Route element={<AuthenticatedLayout />}>
-          <Route path="/auth/callback" element={<HomePage />} />
-          <Route path="/" element={<HomePage />} />
-          <Route path="/store" element={<PlaceholderPage title="Store" />} />
-          <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/subscriptions" element={<SubscriptionPage />} />
-          <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
-          <Route path="/stripe-test" element={<PlaceholderPage title="Stripe Test" />} />
-          
-          {/* Wiki Routes */}
-          <Route path="/wiki">
-            <Route index element={<WikiViewer />} />
-            <Route path=":folderSlug" element={<WikiViewer />} />
-            <Route path=":folderSlug/:pageSlug" element={<WikiViewer />} />
-          </Route>
-          
-          <Route path="/timelines" element={<TimelinesPage />} />
-          
-          <Route path="/locations" element={<LocationsPage />} />
-          <Route path="/glossary" element={<GlossaryPage />} />
-          <Route path="/reviews" element={<ReviewsPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/account/*" element={<ProfileDashboard />} />
-          <Route path="/blog" element={<BlogPage />} />
-          <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
-          <Route path="/beta/application" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
-          <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />
-          <Route path="/learn" element={<LearnPage />} />
-          <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />
-          <Route path="/learn/writing-guides/:slug" element={<WritingGuidePage />} />
-          <Route path="/read/:workId" element={<WorkReaderPage />} />
-          <Route path="/beta/status" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
-          
-          <Route path="/beta/handbook" element={<BetaReaderHandbookPage />} />
-          <Route path="/beta/timeline" element={<OperationalTimelinePage />} />
-          <Route path="/beta/nda" element={<ViewNDAPage />} />
-          
-          <Route path="/beta/feedback" element={<BetaFeedbackPage />} />
-          
-          <Route path="/beta/portal" element={<BetaPortalPage />} />
-          <Route path="/:slug" element={<PlaceholderPage title="Page" />} />
-          <Route path="*" element={<NotFoundPage />} />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<AuthenticatedLayout />}>
+        <Route path="/auth/callback" element={<HomePage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/store" element={<PlaceholderPage title="Store" />} />
+        <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/subscriptions" element={<SubscriptionPage />} />
+        <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
+        <Route path="/stripe-test" element={<PlaceholderPage title="Stripe Test" />} />
+        
+        <Route path="/wiki">
+          <Route index element={<WikiViewer />} />
+          <Route path=":folderSlug" element={<WikiViewer />} />
+          <Route path=":folderSlug/:pageSlug" element={<WikiViewer />} />
         </Route>
+        
+        <Route path="/timelines" element={<TimelinesPage />} />
+        
+        <Route path="/locations" element={<PlaceholderPage title="Locations" />} />
+        <Route path="/glossary" element={<PlaceholderPage title="Glossary" />} />
+        <Route path="/reviews" element={<PlaceholderPage title="Reviews" />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/account/*" element={<ProfileDashboard />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
+        <Route path="/beta/application" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
+        <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />
+        <Route path="/learn" element={<LearnPage />} />
+        <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />
+        <Route path="/learn/writing-guides/:slug" element={<WritingGuidePage />} />
+        <Route path="/read/:workId" element={<PlaceholderPage title="Work Reader" />} />
+        <Route path="/beta/status" element={<BetaApplication supabaseClient={supabaseClient} user={user} />} />
+        
+        <Route path="/beta/handbook" element={<PlaceholderPage title="Beta Reader Handbook" />} />
+        <Route path="/beta/timeline" element={<PlaceholderPage title="Operational Timeline" />} />
+        <Route path="/beta/nda" element={<PlaceholderPage title="NDA" />} />
+        
+        <Route path="/beta/feedback" element={<PlaceholderPage title="Beta Feedback" />} />
+        
+        <Route path="/beta/portal" element={<PlaceholderPage title="Beta Portal" />} />
+        <Route path="/:slug" element={<PlaceholderPage title="Page" />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
+  );
+}
 
-        {/* Admin routes - YouTube-like side navigation */}
-        <Route 
-          path="/account/admin/*"
-          element={
-            <AdminProtectedRoute>
-              <AdminSideNavProvider>
-                {/* Side navigation components always available */}
-                <AdminSideNavToggle />
-                <AdminSideNav />
-                
-                {/* Admin route content */}
-                <Routes>
-                  <Route index element={<SimpleDashboardPage />} />
-                  <Route path="beta-applications" element={<AdminPlaceholderPage title="Beta Applications Management" />} />
-                  <Route path="users" element={<AdminPlaceholderPage title="User Management" />} />
-                  <Route path="posts" element={<AdminPlaceholderPage title="Posts Management" />} />
-                  <Route path="works" element={<WorksManagementPage />} />
-                  <Route path="media" element={<MediaUploadPage />} />
-                  <Route path="products" element={<ProductManagementPage />} />
-                  <Route path="subscriptions" element={<SubscriptionManagementPage />} />
-                  <Route path="orders" element={<OrderManagementPage />} />
-                  <Route path="inventory" element={<InventoryManagementPage />} />
-                  <Route path="analytics" element={<AdminPlaceholderPage title="Analytics" />} />
-                  <Route path="learn" element={<LearnPageAdmin />} />
-                  <Route path="timeline/events" element={<AdminPlaceholderPage title="Timeline Events" />} />
-                  <Route path="webhooks" element={<AdminPlaceholderPage title="Webhook Management" />} />
-                  <Route path="settings" element={<AdminPlaceholderPage title="Admin Settings" />} />
-                </Routes>
-              </AdminSideNavProvider>
-            </AdminProtectedRoute>
-          }
-        />
-      </Routes>
-    </CartProvider>
+const App: React.FC = () => {
+  return (
+    <AuthProvider supabaseClient={supabase}>
+      <CartProvider className="bg-red-500">
+        <Toaster />
+        <AppContent />
+      </CartProvider>
+    </AuthProvider>
   );
 };
 

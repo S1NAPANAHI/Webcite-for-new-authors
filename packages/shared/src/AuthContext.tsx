@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     fetchSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (_event, _session) => {
         fetchSessionAndProfile();
       }
     );

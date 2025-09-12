@@ -8,13 +8,17 @@
   "scripts": {
     "type-check": "tsc --noEmit -p .",
     "dev": "pnpm --filter frontend dev",
-    "build": "pnpm --filter @zoroaster/backend build && pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && cd apps/frontend && pnpm build",
+    "build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && cd apps/frontend && pnpm build",
     "build:ui": "pnpm --filter @zoroaster/ui build",
     "build:frontend": "pnpm --filter frontend build",
     "start": "pnpm --filter frontend start",
     "lint": "pnpm --filter frontend lint",
-    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build && pnpm --filter backend build",
-    "generate-types": "tsx scripts/generate-types.ts"
+    "vercel-build": "pnpm --filter @zoroaster/shared build && pnpm --filter @zoroaster/ui build && pnpm --filter frontend build",
+    "generate-types": "tsx scripts/generate-types.ts",
+    "script:fix-profiles": "tsx scripts/fix-profiles.js",
+    "script:fix-subscriptions": "tsx scripts/check-and-fix-subscriptions.js",
+    "script:create-profile": "tsx scripts/create-missing-profile.js",
+    "script:verify-migrations": "tsx scripts/verify-migrations.js"
   },
   "packageManager": "pnpm@8.15.0",
   "engines": {

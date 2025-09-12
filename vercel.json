@@ -2,28 +2,29 @@
   "version": 2,
   "buildCommand": "pnpm -w run vercel-build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": null,
-  "builds": [
+  "framework": "nextjs",
+  "outputDirectory": "apps/frontend/.next",
+  "routes": [
     {
-      "src": "apps/frontend/index.html",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "apps/frontend/dist" }
+      "src": "/api/(.*)",
+      "dest": "apps/backend/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/"
     }
   ],
   "functions": {
     "apps/backend/server.js": {
-      "runtime": "nodejs20.x"
+      "memory": 1024,
+      "maxDuration": 10
     }
   },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/apps/backend/server.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
   "env": {
-    "NODE_VERSION": "18.17.1",
+    "NODE_VERSION": "20.x",
     "PNPM_VERSION": "8.15.0",
     "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
     "VITE_SUPABASE_URL": "https://opukvvmumyegtkukqint.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdWt2dm11bXllZ3RrdWtxaW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMDM3ODQsImexdCI6MjA3MDg3OTc4NH0.rqMHc03LOI4z5j1V0b0LHeW6J1fCQOiBm-I10tF82_s"
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdWt2dm11bXllZ3RrdWtxaW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMDM3ODQsImV4cCI6MjA3MDg3OTc4NH0.rqMHc03LOI4z5j1V0b0LHeW6J1fCQOiBm-I10tF82_s"
   }
 }

@@ -153,6 +153,7 @@ const App: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         {/* Public and general routes with the main layout */}
         <Route element={<AuthenticatedLayout />}>
+          <Route path="/auth/callback" element={<HomePage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/store" element={<PlaceholderPage title="Store" />} />
           <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />

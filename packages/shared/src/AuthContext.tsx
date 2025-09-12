@@ -57,15 +57,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const supabase = supabaseClient; // Use the passed supabaseClient
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user || null);
+    console.log('AuthContext: Initializing session listener...');
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      console.log('AuthContext: getSession() result:', initialSession);
+      setSession(initialSession);
+      setUser(initialSession?.user || null);
       setIsLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('AuthContext: onAuthStateChange event:', event, 'session:', session);
       setSession(session);
       setUser(session?.user || null);
       setIsLoading(false);

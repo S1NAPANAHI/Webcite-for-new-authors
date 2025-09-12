@@ -14,6 +14,7 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSubscribed: boolean; // Added isSubscribed
   isLoading: boolean;
   supabase: SupabaseClient;
 }
@@ -34,6 +35,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false); // Added isSubscribed state
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const supabase = supabaseClient;
 
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         setUserProfile(null);
         setIsAuthenticated(false);
         setIsAdmin(false);
+        setIsSubscribed(false); // Set isSubscribed to false on error
         setIsLoading(false);
         return;
       }
@@ -58,10 +61,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       setUser(currentSession?.user ?? null);
       setIsAuthenticated(!!currentSession);
 
-      // Temporarily removed profile fetching and isAdmin logic for debugging
-      setUserProfile(null);
-      setIsAdmin(false);
+      let currentIsAdmin = false; // Temporary variable to hold isAdmin status
+      let currentIsSubscribed = false; // Temporary variable to hold isSubscribed status
 
+      if (currentSession?.user) {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentSession.user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching user profile:", profileError);
+          setUserProfile(null);
+          currentIsAdmin = false;
+          currentIsSubscribed = false;
+        } else if (profile) {
+          const modifiedProfile = { ...profile }; // Create a copy to avoid direct mutation
+
+          currentIsAdmin = modifiedProfile.role === 'admin'; // Assuming 'role' field determines admin status
+          
+          // Admin bypasses subscription check
+          if (currentIsAdmin) {
+            currentIsSubscribed = true;
+            modifiedProfile.subscription_status = "Subscribed"; // Set for admin
+          } else {
+            // For non-admins, determine actual subscription status
+            // This part needs to be filled in with actual subscription fetching logic
+            // For now, default to false
+            currentIsSubscribed = false; 
+            modifiedProfile.subscription_status = "Free Tier"; // Default for non-admin
+          }
+          setUserProfile(modifiedProfile); // Set the modified profile
+        }
+      } else {
+        setUserProfile(null);
+        currentIsAdmin = false;
+        currentIsSubscribed = false;
+      }
+
+      setIsAdmin(currentIsAdmin);
+      setIsSubscribed(currentIsSubscribed); // Set isSubscribed state
       setIsLoading(false);
     };
 
@@ -84,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     userProfile,
     isAuthenticated,
     isAdmin,
+    isSubscribed, // Added isSubscribed to value
     isLoading,
     supabase,
   };

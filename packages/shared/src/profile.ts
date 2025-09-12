@@ -11,6 +11,7 @@ export type UserProfile = {
   updated_at: string;
   username: string | null;
   website: string | null;
+  subscription_status?: string; // Added subscription_status
   // Additional fields from user_stats
   books_read?: number;
   currently_reading?: string;

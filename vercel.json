@@ -2,7 +2,7 @@
   "version": 2,
   "buildCommand": "pnpm -w run vercel-build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "dist",
+  "outputDirectory": "apps/frontend/dist",
   "routes": [
     {
       "src": "/api/manage-billing-portal",

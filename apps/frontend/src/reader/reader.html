@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>eBook Reader</title>
+  <link rel="stylesheet" href="reader.css" />
+</head>
+<body>
+  <header>
+    <h1 id="book-title">Book Title</h1>
+    <div class="controls">
+      <button id="toc-toggle">☰</button>
+      <button id="font-smaller">A-</button>
+      <button id="font-larger">A+</button>
+      <button id="theme-toggle">🌓</button>
+    </div>
+  </header>
+
+  <div id="toc-container">
+    <ul id="toc"></ul>
+  </div>
+
+  <main id="viewer"></main>
+
+  <footer>
+    <button id="prev">← Prev</button>
+    <span id="page-info">Page 1</span>
+    <button id="next">Next →</button>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+  <script src="reader.js"></script>
+</body>
+</html>

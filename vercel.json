@@ -2,16 +2,27 @@
   "version": 2,
   "buildCommand": "pnpm -w run vercel-build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "outputDirectory": "apps/frontend/.next",
+  "outputDirectory": "dist",
   "routes": [
+    {
+      "src": "/api/manage-billing-portal",
+      "dest": "/apps/frontend/api/manage-billing-portal"
+    },
+    {
+      "src": "/api/create-checkout-session",
+      "dest": "/apps/frontend/api/create-checkout-session"
+    },
+    {
+      "src": "/api/stripe-webhook",
+      "dest": "/apps/frontend/api/stripe-webhook"
+    },
     {
       "src": "/api/(.*)",
       "dest": "apps/backend/server.js"
     },
     {
       "src": "/(.*)",
-      "dest": "/"
+      "dest": "/index.html"
     }
   ],
   "functions": {

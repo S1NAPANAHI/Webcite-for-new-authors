@@ -2,24 +2,14 @@
   "version": 2,
   "buildCommand": "pnpm -w run vercel-build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "nextjs",
-  "outputDirectory": "apps/frontend/.next",
-  "routes": [
+  "framework": "vite",
+  "outputDirectory": "apps/frontend/dist",
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "apps/backend/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/"
+      "source": "/api/(.*)",
+      "destination": "/apps/backend/server.js"
     }
   ],
-  "functions": {
-    "apps/backend/server.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "env": {
     "NODE_VERSION": "20.x",
     "PNPM_VERSION": "8.15.0",

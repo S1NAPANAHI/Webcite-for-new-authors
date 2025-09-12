@@ -85,7 +85,7 @@ export const SubscriptionPage: React.FC = () => {
         throw new Error('User is not authenticated');
       }
 
-      const res = await fetch('/api/stripe/create-subscription-intent', {
+      const res = await fetch('/api/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

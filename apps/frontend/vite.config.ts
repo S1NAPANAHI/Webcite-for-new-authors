@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from 'tailwindcss';
 import autoprefixer from 'autoprefixer';
@@ -7,20 +7,6 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load environment variables from root .env file
-  const rootEnv = loadEnv(mode, path.resolve(__dirname, '../../'), '');
-  const frontendEnv = loadEnv(mode, __dirname, '');
-  const env = { ...rootEnv, ...frontendEnv };
-
-  const definedEnv = {};
-  for (const key in env) {
-    if (key.startsWith('VITE_')) {
-      definedEnv[`import.meta.env.${key}`] = JSON.stringify(env[key]);
-      definedEnv[`process.env.${key}`] = JSON.stringify(env[key]);
-    }
-  }
-
-
   return {
     plugins: [react(), tsconfigPaths()],
     resolve: {
@@ -52,7 +38,6 @@ export default defineConfig(({ mode }) => {
         ],
       },
     },
-    define: definedEnv,
     server: {
       port: 5173,
       strictPort: true,

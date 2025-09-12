@@ -198,7 +198,7 @@ const CheckoutPage: React.FC = () => {
         <CardElement options={{ style: { base: { color: '#ffffff', '::placeholder': { color: '#aab7c4' } } } }} />
 
         <div className="order-summary">
-            <img src="https://via.placeholder.com/50x50" alt="Product">
+            <img src="https://via.placeholder.com/50x50" alt="Product" /> {/* Self-closing img tag */}
             <span>{plan.name}</span>
             <span>${plan.price.toFixed(2)}</span>
         </div>

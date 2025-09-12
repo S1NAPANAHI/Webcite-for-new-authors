@@ -87,6 +87,8 @@ const ProtectedLayout: React.FC = () => {
 
 import { Toaster } from 'react-hot-toast';
 
+import CheckoutPage from './pages/CheckoutPage';
+
 const AppContent: React.FC = () => {
   const { user } = useAuth();
   const params = useParams();
@@ -127,7 +129,7 @@ const AppContent: React.FC = () => {
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
-        <Route path="/checkout" element={<PlaceholderPage title="Checkout" />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/read/:workId" element={<PlaceholderPage title="Work Reader" />} />
         <Route path="/beta/application" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/status" element={<BetaApplication supabaseClient={supabase} user={user} />} />

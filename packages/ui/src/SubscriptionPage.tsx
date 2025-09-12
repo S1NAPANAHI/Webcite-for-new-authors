@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
+
 // import { useAuth } from '@zoroaster/shared/AuthContext';
 import { supabase } from '@zoroaster/shared';
 import { BookOpen, Clock, Star, CheckCircle, ArrowRight, Crown } from 'lucide-react';
@@ -35,7 +35,7 @@ export const SubscriptionPage: React.FC = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const PUBLISHABLE_KEY = import.meta?.env?.VITE_STRIPE_PUBLISHABLE_KEY;
+  
 
   const subscriptionPlans: SubscriptionPlan[] = [
     {
@@ -78,36 +78,8 @@ export const SubscriptionPage: React.FC = () => {
       window.location.href = `/login?returnTo=/subscribe`;
       return;
     }
-
-    try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
-        throw new Error('User is not authenticated');
-      }
-
-      const res = await fetch('/api/stripe/create-subscription-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ priceId }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
-      }
-
-      const stripe = await loadStripe(PUBLISHABLE_KEY!);
-      if (stripe) {
-        stripe.redirectToCheckout({ sessionId: data.sessionId });
-      }
-    } catch (error: any) {
-      console.error('Error creating checkout session:', error);
-      // Handle error, e.g., show a notification to the user
-    }
+    // Redirect to the checkout page
+    window.location.href = `/checkout?priceId=${priceId}`;
   };
 
   return (

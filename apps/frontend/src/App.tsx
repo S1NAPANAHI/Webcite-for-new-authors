@@ -57,9 +57,9 @@ const PublicLayout: React.FC = () => {
 };
 
 const ProtectedLayout: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, userProfile, isAdmin } = useAuth();
   const navigate = useNavigate();
-  console.log('ProtectedLayout', { isAuthenticated, isLoading });
+  console.log('ProtectedLayout', { isAuthenticated, isLoading, userProfile, isAdmin });
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

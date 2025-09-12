@@ -45,15 +45,19 @@ const LoginPage: React.FC = () => {
     }
     
     setLoading(true);
+    console.log('LoginPage: Attempting sign in for email:', loginEmail);
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
 
+      console.log('LoginPage: signInWithPassword result error:', error);
+
       if (error) throw error;
       
       showMessage('Login successful! Redirecting...', 'success');
+      console.log('LoginPage: Redirecting to home page');
       navigate('/');
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';

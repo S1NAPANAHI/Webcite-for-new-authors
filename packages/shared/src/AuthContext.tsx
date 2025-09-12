@@ -58,34 +58,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       setUser(currentSession?.user ?? null);
       setIsAuthenticated(!!currentSession);
 
-      if (currentSession?.user) {
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentSession.user.id)
-            .single();
-
-          if (profileError) {
-            throw profileError;
-          }
-
-          if (profile) {
-            setUserProfile(profile as UserProfile);
-            const adminRoles = ['admin', 'super_admin'];
-            const userRole = profile.role?.toLowerCase();
-            const isUserAdmin = Boolean(userRole && adminRoles.includes(userRole));
-            setIsAdmin(isUserAdmin);
-          }
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-          setUserProfile(null);
-          setIsAdmin(false);
-        }
-      } else {
-        setUserProfile(null);
-        setIsAdmin(false);
-      }
+      // Temporarily removed profile fetching and isAdmin logic for debugging
+      setUserProfile(null);
+      setIsAdmin(false);
 
       setIsLoading(false);
     };

@@ -316,6 +316,11 @@ STABLE
 SECURITY DEFINER
 AS $
 BEGIN
+    -- If the user is an admin, grant them subscription access
+    IF public.is_user_admin(p_user_id) THEN
+        RETURN TRUE;
+    END IF;
+
     RETURN EXISTS (
         SELECT 1
         FROM public.subscriptions

@@ -1,172 +1,137 @@
-/* From Uiverse.io by R1SH4BH81 */ 
-/* Body */
-.container {
-  display: grid;
-  grid-template-columns: auto;
-  gap: 0px;
-  justify-content: center; /* Center the card horizontally */
-  align-items: center; /* Center the card vertically */
-  min-height: 100vh; /* Ensure the container takes at least the full viewport height */
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #3b0066, #000, #6a0dad, #d4af37, #c0c0c0);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #fff;
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-hr {
-  height: 1px;
-  background-color: #2e2e2e; /* Dark gray line */
-  border: none;
+/* Card Container */
+.checkout-card {
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+    backdrop-filter: blur(6px);
 }
 
-.card {
-  width: 400px;
-  background: #1c1c1c; /* Dark background for a professional look */
-  box-shadow:
-    0px 187px 75px rgba(0, 0, 0, 0.01),
-    0px 105px 63px rgba(0, 0, 0, 0.05),
-    0px 47px 47px rgba(0, 0, 0, 0.09),
-    0px 12px 26px rgba(0, 0, 0, 0.1),
-    0px 0px 0px rgba(0, 0, 0, 0.1);
+/* Progress */
+.progress {
+    height: 6px;
+    background: #444;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+.progress-bar {
+    height: 100%;
+    width: 33%;
+    background: linear-gradient(90deg, gold, purple);
+    animation: shimmer 2s infinite linear;
+}
+@keyframes shimmer {
+    0% { background-position: -100px; }
+    100% { background-position: 200px; }
 }
 
-.title {
-  width: 100%;
-  height: 40px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-left: 20px;
-  border-bottom: 1px solid #2e2e2e; /* Dark gray */
-  font-weight: 700;
-  font-size: 11px;
-  color: #ffffff; /* White text */
+h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    background: linear-gradient(to right, gold, silver);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* Cart */
-.cart {
-  border-radius: 19px 19px 0px 0px;
+/* Form Fields */
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: silver;
+}
+input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid silver;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+input:focus {
+    outline: none;
+    border-color: gold;
+    box-shadow: 0 0 8px gold;
 }
 
-.cart .steps {
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
+/* Order Summary */
+.order-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(192, 192, 192, 0.4);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.order-summary img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.order-summary span {
+    font-weight: bold;
+    font-size: 1.1rem;
 }
 
-.cart .steps .step {
-  display: grid;
-  gap: 10px;
+/* Pay Button */
+.pay-btn {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(90deg, gold, purple);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+}
+.pay-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px gold;
 }
 
-.cart .steps .step span {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff; /* White text */
-  margin-bottom: 8px;
-  display: block;
+/* Trust Text */
+.trust {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    text-align: center;
+    color: silver;
 }
-
-.cart .steps .step p {
-  font-size: 11px;
-  font-weight: 600;
-  color: #bbbbbb; /* Light gray text */
-}
-
-/* Promo */
-.promo form {
-  display: grid;
-  grid-template-columns: 1fr 80px;
-  gap: 10px;
-  padding: 0px;
-}
-
-.input_field {
-  width: auto;
-  height: 36px;
-  padding: 0 0 0 12px;
-  border-radius: 5px;
-  outline: none;
-  border: 1px solid #2e2e2e; /* Dark gray */
-  background-color: #333333; /* Dark input background */
-  color: #ffffff; /* White text */
-  transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
-}
-
-.input_field:focus {
-  border: 1px solid transparent;
-  box-shadow: 0px 0px 0px 2px #555555; /* Light gray focus */
-  background-color: #333333;
-}
-
-.promo form button {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  padding: 10px 18px;
-  gap: 10px;
-  width: 100%;
-  height: 36px;
-  background: #555555; /* Medium gray button */
-  box-shadow:
-    0px 0.5px 0.5px #555555,
-    0px 1px 0.5px rgba(239, 239, 239, 0.5);
-  border-radius: 5px;
-  border: 0;
-  font-weight: 600;
-  font-size: 12px;
-  line-height: 15px;
-  color: #ffffff; /* White text */
-  transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
-}
-
-/* Checkout */
-.payments .details {
-  display: grid;
-  grid-template-columns: 10fr 1fr;
-  padding: 0px;
-  gap: 5px;
-}
-
-.payments .details span:nth-child(odd) {
-  font-size: 12px;
-  font-weight: 600;
-  color: #ffffff; /* White text */
-}
-
-.payments .details span:nth-child(even) {
-  font-size: 13px;
-  font-weight: 600;
-  color: #bbbbbb; /* Light gray text */
-}
-
-.checkout .footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 10px 10px 20px;
-  background-color: #2e2e2e; /* Dark gray background */
-}
-
-.price {
-  font-size: 22px;
-  color: #ffffff; /* White text */
-  font-weight: 900;
-}
-
-.checkout .checkout-btn {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  width: 150px;
-  height: 36px;
-  background: #555555; /* Medium gray button */
-  border-radius: 7px;
-  border: 1px solid #2e2e2e; /* Dark gray border */
-  color: #ffffff; /* White text */
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.15, 0.83, 0.66, 1);
-}
-
-.checkout .checkout-btn:hover {
-  background-color: #777777; /* Slightly lighter gray on hover */
+.trust i {
+    margin-right: 0.25rem;
+    color: gold;
 }

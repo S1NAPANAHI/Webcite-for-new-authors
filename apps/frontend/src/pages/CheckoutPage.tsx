@@ -90,63 +90,125 @@ const CheckoutPage: React.FC = () => {
       setProcessing(false);
     }
   };
-  return (
-    <div className="container">
-      <div className="card cart">
-        <label className="title">CHECKOUT</label>
-        <div className="steps">
-          <div className="step">
-            <div>
-              <span>SHIPPING ADDRESS</span>
-              <p>{userProfile?.full_name || 'N/A'}</p>
-              <p>{userProfile?.email || 'N/A'}</p>
-            </div>
-            <hr />
-            <div>
-              <span>SUBSCRIPTION PLAN</span>
-              <p>{plan.name} ({plan.interval})</p>
-              <p>${plan.price.toFixed(2)}</p>
-            </div>
-            <hr />
-            <div>
-              <span>PAYMENT METHOD</span>
-              <CardElement options={{ style: { base: { color: '#ffffff' } } }} />
-            </div>
-            <hr />
-            <div className="promo">
-              <span>HAVE A PROMO CODE?</span>
-              <form className="form">
-                <input
-                  className="input_field"
-                  placeholder="Enter a Promo Code"
-                  type="text"
-                />
-                <button>Apply</button>
-              </form>
-            </div>
-            <hr />
-            <div className="payments">
-              <span>PAYMENT SUMMARY</span>
-              <div className="details">
-                <span>Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
-                <span>Shipping:</span>
-                <span>${shipping.toFixed(2)}</span>
-                <span>Tax:</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="card checkout">
-        <div className="footer">
-          <label className="price">${total.toFixed(2)}</label>
-          <button className="checkout-btn" onClick={handleSubmit} disabled={!stripe || !elements || processing}>
-            {processing ? 'Processing...' : 'Checkout'}
-          </button>
+  useEffect(() => {
+    const fetchCheckoutData = async () => {
+      setLoading(true);
+      try {
+        const queryParams = new URLSearchParams(location.search);
+        const id = queryParams.get('priceId');
+        if (!id) {
+          setError('No priceId provided in URL.');
+          setLoading(false);
+          return;
+        }
+        setPriceId(id);
+
+        // Fetch user profile
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          throw new Error('User not authenticated.');
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, email') // Select relevant fields
+          .eq('id', user.id)
+          .single();
+
+        if (profileError) {
+          throw new Error(profileError.message);
+        }
+        setUserProfile(profileData);
+
+        // Fetch plan details from a new API endpoint
+        // For now, still using mock data, but this is where the fetch would go
+        const mockPlans: SubscriptionPlan[] = [
+          {
+            id: 'price_1S2L8JQv3TvmaocsYofzFKgm',
+            name: 'Monthly Membership',
+            price: 9.99,
+            interval: 'month',
+            features: [],
+            paypalPlanId: 'prod_SyHh0v9pcletkx',
+            highlight: 'Perfect for new readers'
+          },
+          {
+            id: 'price_1S2L95Qv3TvmaocsN5zRIEXO',
+            name: 'Annual Membership',
+            price: 99.99,
+            interval: 'year',
+            features: [],
+            paypalPlanId: 'prod_SyHiFk24bHGA2U',
+            highlight: 'Best value - Save $19.89'
+          }
+        ];
+        const selectedPlan = mockPlans.find(p => p.id === id);
+        if (selectedPlan) {
+          setPlan(selectedPlan);
+        } else {
+          setError('Subscription plan not found.');
+        }
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCheckoutData();
+  }, [location.search]);
+
+  if (loading) {
+    return <div className="container">Loading checkout details...</div>;
+  }
+
+  if (error) {
+    return <div className="container">Error: {error}</div>;
+  }
+
+  if (!plan) {
+    return <div className="container">No subscription plan selected.</div>;
+  }
+
+  const subtotal = plan.price;
+  const shipping = 0; // Subscriptions typically don't have shipping
+  const taxRate = 0.05; // Example tax rate
+  const tax = subtotal * taxRate;
+  const total = subtotal + shipping + tax;
+
+  return (
+    <div className="checkout-card">
+      <div className="progress">
+        <div className="progress-bar"></div>
+      </div>
+      <h1>Checkout</h1>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="name">Name</label>
+        <input type="text" id="name" placeholder="Your full name" value={userProfile?.full_name || ''} readOnly />
+
+        <label htmlFor="email">Email</label>
+        <input type="email" id="email" placeholder="you @example.com" value={userProfile?.email || ''} readOnly />
+
+        {/* Address field is not directly available from userProfile, keeping it as placeholder for now */}
+        <label htmlFor="address">Address</label>
+        <input type="text" id="address" placeholder="Street, City, ZIP" />
+
+        <label>Card Details</label>
+        <CardElement options={{ style: { base: { color: '#ffffff', '::placeholder': { color: '#aab7c4' } } } }} />
+
+        <div className="order-summary">
+            <img src="https://via.placeholder.com/50x50" alt="Product">
+            <span>{plan.name}</span>
+            <span>${plan.price.toFixed(2)}</span>
         </div>
+
+        <button className="pay-btn" type="submit" disabled={!stripe || !elements || processing}>
+          {processing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
+        </button>
+      </form>
+      <div className="trust">
+          <i>🔒</i> Secure checkout – 256-bit encryption
       </div>
     </div>
   );

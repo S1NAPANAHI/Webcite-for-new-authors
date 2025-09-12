@@ -36,6 +36,7 @@ const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
 
 const PublicLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  console.log('PublicLayout', { isAuthenticated, isLoading });
   
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -58,6 +59,7 @@ const PublicLayout: React.FC = () => {
 const ProtectedLayout: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
+  console.log('ProtectedLayout', { isAuthenticated, isLoading });
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

@@ -1774,7 +1774,7 @@ const ProfileDashboard = () => {
                   <Route path="achievements" element={<AchievementsContent />} />
                   <Route path="preferences" element={<PreferencesContent />} />
                   <Route path="security" element={<SecurityContent />} />
-                  {isAdmin && <Route path="admin/*" element={<AdminDashboard />} />}
+                  
                 </Routes>
                 <Outlet />
               </div>

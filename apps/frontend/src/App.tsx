@@ -151,12 +151,10 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider supabaseClient={supabase}>
-      <CartProvider className="bg-red-500">
-        <Toaster />
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
+    <CartProvider className="bg-red-500">
+      <Toaster />
+      <AppContent />
+    </CartProvider>
   );
 };
 

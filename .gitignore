@@ -9,3 +9,10 @@ apps/frontend/.env.local
 supabase/config.toml
 .env.example
 apps/frontend/.env.example
+
+# Ignore build output directories
+dist/
+*/dist/
+
+# Ignore TypeScript build info files
+*.tsbuildinfo

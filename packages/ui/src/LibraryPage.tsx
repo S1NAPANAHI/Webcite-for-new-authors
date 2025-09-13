@@ -164,47 +164,6 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
     addToLibraryMutation.mutate(productId);
   };
 
-  const addToLibraryMutation = useMutation({
-    mutationFn: async (productId: string) => {
-      if (!user?.id) throw new Error('User not logged in.');
-      // For free books, we need a default price_id. This assumes a default price_id exists for free products.
-      // In a real scenario, you might fetch this from the product details or have a dedicated free_price_id.
-      const defaultFreePriceId = 'free-product-price-id'; // REPLACE WITH ACTUAL FREE PRICE ID
-      const response = await fetch('/api/purchases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          product_id: productId,
-          price_id: defaultFreePriceId, // Use a default price ID for free products
-          status: 'completed',
-        }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add to library.');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userLibraryItems', user?.id] });
-      toast.success('Book added to your library!');
-    },
-    onError: (error) => {
-      toast.error(`Error adding to library: ${error.message}`);
-    },
-  });
-
-  const handleAddToLibrary = (productId: string) => {
-    if (!user) {
-      toast.error('Please log in to add books to your library.');
-      return;
-    }
-    addToLibraryMutation.mutate(productId);
-  };
-
   // Fetch user's specific rating for this work
   const { data: fetchedUserRating } = useQuery({
     queryKey: ['userRating', user?.id, work.id],

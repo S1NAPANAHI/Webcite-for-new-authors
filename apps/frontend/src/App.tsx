@@ -131,7 +131,7 @@ const AppContent: React.FC = () => {
       {/* Protected Routes */}
       <Route element={<ProtectedLayout />}>
         <Route path="/account/*" element={<AdminLayout />}>
-          <Route path="/" element={<div>Select an option from the sidebar</div>} />
+          <Route index element={<div>Select an option from the sidebar</div>} />
           <Route path="users" element={<p>User Management Content</p>} />
           <Route path="subscriptions" element={<SubscriptionManagementPage />} />
           <Route path="plans" element={<p>Plan Management Content</p>} />

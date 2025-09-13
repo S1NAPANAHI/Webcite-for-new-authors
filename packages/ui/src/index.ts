@@ -6,6 +6,8 @@ export { AdminSideNav, AdminSideNavProvider, AdminSideNavToggle, useAdminSideNav
 export { AdminProtectedRoute } from './AdminProtectedRoute';
 export { SimpleDashboardPage } from './SimpleDashboardPage';
 export { AdminLayout } from './AdminLayout'; // Added AdminLayout
+export { KpiCard } from './KpiCard'; // Added KpiCard
+export { ChartsGrid } from './ChartsGrid'; // Added ChartsGrid
 
 // Essential UI Components
 export { Layout } from './Layout';

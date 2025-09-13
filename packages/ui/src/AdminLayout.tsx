@@ -66,7 +66,7 @@ export const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
   // const navigate = useNavigate();
-  const { user, userProfile } = useAuth();
+  const { user, userProfile, isLoading } = useAuth(); // Get isLoading from useAuth
 
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -80,6 +80,10 @@ export const AdminLayout: React.FC = () => {
     await supabase.auth.signOut();
     // navigate('/login');
   };
+
+  if (isLoading) { // Add isLoading check here
+    return <div>Loading Admin Panel...</div>; // Or a more sophisticated loading skeleton
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-gray-100">

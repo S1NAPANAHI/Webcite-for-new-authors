@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, Routes, Route } from 'react-router-dom';
 import BookUploadForm from '../admin/components/BookUploadForm'; // Added import
+import LearnPageAdmin from './admin/LearnPageAdmin';
 
 const AdminDashboard = () => {
   return (

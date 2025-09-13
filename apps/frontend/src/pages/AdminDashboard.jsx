@@ -102,18 +102,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-ult AdminDashboard;
-     <Route path="subscriptions" element={<SubscriptionManagementPage />} />
-          <Route path="plans" element={<p>Plan Management Content</p>} />
-          <Route path="timeline" element={<p>Timeline Manager Content</p>} />
-          <Route path="learn" element={<LearnPageAdmin />} />
-          <Route path="upload-book" element={<BookUploadForm />} />
-        </Routes>
-        <Outlet />
-      </main>
-    </div>
-  );
-};
-
-export default AdminDashboard;
-ult AdminDashboard;

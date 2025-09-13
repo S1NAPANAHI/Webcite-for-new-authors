@@ -18,6 +18,7 @@ import {
   Crown,
   CheckCircle
 } from 'lucide-react';
+import AdminDashboard from './AdminDashboard';
 
 
 interface UserStatus {
@@ -1775,6 +1776,7 @@ const ProfileDashboard = () => {
                   <Route path="preferences" element={<PreferencesContent />} />
                   <Route path="security" element={<SecurityContent />} />
                   
+                {isAdmin && <Route path="admin/*" element={<AdminDashboard />} />}
                 </Routes>
                 <Outlet />
               </div>

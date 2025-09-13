@@ -227,7 +227,7 @@ export const AdminLayout: React.FC = () => {
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-amber-400/10 to-transparent rounded-bl-3xl"></div>
             <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-yellow-400/10 to-transparent rounded-tr-3xl"></div>
             
-            <Outlet />
+            {user && <Outlet />} {/* Conditionally render Outlet */}
           </div>
         </div>
       </div>

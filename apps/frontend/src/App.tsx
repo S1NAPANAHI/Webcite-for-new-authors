@@ -35,12 +35,8 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
 
 const PublicLayout: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
-  console.log('PublicLayout', { isAuthenticated, isLoading });
-  
-  if (isLoading) {
-    return <LoadingSkeleton />;
-  }
+  const { isAuthenticated } = useAuth(); // isLoading is handled by AppContent
+  console.log('PublicLayout', { isAuthenticated }); // Removed isLoading from log
 
   return (
     <>
@@ -57,18 +53,18 @@ const PublicLayout: React.FC = () => {
 };
 
 const ProtectedLayout: React.FC = () => {
-  const { isAuthenticated, isLoading, userProfile, isAdmin } = useAuth();
+  const { isAuthenticated, userProfile, isAdmin } = useAuth(); // isLoading is handled by AppContent
   const navigate = useNavigate();
-  console.log('ProtectedLayout', { isAuthenticated, isLoading, userProfile, isAdmin });
+  console.log('ProtectedLayout', { isAuthenticated, userProfile, isAdmin }); // Removed isLoading from log
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isAuthenticated) { // isLoading is handled by AppContent
       navigate('/login');
     }
-  }, [isLoading, isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]); // Removed isLoading from dependency array
 
-  if (isLoading || !isAuthenticated) {
-    return <LoadingSkeleton />;
+  if (!isAuthenticated) { // isLoading is handled by AppContent
+    return null; // AppContent handles loading, this just redirects if not authenticated
   }
 
   return (
@@ -94,7 +90,7 @@ import CheckoutPage from './pages/CheckoutPage';
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuth(); // Get isLoading from useAuth
   const params = useParams();
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
 
@@ -103,6 +99,10 @@ const AppContent: React.FC = () => {
       fetchWikiPage(params.pageSlug).then(setCurrentPage);
     }
   }, [params.pageSlug]);
+
+  if (isLoading) {
+    return <LoadingSkeleton />; // Render loading state while AuthProvider is loading
+  }
 
   return (
     <Routes>

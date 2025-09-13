@@ -5,6 +5,7 @@
 export { AdminSideNav, AdminSideNavProvider, AdminSideNavToggle, useAdminSideNav } from './AdminSideNav';
 export { AdminProtectedRoute } from './AdminProtectedRoute';
 export { SimpleDashboardPage } from './SimpleDashboardPage';
+export { AdminLayout } from './AdminLayout'; // Added AdminLayout
 
 // Essential UI Components
 export { Layout } from './Layout';

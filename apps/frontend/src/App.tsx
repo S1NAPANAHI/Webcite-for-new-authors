@@ -8,7 +8,7 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { AuthProvider, useAuth, supabase } from '@zoroaster/shared';
-import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage, AdminLayout } from '@zoroaster/ui';
 import LearnPage from './pages/LearnPage';
 import AuthorJourneyPostPage from './pages/learn/AuthorJourneyPostPage';
 import WritingGuidePage from './pages/learn/WritingGuidePage';
@@ -24,6 +24,7 @@ import ArtistCollaborationPage from './pages/ArtistCollaborationPage';
 import SubscriptionManagementPage from './admin/SubscriptionManagementPage';
 import { ProductManagementPage, OrderManagementPage, InventoryManagementPage, WorksManagementPage, MediaUploadPage } from '@zoroaster/ui';
 import LearnPageAdmin from './pages/admin/LearnPageAdmin';
+import BookUploadForm from './admin/components/BookUploadForm'; // Added import
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -129,7 +130,15 @@ const AppContent: React.FC = () => {
 
       {/* Protected Routes */}
       <Route element={<ProtectedLayout />}>
-        <Route path="/account/*" element={<ProfileDashboard />} />
+        <Route path="/account/*" element={<AdminLayout />}>
+          <Route path="/" element={<div>Select an option from the sidebar</div>} />
+          <Route path="users" element={<p>User Management Content</p>} />
+          <Route path="subscriptions" element={<SubscriptionManagementPage />} />
+          <Route path="plans" element={<p>Plan Management Content</p>} />
+          <Route path="timeline" element={<p>Timeline Manager Content</p>} />
+          <Route path="learn" element={<LearnPageAdmin />} />
+          <Route path="upload-book" element={<BookUploadForm />} />
+        </Route>
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />

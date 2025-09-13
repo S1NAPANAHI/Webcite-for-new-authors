@@ -51,6 +51,7 @@ const navigation: NavItem[] = [
   { name: 'Posts', href: '/account/admin/posts', icon: FileText },
   { name: 'Works', href: '/account/admin/works', icon: BookOpen },
   { name: 'Timeline', href: '/account/admin/timeline/events', icon: Calendar },
+  { name: 'Wiki', href: '/account/admin/wiki', icon: BookOpen },
   
   // User & System Management
   { name: 'Users', href: '/account/admin/users', icon: Users },

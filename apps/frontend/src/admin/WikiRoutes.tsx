@@ -1,7 +1,17 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-// Removed corrupted import
+import { ContentEditor } from '@zoroaster/ui';
+import WikiManager from './components/WikiManager';
 import { WikiCategoryManager } from './components/WikiCategoryManager';
+
+// Define a simple WikiEditor wrapper for now
+const WikiEditor = () => (
+  <ContentEditor
+    contentType="pages"
+    onSave={(data) => console.log('Saving:', data)}
+    onCancel={() => console.log('Cancelled')}
+  />
+);
 
 export const WikiRoutes: React.FC = () => {
   return (

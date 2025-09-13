@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   fetchCategories,
   createCategory,
@@ -27,7 +26,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@zoroaster/ui';
 import { 
   AlertDialog,
@@ -57,14 +55,8 @@ export const WikiCategoryManager: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  // Load categories on component mount
-  useEffect(() => {
-    loadCategories();
-  }, []);
-
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     try {
       setLoading(true);
       const data = await fetchCategories();
@@ -79,7 +71,12 @@ export const WikiCategoryManager: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load categories on component mount
+  useEffect(() => {
+    loadCategories();
+  }, [loadCategories]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

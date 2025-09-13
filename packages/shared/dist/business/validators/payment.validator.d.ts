@@ -96,6 +96,7 @@ export declare const CreateSubscriptionSchema: z.ZodObject<{
     trial_start: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 }, z.core.$strip>;
 export declare const UpdateSubscriptionSchema: z.ZodObject<{
+    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     status: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
         active: "active";
         incomplete: "incomplete";
@@ -106,7 +107,6 @@ export declare const UpdateSubscriptionSchema: z.ZodObject<{
         unpaid: "unpaid";
         paused: "paused";
     }>>>;
-    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     metadata: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>>;
     cancel_at_period_end: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
     current_period_end: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;

@@ -89,7 +89,7 @@ const AdminDashboard = () => {
         <Routes>
           <Route path="/" element={<div>Select an option from the sidebar</div>} />
           <Route path="users" element={<p>User Management Content</p>} />
-          <Route path="subscriptions" element={<SubscriptionManagementPage />} />
+          <Route path="subscriptions" element={<p>Subscription Management Content (Placeholder)</p>} />
           <Route path="plans" element={<p>Plan Management Content</p>} />
           <Route path="timeline" element={<p>Timeline Manager Content</p>} />
           <Route path="learn" element={<LearnPageAdmin />} />

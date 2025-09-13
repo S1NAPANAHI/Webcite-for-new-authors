@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, Link } from 'react-router-dom';
+import BookUploadForm from '../admin/components/BookUploadForm'; // Added import
 
 const AdminDashboard = () => {
   return (
@@ -85,6 +86,15 @@ const AdminDashboard = () => {
       <main style={{ flexGrow: 1, padding: '20px', overflowY: 'auto' }}>
         <h1 style={{ marginBottom: '30px', color: '#34495e' }}>Welcome to the Admin Dashboard</h1>
         {/* This is where nested routes will render */}
+        <Routes>
+          <Route path="/" element={<div>Select an option from the sidebar</div>} />
+          <Route path="users" element={<p>User Management Content</p>} />
+          <Route path="subscriptions" element={<SubscriptionManagementPage />} />
+          <Route path="plans" element={<p>Plan Management Content</p>} />
+          <Route path="timeline" element={<p>Timeline Manager Content</p>} />
+          <Route path="learn" element={<LearnPageAdmin />} />
+          <Route path="upload-book" element={<BookUploadForm />} />
+        </Routes>
         <Outlet />
       </main>
     </div>
@@ -92,3 +102,18 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+ult AdminDashboard;
+     <Route path="subscriptions" element={<SubscriptionManagementPage />} />
+          <Route path="plans" element={<p>Plan Management Content</p>} />
+          <Route path="timeline" element={<p>Timeline Manager Content</p>} />
+          <Route path="learn" element={<LearnPageAdmin />} />
+          <Route path="upload-book" element={<BookUploadForm />} />
+        </Routes>
+        <Outlet />
+      </main>
+    </div>
+  );
+};
+
+export default AdminDashboard;
+ult AdminDashboard;

@@ -1546,14 +1546,7 @@ export const SecurityContent: React.FC = () => {
   );
 };
 
-export const AdminContent: React.FC = () => {
-  return (
-    <div className="text-gray-100">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      <p>Admin specific content and tools.</p>
-    </div>
-  );
-};
+
 
 const ProfileDashboard = () => {
   const navigate = useNavigate();
@@ -1781,7 +1774,7 @@ const ProfileDashboard = () => {
                   <Route path="achievements" element={<AchievementsContent />} />
                   <Route path="preferences" element={<PreferencesContent />} />
                   <Route path="security" element={<SecurityContent />} />
-                  {isAdmin && <Route path="admin/*" element={<AdminContent />} />}
+                  {isAdmin && <Route path="admin/*" element={<AdminDashboard />} />}
                 </Routes>
                 <Outlet />
               </div>

@@ -45,9 +45,18 @@ type UserLibraryItem = {
 
 // --- Supabase Data Functions ---
 const fetchAllWorks = async (): Promise<Work[]> => {
-  const { data, error } = await supabase.from('works').select('*').order('order_in_parent', { ascending: true });
+  const { data, error } = await supabase
+    .from('works')
+    .select(`
+      *,
+      products!inner(file_key)
+    `)
+    .order('order_in_parent', { ascending: true });
   if (error) throw new Error(error.message);
-  return data as Work[];
+  return data.map(d => ({
+    ...d,
+    epub_file_key: d.products[0]?.file_key || null // Assuming one product per work for EPUB
+  })) as Work[];
 };
 
 const fetchUserLibraryItems = async (userId: string): Promise<UserLibraryItem[]> => {
@@ -64,7 +73,8 @@ const fetchUserLibraryItems = async (userId: string): Promise<UserLibraryItem[]>
         name,
         description,
         product_type,
-        work_id
+        work_id,
+        file_key // Added file_key
       )
     `)
     .eq('user_id', userId);
@@ -81,6 +91,7 @@ const fetchUserLibraryItems = async (userId: string): Promise<UserLibraryItem[]>
     product_description: purchase.products?.description,
     product_type: purchase.products?.product_type || 'single_issue',
     work_id: purchase.products?.work_id,
+    epub_file_key: purchase.products?.file_key || null, // Map to epub_file_key
   })) as UserLibraryItem[];
 };
 
@@ -111,6 +122,88 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
   const [userCurrentRating, setUserCurrentRating] = useState<number | null>(null);
   const [isSampleExpanded, setIsSampleExpanded] = useState(false);
   const [showSample, setShowSample] = useState(false);
+
+  const addToLibraryMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      if (!user?.id) throw new Error('User not logged in.');
+      // For free books, we need a default price_id. This assumes a default price_id exists for free products.
+      // In a real scenario, you might fetch this from the product details or have a dedicated free_price_id.
+      const defaultFreePriceId = 'free-product-price-id'; // REPLACE WITH ACTUAL FREE PRICE ID
+      const response = await fetch('/api/purchases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          product_id: productId,
+          price_id: defaultFreePriceId, // Use a default price ID for free products
+          status: 'completed',
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add to library.');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userLibraryItems', user?.id] });
+      toast.success('Book added to your library!');
+    },
+    onError: (error) => {
+      toast.error(`Error adding to library: ${error.message}`);
+    },
+  });
+
+  const handleAddToLibrary = (productId: string) => {
+    if (!user) {
+      toast.error('Please log in to add books to your library.');
+      return;
+    }
+    addToLibraryMutation.mutate(productId);
+  };
+
+  const addToLibraryMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      if (!user?.id) throw new Error('User not logged in.');
+      // For free books, we need a default price_id. This assumes a default price_id exists for free products.
+      // In a real scenario, you might fetch this from the product details or have a dedicated free_price_id.
+      const defaultFreePriceId = 'free-product-price-id'; // REPLACE WITH ACTUAL FREE PRICE ID
+      const response = await fetch('/api/purchases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          product_id: productId,
+          price_id: defaultFreePriceId, // Use a default price ID for free products
+          status: 'completed',
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add to library.');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userLibraryItems', user?.id] });
+      toast.success('Book added to your library!');
+    },
+    onError: (error) => {
+      toast.error(`Error adding to library: ${error.message}`);
+    },
+  });
+
+  const handleAddToLibrary = (productId: string) => {
+    if (!user) {
+      toast.error('Please log in to add books to your library.');
+      return;
+    }
+    addToLibraryMutation.mutate(productId);
+  };
 
   // Fetch user's specific rating for this work
   const { data: fetchedUserRating } = useQuery({
@@ -219,10 +312,15 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
 
           {/* Actions */}
           <div className="actions">
-            {userLibraryItem ? (
-              <>
-                <button className="btn primary">Open</button>
-              </>
+            {userLibraryItem && work.epub_file_key ? (
+              <a
+                href={`/apps/frontend/src/reader/reader.html?book=${work.epub_file_key}`}
+                className="btn primary"
+                target="_blank" // Open in new tab
+                rel="noopener noreferrer"
+              >
+                Open
+              </a>
             ) : (
               <button className="btn primary">Buy now</button>
             )}

@@ -347,6 +347,9 @@ async function startServer() {
   const { default: createEnhancedProductRoutes } = await import('../../packages/shared/dist/routes/products.enhanced.js');
   const { default: createAdminRoutes } = await import('../../packages/shared/dist/routes/admin.js');
 
+  const authRoutes = require('./routes/auth.js');
+  const myAdminRoutes = require('./routes/admin.js');
+
   const { createCartRoutes, createOrderRoutes } = await import('./routes/cart.js');
 
   const adminRouter = createAdminRoutes(supabase);
@@ -354,6 +357,8 @@ async function startServer() {
   console.log('adminRouter:', adminRouter);
 
   // Routes
+  app.use('/api/auth', authRoutes);
+  app.use('/api/v2/admin', myAdminRoutes);
   app.use('/api/products', createProductRoutes(supabase));
   app.use('/api/products-v2', createEnhancedProductRoutes(supabase)); // Enhanced version
   app.use('/api/cart', createCartRoutes(supabase, process.env.STRIPE_SECRET_KEY));

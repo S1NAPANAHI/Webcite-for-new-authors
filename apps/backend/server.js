@@ -23,7 +23,7 @@ const {
 
 const createProductRoutes = require('../../packages/shared/dist/routes/products.js');
 const createEnhancedProductRoutes = require('../../packages/shared/dist/routes/products.enhanced.js');
-const createAdminRoutes = require('../../packages/shared/dist/routes/admin.js');
+const adminRoutes = require('./routes/admin.js');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -345,28 +345,15 @@ app.post('/webhook', express.raw({ type: 'application/json' }), handleStripeWebh
 async function startServer() {
   const { default: createProductRoutes } = await import('../../packages/shared/dist/routes/products.js');
   const { default: createEnhancedProductRoutes } = await import('../../packages/shared/dist/routes/products.enhanced.js');
-  const { default: createAdminRoutes } = await import('../../packages/shared/dist/routes/admin.js');
-
-  const authRoutes = require('./routes/auth.js');
-  const myAdminRoutes = require('./routes/admin.js');
 
   const { createCartRoutes, createOrderRoutes } = await import('./routes/cart.js');
 
-  const adminRouter = createAdminRoutes(supabase);
-
-  console.log('adminRouter:', adminRouter);
-
   // Routes
-  app.use('/api/auth', authRoutes);
-  app.use('/api/v2/admin', myAdminRoutes);
   app.use('/api/products', createProductRoutes(supabase));
   app.use('/api/products-v2', createEnhancedProductRoutes(supabase)); // Enhanced version
   app.use('/api/cart', createCartRoutes(supabase, process.env.STRIPE_SECRET_KEY));
   app.use('/api/orders', createOrderRoutes(supabase, process.env.STRIPE_SECRET_KEY));
-  app.use('/api/admin', (req, res, next) => {
-    console.log('Request received for /api/admin path:', req.originalUrl);
-    next();
-  }, adminRouter);
+  app.use('/api/admin', adminRoutes);
 
   app.get('/', (req, res) => {
     res.json({

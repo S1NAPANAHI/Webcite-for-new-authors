@@ -1,0 +1,2 @@
+ ERROR  Failed to switch pnpm to v8.15.0. Looks like pnpm CLI is missing at "/home/jules/.local/share/pnpm/.tools/pnpm/8.15.0/bin" or is incorrect
+spawnSync /home/jules/.local/share/pnpm/.tools/pnpm/8.15.0/bin/pnpm ENOENT

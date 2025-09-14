@@ -26,15 +26,6 @@ import { ProductManagementPage, OrderManagementPage, InventoryManagementPage, Wo
 import LearnPageAdmin from './pages/admin/LearnPageAdmin';
 import BookUploadForm from './admin/components/BookUploadForm'; // Added import
 
-// Admin page components
-import MyAdminLayout from './components/admin/AdminLayout';
-import AdminDashboard from './pages/admin/Dashboard';
-import UserManagement from './pages/admin/UserManagement';
-import AdminLogin from './pages/admin/Login';
-import Unauthorized from './pages/admin/Unauthorized';
-import MyProtectedRoute from './components/admin/ProtectedRoute';
-
-
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
     <h1 className="text-4xl font-bold mb-4">{title}</h1>
@@ -116,15 +107,6 @@ const AppContent: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route element={<MyProtectedRoute role="ADMIN" />}>
-        <Route path="/admin" element={<MyAdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="users" element={<UserManagement />} />
-        </Route>
-      </Route>
-
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<HomePage />} />
 

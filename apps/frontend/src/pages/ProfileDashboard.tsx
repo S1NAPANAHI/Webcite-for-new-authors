@@ -1553,7 +1553,8 @@ const ProfileDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('overview');
-  const { user, userProfile, isAdmin, isLoading, isAuthenticated } = useAuth();
+  const { user, userProfile, role, isLoading, isAuthenticated } = useAuth();
+  const isAdmin = role === 'admin' || role === 'super_admin';
 
   const [displayProfile, setDisplayProfile] = useState({
     isSubscribed: false,

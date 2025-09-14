@@ -4,10 +4,11 @@ import { useAuth } from '@zoroaster/shared';
 
 interface ProtectedRouteProps {
   requireSubscription?: boolean;
+  requiredRole?: string;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireSubscription = false }) => {
-  const { isAuthenticated, isSubscribed, isLoading } = useAuth();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireSubscription = false, requiredRole }) => {
+  const { isAuthenticated, isSubscribed, isLoading, role } = useAuth();
 
   if (isLoading) {
     return <div>Loading...</div>; // Or a loading spinner
@@ -19,6 +20,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requireSubscription = f
 
   if (requireSubscription && !isSubscribed) {
     return <Navigate to="/subscriptions" />;
+  }
+
+  if (requiredRole && role !== requiredRole && role !== 'super_admin') {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <Outlet />;

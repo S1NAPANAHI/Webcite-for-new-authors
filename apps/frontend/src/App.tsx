@@ -130,15 +130,7 @@ const AppContent: React.FC = () => {
 
       {/* Protected Routes */}
       <Route element={<ProtectedLayout />}>
-        <Route path="/account/*" element={<AdminLayout />}>
-          <Route index element={<div>Select an option from the sidebar</div>} />
-          <Route path="users" element={<p>User Management Content</p>} />
-          <Route path="subscriptions" element={<SubscriptionManagementPage />} />
-          <Route path="plans" element={<p>Plan Management Content</p>} />
-          <Route path="timeline" element={<p>Timeline Manager Content</p>} />
-          <Route path="learn" element={<LearnPageAdmin />} />
-          <Route path="upload-book" element={<BookUploadForm />} />
-        </Route>
+        <Route path="/account/*" element={<ProfileDashboard />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
@@ -160,12 +152,10 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider supabaseClient={supabase}>
-      <CartProvider className="bg-red-500">
-        <Toaster />
-        <AppContent />
-      </CartProvider>
-    </AuthProvider>
+    <CartProvider className="bg-red-500">
+      <Toaster />
+      <AppContent />
+    </CartProvider>
   );
 };
 

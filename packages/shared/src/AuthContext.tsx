@@ -134,6 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+  console.log('useAuth context:', context);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

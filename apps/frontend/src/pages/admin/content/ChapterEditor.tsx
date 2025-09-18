@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import Image from '@tiptap/extension-image';
-import Link as TipTapLink from '@tiptap/extension-link';
+import { Link as TipTapLinkExtension } from '@tiptap/extension-link';
 import {
   Bold,
   Italic,
@@ -28,7 +28,8 @@ import {
   AlignCenter,
   AlignRight,
   Undo,
-  Redo
+  Redo,
+  BookOpen
 } from 'lucide-react';
 import { 
   Chapter, 
@@ -372,7 +373,7 @@ export default function ChapterEditor() {
           class: 'max-w-full h-auto rounded-lg'
         }
       }),
-      TipTapLink.configure({
+      TipTapLinkExtension.configure({
         openOnClick: false,
         HTMLAttributes: {
           class: 'text-indigo-600 hover:text-indigo-700 underline'

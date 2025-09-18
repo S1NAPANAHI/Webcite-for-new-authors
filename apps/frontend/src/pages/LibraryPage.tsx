@@ -14,7 +14,9 @@ import {
   Grid,
   List,
   SortAsc,
-  SortDesc
+  SortDesc,
+  FileText,
+  BarChart3
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@zoroaster/shared';

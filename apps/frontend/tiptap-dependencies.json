@@ -1,0 +1,42 @@
+{
+  "name": "tiptap-editor-dependencies",
+  "description": "Dependencies needed for the TipTap rich text editor in the chapter editing system",
+  "dependencies": {
+    "@tiptap/react": "^2.1.11",
+    "@tiptap/starter-kit": "^2.1.11",
+    "@tiptap/extension-placeholder": "^2.1.11",
+    "@tiptap/extension-text-align": "^2.1.11",
+    "@tiptap/extension-image": "^2.1.11",
+    "@tiptap/extension-link": "^2.1.11",
+    "@tiptap/extension-color": "^2.1.11",
+    "@tiptap/extension-highlight": "^2.1.11",
+    "@tiptap/extension-underline": "^2.1.11",
+    "@tiptap/extension-table": "^2.1.11",
+    "@tiptap/extension-table-row": "^2.1.11",
+    "@tiptap/extension-table-cell": "^2.1.11",
+    "@tiptap/extension-table-header": "^2.1.11"
+  },
+  "installation_command": "pnpm add @tiptap/react @tiptap/starter-kit @tiptap/extension-placeholder @tiptap/extension-text-align @tiptap/extension-image @tiptap/extension-link @tiptap/extension-color @tiptap/extension-highlight @tiptap/extension-underline @tiptap/extension-table @tiptap/extension-table-row @tiptap/extension-table-cell @tiptap/extension-table-header",
+  "notes": {
+    "editor_features": [
+      "Rich text formatting (bold, italic, underline)",
+      "Text alignment (left, center, right)",
+      "Lists (ordered and unordered)",
+      "Blockquotes and code blocks",
+      "Image insertion and management",
+      "Link creation and editing",
+      "Color and highlighting",
+      "Table support",
+      "Placeholder text",
+      "Undo/redo functionality",
+      "Auto-save capabilities",
+      "Word count tracking",
+      "Reading time estimation"
+    ],
+    "usage_locations": [
+      "/admin/content/chapters/new",
+      "/admin/content/chapters/:id/edit",
+      "/admin/content/chapters/issue/:issueId/new"
+    ]
+  }
+}

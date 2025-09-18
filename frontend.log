@@ -1,0 +1,54 @@
+
+> frontend@0.0.0 dev /app/apps/frontend
+> vite
+
+
+  VITE v5.4.19  ready in 764 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+3:42:53 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:53 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:53 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:53 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:54 PM [vite] Failed to load source map for /app/packages/shared/dist/profile.js.
+Error: An error occurred while trying to read the map file at profile.js.map
+Error: ENOENT: no such file or directory, open '/app/packages/shared/dist/profile.js.map'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1243:14)
+    at async extractSourcemapFromFile (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:21002:53)
+    at async loadAndTransform (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:51940:27)
+3:42:56 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:56 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:56 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:56 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:56 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:57 PM [vite] Pre-transform error: Failed to resolve entry for package "@zoroaster/ui". The package may have incorrect main/module/exports specified in its package.json.
+3:42:58 PM [vite] Internal server error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /app/packages/shared/dist/index.js:3:14
+  1  |  // Main exports for the shared package
+  2  |  export * from './supabaseClient';
+  3  |  export * from './AuthContext';
+     |                 ^
+  4  |  export * from './CartContext';
+  5  |  export * from './profile';
+      at TransformPluginContext._formatError (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49258:41)
+      at TransformPluginContext.error (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49253:16)
+      at normalizeUrl (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64291:23)
+      at async file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64423:39
+      at async Promise.all (index 1)
+      at async TransformPluginContext.transform (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:64350:7)
+      at async PluginContainer.transform (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:49099:18)
+      at async loadAndTransform (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:51977:27)
+3:42:58 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:58 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/shared/dist/index.js". Does the file exist?
+3:42:58 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/ui/node_modules/@zoroaster/shared/dist/index.js?v=8ffa52b6". Does the file exist?
+3:42:58 PM [vite] Pre-transform error: Failed to resolve import "./AuthContext" from "../../packages/ui/node_modules/@zoroaster/shared/dist/index.js?v=8ffa52b6". Does the file exist?
+3:42:58 PM [vite] Failed to load source map for /app/packages/ui/node_modules/@zoroaster/shared/dist/profile.js.
+Error: An error occurred while trying to read the map file at profile.js.map
+Error: ENOENT: no such file or directory, open '/app/packages/ui/node_modules/@zoroaster/shared/dist/profile.js.map'
+    at async open (node:internal/fs/promises:639:25)
+    at async Object.readFile (node:internal/fs/promises:1243:14)
+    at async extractSourcemapFromFile (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:21002:53)
+    at async loadAndTransform (file:///app/node_modules/vite/dist/node/chunks/dep-C6uTJdX2.js:51940:27)

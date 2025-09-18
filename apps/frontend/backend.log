@@ -1,0 +1,9 @@
+
+> backend@1.0.0 dev /app/apps/backend
+> nodemon server.js
+
+sh: 1: nodemon: not found
+/app/apps/backend:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  backend@1.0.0 dev: `nodemon server.js`
+spawn ENOENT
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?

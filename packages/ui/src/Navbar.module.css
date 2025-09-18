@@ -1,0 +1,211 @@
+/* Header Container */
+.zoroHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to right, var(--background), var(--card)); /* Use theme colors */
+  padding: 20px 40px;
+  font-family: 'Georgia', serif; /* Already handled by Tailwind config */
+  color: var(--foreground); /* Use theme color */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+/* Logo */
+.logo h1 {
+  font-size: 1.8em;
+  margin: 0;
+  color: var(--primary); /* Use theme color (gold) */
+}
+
+/* Navigation Menu */
+.navbar {
+  /* No background here, it's on the header */
+}
+
+.navMenu {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+  margin: 0;
+  padding: 0;
+}
+
+.navMenu li {
+  position: relative;
+}
+
+.navLink {
+  display: block;
+  padding: 10px 15px;
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.navLink:hover {
+  background: var(--muted); /* Use theme color */
+  border-radius: 5px;
+}
+
+/* Dropdown Menu */
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #2e2e2e !important;
+  min-width: 180px;
+  overflow: hidden;
+  
+  max-height: 0;           /* Start collapsed */
+  opacity: 0;              /* Invisible initially */
+  transition: max-height 0.4s ease, opacity 0.4s ease;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  z-index: 999;
+
+  /* Enhanced shadow */
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.4);
+  background-clip: padding-box;
+}
+
+.dropdownMenuItem {
+  display: block;
+  padding: 12px 16px;
+  color: var(--foreground);
+  text-decoration: none;
+}
+
+.dropdownMenuItem:hover {
+  background: var(--muted);
+}
+
+.dropdown:hover .dropdownMenu {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .zoroHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .headerControls {
+    margin-top: 10px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .navMenu {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .navMenu .navLink {
+    padding: 10px;
+  }
+}
+
+/* Header Controls */
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Spacing between search and toggle */
+}
+
+/* Search Bar */
+.searchForm {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Added border for visibility */
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.searchForm input {
+  border: none;
+  outline: none;
+  padding: 6px 10px;
+  background: transparent;
+  color: inherit;
+}
+
+.searchForm button {
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+/* New Theme Toggle Styles */
+:root {
+  --toggle-bg: transparent;     /* container background */
+  --toggle-hover: rgba(255,255,255,0.08);
+  --toggle-ring: rgba(255,255,255,0.35);
+}
+
+/* The html[data-theme] selectors are crucial for the animation */
+/* These should ideally be in a global CSS file or handled by the theme provider */
+/* For now, I will put them here, but note that they apply globally */
+html[data-theme="light"] {
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Button container */
+.themeToggle { /* Changed from .theme-toggle */
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--toggle-bg);
+  color: currentColor;         /* icons follow text color */
+  cursor: pointer;
+  position: relative;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.themeToggle:hover { background: var(--toggle-hover); }
+.themeToggle:focus-visible {
+  outline: 2px solid var(--toggle-ring);
+  outline-offset: 2px;
+}
+
+/* Icons share the same spot; we crossfade + rotate */
+.icon { /* Changed from .theme-toggle .icon */
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  opacity: 0;
+  transform: rotate(-15deg) scale(0.9);
+  transition: opacity 220ms ease, transform 240ms ease;
+  pointer-events: none;
+}
+
+/* Show sun in light mode */
+html[data-theme="light"] .iconSun { /* Changed from .theme-toggle .icon-sun */
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Show moon in dark mode */
+html[data-theme="dark"] .iconMoon { /* Changed from .theme-toggle .icon-moon */
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .themeToggle, .icon { transition: none; } /* Changed from .theme-toggle, .theme-toggle .icon */
+}

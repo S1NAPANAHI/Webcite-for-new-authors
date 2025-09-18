@@ -1,0 +1,27 @@
+# Ignore development files
+**/node_modules
+**/.git
+**/.gitignore
+**/.DS_Store
+**/build
+**/.next
+**/out
+**/.vercel
+**/.vscode
+**/*.log
+**/coverage
+**/temp
+**/tmp
+**/test
+**/tests
+**/__tests__
+**/*.test.*
+**/*.spec.*
+**/cypress
+**/e2e
+**/docs
+**/examples
+**/config
+
+# Ignore scripts directory (no longer needed for deployment)
+scripts/*

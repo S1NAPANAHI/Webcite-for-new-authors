@@ -1,0 +1,38 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["es2020", "dom", "dom.iterable"],
+    "module": "esnext",
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "jsx": "react-jsx",
+    "strict": false,
+    "strictNullChecks": false,
+    "exactOptionalPropertyTypes": false,
+    "strictPropertyInitialization": false,
+    "noImplicitAny": false,
+    "composite": true,
+    "noEmit": false,
+    "incremental": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@zoroaster/shared/*": ["./src/*"]
+    },
+    "typeRoots": [
+      "../../node_modules/@types",
+      "./src/types"
+    ],
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
+}

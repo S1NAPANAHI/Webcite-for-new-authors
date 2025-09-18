@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@zoroaster/ui": ["../../packages/ui/src"],
+      "@zoroaster/shared": ["../../packages/shared/dist"],
+      "@zoroaster/shared/*": ["../../packages/shared/dist/*"],
+      "@/*": ["src/*"]
+    },
+    "moduleResolution": "bundler"
+  },
+  "references": [
+    { "path": "../../packages/shared" },
+    { "path": "../../packages/ui" }
+  ],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

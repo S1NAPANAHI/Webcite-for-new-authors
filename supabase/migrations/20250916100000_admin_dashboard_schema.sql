@@ -1,0 +1,21 @@
+
+
+-- Content tables
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- Analytics events
+

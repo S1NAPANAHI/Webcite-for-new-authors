@@ -1,0 +1,73 @@
+{
+  "name": "@zoroaster/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./supabaseAdminClient.js": {
+      "import": "./dist/supabaseAdminClient.js",
+      "require": "./dist/supabaseAdminClient.js"
+    },
+    "./business/middleware/errorHandler.js": {
+      "import": "./dist/business/middleware/errorHandler.js",
+      "require": "./dist/business/middleware/errorHandler.js"
+    },
+    "./routes/products.js": {
+      "import": "./dist/routes/products.js",
+      "require": "./dist/routes/products.js"
+    },
+    "./routes/products.enhanced.js": {
+      "import": "./dist/routes/products.enhanced.js",
+      "require": "./dist/routes/products.enhanced.js"
+    },
+    "./services/content": {
+      "import": "./dist/services/content.js"
+    },
+    "./services/admin": {
+      "import": "./dist/services/admin.js"
+    },
+    "./hooks/useAuth": {
+      "import": "./dist/hooks/useAuth.js"
+    },
+    "./hooks/useLibrary": {
+      "import": "./dist/hooks/useLibrary.js"
+    },
+    "./lib/supabase": {
+      "import": "./dist/lib/supabase.js"
+    },
+    "./database.types": {
+      "import": "./dist/database.types.js"
+    }
+  },
+  "scripts": {
+    "generate-types": "supabase gen types typescript --project-id opukvvmumyegtkukqint > src/database.types.ts",
+    "build": "tsc -p tsconfig.json",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.55.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.3.0",
+    "uuid": "^10.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.12",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/uuid": "^9.0.8",
+    "@types/express": "^4.17.21"
+  }
+}

@@ -1,0 +1,726 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
+import { Label } from './components/ui/label';
+import { Textarea } from './components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Badge } from './components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
+import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from './components/ui/alert-dialog';
+import {
+  Loader2,
+  Plus,
+  Minus,
+  Search,
+  Filter,
+  Download,
+  Upload,
+  Package,
+  AlertTriangle,
+  CheckCircle,
+  RefreshCw,
+  History,
+  TrendingUp,
+  TrendingDown,
+  Boxes,
+  FileText,
+  Calendar,
+} from 'lucide-react';
+
+interface InventoryItem {
+  id: string;
+  product_id: string;
+  variant_id?: string;
+  quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  low_stock_threshold: number;
+  product_name: string;
+  variant_name?: string;
+  category?: string;
+  updated_at: string;
+}
+
+interface InventoryMovement {
+  id: string;
+  product_id: string;
+  variant_id?: string;
+  movement_type: 'in' | 'out' | 'adjustment';
+  quantity: number;
+  reference_type?: string;
+  reference_id?: string;
+  notes?: string;
+  created_at: string;
+  product_name: string;
+  variant_name?: string;
+}
+
+interface StockAlert {
+  id: string;
+  product_id: string;
+  variant_id?: string;
+  alert_type: 'low_stock' | 'out_of_stock';
+  threshold: number;
+  current_quantity: number;
+  product_name: string;
+  variant_name?: string;
+  created_at: string;
+}
+
+export const InventoryManager: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [movements, setMovements] = useState<InventoryMovement[]>([]);
+  const [alerts, setAlerts] = useState<StockAlert[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [isAdjustmentOpen, setIsAdjustmentOpen] = useState(false);
+
+  const fetchInventoryData = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch inventory levels
+      const inventoryResponse = await fetch('/api/admin/inventory');
+      const inventoryData = await inventoryResponse.json();
+      setInventory(inventoryData.inventory || []);
+
+      // Fetch recent movements
+      const movementsResponse = await fetch('/api/admin/inventory/movements?limit=50');
+      const movementsData = await movementsResponse.json();
+      setMovements(movementsData.movements || []);
+
+      // Fetch stock alerts
+      const alertsResponse = await fetch('/api/admin/inventory/alerts');
+      const alertsData = await alertsResponse.json();
+      setAlerts(alertsData.alerts || []);
+
+    } catch (error) {
+      console.error('Error fetching inventory data:', error);
+      toast.error('Failed to load inventory data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventoryData();
+  }, []);
+
+  const handleAdjustment = async (data: {
+    product_id: string;
+    variant_id?: string;
+    quantity: number;
+    type: 'set' | 'add' | 'subtract';
+    notes?: string;
+  }) => {
+    try {
+      const response = await fetch('/api/admin/inventory/adjust', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to adjust inventory');
+      }
+
+      toast.success('Inventory adjusted successfully');
+      setIsAdjustmentOpen(false);
+      setSelectedItem(null);
+      await fetchInventoryData();
+    } catch (error) {
+      console.error('Error adjusting inventory:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to adjust inventory');
+    }
+  };
+
+  const handleBulkAdjustment = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/admin/inventory/bulk-adjust', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to process bulk adjustment');
+      }
+
+      const result = await response.json();
+      toast.success(`Processed ${result.processed} inventory adjustments`);
+      await fetchInventoryData();
+    } catch (error) {
+      console.error('Error with bulk adjustment:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to process bulk adjustment');
+    }
+  };
+
+  const exportInventoryReport = async () => {
+    try {
+      const response = await fetch('/api/admin/inventory/export');
+      if (!response.ok) throw new Error('Export failed');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `inventory-report-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Inventory report exported successfully');
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      toast.error('Failed to export inventory report');
+    }
+  };
+
+  const openAdjustment = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setIsAdjustmentOpen(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading inventory data...</span>
+      </div>
+    );
+  }
+
+  const lowStockItems = inventory.filter(item => item.available_quantity <= item.low_stock_threshold);
+  const outOfStockItems = inventory.filter(item => item.available_quantity === 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Inventory Management</h2>
+          <p className="text-muted-foreground">
+            Track stock levels, manage inventory, and monitor alerts
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={exportInventoryReport}>
+            <Download className="mr-2 h-4 w-4" />
+            Export Report
+          </Button>
+          <Button onClick={fetchInventoryData} variant="outline">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <Boxes className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{inventory.length}</div>
+            <p className="text-xs text-muted-foreground">
+              SKUs in catalog
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{lowStockItems.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Need restocking
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{outOfStockItems.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Immediate action needed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Stock Value</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {inventory.reduce((acc, item) => acc + item.available_quantity, 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Units available
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="alerts">
+            Alerts
+            {alerts.length > 0 && (
+              <Badge className="ml-2 bg-red-500 text-white">{alerts.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="movements">Movement History</TabsTrigger>
+          <TabsTrigger value="adjustments">Bulk Adjustments</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <Card>
+            <CardHeader>
+              <CardTitle>Inventory Overview</CardTitle>
+              <CardDescription>
+                Current stock levels for all products and variants
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Available</TableHead>
+                    <TableHead>Reserved</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Threshold</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {inventory.map((item) => (
+                    <TableRow key={`${item.product_id}-${item.variant_id || 'base'}`}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{item.product_name}</div>
+                          {item.variant_name && (
+                            <div className="text-sm text-muted-foreground">{item.variant_name}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={
+                          item.available_quantity <= item.low_stock_threshold 
+                            ? 'text-red-600 font-bold' 
+                            : 'text-green-600'
+                        }>
+                          {item.available_quantity}
+                        </span>
+                      </TableCell>
+                      <TableCell>{item.reserved_quantity}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>{item.low_stock_threshold}</TableCell>
+                      <TableCell>
+                        {item.available_quantity === 0 ? (
+                          <Badge className="bg-red-100 text-red-800">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Out of Stock
+                          </Badge>
+                        ) : item.available_quantity <= item.low_stock_threshold ? (
+                          <Badge className="bg-orange-100 text-orange-800">
+                            <AlertTriangle className="h-3 w-3 mr-1" />
+                            Low Stock
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-green-100 text-green-800">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            In Stock
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAdjustment(item)}
+                        >
+                          Adjust
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="alerts">
+          <Card>
+            <CardHeader>
+              <CardTitle>Stock Alerts</CardTitle>
+              <CardDescription>
+                Items that need immediate attention
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {alerts.length === 0 ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                  <p className="text-lg font-medium">All stock levels are healthy</p>
+                  <p className="text-muted-foreground">No alerts at this time</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {alerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={`p-4 rounded-lg border ${
+                        alert.alert_type === 'out_of_stock' 
+                          ? 'border-red-200 bg-red-50' 
+                          : 'border-orange-200 bg-orange-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <AlertTriangle className={`h-5 w-5 mr-3 ${
+                            alert.alert_type === 'out_of_stock' ? 'text-red-500' : 'text-orange-500'
+                          }`} />
+                          <div>
+                            <p className="font-medium">
+                              {alert.product_name}
+                              {alert.variant_name && ` - ${alert.variant_name}`}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {alert.alert_type === 'out_of_stock' 
+                                ? 'Out of stock' 
+                                : `Low stock: ${alert.current_quantity} remaining (threshold: ${alert.threshold})`
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(alert.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="movements">
+          <Card>
+            <CardHeader>
+              <CardTitle>Inventory Movements</CardTitle>
+              <CardDescription>
+                Track all inventory changes and movements
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Reference</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {movements.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        No inventory movements found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    movements.map((movement) => (
+                      <TableRow key={movement.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{movement.product_name}</div>
+                            {movement.variant_name && (
+                              <div className="text-sm text-muted-foreground">{movement.variant_name}</div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={
+                            movement.movement_type === 'in' ? 'bg-green-100 text-green-800' :
+                            movement.movement_type === 'out' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }>
+                            {movement.movement_type === 'in' && <TrendingUp className="h-3 w-3 mr-1" />}
+                            {movement.movement_type === 'out' && <TrendingDown className="h-3 w-3 mr-1" />}
+                            {movement.movement_type === 'adjustment' && <RefreshCw className="h-3 w-3 mr-1" />}
+                            {movement.movement_type.charAt(0).toUpperCase() + movement.movement_type.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className={
+                            movement.movement_type === 'in' ? 'text-green-600' :
+                            movement.movement_type === 'out' ? 'text-red-600' :
+                            'text-blue-600'
+                          }>
+                            {movement.movement_type === 'in' ? '+' : movement.movement_type === 'out' ? '-' : '±'}
+                            {movement.quantity}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {movement.reference_type && (
+                            <div className="text-sm">
+                              <div>{movement.reference_type}</div>
+                              {movement.reference_id && (
+                                <div className="text-xs text-muted-foreground font-mono">
+                                  {movement.reference_id}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-xs truncate text-sm">
+                            {movement.notes || '-'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {new Date(movement.created_at).toLocaleString()}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="adjustments">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Manual Adjustment</CardTitle>
+                <CardDescription>
+                  Adjust individual product stock levels
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center py-8 text-muted-foreground">
+                  Select an item from the Overview tab to make adjustments
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Bulk Adjustments</CardTitle>
+                <CardDescription>
+                  Upload a CSV file to make bulk inventory adjustments
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="bulk-file">CSV File</Label>
+                    <Input
+                      id="bulk-file"
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleBulkAdjustment(file);
+                      }}
+                    />
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    <p>CSV format: product_id, variant_id (optional), quantity, type (set/add/subtract), notes</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Inventory Adjustment Dialog */}
+      <Dialog open={isAdjustmentOpen} onOpenChange={setIsAdjustmentOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Adjust Inventory</DialogTitle>
+          </DialogHeader>
+          {selectedItem && (
+            <InventoryAdjustmentForm
+              item={selectedItem}
+              onSave={handleAdjustment}
+              onCancel={() => {
+                setIsAdjustmentOpen(false);
+                setSelectedItem(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+// Inventory Adjustment Form
+interface InventoryAdjustmentFormProps {
+  item: InventoryItem;
+  onSave: (data: {
+    product_id: string;
+    variant_id?: string;
+    quantity: number;
+    type: 'set' | 'add' | 'subtract';
+    notes?: string;
+  }) => void;
+  onCancel: () => void;
+}
+
+const InventoryAdjustmentForm: React.FC<InventoryAdjustmentFormProps> = ({
+  item,
+  onSave,
+  onCancel,
+}) => {
+  const [adjustmentType, setAdjustmentType] = useState<'set' | 'add' | 'subtract'>('add');
+  const [quantity, setQuantity] = useState(0);
+  const [notes, setNotes] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (quantity <= 0) {
+      toast.error('Quantity must be greater than 0');
+      return;
+    }
+
+    onSave({
+      product_id: item.product_id,
+      variant_id: item.variant_id,
+      quantity,
+      type: adjustmentType,
+      notes,
+    });
+  };
+
+  const calculateNewQuantity = () => {
+    switch (adjustmentType) {
+      case 'set':
+        return quantity;
+      case 'add':
+        return item.available_quantity + quantity;
+      case 'subtract':
+        return Math.max(0, item.available_quantity - quantity);
+      default:
+        return item.available_quantity;
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="font-medium">
+          {item.product_name}
+          {item.variant_name && ` - ${item.variant_name}`}
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Current available quantity: {item.available_quantity}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Adjustment Type</Label>
+          <Select
+            value={adjustmentType}
+            onValueChange={(value: 'set' | 'add' | 'subtract') => setAdjustmentType(value)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="add">Add Stock</SelectItem>
+              <SelectItem value="subtract">Remove Stock</SelectItem>
+              <SelectItem value="set">Set Exact Amount</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Quantity</Label>
+          <Input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label>Notes (Optional)</Label>
+        <Textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Reason for adjustment, supplier info, etc."
+          rows={3}
+        />
+      </div>
+
+      <div className="p-4 bg-blue-50 rounded-lg">
+        <p className="text-sm">
+          <strong>New quantity will be:</strong> {calculateNewQuantity()} units
+        </p>
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">
+          Apply Adjustment
+        </Button>
+      </div>
+    </form>
+  );
+};

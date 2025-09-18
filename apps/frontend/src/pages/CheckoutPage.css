@@ -1,0 +1,137 @@
+/* Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #3b0066, #000, #6a0dad, #d4af37, #c0c0c0);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #fff;
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Card Container */
+.checkout-card {
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 0 25px rgba(212, 175, 55, 0.5);
+    backdrop-filter: blur(6px);
+}
+
+/* Progress */
+.progress {
+    height: 6px;
+    background: #444;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+.progress-bar {
+    height: 100%;
+    width: 33%;
+    background: linear-gradient(90deg, gold, purple);
+    animation: shimmer 2s infinite linear;
+}
+@keyframes shimmer {
+    0% { background-position: -100px; }
+    100% { background-position: 200px; }
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    background: linear-gradient(to right, gold, silver);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Form Fields */
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: silver;
+}
+input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid silver;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+input:focus {
+    outline: none;
+    border-color: gold;
+    box-shadow: 0 0 8px gold;
+}
+
+/* Order Summary */
+.order-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(192, 192, 192, 0.4);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.order-summary img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.order-summary span {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Pay Button */
+.pay-btn {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(90deg, gold, purple);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.3s;
+}
+.pay-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px gold;
+}
+
+/* Trust Text */
+.trust {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    text-align: center;
+    color: silver;
+}
+.trust i {
+    margin-right: 0.25rem;
+    color: gold;
+}

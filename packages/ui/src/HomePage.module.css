@@ -1,0 +1,377 @@
+.zrHero {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: clamp(24px, 4vw, 48px);
+  padding: clamp(28px, 6vw, 64px) clamp(18px, 5vw, 56px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* New Parchment Card Style */
+.parchmentCard {
+  position: relative;
+  background: var(--bg-accent); /* Use theme background for cards */
+  border: 1px solid var(--border); /* Use theme border */
+  padding: 1.5rem; /* Increased padding */
+  box-shadow: var(--shadow-md); /* Use a custom property for shadow */
+  font-family: 'Georgia', serif;
+  color: var(--ink); /* Use theme text color */
+  border-radius: var(--radius-lg); /* Use theme border-radius */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.parchmentCard:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Folded corner effect */
+.parchmentCard::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-width: 0 40px 40px 0; /* Controls the size of the fold */
+  border-style: solid;
+  border-color: #fff #fff transparent transparent; /* Creates the triangle shape */
+  background: linear-gradient(135deg, #fefaf0, #e6dbc8); /* Gradient for the fold itself */
+  box-shadow: -2px 2px 4px rgba(0,0,0,0.15); /* Shadow for the fold */
+  border-bottom-left-radius: 4px; /* Softens the inner corner of the fold */
+}
+
+.parchmentCard h3 {
+    color: #4a4031;
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+}
+
+.parchmentCard p {
+    color: #5c5248;
+}
+
+.parchmentCard a {
+    color: #8b5e0a;
+    text-decoration: none;
+    font-weight: bold;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.parchmentCard a:hover {
+    border-color: #8b5e0a;
+}
+
+
+@media (max-width: 900px) {
+  .zrHero { grid-template-columns: 1fr; }
+}
+
+.zrHeroContent {
+  max-width: 680px;
+}
+
+.zrTitle {
+  font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-size: clamp(2rem, 5.5vw, 3.4rem);
+  line-height: 1.1;
+  margin: 4px 0 12px;
+  background: linear-gradient(90deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 24px rgba(245, 208, 122, 0.15);
+}
+
+.zrQuote {
+  margin: 0 0 16px;
+  color: var(--ink-dim);
+  font-style: italic;
+  font-size: clamp(1rem, 2.4vw, 1.25rem);
+  border-left: 3px solid var(--gold-2);
+  padding-left: 12px;
+}
+
+.zrIntro {
+  margin: 0 0 20px;
+  color: var(--ink);
+  font-size: clamp(1rem, 2.2vw, 1.1rem);
+  line-height: 1.6;
+  opacity: 0.95;
+}
+
+.zrCta {
+  display: inline-block;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: #111;
+  background: linear-gradient(90deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3));
+  border: 1px solid #7f5b20;
+  box-shadow: 0 8px 24px rgba(245, 208, 122, 0.18), inset 0 0 0 1px rgba(255,255,255,0.2);
+  transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+}
+
+.zrCta:hover { transform: translateY(-1px); filter: brightness(1.02); }
+.zrCta:active { transform: translateY(0); }
+.zrCta:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+.zrHeroArt {
+  display: grid;
+  place-items: center;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  min-height: 280px;
+  background: var(--bg-accent); /* Use theme background for hero art */
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), inset 0 0 50px rgba(255, 223, 128, 0.04);
+}
+
+.zrFire {
+  position: absolute;
+  bottom: 4%;
+  width: 38%;
+  max-width: 220px;
+  filter: drop-shadow(0 0 22px rgba(255, 180, 60, 0.35));
+  animation: float 5s ease-in-out infinite;
+}
+
+.fireWrapper {
+    position: absolute;
+    bottom: -50px; /* Adjusted for new size */
+    left: 50%;
+    width: 300px; /* Increased size */
+    height: 300px; /* Increased size */
+    transform: translateX(-50%);
+    border-radius: 100%;
+    overflow: hidden;
+}
+
+.videoFire {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* mix-blend-mode: screen; Removed to prevent issues in light mode */
+    filter: drop-shadow(0 0 15px rgba(255, 180, 60, 0.5));
+}
+
+/* Prophecy Scroller Styles */
+.prophecyMask {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%; /* Increased width */
+  max-width: 900px; /* Increased max-width */
+  height: 150px; /* Increased height */
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+}
+
+.prophecyReel {
+  display: flex;
+  flex-direction: column;
+  transition: transform 1.5s cubic-bezier(0.25, 1, 0.5, 1); /* Shorter transition for readability */
+}
+
+.prophecyReelSpinning {
+  filter: blur(2px);
+}
+
+.prophecyItem {
+    height: 150px; /* Match mask height */
+    display: flex;
+    justify-content: center; /* Center the single span vertically */
+    align-items: center; /* Center the single span horizontally */
+    font-size: 1.2rem; /* Increased font size for English */
+    color: var(--gold-1);
+    text-shadow: 0 0 10px var(--focus);
+}
+
+.englishText {
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: inherit;
+}
+
+/* Spins indicator styles */
+.spinsIndicator {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.spinDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.spinDotActive {
+    background: var(--gold-1);
+    border-color: var(--gold-2);
+    box-shadow: 0 0 10px rgba(245, 208, 122, 0.6);
+}
+
+/* Section styles */
+.zrSection {
+    padding: clamp(40px, 8vw, 80px) clamp(20px, 5vw, 60px);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.zrH2 {
+    font-family: "Cinzel", ui-serif, Georgia, "Times New Roman", serif;
+    font-weight: 700;
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+    text-align: center;
+    margin-bottom: clamp(24px, 4vw, 40px);
+    background: linear-gradient(90deg, var(--gold-1), var(--gold-2) 60%, var(--gold-3));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(245, 208, 122, 0.15);
+    font-family: 'Cinzel', serif; /* Default for English */
+    padding: 0 10px; /* Add some padding */
+    text-align: center; /* Center English text */
+    word-break: break-word; /* Allow long words to break */
+}
+
+.englishText {
+    /* Styles applied directly to .prophecyItem now */
+}
+
+.prophecyResult {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  padding: 0 20px;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #fff7e6;
+  text-shadow: 0 0 8px var(--focus);
+  transition: opacity 0.5s ease-in-out;
+  opacity: 0;
+  pointer-events: none; /* Don't let it interfere with clicking the mask */
+}
+
+.prophecyVisible {
+    opacity: 1;
+}
+
+
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.zrFlame path:first-child {
+  animation: flicker 1.5s infinite ease-in-out;
+  transform-origin: 50% 90%;
+}
+.zrFlame path:last-child {
+  animation: flicker 2.2s infinite ease-in-out reverse;
+  transform-origin: 50% 92%;
+  filter: blur(0.2px);
+  mix-blend-mode: screen;
+}
+
+@keyframes flicker {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.96; }
+  25% { transform: scale(1.02) rotate(-0.6deg); opacity: 1; }
+  50% { transform: scale(0.99) rotate(0.4deg); opacity: 0.95; }
+  75% { transform: scale(1.01) rotate(-0.2deg); opacity: 0.98; }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.96; }
+}
+
+.zrSection {
+  padding: 40px clamp(18px, 5vw, 56px);
+  max-width: 1000px;
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+}
+
+.zrH2 {
+  margin: 0 0 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  font-size: 1.2rem;
+  color: var(--ink);
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.zrText {
+  margin: 0;
+  color: var(--ink-dim);
+  line-height: 1.65;
+}
+
+.srOnly {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.spinsIndicator {
+  position: absolute;
+  top: 15px; /* Adjust as needed */
+  right: 15px; /* Adjust as needed */
+  width: 40px; /* Adjust container width to fit triangle */
+  height: 40px; /* Adjust container height to fit triangle */
+  z-index: 10; /* Adjusted z-index */
+}
+
+.spinDot {
+  position: absolute; /* Position individual dots */
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 14px solid rgba(255, 255, 255, 0.3); /* Inactive color */
+  transition: border-bottom-color 0.3s ease;
+}
+
+/* Positioning for triangular arrangement */
+.spinDot:nth-child(1) { /* Top dot */
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.spinDot:nth-child(2) { /* Bottom-left dot */
+  top: 20px; /* Adjust vertical spacing */
+  left: 0;
+}
+
+.spinDot:nth-child(3) { /* Bottom-right dot */
+  top: 20px; /* Adjust vertical spacing */
+  right: 0;
+}
+
+.spinDotActive {
+  border-bottom-color: var(--gold-2); /* Active color */
+}

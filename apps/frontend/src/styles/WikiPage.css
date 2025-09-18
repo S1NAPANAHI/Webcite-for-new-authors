@@ -1,0 +1,272 @@
+/* WikiPage.css */
+
+.wiki-layout {
+    display: grid;
+    grid-template-columns: var(--left-sidebar-width, 300px) 1fr var(--right-sidebar-width, 300px); /* Default expanded sidebars */
+    gap: 20px;
+    min-height: calc(100vh - 80px); /* Adjust based on header/footer height */
+    padding: 20px;
+    max-width: 1600px; /* Increased max-width to accommodate wider sidebars */
+    margin: 0 auto;
+    position: relative; /* For positioning toggle buttons relative to this */
+}
+
+/* Left Sidebar */
+.wiki-left-sidebar {
+    background-color: rgba(30, 41, 59, 0.7); /* background.light with transparency */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(74, 74, 106, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    overflow-y: auto;
+    transition: all 0.3s ease; /* Transition for width and content */
+    position: sticky;
+    top: 20px; 
+    height: fit-content;
+    min-height: 100%;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+}
+
+.wiki-left-sidebar.collapsed {
+    width: 50px; /* Collapsed width for icons */
+    padding: 10px; /* Keep some padding for icons */
+    overflow: hidden;
+}
+
+.wiki-left-sidebar-content {
+    opacity: 1;
+    transition: opacity 0.2s ease 0.1s; /* Delay opacity for smoother transition */
+}
+
+.wiki-left-sidebar.collapsed .wiki-left-sidebar-content {
+    opacity: 0;
+}
+
+/* Right Sidebar */
+.wiki-right-sidebar {
+    background-color: rgba(30, 41, 59, 0.7); /* background.light with transparency */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(74, 74, 106, 0.3);
+    border-radius: 8px;
+    padding: 20px;
+    overflow-y: auto;
+    transition: all 0.3s ease;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+    min-height: 100%;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.3);
+}
+
+.wiki-right-sidebar.collapsed {
+    width: 50px; /* Collapsed width for icons, consistent with left */
+    padding: 10px; /* Keep some padding for icons */
+    overflow: hidden;
+}
+
+.wiki-right-sidebar-content {
+    opacity: 1;
+    transition: opacity 0.2s ease 0.1s;
+}
+
+.wiki-right-sidebar.collapsed .wiki-right-sidebar-content {
+    opacity: 0;
+}
+
+/* Main Content */
+.wiki-main-content {
+    background-color: rgba(30, 41, 59, 0.7); /* background.light with transparency */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(74, 74, 106, 0.3);
+    border-radius: 8px;
+    padding: 30px;
+    color: #e0e0e0; /* text.DEFAULT */
+}
+
+.wiki-page-title {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    color: #fbbf24; /* secondary.DEFAULT */
+    margin-bottom: 20px;
+    border-bottom: 2px solid rgba(251, 191, 36, 0.5);
+    padding-bottom: 10px;
+}
+
+.wiki-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: #fcd34d; /* secondary.light */
+    margin-top: 30px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(74, 74, 106, 0.3);
+    padding-bottom: 5px;
+}
+
+.wiki-text-content {
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.wiki-infobox {
+    float: right;
+    width: 300px;
+    background: rgba(30, 41, 59, 0.9); /* background.light with more transparency */
+    border: 1px solid rgba(74, 74, 106, 0.5);
+    border-radius: 4px;
+    margin: 0 0 20px 20px;
+    font-size: 0.9rem;
+    color: #e0e0e0; /* text.DEFAULT */
+}
+
+.wiki-infobox-title {
+    background: rgba(251, 191, 36, 0.5); /* secondary.DEFAULT with transparency */
+    padding: 10px;
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid rgba(74, 74, 106, 0.5);
+    color: #0a0507; /* background.DEFAULT for contrast */
+}
+
+.wiki-infobox-content {
+    padding: 15px;
+}
+
+.wiki-infobox-row {
+    margin-bottom: 8px;
+}
+
+.wiki-infobox-label {
+    font-weight: bold;
+    display: inline-block;
+    width: 80px;
+    color: #fcd34d; /* secondary.light */
+}
+
+/* Sidebar Navigation */
+.wiki-sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.wiki-sidebar-nav li a {
+    display: block;
+    padding: 8px 10px;
+    color: #e0e0e0; /* text.DEFAULT */
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wiki-sidebar-nav li a:hover {
+    background-color: rgba(251, 191, 36, 0.2); /* secondary.DEFAULT with transparency */
+    color: #fbbf24; /* secondary.DEFAULT */
+}
+
+.wiki-sidebar-nav li a.active {
+    background-color: rgba(251, 191, 36, 0.3); /* secondary.DEFAULT with more transparency */
+    color: #fbbf24; /* secondary.DEFAULT */
+}
+
+.wiki-sidebar-nav h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: #fbbf24; /* secondary.DEFAULT */
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(74, 74, 106, 0.3);
+    padding-bottom: 5px;
+}
+
+/* Collapsible Sidebar Toggle Buttons */
+.sidebar-toggle-button {
+    background-color: #fbbf24; /* secondary.DEFAULT */
+    color: #0a0507; /* background.DEFAULT */
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.5rem;
+    position: absolute; /* Position relative to .wiki-layout */
+    top: 50%;
+    transform: translateY(-50%);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    transition: background-color 0.2s, left 0.3s ease, right 0.3s ease;
+    z-index: 10;
+}
+
+.sidebar-toggle-button.left-toggle {
+    left: var(--left-sidebar-width, 300px); /* Position at the edge of the left sidebar */
+}
+
+.sidebar-toggle-button.right-toggle {
+    right: var(--right-sidebar-width, 300px); /* Position at the edge of the right sidebar */
+}
+
+.sidebar-toggle-button:hover {
+    background-color: #d97706; /* secondary.dark */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .wiki-layout {
+        grid-template-columns: 1fr; /* Stack on small screens */
+        padding: 10px;
+    }
+
+    .wiki-left-sidebar {
+        position: fixed;
+        top: 0;
+        left: var(--left-sidebar-offset, -300px); /* Control visibility with offset */
+        width: 300px; /* Fixed width for mobile sidebar */
+        height: 100vh;
+        border-radius: 0;
+        box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        z-index: 1000;
+    }
+
+    .wiki-left-sidebar.collapsed {
+        left: -300px;
+    }
+
+    .wiki-right-sidebar {
+        display: none; /* Hide right sidebar on mobile */
+    }
+
+    .left-toggle,
+    .right-toggle {
+        position: fixed; /* Fix buttons for mobile */
+        top: 20px;
+        transform: none;
+        z-index: 1001;
+    }
+
+    .left-toggle {
+        left: 20px;
+    }
+
+    .right-toggle {
+        right: 20px;
+    }
+
+    .wiki-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        display: none;
+    }
+
+    .wiki-overlay.active {
+        display: block;
+    }
+}

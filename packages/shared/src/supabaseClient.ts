@@ -1,0 +1,82 @@
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
+
+export type { Database };
+
+// Check if we're in the browser environment
+const isBrowser = typeof window !== 'undefined';
+
+const supabaseUrl = import.meta.env['VITE_SUPABASE_URL'];
+const supabaseAnonKey = import.meta.env['VITE_SUPABASE_ANON_KEY'];
+
+
+
+if (!supabaseUrl) {
+  throw new Error("VITE_SUPABASE_URL is not defined. Please check your .env file and restart the server.");
+}
+if (!supabaseAnonKey) {
+  throw new Error("VITE_SUPABASE_ANON_KEY is not defined. Please check your .env file and restart the server.");
+}
+
+// Global variable to hold the Supabase client instance
+let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+
+/**
+ * Get or create the Supabase client instance
+ * Ensures only one instance is created
+ */
+const getSupabase = () => {
+  // Use a global variable to ensure a single instance across hot reloads and multiple module evaluations
+  if (typeof window !== 'undefined' && (window as any).__SUPABASE_CLIENT_INSTANCE__) {
+    return (window as any).__SUPABASE_CLIENT_INSTANCE__;
+  }
+
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  // This check will now pass if hardcoded values are valid
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase URL and Anon Key are required');
+  }
+
+  // Create a new instance with proper typing and configuration
+  const newInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: isBrowser,
+      storage: isBrowser ? window.localStorage : undefined,
+    },
+    // global: {
+    //   // Get the latest record instead of from local cache
+    //   fetch: (url, options) => {
+    //     const actualOptions = options || {};
+    //     const { headers = {}, ...restOptions } = actualOptions;
+    //     return fetch(url, {
+    //       ...restOptions,
+    //       headers: {
+    //         ...headers,
+    //         'Cache-Control': 'no-cache',
+    //       },
+    //     });
+    //   },
+    // }
+  });
+
+  supabaseInstance = newInstance;
+  if (typeof window !== 'undefined') {
+    (window as any).__SUPABASE_CLIENT_INSTANCE__ = newInstance;
+  }
+
+  
+
+  return supabaseInstance;
+};
+
+// Export the singleton instance
+export const supabase = getSupabase();
+
+
+
+export default supabase;

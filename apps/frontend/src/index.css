@@ -1,0 +1,266 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Noto+Sans+Avestan&family=Open+Sans:wght@300;400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Keep existing custom styles for now, can be refactored later */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  font-family: 'Cinzel', serif;
+  color: var(--gold-2);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.prose blockquote {
+  background: rgba(245, 208, 122, 0.1);
+  border-left: 4px solid var(--gold-2);
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 10px 10px 0;
+  font-style: italic;
+  color: var(--ink-dim);
+}
+
+.prose a {
+  color: var(--gold-1);
+  text-decoration: underline;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, var(--gold-2) 0%, var(--gold-1) 50%, #4a4a6a 50%, #4a4a6a 100%);
+  outline: none;
+  border-radius: 8px;
+  height: 8px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-1);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--gold-1);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 37, 57, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--gold-3), var(--gold-2));
+}
+
+input:focus,
+select:focus,
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus);
+}
+
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-effect {
+  background: rgba(15, 37, 57, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+}
+
+/* New gradient background classes for LearnAdmin */
+.bg-gradient-authors-journey {
+  background: linear-gradient(to right, #4a0e0e, #8b0000); /* Dark red to red */
+}
+
+.bg-gradient-educational-resources {
+  background: linear-gradient(to right, #0e4a0e, #008b00); /* Dark green to green */
+}
+
+.bg-gradient-professional-services {
+  background: linear-gradient(to right, #0e0e4a, #00008b); /* Dark blue to blue */
+}
+
+/* New glass effect with silver background */
+.glass-effect-silver {
+  background: rgba(192, 192, 192, 0.7); /* Silver with transparency */
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+}
+
+.product-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up { animation: fadeInUp 0.6s ease-out; }
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-accent) 25%, #2c4a6e 50%, var(--bg-accent) 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Spoiler text styling */
+.spoiler {
+  background-color: black; /* Hide text by making background and text color the same */
+  color: black;
+  transition: all 0.3s ease; /* Smooth transition for reveal */
+}
+
+.spoiler:hover {
+  background-color: transparent; /* Reveal text on hover */
+  color: inherit; /* Inherit original text color */
+}
+
+.line-clamp-2, .line-clamp-3, .line-clamp-4 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-2 { -webkit-line-clamp: 2; }
+.line-clamp-3 { -webkit-line-clamp: 3; }
+.line-clamp-4 { -webkit-line-clamp: 4; }
+
+@layer base {
+  :root {
+    /* Light Theme Colors */
+    --bg: #ffffff; /* White */
+    --bg-accent: #ffffff; /* White for cards/surfaces */
+    --gold-1: #8b5a2b;   /* Warm brown */
+    --gold-2: #6b4e3c;   /* Darker brown */
+    --gold-3: #d4a76a;    /* Gold accent */
+    --ink: #000000;      /* Black for text */
+    --ink-dim: #8a8a8a;  /* Muted text */
+    --line: rgba(0, 0, 0, 0.12); /* Light line */
+    --focus: #d4a76a; /* Gold accent for focus */
+
+    --background: 0 0% 100%; /* Converted from #ffffff */
+    --foreground: 0 0% 0%; /* Converted from #000000 */
+    --card: 0 0% 100%; /* Converted from #ffffff */
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 29 55% 35%; /* Converted from #8b5a2b */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 25 28% 32%; /* Converted from #6b4e3c */
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 14% 22%;
+    --muted-foreground: 220 14% 54%; /* Converted from #8a8a8a */
+    --accent: 35 50% 62%; /* Converted from #d4a76a */
+    --accent-foreground: 220 14% 22%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 14% 88%; /* Converted from rgba(0,0,0,0.12) */
+    --input: 220 14% 88%;
+    --ring: 35 50% 62%;
+    --radius: 0.5rem;
+    --radius-lg: 0.5rem; /* For rounded-lg */
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06); /* Soft shadow */
+
+    --background-rgb: 255, 255, 255;
+    --foreground-rgb: 0, 0, 0;
+    --card-rgb: 255, 255, 255;
+    --primary-rgb: 139, 90, 43;
+    --destructive-rgb: 220, 53, 69;
+  }
+
+  .dark {
+    /* Dark Theme Colors (updated for gray background/cards and white text) */
+    --bg: #121212; /* Very dark gray for background */
+    --bg-accent: #1e1e1e; /* Slightly lighter gray for accents */
+    --gold-1: #f5d07a;
+    --gold-2: #d4a64a;
+    --gold-3: #b8852a;
+    --ink: #ffffff; /* Pure white for text */
+    --ink-dim: #c6d0de; /* Muted text, can be adjusted if needed */
+    --line: rgba(255, 255, 255, 0.12);
+    --focus: #ffd36b;
+
+    --background: 0 0% 7%; /* HSL for #121212 */
+    --foreground: 0 0% 100%; /* HSL for #ffffff */
+    --card: 0 0% 11%; /* HSL for #1e1e1e */
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 45 89% 72%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 222 65% 14%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 65% 14%;
+    --muted-foreground: 0 0% 80%; /* Slightly darker white for muted text */
+    --accent: 222 65% 14%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 0 0% 25%; /* Darker border */
+    --input: 0 0% 25%;
+    --ring: 45 89% 72%;
+    --radius-lg: 0.5rem; /* For rounded-lg */
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2); /* Darker shadow for dark mode */
+
+    --background-rgb: 18, 18, 18;
+    --foreground-rgb: 255, 255, 255;
+    --card-rgb: 30, 30, 30;
+    --primary-rgb: 245, 208, 122;
+    --destructive-rgb: 122, 31, 31;
+  }
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
+      Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    color: var(--ink);
+    background: var(--background); /* Use theme background */
+    background-attachment: fixed;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Added transition */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Added transition */
+  }
+}

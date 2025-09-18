@@ -99,6 +99,7 @@ const CheckoutForm: React.FC = () => {
     event.preventDefault();
 
     if (!stripe || !elements || !plan || !priceId) {
+      setError('Payment system not ready. Please try again.');
       return;
     }
 
@@ -106,11 +107,15 @@ const CheckoutForm: React.FC = () => {
     setError(null);
 
     try {
+      console.log('Starting payment process...');
+      
       const cardNumberElement = elements.getElement(CardNumberElement);
       if (!cardNumberElement) {
         throw new Error('Card number element not found');
       }
 
+      console.log('Creating payment method...');
+      
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardNumberElement,
@@ -121,22 +126,37 @@ const CheckoutForm: React.FC = () => {
       });
 
       if (paymentMethodError) {
+        console.error('Payment method creation failed:', paymentMethodError);
         setError(paymentMethodError.message || 'Failed to create payment method.');
         setProcessing(false);
         return;
       }
 
+      console.log('Payment method created:', paymentMethod.id);
+
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       if (authError || !session) {
-        throw new Error('User not authenticated.');
+        console.error('Authentication error:', authError);
+        throw new Error('User not authenticated. Please log in and try again.');
       }
 
+      console.log('User authenticated, creating subscription...');
+
       // Create subscription using your backend API
-      const response = await fetch('/api/stripe/create-subscription', {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const requestUrl = `${apiUrl}/api/stripe/create-subscription`;
+      
+      console.log('Making API request to:', requestUrl);
+      console.log('Request payload:', {
+        paymentMethodId: paymentMethod.id,
+        priceId: priceId,
+      });
+
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
           paymentMethodId: paymentMethod.id,
@@ -144,17 +164,52 @@ const CheckoutForm: React.FC = () => {
         }),
       });
 
-      const subscriptionData = await response.json();
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
 
-      if (!response.ok) {
-        throw new Error(subscriptionData.error || 'Failed to create subscription.');
+      // Check if response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('Non-JSON response received:', textResponse);
+        throw new Error(`Server returned non-JSON response: ${textResponse || 'Empty response'}`);
       }
 
-      // Handle successful subscription
+      let subscriptionData;
+      try {
+        const responseText = await response.text();
+        console.log('Raw response text:', responseText);
+        
+        if (!responseText) {
+          throw new Error('Empty response from server');
+        }
+        
+        subscriptionData = JSON.parse(responseText);
+        console.log('Parsed subscription data:', subscriptionData);
+      } catch (parseError) {
+        console.error('JSON parsing error:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+
+      if (!response.ok) {
+        console.error('API error response:', subscriptionData);
+        throw new Error(subscriptionData.error || `Server error: ${response.status}`);
+      }
+
+      // Check if subscription was created successfully
+      if (!subscriptionData.success && !subscriptionData.subscriptionId) {
+        console.error('Subscription creation failed:', subscriptionData);
+        throw new Error('Subscription creation failed');
+      }
+
+      console.log('Subscription created successfully:', subscriptionData.subscriptionId);
+      
+      // Redirect to success page
       window.location.href = '/subscription-success';
 
     } catch (err: any) {
-      setError(err.message);
+      console.error('Payment error:', err);
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -185,10 +240,17 @@ const CheckoutForm: React.FC = () => {
           .single();
 
         if (profileError) {
-          throw new Error(profileError.message);
+          console.warn('Profile fetch error (using fallback):', profileError);
+          // Use user email as fallback
+          setUserProfile({
+            full_name: user.user_metadata?.full_name || '',
+            email: user.email || ''
+          });
+          setCardData(prev => ({ ...prev, name: user.user_metadata?.full_name || '' }));
+        } else {
+          setUserProfile(profileData);
+          setCardData(prev => ({ ...prev, name: profileData.full_name || '' }));
         }
-        setUserProfile(profileData);
-        setCardData(prev => ({ ...prev, name: profileData.full_name || '' }));
 
         // Mock plans - replace with actual API call
         const mockPlans: SubscriptionPlan[] = [
@@ -218,6 +280,7 @@ const CheckoutForm: React.FC = () => {
           setError('Subscription plan not found.');
         }
       } catch (err: any) {
+        console.error('Checkout data fetch error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -242,10 +305,13 @@ const CheckoutForm: React.FC = () => {
     return (
       <div className="wrapper">
         <div className="error-container">
-          <h2>Error</h2>
+          <h2>Checkout Error</h2>
           <p>{error}</p>
           <button 
-            onClick={() => window.location.href = '/subscriptions'}
+            onClick={() => {
+              setError(null);
+              window.location.href = '/subscriptions';
+            }}
             className="card-form__button"
             style={{ maxWidth: '200px', marginTop: '20px' }}
           >
@@ -396,7 +462,7 @@ const CheckoutForm: React.FC = () => {
               marginBottom: '20px',
               border: '1px solid #fab1a0'
             }}>
-              {error}
+              <strong>Payment Error:</strong> {error}
             </div>
           )}
 
@@ -420,6 +486,9 @@ const CheckoutForm: React.FC = () => {
                           color: '#aab7c4',
                         },
                       },
+                      invalid: {
+                        color: '#fa755a',
+                      },
                     },
                   }}
                 />
@@ -437,6 +506,7 @@ const CheckoutForm: React.FC = () => {
                 onFocus={() => setFocusedField('cardName')}
                 onBlur={() => setFocusedField(null)}
                 placeholder="Full Name"
+                required
               />
             </div>
 
@@ -465,6 +535,9 @@ const CheckoutForm: React.FC = () => {
                             '::placeholder': {
                               color: '#aab7c4',
                             },
+                          },
+                          invalid: {
+                            color: '#fa755a',
                           },
                         },
                       }}
@@ -502,6 +575,9 @@ const CheckoutForm: React.FC = () => {
                               color: '#aab7c4',
                             },
                           },
+                          invalid: {
+                            color: '#fa755a',
+                          },
                         },
                       }}
                     />
@@ -526,7 +602,14 @@ const CheckoutForm: React.FC = () => {
             </div>
 
             <button className="card-form__button" type="submit" disabled={!stripe || !elements || processing}>
-              {processing ? 'Processing...' : `Complete Payment • $${total.toFixed(2)}`}
+              {processing ? (
+                <span>
+                  <div className="button-spinner"></div>
+                  Processing Payment...
+                </span>
+              ) : (
+                `Complete Payment • $${total.toFixed(2)}`
+              )}
             </button>
           </form>
 

@@ -6,7 +6,7 @@
   "outputDirectory": "apps/frontend/dist",
   "functions": {
     "apps/frontend/api/**/*.ts": {
-      "runtime": "nodejs20.x"
+      "maxDuration": 30
     }
   },
   "rewrites": [

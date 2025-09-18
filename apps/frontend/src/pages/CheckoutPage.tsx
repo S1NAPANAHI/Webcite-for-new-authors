@@ -74,6 +74,7 @@ const CheckoutForm: React.FC = () => {
   };
 
   const maskCardNumber = (number: string) => {
+    if (!number) return '#### #### #### ####';
     const cardType = getCardType(number);
     if (cardType === 'amex') {
       return number.split('').map((char, index) => {
@@ -87,9 +88,11 @@ const CheckoutForm: React.FC = () => {
     }).join('');
   };
 
-  const handleCardNumberChange = (value: string) => {
-    const formatted = formatCardNumber(value);
-    setCardData(prev => ({ ...prev, number: formatted }));
+  const handleCardNumberChange = (event: any) => {
+    if (event.complete && event.value) {
+      const formatted = formatCardNumber(event.value);
+      setCardData(prev => ({ ...prev, number: formatted }));
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -100,6 +103,7 @@ const CheckoutForm: React.FC = () => {
     }
 
     setProcessing(true);
+    setError(null);
 
     try {
       const cardNumberElement = elements.getElement(CardNumberElement);
@@ -110,6 +114,10 @@ const CheckoutForm: React.FC = () => {
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardNumberElement,
+        billing_details: {
+          name: cardData.name || userProfile?.full_name || '',
+          email: userProfile?.email || '',
+        },
       });
 
       if (paymentMethodError) {
@@ -123,6 +131,7 @@ const CheckoutForm: React.FC = () => {
         throw new Error('User not authenticated.');
       }
 
+      // Create subscription using your backend API
       const response = await fetch('/api/stripe/create-subscription', {
         method: 'POST',
         headers: {
@@ -141,6 +150,7 @@ const CheckoutForm: React.FC = () => {
         throw new Error(subscriptionData.error || 'Failed to create subscription.');
       }
 
+      // Handle successful subscription
       window.location.href = '/subscription-success';
 
     } catch (err: any) {
@@ -234,6 +244,13 @@ const CheckoutForm: React.FC = () => {
         <div className="error-container">
           <h2>Error</h2>
           <p>{error}</p>
+          <button 
+            onClick={() => window.location.href = '/subscriptions'}
+            className="card-form__button"
+            style={{ maxWidth: '200px', marginTop: '20px' }}
+          >
+            Back to Plans
+          </button>
         </div>
       </div>
     );
@@ -245,6 +262,13 @@ const CheckoutForm: React.FC = () => {
         <div className="error-container">
           <h2>No Plan Selected</h2>
           <p>No subscription plan selected.</p>
+          <button 
+            onClick={() => window.location.href = '/subscriptions'}
+            className="card-form__button"
+            style={{ maxWidth: '200px', marginTop: '20px' }}
+          >
+            Choose a Plan
+          </button>
         </div>
       </div>
     );
@@ -266,29 +290,42 @@ const CheckoutForm: React.FC = () => {
             <div className="card-item__side -front">
               <div className={`card-item__focus ${focusedField ? '-active' : ''}`} />
               <div className="card-item__cover">
-                <img
-                  src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${currentCardBackground}.jpeg`}
-                  className="card-item__bg"
-                  alt="card background"
-                />
+                <div className="card-item__bg" style={{
+                  background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+                  width: '100%',
+                  height: '100%'
+                }}></div>
               </div>
               <div className="card-item__wrapper">
                 <div className="card-item__top">
-                  <img
-                    src="https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/chip.png"
-                    className="card-item__chip"
-                    alt="chip"
-                  />
+                  <div className="card-item__chip" style={{
+                    width: '60px',
+                    height: '45px',
+                    background: 'linear-gradient(135deg, #c9aa53, #f4e4a6)',
+                    borderRadius: '8px',
+                    position: 'relative'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: '#8b7914',
+                      fontSize: '10px',
+                      fontWeight: 'bold'
+                    }}>CHIP</div>
+                  </div>
                   <div className="card-item__type">
-                    <img
-                      src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${getCardType(cardData.number)}.png`}
-                      className="card-item__typeImg"
-                      alt={getCardType(cardData.number)}
-                    />
+                    <div style={{
+                      color: '#fff',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase'
+                    }}>{getCardType(cardData.number)}</div>
                   </div>
                 </div>
                 <div className="card-item__number">
-                  {cardData.number ? maskCardNumber(cardData.number) : '#### #### #### ####'}
+                  {maskCardNumber(cardData.number)}
                 </div>
                 <div className="card-item__content">
                   <div className="card-item__info">
@@ -309,11 +346,11 @@ const CheckoutForm: React.FC = () => {
             {/* Card Back */}
             <div className="card-item__side -back">
               <div className="card-item__cover">
-                <img
-                  src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${currentCardBackground}.jpeg`}
-                  className="card-item__bg"
-                  alt="card background"
-                />
+                <div className="card-item__bg" style={{
+                  background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`,
+                  width: '100%',
+                  height: '100%'
+                }}></div>
               </div>
               <div className="card-item__band" />
               <div className="card-item__cvv">
@@ -324,11 +361,13 @@ const CheckoutForm: React.FC = () => {
                   ))}
                 </div>
                 <div className="card-item__type">
-                  <img
-                    src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${getCardType(cardData.number)}.png`}
-                    className="card-item__typeImg"
-                    alt={getCardType(cardData.number)}
-                  />
+                  <div style={{
+                    color: '#fff',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    textTransform: 'uppercase',
+                    opacity: 0.7
+                  }}>{getCardType(cardData.number)}</div>
                 </div>
               </div>
             </div>
@@ -348,6 +387,19 @@ const CheckoutForm: React.FC = () => {
             </div>
           </div>
 
+          {error && (
+            <div className="error-message" style={{
+              background: '#ffe6e6',
+              color: '#d63031',
+              padding: '15px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              border: '1px solid #fab1a0'
+            }}>
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit}>
             <div className="card-input">
               <label htmlFor="cardNumber" className="card-input__label">Card Number</label>
@@ -355,11 +407,7 @@ const CheckoutForm: React.FC = () => {
                 <CardNumberElement
                   id="cardNumber"
                   className="card-input__input"
-                  onChange={(event) => {
-                    if (event.complete) {
-                      handleCardNumberChange(event.value || '');
-                    }
-                  }}
+                  onChange={handleCardNumberChange}
                   onFocus={() => setFocusedField('cardNumber')}
                   onBlur={() => setFocusedField(null)}
                   options={{
@@ -401,8 +449,8 @@ const CheckoutForm: React.FC = () => {
                       id="cardExpiry"
                       className="card-input__input"
                       onChange={(event) => {
-                        if (event.complete) {
-                          const expiry = `${event.value?.month?.toString().padStart(2, '0')}/${event.value?.year?.toString().slice(2)}`;
+                        if (event.complete && event.value) {
+                          const expiry = `${event.value.month?.toString().padStart(2, '0')}/${event.value.year?.toString().slice(2)}`;
                           setCardData(prev => ({ ...prev, expiry }));
                         }
                       }}

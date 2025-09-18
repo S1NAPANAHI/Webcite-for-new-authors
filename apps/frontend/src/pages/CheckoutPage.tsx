@@ -52,6 +52,30 @@ const CheckoutForm: React.FC = () => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [currentCardBackground] = useState(Math.floor(Math.random() * 25) + 1);
 
+  // Get the correct API URL based on environment
+  const getApiUrl = () => {
+    // If VITE_API_BASE_URL is set, use it
+    if (import.meta.env.VITE_API_BASE_URL) {
+      return import.meta.env.VITE_API_BASE_URL.replace('/api', '');
+    }
+    
+    // If VITE_BACKEND_URL is set, use it  
+    if (import.meta.env.VITE_BACKEND_URL) {
+      return import.meta.env.VITE_BACKEND_URL;
+    }
+    
+    // For Vercel deployments, use relative path
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      if (hostname.includes('vercel.app') || hostname.includes('vercel.com')) {
+        return ''; // Use relative path for Vercel
+      }
+    }
+    
+    // Fallback to localhost for development
+    return 'http://localhost:3001';
+  };
+
   // Detect card type based on number
   const getCardType = (number: string) => {
     const num = number.replace(/\s/g, '');
@@ -142,11 +166,17 @@ const CheckoutForm: React.FC = () => {
 
       console.log('User authenticated, creating subscription...');
 
-      // Create subscription using your backend API
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      // Create subscription using the serverless API
+      const apiUrl = getApiUrl();
       const requestUrl = `${apiUrl}/api/stripe/create-subscription`;
       
-      console.log('Making API request to:', requestUrl);
+      console.log('Environment variables:');
+      console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+      console.log('VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
+      console.log('Window location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
+      console.log('Calculated API URL:', apiUrl);
+      console.log('Full request URL:', requestUrl);
+      
       console.log('Request payload:', {
         paymentMethodId: paymentMethod.id,
         priceId: priceId,

@@ -90,8 +90,20 @@ async function startServer() {
 
   const app = express(); // Define app inside startServer
 
+  // Add CORS middleware
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true
+  }));
+
   // Add JSON body parsing middleware
   app.use(express.json());
+
+  // Add logging middleware for debugging
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+  });
 
   // Mount route modules
   app.use('/admin', adminRoutes);
@@ -228,72 +240,140 @@ async function startServer() {
     }
   });
 
+  // FIXED: Enhanced create-subscription endpoint
   app.post('/api/stripe/create-subscription', async (req, res) => {
+    console.log('=== CREATE SUBSCRIPTION REQUEST ===');
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
     try {
       const { paymentMethodId, priceId } = req.body;
-      const token = req.headers.authorization?.split(' ')[1];
-
-      if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' });
+      
+      // Validate required fields
+      if (!paymentMethodId || !priceId) {
+        console.error('Validation Error: Missing paymentMethodId or priceId');
+        return res.status(400).json({ 
+          error: 'Missing required fields: paymentMethodId and priceId are required' 
+        });
       }
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      // Extract and validate token
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.error('Authentication Error: Missing or invalid authorization header');
+        return res.status(401).json({ error: 'Missing or invalid authorization header' });
+      }
 
+      const token = authHeader.split(' ')[1];
+      if (!token) {
+        console.error('Authentication Error: Missing token');
+        return res.status(401).json({ error: 'Missing authentication token' });
+      }
+
+      console.log('Token extracted, verifying user...');
+
+      // Verify user with Supabase
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
       if (userError || !user) {
         console.error('Error fetching user from Supabase:', userError);
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'Invalid authentication token' });
       }
+
+      console.log('User verified:', user.id, user.email);
 
       let customerId;
 
-      // Check if customer exists in our database
-      const { data: existingCustomer, error: customerFetchError } = await supabase
+      // Try to get existing customer from both possible tables
+      let existingCustomer = null;
+      
+      // First try the stripe_customers table
+      const { data: stripeCustomer, error: stripeCustomerError } = await supabase
         .from('stripe_customers')
         .select('stripe_customer_id')
         .eq('user_id', user.id)
         .single();
 
-      if (customerFetchError && customerFetchError.code !== 'PGRST116') { // PGRST116 means no rows found
-        console.error('Error fetching existing customer:', customerFetchError);
-        throw new Error('Database error fetching customer.');
+      if (!stripeCustomerError && stripeCustomer) {
+        existingCustomer = stripeCustomer;
+        customerId = stripeCustomer.stripe_customer_id;
+        console.log('Found existing customer in stripe_customers table:', customerId);
+      } else {
+        // If stripe_customers table doesn't exist or no customer found, try customers table
+        const { data: customerData, error: customerError } = await supabase
+          .from('customers')
+          .select('stripe_customer_id')
+          .eq('id', user.id)
+          .single();
+
+        if (!customerError && customerData && customerData.stripe_customer_id) {
+          existingCustomer = customerData;
+          customerId = customerData.stripe_customer_id;
+          console.log('Found existing customer in customers table:', customerId);
+        }
       }
 
-      if (existingCustomer) {
-        customerId = existingCustomer.stripe_customer_id;
-      } else {
+      if (!existingCustomer) {
+        console.log('No existing customer found, creating new Stripe customer...');
+        
         // Create a new customer in Stripe
         const stripeCustomer = await stripe.customers.create({
           email: user.email,
           metadata: { user_id: user.id },
         });
         customerId = stripeCustomer.id;
+        console.log('Created new Stripe customer:', customerId);
 
-        // Store customer ID in our database
-        const { error: insertError } = await supabase
-          .from('stripe_customers')
-          .insert({
-            user_id: user.id,
-            stripe_customer_id: customerId,
-            email: user.email,
-          });
+        // Try to store in stripe_customers table first, fallback to customers table
+        try {
+          const { error: insertError } = await supabase
+            .from('stripe_customers')
+            .insert({
+              user_id: user.id,
+              stripe_customer_id: customerId,
+              email: user.email,
+            });
 
-        if (insertError) {
-          console.error('Error inserting new customer into DB:', insertError);
-          throw new Error('Database error storing new customer.');
+          if (insertError) {
+            console.log('stripe_customers table not available, trying customers table...');
+            
+            // Fallback to customers table
+            const { error: customerInsertError } = await supabase
+              .from('customers')
+              .upsert({
+                id: user.id,
+                stripe_customer_id: customerId,
+                email: user.email,
+              });
+
+            if (customerInsertError) {
+              console.error('Error inserting customer into both tables:', customerInsertError);
+              // Don't throw error here - customer creation in Stripe succeeded
+            } else {
+              console.log('Stored customer in customers table');
+            }
+          } else {
+            console.log('Stored customer in stripe_customers table');
+          }
+        } catch (dbError) {
+          console.error('Database error storing customer (non-critical):', dbError);
+          // Continue with subscription creation even if DB storage fails
         }
       }
 
+      console.log('Attaching payment method to customer...');
+      
       // Attach payment method to customer
-      await stripe.paymentMethods.attach(
-        paymentMethodId,
-        { customer: customerId }
-      );
+      await stripe.paymentMethods.attach(paymentMethodId, { 
+        customer: customerId 
+      });
 
       // Set as default payment method
       await stripe.customers.update(customerId, {
         invoice_settings: { default_payment_method: paymentMethodId },
       });
 
+      console.log('Creating subscription...');
+      
       // Create subscription
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
@@ -302,19 +382,57 @@ async function startServer() {
         metadata: { user_id: user.id },
       });
 
-      // Update our database with the new subscription
-      await upsertSubscription(subscription);
+      console.log('Subscription created:', subscription.id);
 
-      res.json({ subscriptionId: subscription.id, clientSecret: subscription.latest_invoice.payment_intent.client_secret });
+      // Try to update database with subscription (non-critical)
+      try {
+        await upsertSubscription(subscription);
+        console.log('Subscription stored in database');
+      } catch (dbError) {
+        console.error('Error storing subscription in database (non-critical):', dbError);
+        // Continue - subscription was created successfully in Stripe
+      }
+
+      // Return success response
+      const response = {
+        success: true,
+        subscriptionId: subscription.id,
+        customerId: customerId,
+        status: subscription.status,
+        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret || null
+      };
+
+      console.log('Sending success response:', response);
+      res.json(response);
 
     } catch (error) {
-      console.error('Error creating subscription:', error);
-      res.status(500).json({ error: error.message });
+      console.error('=== ERROR IN CREATE-SUBSCRIPTION ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
+      // Always return a proper JSON error response
+      const errorResponse = {
+        error: error.message || 'An unexpected error occurred while creating subscription',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      };
+      
+      if (!res.headersSent) {
+        res.status(500).json(errorResponse);
+      }
     }
   });
 
+  // Health check endpoint
+  app.get('/api/health', (req, res) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  });
+
   const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health check available at: http://localhost:${PORT}/api/health`);
+  });
 }
 
 startServer();

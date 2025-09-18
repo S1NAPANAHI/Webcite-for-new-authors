@@ -50,12 +50,19 @@ export class AdminService {
     const updateData: any = { state };
     if (publishAt) updateData.publish_at = publishAt;
 
-    const { data, error } = await supabase
-      .from(table)
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    let query;
+    switch (table) {
+      case 'books':
+        query = supabase.from('books').update(updateData).eq('id', id);
+        break;
+      case 'chapters':
+        query = supabase.from('chapters').update(updateData).eq('id', id);
+        break;
+      default:
+        throw new Error(`Unsupported table: ${table}`);
+    }
+
+    const { data, error } = await query.select().single();
 
     if (error) throw error;
     return data;
@@ -63,16 +70,16 @@ export class AdminService {
 
   // Get admin dashboard data
   static async getAdminDashboard() {
-    const [booksResult, chaptersResult, usersResult] = await Promise.all([
+    const [booksResult, chaptersResult] = await Promise.all([
       supabase.from('books').select('id, title, state, created_at'),
       supabase.from('chapters').select('id, title, state, created_at'),
-      (supabase.rpc('get_admin_profiles') as any)
+      // (supabase.rpc('get_admin_profiles') as any)
     ]);
 
     return {
       books: booksResult.data || [],
       chapters: chaptersResult.data || [],
-      users: usersResult.data || []
+      // users: usersResult.data || []
     };
   }
 }

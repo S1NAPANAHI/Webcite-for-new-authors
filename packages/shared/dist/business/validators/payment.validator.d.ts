@@ -77,6 +77,7 @@ export declare const OrderSchema: z.ZodObject<{
 }, z.core.$strip>;
 export declare const CreateSubscriptionSchema: z.ZodObject<{
     user_id: z.ZodString;
+    metadata: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
     status: z.ZodDefault<z.ZodEnum<{
         unpaid: "unpaid";
         canceled: "canceled";
@@ -87,15 +88,16 @@ export declare const CreateSubscriptionSchema: z.ZodObject<{
         past_due: "past_due";
         paused: "paused";
     }>>;
-    metadata: z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>;
-    cancel_at_period_end: z.ZodDefault<z.ZodBoolean>;
-    current_period_end: z.ZodNullable<z.ZodOptional<z.ZodString>>;
-    current_period_start: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     plan_id: z.ZodString;
-    trial_end: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    current_period_start: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    current_period_end: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     trial_start: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    trial_end: z.ZodNullable<z.ZodOptional<z.ZodString>>;
+    cancel_at_period_end: z.ZodDefault<z.ZodBoolean>;
 }, z.core.$strip>;
 export declare const UpdateSubscriptionSchema: z.ZodObject<{
+    metadata: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>>;
+    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     status: z.ZodOptional<z.ZodDefault<z.ZodEnum<{
         unpaid: "unpaid";
         canceled: "canceled";
@@ -106,14 +108,12 @@ export declare const UpdateSubscriptionSchema: z.ZodObject<{
         past_due: "past_due";
         paused: "paused";
     }>>>;
-    updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
-    metadata: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodAny>>>>;
-    cancel_at_period_end: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
-    current_period_end: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
-    current_period_start: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     plan_id: z.ZodOptional<z.ZodString>;
-    trial_end: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    current_period_start: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    current_period_end: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     trial_start: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    trial_end: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    cancel_at_period_end: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
 }, z.core.$strip>;
 export declare const PaymentQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<{
@@ -138,8 +138,8 @@ export declare const PaymentQuerySchema: z.ZodObject<{
         amount_cents: "amount_cents";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        desc: "desc";
         asc: "asc";
+        desc: "desc";
     }>>;
 }, z.core.$strip>;
 export declare const SubscriptionQuerySchema: z.ZodObject<{
@@ -163,8 +163,8 @@ export declare const SubscriptionQuerySchema: z.ZodObject<{
         current_period_end: "current_period_end";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        desc: "desc";
         asc: "asc";
+        desc: "desc";
     }>>;
 }, z.core.$strip>;
 export declare const validatePaymentBusinessRules: (order: z.infer<typeof OrderSchema>) => {

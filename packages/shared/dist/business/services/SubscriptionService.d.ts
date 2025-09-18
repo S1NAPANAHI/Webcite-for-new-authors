@@ -94,7 +94,7 @@ export declare class SubscriptionService {
     /**
      * Cancel subscription with business rules
      */
-    cancelSubscription(id: string, cancelAtPeriodEnd: boolean | undefined, canceledBy: string, reason?: string): Promise<any>;
+    cancelSubscription(id: string, cancelAtPeriodEnd: boolean, canceledBy: string, reason?: string): Promise<any>;
     /**
      * Reactivate a canceled subscription
      */

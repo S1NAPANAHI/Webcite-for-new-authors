@@ -44,17 +44,17 @@ export const useBetaApplications = () => {
             setError(fetchAppError.message);
             return false;
         }
-        const profileStatus = newStatus === 'approved' ? 'approved' : 'rejected';
+        // const profileStatus: Profile['beta_reader_status'] = newStatus === 'approved' ? 'approved' : 'rejected';
         // Then, update the profiles table
-        const { error: profileUpdateError } = await supabase
-            .from('profiles')
-            .update({ beta_reader_status: profileStatus })
-            .eq('id', application.user_id);
-        if (profileUpdateError) {
-            console.error('Error updating user profile beta_reader_status:', profileUpdateError);
-            setError(profileUpdateError.message);
-            return false;
-        }
+        // const { error: profileUpdateError } = await supabase
+        //   .from('profiles')
+        //   .update({ beta_reader_status: profileStatus })
+        //   .eq('id', application.user_id);
+        // if (profileUpdateError) {
+        //   console.error('Error updating user profile beta_reader_status:', profileUpdateError);
+        //   setError(profileUpdateError.message);
+        //   return false;
+        // }
         // Optimistically update state
         setApplications(prevApps => prevApps.map(app => app.id === id ? { ...app, status: newStatus, admin_notes: notes } : app));
         return true;

@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import { Tables } from '../database.types';
 
 type BetaApplication = Tables<'beta_applications'>;
-type Profile = Tables<'profiles'>;
+
 
 export const useBetaApplications = () => {
   const [applications, setApplications] = useState<BetaApplication[]>([]);
@@ -56,19 +56,19 @@ export const useBetaApplications = () => {
       return false;
     }
 
-    const profileStatus: Profile['beta_reader_status'] = newStatus === 'approved' ? 'approved' : 'rejected';
+    // const profileStatus: Profile['beta_reader_status'] = newStatus === 'approved' ? 'approved' : 'rejected';
 
     // Then, update the profiles table
-    const { error: profileUpdateError } = await supabase
-      .from('profiles')
-      .update({ beta_reader_status: profileStatus })
-      .eq('id', application.user_id);
+    // const { error: profileUpdateError } = await supabase
+    //   .from('profiles')
+    //   .update({ beta_reader_status: profileStatus })
+    //   .eq('id', application.user_id);
 
-    if (profileUpdateError) {
-      console.error('Error updating user profile beta_reader_status:', profileUpdateError);
-      setError(profileUpdateError.message);
-      return false;
-    }
+    // if (profileUpdateError) {
+    //   console.error('Error updating user profile beta_reader_status:', profileUpdateError);
+    //   setError(profileUpdateError.message);
+    //   return false;
+    // }
 
     // Optimistically update state
     setApplications(prevApps => 

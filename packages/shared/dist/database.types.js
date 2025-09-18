@@ -120,6 +120,8 @@ export const Constants = {
                 "user",
                 "super_admin",
                 "beta_reader",
+                "EDITOR",
+                "MANAGER",
             ],
             wiki_content_type: [
                 "heading_1",

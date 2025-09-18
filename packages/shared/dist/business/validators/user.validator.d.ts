@@ -63,8 +63,8 @@ export declare const UpdateUserProfileSchema: z.ZodObject<{
     }>>>;
     updated_at: z.ZodOptional<z.ZodOptional<z.ZodString>>;
     avatar_url: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
-    display_name: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     username: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
+    display_name: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
     website: z.ZodOptional<z.ZodNullable<z.ZodOptional<z.ZodString>>>;
 }, z.core.$strip>;
 export declare const UpdateUserRoleSchema: z.ZodObject<{
@@ -97,13 +97,13 @@ export declare const UserQuerySchema: z.ZodObject<{
     search: z.ZodOptional<z.ZodString>;
     sort_by: z.ZodDefault<z.ZodEnum<{
         created_at: "created_at";
-        display_name: "display_name";
         role: "role";
         username: "username";
+        display_name: "display_name";
     }>>;
     sort_order: z.ZodDefault<z.ZodEnum<{
-        desc: "desc";
         asc: "asc";
+        desc: "desc";
     }>>;
 }, z.core.$strip>;
 export declare const validateUserBusinessRules: (profile: z.infer<typeof UserProfileSchema>) => {

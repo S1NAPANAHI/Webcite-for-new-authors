@@ -24,7 +24,9 @@ export class BusinessRulesEngine {
         'accountant': 5,
         'admin': 10,
         'super_admin': 50,
-        'beta_reader': 5
+        'beta_reader': 5,
+        'EDITOR': 10,
+        'MANAGER': 10
       };
       return limits[role] || 2;
     },
@@ -148,7 +150,9 @@ export class BusinessRulesEngine {
         'accountant': 75,
         'admin': 90,
         'super_admin': 100,
-        'beta_reader': 30
+        'beta_reader': 30,
+        'EDITOR': 90,
+        'MANAGER': 90
       };
       return discounts[userRole] || 20;
     }
@@ -191,7 +195,9 @@ export class BusinessRulesEngine {
         'accountant': { daily: 50, concurrent: 5 },
         'admin': { daily: 100, concurrent: 10 },
         'super_admin': { daily: -1, concurrent: -1 }, // Unlimited
-        'beta_reader': { daily: 20, concurrent: 5 }
+        'beta_reader': { daily: 20, concurrent: 5 },
+        'EDITOR': { daily: 100, concurrent: 10 },
+        'MANAGER': { daily: 100, concurrent: 10 }
       };
       return limits[userRole] || limits['user'];
     },
@@ -229,7 +235,9 @@ export class BusinessRulesEngine {
         'accountant': ['read_profiles', 'view_financial_data', 'manage_refunds'],
         'admin': ['manage_users', 'manage_content', 'view_analytics', 'manage_subscriptions'],
         'super_admin': ['*'], // All permissions
-        'beta_reader': ['read_own_profile', 'update_own_profile', 'read_beta_content']
+        'beta_reader': ['read_own_profile', 'update_own_profile', 'read_beta_content'],
+        'EDITOR': ['manage_users', 'manage_content', 'view_analytics', 'manage_subscriptions'],
+        'MANAGER': ['manage_users', 'manage_content', 'view_analytics', 'manage_subscriptions']
       };
 
       const userPermissions = permissions[userRole] || [];
@@ -248,7 +256,9 @@ export class BusinessRulesEngine {
             'accountant': 2,
             'admin': 3,
             'super_admin': 4,
-            'beta_reader': 2
+            'beta_reader': 2,
+            'EDITOR': 3,
+            'MANAGER': 3
           };
           
           return roleHierarchy[userRole] > roleHierarchy[targetUserRole];
@@ -301,7 +311,9 @@ export class BusinessRulesEngine {
         'accountant': [...baseRequirements, 'username'],
         'admin': [...baseRequirements, 'username', 'avatar_url'],
         'super_admin': [...baseRequirements, 'username', 'avatar_url'],
-        'beta_reader': [...baseRequirements, 'username']
+        'beta_reader': [...baseRequirements, 'username'],
+        'EDITOR': [...baseRequirements, 'username', 'avatar_url'],
+        'MANAGER': [...baseRequirements, 'username', 'avatar_url']
       };
       
       return roleRequirements[_userRole] || baseRequirements;

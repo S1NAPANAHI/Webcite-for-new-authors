@@ -16,10 +16,13 @@ import {
   SortAsc,
   SortDesc,
   FileText,
-  BarChart3
+  BarChart3,
+  AlertCircle,
+  Loader,
+  RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@zoroaster/shared';
+import { useAuth, supabase } from '@zoroaster/shared';
 import {
   ContentItem,
   ContentItemWithChildren,
@@ -28,75 +31,6 @@ import {
   STATUS_COLORS,
   LibraryCardData
 } from '../types/content';
-
-// Mock data - same as admin but filtered for published content
-const mockLibraryData: LibraryCardData[] = [
-  {
-    item: {
-      id: '1',
-      type: 'book',
-      title: 'The Chronicles of Ahura',
-      slug: 'chronicles-of-ahura',
-      description: 'The epic tale of light versus darkness in ancient Persia. Follow the journey of Darius as he discovers his destiny in the eternal struggle between Ahura Mazda and Ahriman.',
-      cover_image_url: '/api/placeholder/300/400',
-      order_index: 1,
-      completion_percentage: 45,
-      average_rating: 4.8,
-      rating_count: 127,
-      status: 'published',
-      published_at: '2025-01-15T00:00:00Z',
-      metadata: { total_chapters: 24, estimated_read_time: 480 },
-      created_at: '2025-01-01T00:00:00Z',
-      updated_at: '2025-09-15T00:00:00Z'
-    },
-    overallProgress: 0,
-    inUserLibrary: false
-  },
-  {
-    item: {
-      id: '5',
-      type: 'issue',
-      title: 'Issue #1: The Calling',
-      slug: 'issue-1-the-calling',
-      description: 'The journey begins with a mysterious calling. Darius receives visions that will change his life forever and set him on the path of his destiny.',
-      cover_image_url: '/api/placeholder/300/400',
-      parent_id: '4',
-      order_index: 1,
-      completion_percentage: 75,
-      average_rating: 4.8,
-      rating_count: 32,
-      status: 'published',
-      published_at: '2025-02-10T00:00:00Z',
-      metadata: { chapter_count: 4, estimated_read_time: 60 },
-      created_at: '2025-01-20T00:00:00Z',
-      updated_at: '2025-09-18T00:00:00Z'
-    },
-    overallProgress: 25,
-    inUserLibrary: true
-  },
-  {
-    item: {
-      id: '6',
-      type: 'volume',
-      title: 'Volume II: The Trials',
-      slug: 'volume-2-trials',
-      description: 'The second volume follows our heroes as they face increasingly difficult challenges and discover hidden truths about their world.',
-      cover_image_url: '/api/placeholder/300/400',
-      parent_id: '1',
-      order_index: 2,
-      completion_percentage: 20,
-      average_rating: 4.9,
-      rating_count: 89,
-      status: 'published',
-      published_at: '2025-06-01T00:00:00Z',
-      metadata: { total_chapters: 18, estimated_read_time: 360 },
-      created_at: '2025-05-01T00:00:00Z',
-      updated_at: '2025-09-10T00:00:00Z'
-    },
-    overallProgress: 0,
-    inUserLibrary: false
-  }
-];
 
 interface LibraryCardProps {
   data: LibraryCardData;
@@ -146,6 +80,10 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
                 src={item.cover_image_url} 
                 alt={item.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
@@ -167,7 +105,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
                   </span>
                 </div>
                 
-                <p className="text-gray-600 text-sm line-clamp-2 mb-2">{item.description}</p>
+                <p className="text-gray-600 text-sm line-clamp-2 mb-2">{item.description || 'No description'}</p>
                 
                 <div className="flex items-center space-x-4 text-sm text-gray-500">
                   <div className="flex items-center space-x-1">
@@ -250,6 +188,10 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
             src={item.cover_image_url} 
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+            }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -304,7 +246,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
             {item.title}
           </h3>
           <p className="text-gray-600 text-sm line-clamp-2">
-            {item.description}
+            {item.description || 'No description available'}
           </p>
         </div>
         
@@ -510,8 +452,9 @@ function FilterSidebar({
 
 export default function LibraryPage() {
   const { user } = useAuth();
-  const [libraryData, setLibraryData] = useState<LibraryCardData[]>(mockLibraryData);
-  const [loading, setLoading] = useState(false);
+  const [libraryData, setLibraryData] = useState<LibraryCardData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewType, setViewType] = useState<'grid' | 'list'>('grid');
   
@@ -522,12 +465,126 @@ export default function LibraryPage() {
   const [minRating, setMinRating] = useState(0);
   const [completionFilter, setCompletionFilter] = useState<'all' | 'completed' | 'in_progress' | 'not_started'>('all');
   
+  // Load data on component mount and when filters change
+  useEffect(() => {
+    loadLibraryData();
+  }, [selectedType, sortBy, sortDirection, minRating, completionFilter]);
+  
+  const loadLibraryData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🔍 Loading library data from Supabase...');
+      
+      // Build the query
+      let query = supabase
+        .from('content_items')
+        .select('*');
+      
+      // Apply filters
+      if (selectedType !== 'all') {
+        query = query.eq('type', selectedType);
+      }
+      
+      if (minRating > 0) {
+        query = query.gte('average_rating', minRating);
+      }
+      
+      if (completionFilter !== 'all') {
+        switch (completionFilter) {
+          case 'completed':
+            query = query.eq('completion_percentage', 100);
+            break;
+          case 'in_progress':
+            query = query.gt('completion_percentage', 0).lt('completion_percentage', 100);
+            break;
+          case 'not_started':
+            query = query.eq('completion_percentage', 0);
+            break;
+        }
+      }
+      
+      // Apply sorting
+      query = query.order(sortBy, { ascending: sortDirection === 'asc' });
+      
+      console.log('📡 Executing Supabase query...');
+      const { data: contentItems, error: fetchError } = await query;
+      
+      if (fetchError) {
+        console.error('❌ Supabase error:', fetchError);
+        throw fetchError;
+      }
+      
+      console.log('✅ Received content items:', contentItems?.length || 0, 'items');
+      console.log('📋 Content items data:', contentItems);
+      
+      if (!contentItems || contentItems.length === 0) {
+        console.log('📭 No content items found - setting empty array');
+        setLibraryData([]);
+        return;
+      }
+      
+      // Get user's library items if authenticated
+      let userLibraryItemIds: string[] = [];
+      if (user) {
+        console.log('👤 User authenticated, checking user library...');
+        const { data: libraryItems, error: libraryError } = await supabase
+          .from('user_library')
+          .select('content_item_id')
+          .eq('user_id', user.id);
+        
+        if (libraryError) {
+          console.error('❌ Library error:', libraryError);
+        } else {
+          userLibraryItemIds = libraryItems?.map(item => item.content_item_id) || [];
+          console.log('📚 User has', userLibraryItemIds.length, 'items in library');
+        }
+      }
+      
+      // Transform data for library cards
+      const transformedData: LibraryCardData[] = contentItems.map(item => ({
+        item: item as ContentItem,
+        overallProgress: 0, // TODO: Calculate actual progress from reading_progress table
+        inUserLibrary: userLibraryItemIds.includes(item.id)
+      }));
+      
+      console.log('🎯 Final transformed data:', transformedData.length, 'items');
+      setLibraryData(transformedData);
+      
+    } catch (error) {
+      console.error('💥 Error loading library data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load library data');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const handleAddToLibrary = async (itemId: string) => {
-    if (!user) return;
+    if (!user) {
+      alert('Please sign in to add items to your library');
+      return;
+    }
     
     try {
-      // API call to add to library
-      console.log('Adding to library:', itemId);
+      console.log('➕ Adding to library:', itemId);
+      const { error } = await supabase
+        .from('user_library')
+        .insert({
+          user_id: user.id,
+          content_item_id: itemId
+        });
+      
+      if (error) {
+        if (error.code === '23505') {
+          // Unique constraint violation - already in library
+          console.log('ℹ️ Item already in library');
+          return;
+        }
+        throw error;
+      }
+      
+      console.log('✅ Added to library successfully');
       
       // Update local state
       setLibraryData(prev => 
@@ -538,7 +595,8 @@ export default function LibraryPage() {
         )
       );
     } catch (error) {
-      console.error('Error adding to library:', error);
+      console.error('❌ Error adding to library:', error);
+      alert('Failed to add to library. Please try again.');
     }
   };
   
@@ -546,8 +604,16 @@ export default function LibraryPage() {
     if (!user) return;
     
     try {
-      // API call to remove from library
-      console.log('Removing from library:', itemId);
+      console.log('➖ Removing from library:', itemId);
+      const { error } = await supabase
+        .from('user_library')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('content_item_id', itemId);
+      
+      if (error) throw error;
+      
+      console.log('✅ Removed from library successfully');
       
       // Update local state
       setLibraryData(prev => 
@@ -558,11 +624,12 @@ export default function LibraryPage() {
         )
       );
     } catch (error) {
-      console.error('Error removing from library:', error);
+      console.error('❌ Error removing from library:', error);
+      alert('Failed to remove from library. Please try again.');
     }
   };
   
-  // Filter library data based on current filters
+  // Filter library data based on search
   const filteredData = libraryData.filter(data => {
     const { item } = data;
     
@@ -572,48 +639,8 @@ export default function LibraryPage() {
       return false;
     }
     
-    // Type filter
-    if (selectedType !== 'all' && item.type !== selectedType) {
-      return false;
-    }
-    
-    // Rating filter
-    if (minRating > 0 && item.average_rating < minRating) {
-      return false;
-    }
-    
-    // Completion filter
-    if (completionFilter !== 'all') {
-      switch (completionFilter) {
-        case 'completed':
-          if (item.completion_percentage < 100) return false;
-          break;
-        case 'in_progress':
-          if (item.completion_percentage === 0 || item.completion_percentage === 100) return false;
-          break;
-        case 'not_started':
-          if (item.completion_percentage > 0) return false;
-          break;
-      }
-    }
-    
     return true;
   });
-  
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating) 
-            ? 'text-yellow-400 fill-current' 
-            : i < rating 
-            ? 'text-yellow-400 fill-current opacity-50'
-            : 'text-gray-300'
-        }`}
-      />
-    ));
-  };
   
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -628,6 +655,17 @@ export default function LibraryPage() {
           </div>
           
           <div className="flex items-center space-x-3">
+            {/* Refresh Button */}
+            <button
+              onClick={loadLibraryData}
+              disabled={loading}
+              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50"
+              title="Refresh library data"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              <span>Refresh</span>
+            </button>
+            
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -688,30 +726,73 @@ export default function LibraryPage() {
           <div className="flex-1">
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+                <div className="text-center">
+                  <Loader className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Loading library...</h3>
+                  <p className="text-gray-600">Fetching your content from the database</p>
+                </div>
+              </div>
+            ) : error ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                  <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Library</h3>
+                  <p className="text-gray-600 mb-4">{error}</p>
+                  <div className="space-y-2">
+                    <button
+                      onClick={loadLibraryData}
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                    >
+                      Try Again
+                    </button>
+                    <p className="text-sm text-gray-500">Check browser console for detailed error info</p>
+                  </div>
+                </div>
               </div>
             ) : filteredData.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No content found</h3>
-                <p className="text-gray-600">Try adjusting your search or filters</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {libraryData.length === 0 ? 'No content found in database' : 'No content matches your filters'}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {libraryData.length === 0 
+                    ? 'Create and publish content in the admin area to see it here'
+                    : 'Try adjusting your search or filters'
+                  }
+                </p>
+                <button
+                  onClick={loadLibraryData}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Refresh Library</span>
+                </button>
               </div>
             ) : (
-              <div className={`${
-                viewType === 'grid' 
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
-                  : 'space-y-4'
-              }`}>
-                {filteredData.map((data) => (
-                  <LibraryCard
-                    key={data.item.id}
-                    data={data}
-                    onAddToLibrary={handleAddToLibrary}
-                    onRemoveFromLibrary={handleRemoveFromLibrary}
-                    viewType={viewType}
-                  />
-                ))}
-              </div>
+              <>
+                {/* Results Count */}
+                <div className="mb-4 text-sm text-gray-600">
+                  Showing {filteredData.length} of {libraryData.length} items
+                </div>
+                
+                {/* Content Grid/List */}
+                <div className={`${
+                  viewType === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6' 
+                    : 'space-y-4'
+                }`}>
+                  {filteredData.map((data) => (
+                    <LibraryCard
+                      key={data.item.id}
+                      data={data}
+                      onAddToLibrary={handleAddToLibrary}
+                      onRemoveFromLibrary={handleRemoveFromLibrary}
+                      viewType={viewType}
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>

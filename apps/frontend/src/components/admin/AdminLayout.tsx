@@ -97,7 +97,7 @@ export default function AdminLayout() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="h-screen w-full flex bg-gray-50 overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -107,11 +107,11 @@ export default function AdminLayout() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         {/* Sidebar header */}
-        <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+        <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
               <BookOpen className="w-5 h-5" />
@@ -130,7 +130,7 @@ export default function AdminLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-6 px-4 pb-4 space-y-2 flex-1 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           {sidebarItems.map((item) => (
             <div key={item.label}>
               {item.children ? (
@@ -193,7 +193,7 @@ export default function AdminLayout() {
         </nav>
 
         {/* User profile section */}
-        <div className="border-t border-gray-200 p-4">
+        <div className="border-t border-gray-200 p-4 flex-shrink-0">
           <div className="flex items-center space-x-3 p-2">
             <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
               <UserCircle className="w-5 h-5 text-white" />
@@ -211,9 +211,9 @@ export default function AdminLayout() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-col flex-1 lg:ml-0">
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
+        <header className="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center space-x-4">
               <button
@@ -223,7 +223,7 @@ export default function AdminLayout() {
                 <Menu className="w-5 h-5" />
               </button>
               
-              {/* Breadcrumb or page title could go here */}
+              {/* Breadcrumb or page title */}
               <div className="hidden lg:block">
                 <h2 className="text-xl font-semibold text-gray-900">
                   {pathname === '/admin' ? 'Dashboard' : 
@@ -272,9 +272,9 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-6">
+        {/* Main Content Area - Full width, no padding */}
+        <main className="flex-1 overflow-hidden bg-gray-50">
+          <div className="h-full overflow-y-auto">
             <Outlet />
           </div>
         </main>

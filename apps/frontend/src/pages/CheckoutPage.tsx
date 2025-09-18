@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { supabase } from '@zoroaster/shared'; // Assuming supabase is used for auth
-import { Elements, useStripe, useElements, CardElement } from '@stripe/react-stripe-js';
+import { supabase } from '@zoroaster/shared';
+import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import './CheckoutPage.css';
 
@@ -21,10 +21,16 @@ interface SubscriptionPlan {
 interface UserProfile {
   full_name: string;
   email: string;
-  // Add other relevant user profile fields here, e.g., address
 }
 
-const CheckoutPage: React.FC = () => {
+interface CreditCardData {
+  number: string;
+  name: string;
+  expiry: string;
+  cvv: string;
+}
+
+const CheckoutForm: React.FC = () => {
   const location = useLocation();
   const stripe = useStripe();
   const elements = useElements();
@@ -34,21 +40,76 @@ const CheckoutPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState<boolean>(false);
+  
+  // Credit card animation states
+  const [cardData, setCardData] = useState<CreditCardData>({
+    number: '',
+    name: '',
+    expiry: '',
+    cvv: ''
+  });
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [currentCardBackground] = useState(Math.floor(Math.random() * 25) + 1);
+
+  // Detect card type based on number
+  const getCardType = (number: string) => {
+    const num = number.replace(/\s/g, '');
+    if (/^4/.test(num)) return 'visa';
+    if (/^5[1-5]/.test(num)) return 'mastercard';
+    if (/^3[47]/.test(num)) return 'amex';
+    if (/^6011/.test(num)) return 'discover';
+    if (/^9792/.test(num)) return 'troy';
+    return 'visa'; // default
+  };
+
+  // Format card number with spaces
+  const formatCardNumber = (number: string) => {
+    const cardType = getCardType(number);
+    const cleaned = number.replace(/\s/g, '');
+    if (cardType === 'amex') {
+      return cleaned.replace(/(\d{4})(\d{6})(\d{5})/, '$1 $2 $3');
+    }
+    return cleaned.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4');
+  };
+
+  const maskCardNumber = (number: string) => {
+    const cardType = getCardType(number);
+    if (cardType === 'amex') {
+      return number.split('').map((char, index) => {
+        if (index > 4 && index < 14 && char !== ' ') return '*';
+        return char;
+      }).join('');
+    }
+    return number.split('').map((char, index) => {
+      if (index > 4 && index < 15 && char !== ' ') return '*';
+      return char;
+    }).join('');
+  };
+
+  const handleCardNumberChange = (value: string) => {
+    const formatted = formatCardNumber(value);
+    setCardData(prev => ({ ...prev, number: formatted }));
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!stripe || !elements || !plan || !priceId) {
-      // Stripe.js has not yet loaded. Make sure to disable form submission until Stripe.js has loaded.
       return;
     }
 
     setProcessing(true);
 
     try {
+      const cardNumberElement = elements.getElement(CardNumberElement);
+      if (!cardNumberElement) {
+        throw new Error('Card number element not found');
+      }
+
       const { error: paymentMethodError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
-        card: elements.getElement(CardElement)!,
+        card: cardNumberElement,
       });
 
       if (paymentMethodError) {
@@ -57,7 +118,6 @@ const CheckoutPage: React.FC = () => {
         return;
       }
 
-      // Send paymentMethod.id and priceId to your backend to create the subscription
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       if (authError || !session) {
         throw new Error('User not authenticated.');
@@ -81,7 +141,6 @@ const CheckoutPage: React.FC = () => {
         throw new Error(subscriptionData.error || 'Failed to create subscription.');
       }
 
-      // Handle successful subscription (e.g., redirect to success page)
       window.location.href = '/subscription-success';
 
     } catch (err: any) {
@@ -104,7 +163,6 @@ const CheckoutPage: React.FC = () => {
         }
         setPriceId(id);
 
-        // Fetch user profile
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           throw new Error('User not authenticated.');
@@ -112,7 +170,7 @@ const CheckoutPage: React.FC = () => {
 
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('full_name, email') // Select relevant fields
+          .select('full_name, email')
           .eq('id', user.id)
           .single();
 
@@ -120,9 +178,9 @@ const CheckoutPage: React.FC = () => {
           throw new Error(profileError.message);
         }
         setUserProfile(profileData);
+        setCardData(prev => ({ ...prev, name: profileData.full_name || '' }));
 
-        // Fetch plan details from a new API endpoint
-        // For now, still using mock data, but this is where the fetch would go
+        // Mock plans - replace with actual API call
         const mockPlans: SubscriptionPlan[] = [
           {
             id: 'price_1S2L8JQv3TvmaocsYofzFKgm',
@@ -160,57 +218,292 @@ const CheckoutPage: React.FC = () => {
   }, [location.search]);
 
   if (loading) {
-    return <div className="container">Loading checkout details...</div>;
+    return (
+      <div className="wrapper">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading checkout details...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="container">Error: {error}</div>;
+    return (
+      <div className="wrapper">
+        <div className="error-container">
+          <h2>Error</h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
   }
 
   if (!plan) {
-    return <div className="container">No subscription plan selected.</div>;
+    return (
+      <div className="wrapper">
+        <div className="error-container">
+          <h2>No Plan Selected</h2>
+          <p>No subscription plan selected.</p>
+        </div>
+      </div>
+    );
   }
 
   const subtotal = plan.price;
-  const shipping = 0; // Subscriptions typically don't have shipping
-  const taxRate = 0.05; // Example tax rate
+  const shipping = 0;
+  const taxRate = 0.05;
   const tax = subtotal * taxRate;
   const total = subtotal + shipping + tax;
 
   return (
-    <div className="checkout-card">
-      <div className="progress">
-        <div className="progress-bar"></div>
-      </div>
-      <h1>Checkout</h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="name">Name</label>
-        <input type="text" id="name" placeholder="Your full name" value={userProfile?.full_name || ''} readOnly />
-
-        <label htmlFor="email">Email</label>
-        <input type="email" id="email" placeholder="you @example.com" value={userProfile?.email || ''} readOnly />
-
-        {/* Address field is not directly available from userProfile, keeping it as placeholder for now */}
-        <label htmlFor="address">Address</label>
-        <input type="text" id="address" placeholder="Street, City, ZIP" />
-
-        <label>Card Details</label>
-        <CardElement options={{ style: { base: { color: '#ffffff', '::placeholder': { color: '#aab7c4' } } } }} />
-
-        <div className="order-summary">
-            <img src="https://via.placeholder.com/50x50" alt="Product" /> {/* Self-closing img tag */}
-            <span>{plan.name}</span>
-            <span>${plan.price.toFixed(2)}</span>
+    <div className="wrapper">
+      <div className="card-form">
+        {/* Animated Credit Card */}
+        <div className="card-list">
+          <div className={`card-item ${isCardFlipped ? '-active' : ''}`}>
+            {/* Card Front */}
+            <div className="card-item__side -front">
+              <div className={`card-item__focus ${focusedField ? '-active' : ''}`} />
+              <div className="card-item__cover">
+                <img
+                  src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${currentCardBackground}.jpeg`}
+                  className="card-item__bg"
+                  alt="card background"
+                />
+              </div>
+              <div className="card-item__wrapper">
+                <div className="card-item__top">
+                  <img
+                    src="https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/chip.png"
+                    className="card-item__chip"
+                    alt="chip"
+                  />
+                  <div className="card-item__type">
+                    <img
+                      src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${getCardType(cardData.number)}.png`}
+                      className="card-item__typeImg"
+                      alt={getCardType(cardData.number)}
+                    />
+                  </div>
+                </div>
+                <div className="card-item__number">
+                  {cardData.number ? maskCardNumber(cardData.number) : '#### #### #### ####'}
+                </div>
+                <div className="card-item__content">
+                  <div className="card-item__info">
+                    <div className="card-item__holder">Card Holder</div>
+                    <div className="card-item__name">
+                      {cardData.name || 'Full Name'}
+                    </div>
+                  </div>
+                  <div className="card-item__date">
+                    <div className="card-item__dateTitle">Expires</div>
+                    <div className="card-item__dateItem">
+                      {cardData.expiry || 'MM/YY'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Card Back */}
+            <div className="card-item__side -back">
+              <div className="card-item__cover">
+                <img
+                  src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${currentCardBackground}.jpeg`}
+                  className="card-item__bg"
+                  alt="card background"
+                />
+              </div>
+              <div className="card-item__band" />
+              <div className="card-item__cvv">
+                <div className="card-item__cvvTitle">CVV</div>
+                <div className="card-item__cvvBand">
+                  {cardData.cvv.split('').map((_, index) => (
+                    <span key={index}>*</span>
+                  ))}
+                </div>
+                <div className="card-item__type">
+                  <img
+                    src={`https://raw.githubusercontent.com/muhammederdem/credit-card-form/master/src/assets/images/${getCardType(cardData.number)}.png`}
+                    className="card-item__typeImg"
+                    alt={getCardType(cardData.number)}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <button className="pay-btn" type="submit" disabled={!stripe || !elements || processing}>
-          {processing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
-        </button>
-      </form>
-      <div className="trust">
-          <i>🔒</i> Secure checkout – 256-bit encryption
+        {/* Form */}
+        <div className="card-form__inner">
+          <div className="checkout-header">
+            <h1>Complete Your Order</h1>
+            <div className="order-summary">
+              <div className="plan-info">
+                <h3>{plan.name}</h3>
+                <p>{plan.highlight}</p>
+              </div>
+              <div className="plan-price">${plan.price.toFixed(2)}</div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div className="card-input">
+              <label htmlFor="cardNumber" className="card-input__label">Card Number</label>
+              <div className="card-input__wrapper">
+                <CardNumberElement
+                  id="cardNumber"
+                  className="card-input__input"
+                  onChange={(event) => {
+                    if (event.complete) {
+                      handleCardNumberChange(event.value || '');
+                    }
+                  }}
+                  onFocus={() => setFocusedField('cardNumber')}
+                  onBlur={() => setFocusedField(null)}
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: '18px',
+                        color: '#1a3b5d',
+                        fontFamily: '"Source Sans Pro", sans-serif',
+                        '::placeholder': {
+                          color: '#aab7c4',
+                        },
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="card-input">
+              <label htmlFor="cardName" className="card-input__label">Card Holder</label>
+              <input
+                type="text"
+                id="cardName"
+                className="card-input__input"
+                value={cardData.name}
+                onChange={(e) => setCardData(prev => ({ ...prev, name: e.target.value }))}
+                onFocus={() => setFocusedField('cardName')}
+                onBlur={() => setFocusedField(null)}
+                placeholder="Full Name"
+              />
+            </div>
+
+            <div className="card-form__row">
+              <div className="card-form__col">
+                <div className="card-input">
+                  <label htmlFor="cardExpiry" className="card-input__label">Expiration Date</label>
+                  <div className="card-input__wrapper">
+                    <CardExpiryElement
+                      id="cardExpiry"
+                      className="card-input__input"
+                      onChange={(event) => {
+                        if (event.complete) {
+                          const expiry = `${event.value?.month?.toString().padStart(2, '0')}/${event.value?.year?.toString().slice(2)}`;
+                          setCardData(prev => ({ ...prev, expiry }));
+                        }
+                      }}
+                      onFocus={() => setFocusedField('cardDate')}
+                      onBlur={() => setFocusedField(null)}
+                      options={{
+                        style: {
+                          base: {
+                            fontSize: '18px',
+                            color: '#1a3b5d',
+                            fontFamily: '"Source Sans Pro", sans-serif',
+                            '::placeholder': {
+                              color: '#aab7c4',
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="card-form__col -cvv">
+                <div className="card-input">
+                  <label htmlFor="cardCvv" className="card-input__label">CVV</label>
+                  <div className="card-input__wrapper">
+                    <CardCvcElement
+                      id="cardCvv"
+                      className="card-input__input"
+                      onChange={(event) => {
+                        if (event.complete) {
+                          setCardData(prev => ({ ...prev, cvv: '***' }));
+                        }
+                      }}
+                      onFocus={() => {
+                        setFocusedField('cardCvv');
+                        setIsCardFlipped(true);
+                      }}
+                      onBlur={() => {
+                        setFocusedField(null);
+                        setIsCardFlipped(false);
+                      }}
+                      options={{
+                        style: {
+                          base: {
+                            fontSize: '18px',
+                            color: '#1a3b5d',
+                            fontFamily: '"Source Sans Pro", sans-serif',
+                            '::placeholder': {
+                              color: '#aab7c4',
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="payment-summary">
+              <div className="summary-line">
+                <span>Subtotal:</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="summary-line">
+                <span>Tax:</span>
+                <span>${tax.toFixed(2)}</span>
+              </div>
+              <div className="summary-line total">
+                <span>Total:</span>
+                <span>${total.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <button className="card-form__button" type="submit" disabled={!stripe || !elements || processing}>
+              {processing ? 'Processing...' : `Complete Payment • $${total.toFixed(2)}`}
+            </button>
+          </form>
+
+          <div className="trust-badges">
+            <div className="trust-item">
+              🔒 SSL Secured
+            </div>
+            <div className="trust-item">
+              💳 256-bit Encryption
+            </div>
+            <div className="trust-item">
+              ⚡ Instant Access
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+  );
+};
+
+const CheckoutPage: React.FC = () => {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm />
+    </Elements>
   );
 };
 

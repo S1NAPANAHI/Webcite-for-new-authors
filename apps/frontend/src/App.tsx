@@ -30,7 +30,7 @@ import OrderManagementPage from './pages/admin/commerce/OrderManagementPage';
 import CustomerManagementPage from './pages/admin/commerce/CustomerManagementPage';
 import LearnPageAdmin from './pages/admin/LearnPageAdmin';
 import AdminEditorTestPage from './pages/AdminEditorTestPage';
-import BookUploadForm from './admin/components/BookUploadForm'; // Added import
+import BookUploadForm from './admin/components/BookUploadForm';
 import AdminDashboard from './pages/AdminDashboard';
 import PagesManager from './pages/admin/content/PagesManager';
 import BlogManager from './pages/admin/content/BlogManager';
@@ -44,6 +44,10 @@ import BetaApplicationsManager from './pages/admin/beta/BetaApplicationsManager'
 import WikiManager from './pages/admin/world/WikiManager';
 import TimelineManager from './pages/admin/world/TimelineManager';
 import CharacterManager from './pages/admin/world/CharacterManager';
+// New imports for hierarchical content system
+import LibraryPageNew from './pages/LibraryPage';
+import ContentItemDetailPage from './pages/ContentItemDetailPage';
+import MyLibraryPage from './pages/account/MyLibraryPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -55,15 +59,15 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
 
 const PublicLayout: React.FC = () => {
-  const { isAuthenticated } = useAuth(); // isLoading is handled by AppContent
-  console.log('PublicLayout', { isAuthenticated }); // Removed isLoading from log
+  const { isAuthenticated } = useAuth();
+  console.log('PublicLayout', { isAuthenticated });
 
   return (
     <>
       <StarsBackground />
       <Layout 
         isAuthenticated={isAuthenticated}
-        betaApplicationStatus={"none"} // This needs to be updated with real data
+        betaApplicationStatus={"none"}
         onLogout={() => supabase.auth.signOut()}
       >
         <Outlet />
@@ -73,18 +77,18 @@ const PublicLayout: React.FC = () => {
 };
 
 const ProtectedLayout: React.FC = () => {
-  const { isAuthenticated, userProfile, isAdmin } = useAuth(); // isLoading is handled by AppContent
+  const { isAuthenticated, userProfile, isAdmin } = useAuth();
   const navigate = useNavigate();
-  console.log('ProtectedLayout', { isAuthenticated, userProfile, isAdmin }); // Removed isLoading from log
+  console.log('ProtectedLayout', { isAuthenticated, userProfile, isAdmin });
 
   useEffect(() => {
-    if (!isAuthenticated) { // isLoading is handled by AppContent
+    if (!isAuthenticated) {
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]); // Removed isLoading from dependency array
+  }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated) { // isLoading is handled by AppContent
-    return null; // AppContent handles loading, this just redirects if not authenticated
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
@@ -92,7 +96,7 @@ const ProtectedLayout: React.FC = () => {
       <StarsBackground />
       <Layout 
         isAuthenticated={isAuthenticated}
-        betaApplicationStatus={"none"} // This needs to be updated with real data
+        betaApplicationStatus={"none"}
         onLogout={() => supabase.auth.signOut()}
       >
         <Outlet />
@@ -110,7 +114,7 @@ import CheckoutPage from './pages/CheckoutPage';
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
 
 const AppContent: React.FC = () => {
-  const { isLoading, isAuthenticated, user } = useAuth(); // Get isLoading from useAuth
+  const { isLoading, isAuthenticated, user } = useAuth();
   const params = useParams();
   const [currentPage, setCurrentPage] = React.useState<WikiPageWithSections | null>(null);
 
@@ -121,7 +125,7 @@ const AppContent: React.FC = () => {
   }, [params.pageSlug]);
 
   if (isLoading) {
-    return <LoadingSkeleton />; // Render loading state while AuthProvider is loading
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -144,17 +148,24 @@ const AppContent: React.FC = () => {
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />
         <Route path="/learn/writing-guides/:slug" element={<WritingGuidePage />} />
+        
+        {/* New Library Routes */}
+        <Route path="/library" element={<LibraryPageNew />} />
+        <Route path="/library/:type/:slug" element={<ContentItemDetailPage />} />
+        
         <Route path="/:slug" element={<PlaceholderPage title="Page" />} />
       </Route>
 
       {/* Protected Routes */}
       <Route element={<ProtectedLayout />}>
         <Route path="/account/*" element={<ProfileDashboard />} />
-        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/account/reading" element={<MyLibraryPage />} />
+        <Route path="/library-old" element={<LibraryPage />} />
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
         <Route path="/checkout" element={<Elements stripe={stripePromise}><CheckoutPage /></Elements>} />
-        <Route path="/read/:workId" element={<PlaceholderPage title="Work Reader" />} />
+        <Route path="/read/:workSlug" element={<PlaceholderPage title="Work Reader" />} />
+        <Route path="/read/:workSlug/:chapterId" element={<PlaceholderPage title="Chapter Reader" />} />
         <Route path="/beta/application" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/status" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/handbook" element={<PlaceholderPage title="Beta Reader Handbook" />} />
@@ -177,6 +188,7 @@ const AppContent: React.FC = () => {
         <Route path="content/chapters" element={<ChaptersManager />} />
         <Route path="content/chapters/new" element={<ChapterEditor />} />
         <Route path="content/chapters/:id/edit" element={<ChapterEditor />} />
+        <Route path="content/chapters/issue/:issueId/new" element={<ChapterEditor />} />
         <Route path="content/homepage" element={<PlaceholderPage title="Homepage" />} />
         <Route path="content/about" element={<PlaceholderPage title="About" />} />
 
@@ -185,6 +197,7 @@ const AppContent: React.FC = () => {
         <Route path="world/characters" element={<CharacterManager />} />
         <Route path="world/artists" element={<PlaceholderPage title="Artist Collab" />} />
 
+        {/* Updated Works Routes */}
         <Route path="content/works" element={<WorksManager />} />
         <Route path="content/works/new" element={<WorkEditor />} />
         <Route path="content/works/:id/edit" element={<WorkEditor />} />

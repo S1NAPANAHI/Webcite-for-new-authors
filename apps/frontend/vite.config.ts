@@ -58,13 +58,8 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: true,
-      proxy: {
-        '/api': {
-          target: 'http://localhost:3001',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
-        },
-      },
+      // Removed backend proxy since we're now using serverless functions
+      // API calls will go directly to /api/* endpoints on the same domain
     },
     build: {
       outDir: 'dist',

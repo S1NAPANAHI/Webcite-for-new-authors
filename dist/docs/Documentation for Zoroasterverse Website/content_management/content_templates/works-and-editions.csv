@@ -1,0 +1,11 @@
+#tags: #feature/worldbuilding #feature/store #doctype/template #status/approved
+
+WorkID,Title,Author,Genre,PublicationDate,Description,Tags,Work_Type,Parent_Work_ID,Book_ID,Volume_ID,Saga_ID,Arc_ID,Issue_ID,Base_Price,Bundle_Discount_Percentage,Planned_Issues_Count,Planned_Chapters_Count,Released_Issues_Count,Released_Chapters_Count,Next_Release_Date,Status,Word_Count
+
+BOOK-S1,,
+VOL-S1-V1,BOOK-S1,Volume,S1-V1,Volume 1,,,,,,,,,,,,,
+SAGA-S1-SG1,VOL-S1-V1,Saga,S1-SG1,Saga 1,,,,,,,,,,,,,
+ARC-S1-A1,SAGA-S1-SG1,Arc,S1-A1,Arc 1,,,,,,,,,,,,,
+S1-I1-STD,ARC-S1-A1,Issue,Season1,1,The Veiled City,Standard,"EPUB,PDF,MOBI",[Month, Year],,,“violence; dark themes”,13+ recommended,5,Y,“Entry point into the conflict surrounding the City’s hidden accords.”,“season1,issue1”,5,20,2025-09-01
+S1-I1-DLX,ARC-S1-A1,Issue,Season1,1,The Veiled City,Deluxe,"EPUB,PDF,MOBI",[Month, Year],,“annotations, concept art”,“violence; dark themes”,13+ recommended,5,Y,“Includes author annotations and concept art.”,“season1,issue1,deluxe”,5,20,2025-09-01
+S1-B1,ARC-S1-A1,Bundle,Season1,,Season One Bundle,Bundle,"EPUB,PDF,MOBI",[Month, Year],,“bundle bonus: mini‑artbook PDF”,“violence; dark themes”,13+ recommended,5,Y,“Bundle of Season One issues with extras.”,“season1,bundle”,5,20,2025-09-01

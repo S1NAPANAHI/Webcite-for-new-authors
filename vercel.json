@@ -4,10 +4,15 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": "vite",
   "outputDirectory": "apps/frontend/dist",
+  "functions": {
+    "apps/frontend/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/apps/backend/server.js"
+      "destination": "/apps/frontend/api/$1"
     },
     {
       "source": "/(.*)",

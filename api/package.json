@@ -1,0 +1,11 @@
+{
+  "name": "api-functions",
+  "version": "1.0.0",
+  "description": "Serverless API functions for Zoroasterverse",
+  "type": "module",
+  "dependencies": {
+    "stripe": "^14.5.0",
+    "@supabase/supabase-js": "^2.57.0",
+    "raw-body": "^2.5.2"
+  }
+}

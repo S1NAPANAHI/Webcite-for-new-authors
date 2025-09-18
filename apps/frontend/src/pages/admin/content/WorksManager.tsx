@@ -16,7 +16,10 @@ import {
   Archive,
   Calendar,
   Star,
-  BarChart3
+  BarChart3,
+  AlertCircle,
+  CheckCircle,
+  Loader
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { 
@@ -27,103 +30,7 @@ import {
   STATUS_COLORS,
   CreateContentItemForm
 } from '../../../types/content';
-
-// Mock data for development
-const mockHierarchyData: ContentItemWithChildren[] = [
-  {
-    id: '1',
-    type: 'book',
-    title: 'The Chronicles of Ahura',
-    slug: 'chronicles-of-ahura',
-    description: 'The epic tale of light versus darkness in ancient Persia',
-    cover_image_url: '/covers/chronicles-book.jpg',
-    order_index: 1,
-    completion_percentage: 45,
-    average_rating: 4.8,
-    rating_count: 127,
-    status: 'published',
-    published_at: '2025-01-15T00:00:00Z',
-    metadata: {},
-    created_at: '2025-01-01T00:00:00Z',
-    updated_at: '2025-09-15T00:00:00Z',
-    children: [
-      {
-        id: '2',
-        type: 'volume',
-        title: 'Volume I: The Awakening',
-        slug: 'volume-1-awakening',
-        description: 'The beginning of the great journey',
-        parent_id: '1',
-        order_index: 1,
-        completion_percentage: 75,
-        average_rating: 4.9,
-        rating_count: 89,
-        status: 'published',
-        published_at: '2025-01-15T00:00:00Z',
-        metadata: {},
-        created_at: '2025-01-05T00:00:00Z',
-        updated_at: '2025-09-10T00:00:00Z',
-        children: [
-          {
-            id: '3',
-            type: 'saga',
-            title: 'The Fire Temple Saga',
-            slug: 'fire-temple-saga',
-            description: 'The discovery of the ancient fire temple',
-            parent_id: '2',
-            order_index: 1,
-            completion_percentage: 100,
-            average_rating: 4.7,
-            rating_count: 64,
-            status: 'published',
-            published_at: '2025-01-20T00:00:00Z',
-            metadata: {},
-            created_at: '2025-01-10T00:00:00Z',
-            updated_at: '2025-08-15T00:00:00Z',
-            children: [
-              {
-                id: '4',
-                type: 'arc',
-                title: 'The First Trial Arc',
-                slug: 'first-trial-arc',
-                description: 'The protagonist faces their first major challenge',
-                parent_id: '3',
-                order_index: 1,
-                completion_percentage: 100,
-                average_rating: 4.6,
-                rating_count: 45,
-                status: 'published',
-                published_at: '2025-02-01T00:00:00Z',
-                metadata: {},
-                created_at: '2025-01-15T00:00:00Z',
-                updated_at: '2025-07-20T00:00:00Z',
-                children: [
-                  {
-                    id: '5',
-                    type: 'issue',
-                    title: 'Issue #1: The Calling',
-                    slug: 'issue-1-the-calling',
-                    description: 'The journey begins with a mysterious calling',
-                    parent_id: '4',
-                    order_index: 1,
-                    completion_percentage: 75,
-                    average_rating: 4.8,
-                    rating_count: 32,
-                    status: 'published',
-                    published_at: '2025-02-10T00:00:00Z',
-                    metadata: { chapter_count: 4 },
-                    created_at: '2025-01-20T00:00:00Z',
-                    updated_at: '2025-09-18T00:00:00Z'
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-];
+import { contentApi, supabaseContentApi, buildContentTree, generateSlug, validateContentItem, getAvailableChildTypes } from '../../../lib/contentApi';
 
 interface TreeItemProps {
   item: ContentItemWithChildren;
@@ -222,13 +129,15 @@ function TreeItem({ item, depth, onEdit, onDelete, onAddChild, expandedItems, to
             <Edit className="w-4 h-4" />
           </button>
           
-          <button
-            onClick={() => onAddChild(item)}
-            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors duration-200"
-            title="Add Child"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
+          {getAvailableChildTypes(item.type).length > 0 && (
+            <button
+              onClick={() => onAddChild(item)}
+              className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded transition-colors duration-200"
+              title="Add Child"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
           
           {item.type === 'issue' && (
             <Link
@@ -277,9 +186,10 @@ interface ContentItemModalProps {
   item?: ContentItem;
   parentItem?: ContentItem;
   onSave: (data: CreateContentItemForm) => void;
+  loading: boolean;
 }
 
-function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: ContentItemModalProps) {
+function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }: ContentItemModalProps) {
   const [formData, setFormData] = useState<CreateContentItemForm>({
     type: 'book',
     title: '',
@@ -293,7 +203,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
     metadata: {}
   });
   
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
   
   useEffect(() => {
     if (item) {
@@ -311,59 +221,59 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
       });
     } else if (parentItem) {
       // Set appropriate child type based on parent
-      const childTypes = {
-        book: 'volume',
-        volume: 'saga', 
-        saga: 'arc',
-        arc: 'issue'
-      };
+      const availableTypes = getAvailableChildTypes(parentItem.type);
+      const defaultType = availableTypes[0] || 'book';
       
       setFormData(prev => ({
         ...prev,
-        type: childTypes[parentItem.type as keyof typeof childTypes] || 'book',
+        type: defaultType,
         parent_id: parentItem.id
       }));
+    } else {
+      // Reset to default for new root item
+      setFormData({
+        type: 'book',
+        title: '',
+        slug: '',
+        description: '',
+        cover_image_url: '',
+        parent_id: undefined,
+        order_index: 0,
+        status: 'draft',
+        published_at: '',
+        metadata: {}
+      });
     }
-  }, [item, parentItem]);
+    setErrors([]);
+  }, [item, parentItem, isOpen]);
   
   // Auto-generate slug from title
   useEffect(() => {
     if (formData.title && !item) { // Only auto-generate for new items
-      const slug = formData.title.toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/^-|-$/g, '');
+      const slug = generateSlug(formData.title);
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title, item]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     
-    try {
-      await onSave(formData);
-      onClose();
-    } catch (error) {
-      console.error('Error saving item:', error);
-    } finally {
-      setLoading(false);
+    // Validate form data
+    const validationErrors = validateContentItem(formData);
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
     }
+    
+    setErrors([]);
+    onSave(formData);
   };
   
   if (!isOpen) return null;
   
-  const getAvailableTypes = () => {
+  const getAvailableTypesForForm = () => {
     if (!parentItem) return ['book'];
-    
-    const childTypes = {
-      book: ['volume'],
-      volume: ['saga'],
-      saga: ['arc'],
-      arc: ['issue']
-    };
-    
-    return childTypes[parentItem.type as keyof typeof childTypes] || [];
+    return getAvailableChildTypes(parentItem.type);
   };
   
   return (
@@ -377,6 +287,20 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
             <p className="text-sm text-gray-600 mt-1">
               {parentItem && `Adding to: ${parentItem.title}`}
             </p>
+            
+            {errors.length > 0 && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-800">Please fix the following errors:</span>
+                </div>
+                <ul className="text-sm text-red-700 space-y-1">
+                  {errors.map((error, index) => (
+                    <li key={index}>• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           
           <div className="px-6 py-4 space-y-4">
@@ -391,7 +315,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 disabled={!!parentItem} // Disabled if we have a parent (type is determined)
               >
-                {getAvailableTypes().map(type => (
+                {getAvailableTypesForForm().map(type => (
                   <option key={type} value={type}>
                     {HIERARCHY_LEVELS[type as ContentItemType].label}
                   </option>
@@ -410,6 +334,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 required
+                placeholder="Enter the title"
               />
             </div>
             
@@ -424,7 +349,11 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
                 onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 required
+                placeholder="enter-slug-here"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                URL-friendly version of the title. Only lowercase letters, numbers, and dashes.
+              </p>
             </div>
             
             {/* Description */}
@@ -437,6 +366,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 rows={3}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Brief description of the content"
               />
             </div>
             
@@ -450,6 +380,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
                 value={formData.cover_image_url}
                 onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="https://example.com/image.jpg"
               />
             </div>
             
@@ -481,6 +412,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
                   onChange={(e) => setFormData(prev => ({ ...prev, order_index: parseInt(e.target.value) || 0 }))}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                   min="0"
+                  placeholder="0"
                 />
               </div>
             </div>
@@ -507,15 +439,23 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              disabled={loading}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !formData.title || !formData.slug}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
-              {loading ? 'Saving...' : (item ? 'Update' : 'Create')}
+              {loading ? (
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <span>{item ? 'Update' : 'Create'}</span>
+              )}
             </button>
           </div>
         </form>
@@ -524,17 +464,85 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave }: Content
   );
 }
 
+// Success/Error notification component
+function Notification({ message, type, onClose }: { message: string; type: 'success' | 'error'; onClose: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 5000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg border max-w-md ${
+      type === 'success' 
+        ? 'bg-green-50 text-green-800 border-green-200' 
+        : 'bg-red-50 text-red-800 border-red-200'
+    }`}>
+      <div className="flex items-center space-x-2">
+        {type === 'success' ? (
+          <CheckCircle className="w-5 h-5 text-green-600" />
+        ) : (
+          <AlertCircle className="w-5 h-5 text-red-600" />
+        )}
+        <span className="text-sm font-medium">{message}</span>
+        <button
+          onClick={onClose}
+          className="ml-4 text-gray-400 hover:text-gray-600"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WorksManager() {
-  const [hierarchyData, setHierarchyData] = useState<ContentItemWithChildren[]>(mockHierarchyData);
-  const [loading, setLoading] = useState(false);
+  const [hierarchyData, setHierarchyData] = useState<ContentItemWithChildren[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [operationLoading, setOperationLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<ContentItemType | 'all'>('all');
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['1', '2', '3', '4']));
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<ContentItem | null>(null);
   const [parentForNew, setParentForNew] = useState<ContentItem | null>(null);
+  
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
+  
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      // Try to use Supabase directly since backend might not be set up yet
+      const items = await supabaseContentApi.getContentItems();
+      const tree = buildContentTree(items);
+      setHierarchyData(tree);
+      
+      // Auto-expand first few levels
+      const autoExpand = new Set<string>();
+      tree.forEach(item => {
+        autoExpand.add(item.id);
+        if (item.children) {
+          item.children.forEach(child => {
+            autoExpand.add(child.id);
+            if (child.children) {
+              child.children.forEach(grandchild => autoExpand.add(grandchild.id));
+            }
+          });
+        }
+      });
+      setExpandedItems(autoExpand);
+    } catch (error) {
+      console.error('Error loading content items:', error);
+      setNotification({ message: 'Failed to load content items', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const toggleExpanded = (id: string) => {
     const newExpanded = new Set(expandedItems);
@@ -565,20 +573,52 @@ export default function WorksManager() {
   };
   
   const handleSave = async (data: CreateContentItemForm) => {
-    // Here you would make API call to save the data
-    console.log('Saving:', data);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Refresh data after save
-    // In real implementation, you'd refetch from API
-    setShowModal(false);
+    try {
+      setOperationLoading(true);
+      
+      if (editingItem) {
+        // Update existing item
+        await supabaseContentApi.updateContentItem(editingItem.id, data);
+        setNotification({ message: 'Content updated successfully!', type: 'success' });
+      } else {
+        // Create new item
+        await supabaseContentApi.createContentItem(data);
+        setNotification({ message: 'Content created successfully!', type: 'success' });
+      }
+      
+      setShowModal(false);
+      await loadData(); // Refresh data
+    } catch (error) {
+      console.error('Error saving item:', error);
+      setNotification({ 
+        message: error instanceof Error ? error.message : 'Failed to save content', 
+        type: 'error' 
+      });
+    } finally {
+      setOperationLoading(false);
+    }
   };
   
   const handleDelete = async (item: ContentItem) => {
-    if (confirm(`Are you sure you want to delete "${item.title}"? This will also delete all child items.`)) {
-      // API call to delete
-      console.log('Deleting:', item.id);
+    const confirmed = confirm(
+      `Are you sure you want to delete "${item.title}"? This will also delete all child items and cannot be undone.`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      setOperationLoading(true);
+      await supabaseContentApi.deleteContentItem(item.id);
+      setNotification({ message: 'Content deleted successfully!', type: 'success' });
+      await loadData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting item:', error);
+      setNotification({ 
+        message: error instanceof Error ? error.message : 'Failed to delete content', 
+        type: 'error' 
+      });
+    } finally {
+      setOperationLoading(false);
     }
   };
   
@@ -598,8 +638,32 @@ export default function WorksManager() {
     setExpandedItems(new Set());
   };
   
+  // Filter data based on search and type
+  const filteredData = hierarchyData.filter(item => {
+    if (searchQuery) {
+      const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+    }
+    
+    if (selectedType !== 'all' && item.type !== selectedType) {
+      return false;
+    }
+    
+    return true;
+  });
+  
   return (
     <div className="h-full flex flex-col bg-white">
+      {/* Notification */}
+      {notification && (
+        <Notification 
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+      
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
@@ -614,18 +678,21 @@ export default function WorksManager() {
             <button
               onClick={expandAll}
               className="text-sm text-indigo-600 hover:text-indigo-700"
+              disabled={loading}
             >
               Expand All
             </button>
             <button
               onClick={collapseAll}
               className="text-sm text-indigo-600 hover:text-indigo-700"
+              disabled={loading}
             >
               Collapse All
             </button>
             <button
               onClick={handleCreateNew}
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 disabled:opacity-50"
+              disabled={operationLoading}
             >
               <Plus className="w-4 h-4" />
               <span>New Book</span>
@@ -665,22 +732,37 @@ export default function WorksManager() {
 
       {/* Content Tree - Full height with scroll */}
       <div className="flex-1 overflow-y-auto">
-        {hierarchyData.length === 0 ? (
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-full text-center p-12">
+            <Loader className="w-12 h-12 text-indigo-600 animate-spin mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Loading content...</h3>
+            <p className="text-gray-600">Please wait while we fetch your content hierarchy</p>
+          </div>
+        ) : filteredData.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-12">
             <BookOpen className="w-12 h-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No content yet</h3>
-            <p className="text-gray-600 mb-4">Start by creating your first book</p>
-            <button
-              onClick={handleCreateNew}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create First Book</span>
-            </button>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {hierarchyData.length === 0 ? 'No content yet' : 'No matching content'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {hierarchyData.length === 0 
+                ? 'Start by creating your first book' 
+                : 'Try adjusting your search or filters'
+              }
+            </p>
+            {hierarchyData.length === 0 && (
+              <button
+                onClick={handleCreateNew}
+                className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create First Book</span>
+              </button>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
-            {hierarchyData.map((item) => (
+            {filteredData.map((item) => (
               <TreeItem
                 key={item.id}
                 item={item}
@@ -703,6 +785,7 @@ export default function WorksManager() {
         item={editingItem}
         parentItem={parentForNew}
         onSave={handleSave}
+        loading={operationLoading}
       />
     </div>
   );

@@ -265,8 +265,21 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
       return;
     }
     
+    // Clean up the form data before submission
+    const cleanedData = {
+      ...formData,
+      // Convert empty strings to null for optional fields
+      description: formData.description?.trim() || null,
+      cover_image_url: formData.cover_image_url?.trim() || null,
+      published_at: formData.published_at?.trim() || null,
+      // Ensure parent_id is properly set or null
+      parent_id: formData.parent_id || null,
+      // Ensure metadata is a valid object
+      metadata: formData.metadata || {}
+    };
+    
     setErrors([]);
-    onSave(formData);
+    onSave(cleanedData);
   };
   
   if (!isOpen) return null;

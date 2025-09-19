@@ -13,6 +13,8 @@ import cors from 'cors';
 
 import { createClient } from '@supabase/supabase-js';
 
+// Import webhook handler
+import handleStripeWebhook from './webhooks/stripe-ecommerce.js';
 
 import adminRoutes from './routes/admin.js';
 import contentRoutes from './routes/content.js';
@@ -89,6 +91,18 @@ async function startServer() {
 
   const app = express(); // Define app inside startServer
 
+  // ========================================
+  // WEBHOOK ENDPOINT SETUP (CRITICAL!)
+  // This must come BEFORE express.json() middleware
+  // ========================================
+  
+  app.post('/api/stripe/webhook', 
+    bodyParser.raw({ type: 'application/json' }), // Raw body for webhook signature verification
+    handleStripeWebhook
+  );
+  
+  console.log('🎣 Stripe webhook endpoint configured at /api/stripe/webhook');
+
   // CORS Configuration - Fixed for production
   const allowedOrigins = new Set([
     'http://localhost:5173',
@@ -142,7 +156,7 @@ async function startServer() {
     return res.sendStatus(403);
   });
 
-  // Add JSON body parsing middleware
+  // Add JSON body parsing middleware (AFTER webhook endpoint)
   app.use(express.json());
 
   // Add debug logging middleware
@@ -156,6 +170,167 @@ async function startServer() {
       });
     }
     next();
+  });
+
+  // ========================================
+  // ADD SUBSCRIPTION STATUS ENDPOINT
+  // ========================================
+  app.get('/api/subscription/status', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Missing authorization header' });
+      }
+
+      const token = authHeader.split(' ')[1];
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      
+      if (userError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      // Fetch subscription from database
+      const { data: subscription, error: subError } = await supabase
+        .from('subscriptions')
+        .select(`
+          *,
+          plans:plan_id (
+            name,
+            price,
+            currency,
+            interval
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+
+      if (subError && subError.code !== 'PGRST116') {
+        console.error('Error fetching subscription:', subError);
+      }
+
+      // Fetch user profile for additional info
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_tier, subscription_status, subscription_end_date')
+        .eq('id', user.id)
+        .single();
+
+      const response = {
+        user_id: user.id,
+        email: user.email,
+        is_subscribed: !!subscription && ['active', 'trialing'].includes(subscription.status),
+        subscription: subscription || null,
+        profile: profile || null,
+        tier: profile?.subscription_tier || 'free',
+        status: profile?.subscription_status || subscription?.status || 'inactive',
+        end_date: profile?.subscription_end_date || subscription?.current_period_end
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error('Error in subscription status endpoint:', error);
+      res.status(500).json({ error: 'Failed to fetch subscription status' });
+    }
+  });
+
+  // ========================================
+  // ADD SUBSCRIPTION REFRESH ENDPOINT
+  // ========================================
+  app.post('/api/subscription/refresh', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Missing authorization header' });
+      }
+
+      const token = authHeader.split(' ')[1];
+      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+      
+      if (userError || !user) {
+        return res.status(401).json({ error: 'Invalid token' });
+      }
+
+      // Get user's Stripe customer ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', user.id)
+        .single();
+
+      if (!profile?.stripe_customer_id) {
+        return res.json({ message: 'No Stripe customer found', updated: false });
+      }
+
+      console.log(`🔄 Refreshing subscription for user ${user.id}, customer ${profile.stripe_customer_id}`);
+
+      // Fetch active subscriptions from Stripe
+      const subscriptions = await stripe.subscriptions.list({
+        customer: profile.stripe_customer_id,
+        status: 'all',
+        limit: 10
+      });
+
+      console.log(`Found ${subscriptions.data.length} subscriptions`);
+
+      if (subscriptions.data.length > 0) {
+        // Process the most recent subscription
+        const latestSub = subscriptions.data[0];
+        console.log(`Processing subscription: ${latestSub.id} (${latestSub.status})`);
+        
+        // Manually trigger the subscription update handler
+        const isActive = ['active', 'trialing'].includes(latestSub.status);
+        
+        const profileUpdate = {
+          subscription_status: latestSub.status,
+          subscription_tier: isActive ? 'premium' : 'free',
+          subscription_end_date: latestSub.current_period_end ? 
+            new Date(latestSub.current_period_end * 1000).toISOString() : null,
+          updated_at: new Date().toISOString()
+        };
+
+        await supabase
+          .from('profiles')
+          .update(profileUpdate)
+          .eq('id', user.id);
+
+        console.log(`✅ Updated user profile: tier=${isActive ? 'premium' : 'free'}, status=${latestSub.status}`);
+        
+        res.json({ 
+          message: 'Subscription status refreshed successfully',
+          updated: true,
+          subscription: {
+            id: latestSub.id,
+            status: latestSub.status,
+            tier: isActive ? 'premium' : 'free',
+            current_period_end: latestSub.current_period_end
+          }
+        });
+      } else {
+        // No subscriptions found, set to free
+        await supabase
+          .from('profiles')
+          .update({
+            subscription_status: 'inactive',
+            subscription_tier: 'free',
+            subscription_end_date: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', user.id);
+
+        console.log(`✅ Set user to free tier (no active subscriptions)`);
+        
+        res.json({ 
+          message: 'No active subscriptions found, set to free tier',
+          updated: true,
+          subscription: null
+        });
+      }
+
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+      res.status(500).json({ error: 'Failed to refresh subscription status' });
+    }
   });
 
   // Mount route modules
@@ -437,6 +612,24 @@ async function startServer() {
 
       console.log('Subscription created:', subscription.id);
 
+      // Immediately update user profile status (don't wait for webhook)
+      const isActive = ['active', 'trialing'].includes(subscription.status);
+      const profileUpdate = {
+        subscription_status: subscription.status,
+        subscription_tier: isActive ? 'premium' : 'free',
+        subscription_end_date: subscription.current_period_end ? 
+          new Date(subscription.current_period_end * 1000).toISOString() : null,
+        stripe_customer_id: customerId,
+        updated_at: new Date().toISOString()
+      };
+
+      await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('id', user.id);
+        
+      console.log('✅ Immediately updated user profile with subscription status');
+
       // Try to update database with subscription (non-critical)
       try {
         await upsertSubscription(subscription);
@@ -452,6 +645,7 @@ async function startServer() {
         subscriptionId: subscription.id,
         customerId: customerId,
         status: subscription.status,
+        tier: isActive ? 'premium' : 'free',
         clientSecret: subscription.latest_invoice?.payment_intent?.client_secret || null
       };
 
@@ -491,6 +685,9 @@ async function startServer() {
     console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
     console.log(`✅ CORS configured for:`, Array.from(allowedOrigins));
     console.log(`🔧 Using Stripe API version: 2024-09-30.acacia`);
+    console.log(`🎣 Webhook endpoint: http://localhost:${PORT}/api/stripe/webhook`);
+    console.log(`📊 Subscription status: http://localhost:${PORT}/api/subscription/status`);
+    console.log(`🔄 Subscription refresh: http://localhost:${PORT}/api/subscription/refresh`);
   });
 }
 

@@ -104,11 +104,11 @@ export const PaymentQuerySchema = z.object({
       limit: z.string()
     .transform(val => parseInt(val))
     .refine(val => val > 0 && val <= 100, 'Limit must be between 1 and 100')
-    .default(50),
+    .default('50'),
   offset: z.string()
     .transform(val => parseInt(val))
     .refine(val => val >= 0, 'Offset must be non-negative')
-    .default(0),
+    .default('0'),
   sort_by: z.enum(['created_at', 'amount_cents', 'status']).default('created_at'),
   sort_order: z.enum(['asc', 'desc']).default('desc')
 });
@@ -130,11 +130,11 @@ export const SubscriptionQuerySchema = z.object({
       limit: z.string()
     .transform(val => parseInt(val))
     .refine(val => val > 0 && val <= 100, 'Limit must be between 1 and 100')
-    .default(50),
+    .default('50'),
   offset: z.string()
     .transform(val => parseInt(val))
     .refine(val => val >= 0, 'Offset must be non-negative')
-    .default(0),
+    .default('0'),
   sort_by: z.enum(['created_at', 'current_period_end', 'status']).default('created_at'),
   sort_order: z.enum(['asc', 'desc']).default('desc')
 });

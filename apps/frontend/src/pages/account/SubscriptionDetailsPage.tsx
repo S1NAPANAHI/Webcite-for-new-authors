@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth, getSubscription, refreshSubscriptionStatus } from '@zoroaster/shared';
-import { supabase } from '../../lib/supabaseClient';
+import { useAuth, getSubscription, refreshSubscriptionStatus, supabase } from '@zoroaster/shared';
 import {
   Crown,
   Calendar,

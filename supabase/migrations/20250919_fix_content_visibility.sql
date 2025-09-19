@@ -4,18 +4,21 @@
 -- is only visible to admin users, not all users in the library
 -- =====================================================
 
--- First, let's drop the existing restrictive policies
+-- First, let's drop the existing restrictive policies on content tables only
 DROP POLICY IF EXISTS "Authenticated can view all content items" ON content_items;
 DROP POLICY IF EXISTS "Content creators can manage their content" ON content_items;
 DROP POLICY IF EXISTS "Authenticated can view all chapters" ON chapters;
 DROP POLICY IF EXISTS "Content creators can manage their chapters" ON chapters;
+
+-- Drop the content hierarchy function if it exists
+DROP FUNCTION IF EXISTS public.get_content_with_children(uuid);
+DROP FUNCTION IF EXISTS public.get_library_content_hierarchy(uuid);
 
 -- =====================================================
 -- CREATE NEW, MORE PERMISSIVE POLICIES
 -- =====================================================
 
 -- Content Items Policies - Allow everyone to view published content
--- and authenticated users to view draft content they have access to
 CREATE POLICY "Anyone can view published content items" ON content_items
     FOR SELECT USING (
         status = 'published' OR
@@ -23,21 +26,18 @@ CREATE POLICY "Anyone can view published content items" ON content_items
     );
 
 -- Allow admins and authors to view and manage all content
+-- Using the existing is_user_admin function to avoid conflicts
 CREATE POLICY "Admins and authors can manage all content items" ON content_items
     FOR ALL TO authenticated 
     USING (
-        -- Check if user is admin
-        EXISTS (
-            SELECT 1 FROM profiles 
-            WHERE id = auth.uid() 
-            AND role = 'admin'
-        )
+        -- Check if user is admin (using existing function)
+        public.is_user_admin()
         OR
-        -- Check if user is author/creator
+        -- Check if user is author
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE id = auth.uid() 
-            AND role IN ('admin', 'author')
+            AND role = 'author'
         )
         OR
         -- Check if content was created by this user
@@ -45,10 +45,12 @@ CREATE POLICY "Admins and authors can manage all content items" ON content_items
     )
     WITH CHECK (
         -- Same checks for insert/update
+        public.is_user_admin()
+        OR
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE id = auth.uid() 
-            AND role IN ('admin', 'author')
+            AND role = 'author'
         )
         OR
         metadata->>'created_by' = auth.uid()::text
@@ -70,57 +72,27 @@ CREATE POLICY "Anyone can view published chapters" ON chapters
 CREATE POLICY "Admins and authors can manage all chapters" ON chapters
     FOR ALL TO authenticated 
     USING (
+        public.is_user_admin()
+        OR
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE id = auth.uid() 
-            AND role IN ('admin', 'author')
+            AND role = 'author'
         )
         OR
         metadata->>'created_by' = auth.uid()::text
     )
     WITH CHECK (
+        public.is_user_admin()
+        OR
         EXISTS (
             SELECT 1 FROM profiles 
             WHERE id = auth.uid() 
-            AND role IN ('admin', 'author')
+            AND role = 'author'
         )
         OR
         metadata->>'created_by' = auth.uid()::text
     );
-
--- =====================================================
--- CREATE HELPER FUNCTION TO CHECK USER ROLES
--- =====================================================
-
--- Create or replace a function to check if user is admin
-CREATE OR REPLACE FUNCTION public.is_user_admin(user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = user_id 
-        AND role = 'admin'
-    );
-END;
-$$ LANGUAGE plpgsql;
-
--- Create a function to check if user is author or admin
-CREATE OR REPLACE FUNCTION public.is_user_content_creator(user_id UUID DEFAULT auth.uid())
-RETURNS BOOLEAN
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-    RETURN EXISTS (
-        SELECT 1 FROM profiles 
-        WHERE id = user_id 
-        AND role IN ('admin', 'author')
-    );
-END;
-$$ LANGUAGE plpgsql;
 
 -- =====================================================
 -- UPDATE EXISTING CONTENT TO BE PUBLISHED
@@ -128,7 +100,6 @@ $$ LANGUAGE plpgsql;
 -- =====================================================
 
 -- Update all existing content items to published status if they're currently draft
--- and don't have a published_at date
 UPDATE content_items 
 SET status = 'published', 
     published_at = COALESCE(published_at, NOW()),
@@ -137,7 +108,6 @@ WHERE status = 'draft'
   AND published_at IS NULL;
 
 -- Update all existing chapters to published status if they're currently draft
--- and don't have a published_at date
 UPDATE chapters 
 SET status = 'published', 
     published_at = COALESCE(published_at, NOW()),
@@ -156,7 +126,9 @@ WHERE status = 'draft'
 -- formatted data with all necessary fields
 -- =====================================================
 
-CREATE OR REPLACE VIEW public.library_content_view AS
+DROP VIEW IF EXISTS public.library_content_view;
+
+CREATE VIEW public.library_content_view AS
 SELECT 
     ci.*,
     -- Calculate total chapters for this content item (if it's an issue)
@@ -201,9 +173,10 @@ GRANT SELECT ON public.library_content_view TO anon, authenticated;
 -- =====================================================
 -- CREATE FUNCTION TO GET CONTENT HIERARCHY
 -- This function will help build the hierarchical structure
+-- Fixed parameter name conflict
 -- =====================================================
 
-CREATE OR REPLACE FUNCTION public.get_content_with_children(parent_id UUID DEFAULT NULL)
+CREATE FUNCTION public.get_library_content_hierarchy(filter_parent_id UUID DEFAULT NULL)
 RETURNS TABLE (
     id UUID,
     type content_item_type,
@@ -230,34 +203,42 @@ SET search_path = public
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT * FROM library_content_view
+    SELECT * FROM library_content_view lv
     WHERE (
         CASE 
-            WHEN parent_id IS NULL THEN library_content_view.parent_id IS NULL
-            ELSE library_content_view.parent_id = get_content_with_children.parent_id
+            WHEN filter_parent_id IS NULL 
+            THEN lv.parent_id IS NULL
+            ELSE lv.parent_id = filter_parent_id
         END
     )
-    ORDER BY library_content_view.order_index, library_content_view.created_at;
+    ORDER BY lv.order_index, lv.created_at;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Grant execute permission
-GRANT EXECUTE ON FUNCTION public.get_content_with_children TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_library_content_hierarchy TO anon, authenticated;
 
 -- =====================================================
--- UPDATE SAMPLE DATA METADATA
--- Add created_by to sample data so it shows proper ownership
+-- CREATE HELPER FUNCTION FOR CONTENT ACCESS
+-- This is a content-specific helper that won't conflict
 -- =====================================================
 
--- Update sample data to include proper metadata
-UPDATE content_items 
-SET metadata = jsonb_set(
-    COALESCE(metadata, '{}'),
-    '{created_by}',
-    to_jsonb(auth.uid()::text),
-    true
-)
-WHERE metadata IS NULL OR NOT (metadata ? 'created_by');
+CREATE OR REPLACE FUNCTION public.can_user_manage_content(user_id UUID DEFAULT auth.uid())
+RETURNS BOOLEAN
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1 FROM profiles 
+        WHERE id = user_id 
+        AND role IN ('admin', 'author')
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant execute permission
+GRANT EXECUTE ON FUNCTION public.can_user_manage_content TO anon, authenticated;
 
 -- =====================================================
 -- LOGGING AND COMPLETION
@@ -273,4 +254,5 @@ BEGIN
     RAISE NOTICE 'All published content is now visible to all users in the library';
     RAISE NOTICE 'Admin-created content has been set to published status';
     RAISE NOTICE 'Created library_content_view and helper functions';
+    RAISE NOTICE 'Using existing is_user_admin function to avoid conflicts';
 END $$;

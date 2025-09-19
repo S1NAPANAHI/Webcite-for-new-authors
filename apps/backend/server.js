@@ -90,10 +90,21 @@ async function startServer() {
 
   const app = express(); // Define app inside startServer
 
-  // Add CORS middleware
+  // Fixed CORS configuration to allow both development and production
+  const allowedOrigins = [
+    'http://localhost:5173',           // Development
+    'https://www.zoroastervers.com',   // Production
+    'https://zoroastervers.com',       // Production (without www)
+    process.env.FRONTEND_URL           // Environment variable fallback
+  ].filter(Boolean); // Remove any undefined values
+
+  console.log('🌐 CORS allowed origins:', allowedOrigins);
+
   app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   }));
 
   // Add JSON body parsing middleware
@@ -102,6 +113,7 @@ async function startServer() {
   // Add logging middleware for debugging
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    console.log('Origin:', req.headers.origin);
     next();
   });
 
@@ -432,6 +444,7 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check available at: http://localhost:${PORT}/api/health`);
+    console.log('🌐 CORS configured for:', allowedOrigins);
   });
 }
 

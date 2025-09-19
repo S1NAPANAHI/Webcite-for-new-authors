@@ -80,9 +80,6 @@ async function upsertInvoice(invoice) {
   return data;
 }
 
-// CORS Configuration Updated: 2025-09-19 05:33 CEST
-// This ensures www.zoroastervers.com is allowed to make requests
-
 // Create subscription in default_incomplete to collect payment with Payment Element
 async function startServer() {
   console.log('Backend ENV: SUPABASE_URL =', process.env.SUPABASE_URL);
@@ -90,31 +87,72 @@ async function startServer() {
 
   const app = express(); // Define app inside startServer
 
-  // FIXED CORS configuration to allow production frontend domain
-  const allowedOrigins = [
-    'http://localhost:5173',           // Development
-    'https://www.zoroastervers.com',   // Production (PRIMARY)
-    'https://zoroastervers.com',       // Production (without www)
-    process.env.FRONTEND_URL           // Environment variable fallback
-  ].filter(Boolean); // Remove any undefined values
+  // CORS Configuration - Fixed for production
+  const allowedOrigins = new Set([
+    'http://localhost:5173',
+    'https://www.zoroastervers.com',
+    'https://zoroastervers.com'
+  ]);
 
-  console.log('🌐 CORS FIXED - Allowed origins:', allowedOrigins);
+  // Add environment variable if provided
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.add(process.env.FRONTEND_URL);
+  }
 
+  console.log('🌐 CORS - Allowed origins:', Array.from(allowedOrigins));
+
+  // CORS middleware with dynamic origin checking
   app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.has(origin)) {
+        console.log('✅ CORS - Origin allowed:', origin);
+        return callback(null, true);
+      }
+      
+      console.log('❌ CORS - Origin denied:', origin);
+      return callback(new Error(`CORS: Origin not allowed: ${origin}`));
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }));
+
+  // Explicit preflight handler for all routes
+  app.options('*', (req, res) => {
+    const origin = req.headers.origin;
+    console.log('🔍 CORS PREFLIGHT - Origin:', origin);
+    
+    if (origin && allowedOrigins.has(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Vary', 'Origin');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      console.log('✅ CORS PREFLIGHT - Headers set for:', origin);
+      return res.sendStatus(204);
+    }
+    
+    console.log('❌ CORS PREFLIGHT - Origin not allowed:', origin);
+    return res.sendStatus(403);
+  });
 
   // Add JSON body parsing middleware
   app.use(express.json());
 
-  // Add logging middleware for debugging
+  // Add debug logging middleware
   app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    console.log('Request Origin:', req.headers.origin);
-    console.log('CORS Check: Origin allowed?', allowedOrigins.includes(req.headers.origin));
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe')) {
+      console.log('🔍 Request:', {
+        method: req.method,
+        path: req.path,
+        origin: req.headers.origin,
+        timestamp: new Date().toISOString()
+      });
+    }
     next();
   });
 
@@ -257,7 +295,7 @@ async function startServer() {
   app.post('/api/stripe/create-subscription', async (req, res) => {
     console.log('=== CREATE SUBSCRIPTION REQUEST ===');
     console.log('Request body:', req.body);
-    console.log('Request headers:', req.headers);
+    console.log('Request headers origin:', req.headers.origin);
     
     try {
       const { paymentMethodId, priceId } = req.body;
@@ -443,10 +481,9 @@ async function startServer() {
 
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Health check available at: http://localhost:${PORT}/api/health`);
-    console.log('🚀 CORS UPDATED - Production domain www.zoroastervers.com is now allowed!');
-    console.log('🌐 All allowed origins:', allowedOrigins);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`✅ CORS configured for:`, Array.from(allowedOrigins));
   });
 }
 

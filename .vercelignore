@@ -25,3 +25,16 @@
 
 # Ignore scripts directory (no longer needed for deployment)
 scripts/*
+
+# Ignore API functions since we're using Render.com for backend
+api/
+
+# Ignore backend app since it's deployed on Render.com
+apps/backend/
+
+# Ignore other non-frontend packages for deployment
+packages/shared/
+packages/ui/dist/
+
+# Keep only frontend for Vercel deployment
+!apps/frontend/

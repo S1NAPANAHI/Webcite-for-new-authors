@@ -48,6 +48,7 @@ import CharacterManager from './pages/admin/world/CharacterManager';
 import LibraryPageNew from './pages/LibraryPage';
 import ContentItemDetailPage from './pages/ContentItemDetailPage';
 import MyLibraryPage from './pages/account/MyLibraryPage';
+import ChapterReaderPage from './pages/ChapterReaderPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -153,6 +154,9 @@ const AppContent: React.FC = () => {
         <Route path="/library" element={<LibraryPageNew />} />
         <Route path="/library/:type/:slug" element={<ContentItemDetailPage />} />
         
+        {/* Chapter Reader Routes - Available to all users */}
+        <Route path="/read/:issueSlug/:chapterSlug" element={<ChapterReaderPage />} />
+        
         <Route path="/:slug" element={<PlaceholderPage title="Page" />} />
       </Route>
 
@@ -164,8 +168,6 @@ const AppContent: React.FC = () => {
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
         <Route path="/checkout" element={<Elements stripe={stripePromise}><CheckoutPage /></Elements>} />
-        <Route path="/read/:workSlug" element={<PlaceholderPage title="Work Reader" />} />
-        <Route path="/read/:workSlug/:chapterId" element={<PlaceholderPage title="Chapter Reader" />} />
         <Route path="/beta/application" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/status" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/handbook" element={<PlaceholderPage title="Beta Reader Handbook" />} />

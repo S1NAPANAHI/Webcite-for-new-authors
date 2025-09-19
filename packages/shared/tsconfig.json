@@ -5,7 +5,7 @@
     "lib": ["es2020", "dom", "dom.iterable"],
     "module": "esnext",
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

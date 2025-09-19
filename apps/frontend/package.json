@@ -56,6 +56,7 @@
     "@vercel/node": "^3.0.0",
     "@zoroaster/shared": "workspace:*",
     "@zoroaster/ui": "workspace:*",
+    "axios": "^1.7.7",
     "bulma": "^1.0.4",
     "class-variance-authority": "^0.7.1",
     "classnames": "^2.5.1",

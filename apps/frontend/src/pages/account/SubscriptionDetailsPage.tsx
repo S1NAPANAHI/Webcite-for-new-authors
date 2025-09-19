@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth, getSubscription, refreshSubscriptionStatus, supabase } from '@zoroaster/shared';
+import { useAuth, getSubscription, refreshSubscriptionStatus, supabase, getSubscriptionStatusInfo, getSubscriptionDaysRemaining } from '@zoroaster/shared';
 import {
   Crown,
   Calendar,
@@ -15,58 +15,6 @@ import {
   Download
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-
-interface SubscriptionData {
-  user_id: string;
-  email: string;
-  subscription_status: string;
-  subscription_tier: string;
-  subscription_end_date?: string;
-  is_subscribed: boolean;
-  has_premium_access: boolean;
-  subscription_valid: boolean;
-  days_remaining?: number;
-  plan_info?: {
-    price_id: string;
-    amount: number;
-    currency: string;
-    interval: string;
-    interval_count: number;
-    product_name: string;
-  };
-  billing_cycle?: string;
-}
-
-interface BillingData {
-  payment_method: {
-    id: string;
-    type: string;
-    card: {
-      brand: string;
-      last4: string;
-      exp_month: number;
-      exp_year: number;
-    };
-  } | null;
-  invoices: Array<{
-    id: string;
-    amount_paid: number;
-    amount_due: number;
-    currency: string;
-    status: string;
-    created: number;
-    period_start: number;
-    period_end: number;
-    hosted_invoice_url?: string;
-    invoice_pdf?: string;
-  }>;
-  upcoming_invoice: {
-    amount_due: number;
-    currency: string;
-    period_start: number;
-    period_end: number;
-  } | null;
-}
 
 interface SubscriptionFeature {
   name: string;
@@ -146,42 +94,29 @@ const SubscriptionDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [subscriptionData, setSubscriptionData] = useState<SubscriptionData | null>(null);
-  const [billingData, setBillingData] = useState<BillingData | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [billingData, setBillingData] = useState<any>(null);
 
-  // Fetch subscription data from new API
-  const fetchSubscriptionData = async () => {
+  // Use the same working method as Account.tsx
+  const { data: subscription, isLoading, refetch } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: () => getSubscription(user!.id),
+    enabled: !!user?.id,
+  });
+
+  // Fetch billing information separately
+  const fetchBillingData = async () => {
     if (!user) return;
 
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
-      if (!token) {
-        setError('Authentication required');
-        return;
-      }
+      if (!token) return;
 
       const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       
-      // Fetch subscription status
-      const statusResponse = await fetch(`${API_BASE}/api/subscription/status`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!statusResponse.ok) {
-        throw new Error(`Failed to fetch subscription: ${statusResponse.status}`);
-      }
-
-      const statusData = await statusResponse.json();
-      setSubscriptionData(statusData);
-      
-      // Fetch billing information
+      // Try to fetch billing information (this might work even if status doesn't)
       const billingResponse = await fetch(`${API_BASE}/api/subscription/billing`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -193,44 +128,32 @@ const SubscriptionDetailsPage: React.FC = () => {
         const billingInfo = await billingResponse.json();
         setBillingData(billingInfo);
       }
-
     } catch (err) {
-      console.error('Error fetching subscription data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load subscription data');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching billing data:', err);
+      // Don't set error for billing data - it's optional
     }
   };
 
-  // Refresh subscription status
+  // Use the working refresh method from Account.tsx
   const handleRefreshSubscription = async () => {
+    if (!user) return;
+    
     setError('');
     setSuccess('');
     setIsRefreshing(true);
     
     try {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-      if (!token) {
-        setError('Authentication required');
-        return;
-      }
-
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE}/api/subscription/refresh`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setSuccess('Subscription status refreshed successfully!');
-        await fetchSubscriptionData();
-      } else {
-        throw new Error('Failed to refresh subscription');
-      }
+      console.log('🔄 Refreshing subscription status...');
+      
+      // Use the working refresh method
+      await refreshSubscriptionStatus(user.id);
+      
+      // Refetch subscription data
+      await refetch();
+      
+      setSuccess('Subscription status refreshed successfully!');
+      console.log('✅ Subscription refreshed successfully');
+      
     } catch (err) {
       console.error('Error refreshing subscription:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh subscription status');
@@ -239,7 +162,7 @@ const SubscriptionDetailsPage: React.FC = () => {
     }
   };
 
-  // Handle billing portal
+  // Handle billing portal - this might work since it's a simple redirect
   const handleManageBilling = async () => {
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -258,53 +181,23 @@ const SubscriptionDetailsPage: React.FC = () => {
         const data = await response.json();
         window.open(data.url, '_blank');
       } else {
-        setError('Failed to open billing portal');
+        setError('Billing portal temporarily unavailable. Please contact support.');
       }
     } catch (err) {
       console.error('Error opening billing portal:', err);
-      setError('Failed to open billing portal');
+      setError('Billing portal temporarily unavailable. Please contact support.');
     }
   };
 
-  // Handle subscription cancellation
-  const handleCancelSubscription = async () => {
-    if (!window.confirm('Are you sure you want to cancel your subscription? It will remain active until the end of your current billing period.')) {
-      return;
-    }
-
-    try {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-      if (!token) return;
-
-      const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_BASE}/api/subscription/cancel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        setSuccess('Your subscription has been scheduled for cancellation at the end of your current billing period.');
-        await fetchSubscriptionData();
-      } else {
-        setError('Failed to cancel subscription');
-      }
-    } catch (err) {
-      console.error('Error canceling subscription:', err);
-      setError('Failed to cancel subscription');
-    }
-  };
-
+  // Fetch billing data on mount
   useEffect(() => {
     if (user) {
-      fetchSubscriptionData();
+      fetchBillingData();
     }
   }, [user]);
 
-  const getSubscriptionInfo = (data: SubscriptionData | null) => {
-    if (!data || !data.is_subscribed || data.subscription_tier === 'free') {
+  const getSubscriptionInfo = (subscriptionData: any) => {
+    if (!subscriptionData || !subscriptionData.is_subscribed || subscriptionData.tier === 'free') {
       return {
         tier: 'free' as const,
         name: 'Free Tier',
@@ -315,7 +208,7 @@ const SubscriptionDetailsPage: React.FC = () => {
       };
     }
 
-    const tier = data.subscription_tier;
+    const tier = subscriptionData.tier;
     switch (tier) {
       case 'premium':
         return {
@@ -323,8 +216,8 @@ const SubscriptionDetailsPage: React.FC = () => {
           name: 'Premium',
           color: 'bg-blue-500',
           textColor: 'text-blue-400',
-          status: data.subscription_status === 'active' ? 'Active' : 'Inactive',
-          price: data.plan_info ? `$${(data.plan_info.amount / 100).toFixed(2)}/${data.plan_info.interval}` : '$9.99/month'
+          status: subscriptionData.status === 'active' ? 'Active' : 'Inactive',
+          price: '$9.99/month' // You can make this dynamic later
         };
       case 'patron':
         return {
@@ -332,8 +225,8 @@ const SubscriptionDetailsPage: React.FC = () => {
           name: 'Patron',
           color: 'bg-purple-500',
           textColor: 'text-purple-400',
-          status: data.subscription_status === 'active' ? 'Active' : 'Inactive',
-          price: data.plan_info ? `$${(data.plan_info.amount / 100).toFixed(2)}/${data.plan_info.interval}` : '$19.99/month'
+          status: subscriptionData.status === 'active' ? 'Active' : 'Inactive',
+          price: '$19.99/month' // You can make this dynamic later
         };
       default:
         return {
@@ -363,7 +256,7 @@ const SubscriptionDetailsPage: React.FC = () => {
     }).format(amount / 100);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -374,8 +267,8 @@ const SubscriptionDetailsPage: React.FC = () => {
     );
   }
 
-  const subscriptionInfo = getSubscriptionInfo(subscriptionData);
-  const daysRemaining = subscriptionData?.days_remaining;
+  const subscriptionInfo = getSubscriptionInfo(subscription);
+  const daysRemaining = subscription?.current_period_end ? getSubscriptionDaysRemaining(subscription.current_period_end) : null;
 
   return (
     <div className="space-y-8">
@@ -436,9 +329,6 @@ const SubscriptionDetailsPage: React.FC = () => {
               <p className={`text-sm ${subscriptionInfo.textColor}`}>
                 {subscriptionInfo.status} • {subscriptionInfo.price}
               </p>
-              {subscriptionData?.plan_info?.product_name && (
-                <p className="text-sm text-gray-400">{subscriptionData.plan_info.product_name}</p>
-              )}
             </div>
           </div>
           <div className="flex gap-3">
@@ -470,11 +360,9 @@ const SubscriptionDetailsPage: React.FC = () => {
               <span className="text-sm">Billing Cycle</span>
             </div>
             <p className="text-white font-medium">
-              {subscriptionData?.billing_cycle ||
-                (subscriptionData?.plan_info ? 
-                  `Every ${subscriptionData.plan_info.interval_count} ${subscriptionData.plan_info.interval}${subscriptionData.plan_info.interval_count > 1 ? 's' : ''}` : 
-                  subscriptionInfo.tier === 'free' ? 'No billing cycle' : 'N/A'
-                )
+              {subscription?.is_subscribed && subscriptionInfo.tier !== 'free'
+                ? 'Monthly'
+                : 'No billing cycle'
               }
             </p>
           </div>
@@ -485,11 +373,9 @@ const SubscriptionDetailsPage: React.FC = () => {
               <span className="text-sm">Next Payment</span>
             </div>
             <p className="text-white font-medium">
-              {subscriptionData?.subscription_end_date && subscriptionData?.is_subscribed
-                ? formatDate(subscriptionData.subscription_end_date)
-                : subscriptionInfo.tier === 'free'
-                ? 'No payment required'
-                : 'N/A'
+              {subscription?.current_period_end && subscription?.is_subscribed
+                ? formatDate(subscription.current_period_end)
+                : 'No payment required'
               }
             </p>
           </div>
@@ -546,7 +432,7 @@ const SubscriptionDetailsPage: React.FC = () => {
           <h3 className="text-xl font-semibold text-white mb-6">Recent Invoices</h3>
           
           <div className="space-y-3">
-            {billingData.invoices.slice(0, 3).map((invoice) => (
+            {billingData.invoices.slice(0, 3).map((invoice: any) => (
               <div key={invoice.id} className="flex items-center justify-between p-4 bg-gray-700/30 rounded-lg">
                 <div>
                   <p className="text-white font-medium">
@@ -690,14 +576,6 @@ const SubscriptionDetailsPage: React.FC = () => {
               <ExternalLink size={18} />
               Billing Portal
             </button>
-            
-            <button 
-              onClick={handleCancelSubscription}
-              className="flex items-center justify-center gap-2 px-6 py-3 border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-colors font-medium"
-            >
-              <X size={18} />
-              Cancel Subscription
-            </button>
           </>
         )}
       </div>
@@ -708,8 +586,8 @@ const SubscriptionDetailsPage: React.FC = () => {
         <div className="space-y-3 text-sm text-blue-200">
           <p>• <strong>Billing Issues:</strong> Contact our support team for any billing-related questions</p>
           <p>• <strong>Feature Access:</strong> If you're not seeing premium features, try refreshing your subscription status</p>
-          <p>• <strong>Cancellation:</strong> You can cancel your subscription anytime and keep access until the end of your billing period</p>
-          <p>• <strong>Refunds:</strong> We offer prorated refunds within 7 days of billing</p>
+          <p>• <strong>Subscription Management:</strong> Use the billing portal for subscription changes</p>
+          <p>• <strong>Technical Issues:</strong> If you experience any technical problems, please reach out to support</p>
         </div>
         <div className="mt-4 flex gap-3">
           <button className="text-blue-400 hover:text-blue-300 text-sm font-medium">

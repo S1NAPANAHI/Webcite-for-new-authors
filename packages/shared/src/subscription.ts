@@ -155,9 +155,9 @@ export const getSubscriptionTier = async (userId: string): Promise<'free' | 'pre
 /**
  * Force refresh subscription status from backend
  */
-export const refreshSubscriptionStatus = async (userId: string): Promise<boolean> => {
+export const refreshSubscriptionStatus = async (_userId: string): Promise<boolean> => {
     try {
-        const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+        const API_BASE = import.meta.env['VITE_API_URL'] || 'http://localhost:3001';
         const token = localStorage.getItem('supabase.auth.token') || 
                      sessionStorage.getItem('supabase.auth.token');
         

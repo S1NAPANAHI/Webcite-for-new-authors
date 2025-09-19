@@ -4,8 +4,9 @@ import express from 'express';
 import Stripe from 'stripe';
 import bodyParser from 'body-parser';
 
+// Fixed: Use proper Stripe API version format
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-09-30',
+  apiVersion: '2024-09-30.acacia', // Fixed: Added the release name
 });
 import helmet from 'helmet';
 import cors from 'cors';
@@ -84,6 +85,7 @@ async function upsertInvoice(invoice) {
 async function startServer() {
   console.log('Backend ENV: SUPABASE_URL =', process.env.SUPABASE_URL);
   console.log('Backend ENV: SUPABASE_SERVICE_ROLE_KEY =', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'Set (value hidden)' : 'Not Set');
+  console.log('🔧 Stripe API Version:', '2024-09-30.acacia'); // Log the API version being used
 
   const app = express(); // Define app inside startServer
 
@@ -476,7 +478,11 @@ async function startServer() {
 
   // Health check endpoint
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      stripeApiVersion: '2024-09-30.acacia'
+    });
   });
 
   const PORT = process.env.PORT || 3001;
@@ -484,6 +490,7 @@ async function startServer() {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🌐 Health check: http://localhost:${PORT}/api/health`);
     console.log(`✅ CORS configured for:`, Array.from(allowedOrigins));
+    console.log(`🔧 Using Stripe API version: 2024-09-30.acacia`);
   });
 }
 

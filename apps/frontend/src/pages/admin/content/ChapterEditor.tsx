@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '@zoroaster/shared';
@@ -30,56 +30,18 @@ const ChapterEditor: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const quillRef = useRef<ReactQuill | null>(null);
+  const [editorContent, setEditorContent] = useState<string>(''); // Direct HTML content
   
   const [formData, setFormData] = useState<ChapterFormData>({
     title: '',
     slug: '',
     issue_id: issueId || '',
-    content: { type: 'doc', content: [] }, // Initialize with empty Quill-compatible JSON
+    content: { type: 'doc', content: [] },
     plain_content: '',
     chapter_number: 1,
     status: 'draft'
   });
-
-  // Debug helper to check database tables
-  useEffect(() => {
-    const debugTables = async () => {
-      if (user) {
-        console.log('=== DEBUGGING CHAPTER EDITOR TABLES ===');
-        
-        // Check content_items structure
-        try {
-          const { data: contentItems, error: contentError } = await supabase
-            .from('content_items')
-            .select('*')
-            .limit(5);
-          console.log('Content Items Sample:', contentItems);
-          console.log('Content Items Error:', contentError);
-        } catch (err) {
-          console.log('content_items table may not exist:', err);
-        }
-        
-        // Check actual chapters table schema
-        try {
-          const { data: chapters, error: chaptersError } = await supabase
-            .from('chapters')
-            .select('*')
-            .limit(1);
-          console.log('Chapters Table Sample:', chapters);
-          console.log('Chapters Error:', chaptersError);
-          if (chapters && chapters.length > 0) {
-            console.log('Actual Chapters Schema:', Object.keys(chapters[0]));
-          }
-        } catch (err) {
-          console.log('chapters table may not exist:', err);
-        }
-        
-        console.log('=== END DEBUG ===');
-      }
-    };
-    
-    debugTables();
-  }, [user]);
 
   // Load issues for dropdown
   useEffect(() => {
@@ -87,14 +49,14 @@ const ChapterEditor: React.FC = () => {
       try {
         setError(null);
         setLoading(true);
-        console.log('Starting to load issues...');
+        console.log('Loading issues...');
 
         // Load from content_items with type 'issue'
         const { data: issuesData, error: issuesError } = await supabase
           .from('content_items')
           .select('id, title, slug')
           .eq('type', 'issue')
-          .eq('status', 'published')
+          .in('status', ['published', 'draft']) // Allow both published and draft
           .order('title');
 
         console.log('Issues query result:', { issuesData, issuesError });
@@ -102,25 +64,16 @@ const ChapterEditor: React.FC = () => {
         if (issuesError) {
           console.error('Error loading issues:', issuesError);
           setError(`Failed to load issues: ${issuesError.message}`);
-          // Create fallback for testing
-          setIssues([{
-            id: 'fallback-issue',
-            title: 'Fallback Issue (Check console)',
-            slug: 'fallback'
-          }]);
+          setIssues([]);
         } else if (!issuesData || issuesData.length === 0) {
-          console.log('No published issues found');
-          setError('No published issues found. Please create and publish an issue first.');
-          setIssues([{
-            id: 'temp-issue',
-            title: 'No Issues Available',
-            slug: 'no-issues'
-          }]);
+          console.log('No issues found');
+          setError('No issues found. Please create an issue first.');
+          setIssues([]);
         } else {
           console.log('Found issues:', issuesData);
           setIssues(issuesData);
           
-          // If creating a new chapter and we have issues, set the first one as default if no issueId in URL
+          // If creating a new chapter and we have issues, set the first one as default
           if (!id && !issueId && issuesData.length > 0) {
             setFormData(prev => ({ ...prev, issue_id: issuesData[0].id }));
           }
@@ -128,12 +81,8 @@ const ChapterEditor: React.FC = () => {
         
       } catch (err) {
         console.error('Unexpected error loading issues:', err);
-        setError(`An unexpected error occurred while loading issues: ${err.message}`);
-        setIssues([{
-          id: 'error-fallback',
-          title: 'Error Loading Issues',
-          slug: 'error'
-        }]);
+        setError(`An unexpected error occurred while loading issues: ${(err as Error).message}`);
+        setIssues([]);
       } finally {
         setLoading(false);
       }
@@ -170,6 +119,29 @@ const ChapterEditor: React.FC = () => {
 
         if (chapterData) {
           console.log('Loaded chapter data:', chapterData);
+          
+          // Extract HTML content for editor
+          let htmlContent = '';
+          try {
+            // Try to extract content from various possible formats
+            if (chapterData.plain_content) {
+              htmlContent = chapterData.plain_content;
+            } else if (chapterData.content && typeof chapterData.content === 'string') {
+              htmlContent = chapterData.content;
+            } else if (chapterData.content && chapterData.content.content) {
+              // Try to extract from JSON structure
+              const firstParagraph = chapterData.content.content[0];
+              if (firstParagraph && firstParagraph.content && firstParagraph.content[0]) {
+                htmlContent = firstParagraph.content[0].text || '';
+              }
+            }
+          } catch (e) {
+            console.log('Error extracting content:', e);
+            htmlContent = '';
+          }
+          
+          setEditorContent(htmlContent);
+          
           setFormData({
             title: chapterData.title || '',
             slug: chapterData.slug || '',
@@ -199,19 +171,26 @@ const ChapterEditor: React.FC = () => {
     if (formData.title) {
       const slug = formData.title
         .toLowerCase()
-        .replace(/[^a-z0-9\\s-]/g, '')
-        .replace(/\\s+/g, '-')
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
         .trim();
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title]);
 
-  // Handle content change from ReactQuill
-  const handleContentChange = (htmlContent: string) => {
-    // Convert HTML to plain text for search
-    const plainText = htmlContent.replace(/<[^>]*>/g, '').trim();
+  // Handle content change from ReactQuill - using useCallback to prevent re-renders
+  const handleContentChange = useCallback((htmlContent: string) => {
+    console.log('Content changed, length:', htmlContent.length);
     
-    // Store as simple JSON structure for now - you might want to use a proper rich text format
+    // Update editor content state
+    setEditorContent(htmlContent);
+    
+    // Convert HTML to plain text for search
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Create simple content structure
     const contentJson = {
       type: 'doc',
       content: [
@@ -227,15 +206,16 @@ const ChapterEditor: React.FC = () => {
       ]
     };
     
+    // Update form data with debouncing to prevent excessive updates
     setFormData(prev => ({
       ...prev,
       content: contentJson,
       plain_content: plainText
     }));
-  };
+  }, []);
 
   // Calculate word count and estimated read time
-  const wordCount = formData.plain_content.split(/\\s+/).filter(word => word.length > 0).length;
+  const wordCount = formData.plain_content.split(/\s+/).filter(word => word.length > 0).length;
   const estimatedReadTime = Math.max(1, Math.round(wordCount / 200));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -262,19 +242,16 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      // Prepare chapter data to match the actual database schema
+      // Prepare chapter data
       const chapterData = {
         title: formData.title.trim(),
-        slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\\s-]/g, '').replace(/\\s+/g, '-'),
+        slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
         issue_id: formData.issue_id,
         content: formData.content, // JSONB rich content
         plain_content: formData.plain_content, // Plain text for search
         chapter_number: formData.chapter_number,
-        word_count: wordCount,
-        estimated_read_time: estimatedReadTime,
         status: formData.status,
-        published_at: formData.status === 'published' ? new Date().toISOString() : null,
-        metadata: { created_by: user.id } // Track who created it
+        metadata: { created_by: user.id }
       };
 
       console.log('Submitting chapter data:', chapterData);
@@ -360,23 +337,6 @@ const ChapterEditor: React.FC = () => {
       </div>
     );
   }
-
-  // Get HTML content for the editor - extract text from JSON structure
-  const getHtmlContent = () => {
-    if (!formData.content || !formData.content.content) return '';
-    
-    // Simple extraction - you might want to implement proper JSON-to-HTML conversion
-    try {
-      const firstParagraph = formData.content.content[0];
-      if (firstParagraph && firstParagraph.content && firstParagraph.content[0]) {
-        return firstParagraph.content[0].text || '';
-      }
-    } catch (e) {
-      console.log('Error extracting HTML content:', e);
-    }
-    
-    return formData.plain_content || '';
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -468,7 +428,7 @@ const ChapterEditor: React.FC = () => {
                   ))}
                 </select>
                 {issues.length === 0 && (
-                  <p className="text-xs text-gray-500 mt-1">No issues found. Check console for debugging info.</p>
+                  <p className="text-xs text-red-500 mt-1">No issues found. Please create an issue first.</p>
                 )}
               </div>
 
@@ -509,9 +469,10 @@ const ChapterEditor: React.FC = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Chapter Content *
               </label>
-              <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+              <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white">
                 <ReactQuill
-                  value={getHtmlContent()}
+                  ref={quillRef}
+                  value={editorContent}
                   onChange={handleContentChange}
                   modules={{
                     toolbar: [
@@ -532,6 +493,7 @@ const ChapterEditor: React.FC = () => {
                   ]}
                   style={{ minHeight: '300px' }}
                   placeholder="Write your chapter content here..."
+                  theme="snow"
                 />
               </div>
               

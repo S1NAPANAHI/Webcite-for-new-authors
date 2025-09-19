@@ -16,9 +16,10 @@ import { createClient } from '@supabase/supabase-js';
 // Import webhook handler
 import handleStripeWebhook from './webhooks/stripe-ecommerce.js';
 
+// Import route modules
 import adminRoutes from './routes/admin.js';
 import contentRoutes from './routes/content.js';
-
+import subscriptionRoutes from './routes/subscription.js';
 import betaRoutes from './routes/beta.js';
 import worldRoutes from './routes/world.js';
 import filesRoutes from './routes/files.js';
@@ -55,29 +56,6 @@ async function upsertSubscription(subscription) {
 
   if (error) {
     console.error('Error upserting subscription:', error);
-    throw error;
-  }
-  return data;
-}
-
-// Helper to upsert invoice status in Supabase
-async function upsertInvoice(invoice) {
-  const { data, error } = await supabase
-    .from('invoices')
-    .upsert({
-      id: invoice.id,
-      user_id: invoice.customer_email || invoice.customer, // Assuming user_id is stored in customer_email or customer ID maps to user_id
-      subscription_id: invoice.subscription,
-      status: invoice.status,
-      total: invoice.total / 100, // Convert cents to dollars
-      currency: invoice.currency,
-      hosted_invoice_url: invoice.hosted_invoice_url,
-      pdf_url: invoice.invoice_pdf,
-    }, { onConflict: 'id' })
-    .select();
-
-  if (error) {
-    console.error('Error upserting invoice:', error);
     throw error;
   }
   return data;
@@ -161,7 +139,7 @@ async function startServer() {
 
   // Add debug logging middleware
   app.use((req, res, next) => {
-    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe')) {
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription')) {
       console.log('🔍 Request:', {
         method: req.method,
         path: req.path,
@@ -173,170 +151,11 @@ async function startServer() {
   });
 
   // ========================================
-  // ADD SUBSCRIPTION STATUS ENDPOINT
+  // MOUNT ROUTE MODULES
   // ========================================
-  app.get('/api/subscription/status', async (req, res) => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Missing authorization header' });
-      }
-
-      const token = authHeader.split(' ')[1];
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-      
-      if (userError || !user) {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
-
-      // Fetch subscription from database
-      const { data: subscription, error: subError } = await supabase
-        .from('subscriptions')
-        .select(`
-          *,
-          plans:plan_id (
-            name,
-            price,
-            currency,
-            interval
-          )
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .single();
-
-      if (subError && subError.code !== 'PGRST116') {
-        console.error('Error fetching subscription:', subError);
-      }
-
-      // Fetch user profile for additional info
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('subscription_tier, subscription_status, subscription_end_date')
-        .eq('id', user.id)
-        .single();
-
-      const response = {
-        user_id: user.id,
-        email: user.email,
-        is_subscribed: !!subscription && ['active', 'trialing'].includes(subscription.status),
-        subscription: subscription || null,
-        profile: profile || null,
-        tier: profile?.subscription_tier || 'free',
-        status: profile?.subscription_status || subscription?.status || 'inactive',
-        end_date: profile?.subscription_end_date || subscription?.current_period_end
-      };
-
-      res.json(response);
-    } catch (error) {
-      console.error('Error in subscription status endpoint:', error);
-      res.status(500).json({ error: 'Failed to fetch subscription status' });
-    }
-  });
-
-  // ========================================
-  // ADD SUBSCRIPTION REFRESH ENDPOINT
-  // ========================================
-  app.post('/api/subscription/refresh', async (req, res) => {
-    try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Missing authorization header' });
-      }
-
-      const token = authHeader.split(' ')[1];
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-      
-      if (userError || !user) {
-        return res.status(401).json({ error: 'Invalid token' });
-      }
-
-      // Get user's Stripe customer ID
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('stripe_customer_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!profile?.stripe_customer_id) {
-        return res.json({ message: 'No Stripe customer found', updated: false });
-      }
-
-      console.log(`🔄 Refreshing subscription for user ${user.id}, customer ${profile.stripe_customer_id}`);
-
-      // Fetch active subscriptions from Stripe
-      const subscriptions = await stripe.subscriptions.list({
-        customer: profile.stripe_customer_id,
-        status: 'all',
-        limit: 10
-      });
-
-      console.log(`Found ${subscriptions.data.length} subscriptions`);
-
-      if (subscriptions.data.length > 0) {
-        // Process the most recent subscription
-        const latestSub = subscriptions.data[0];
-        console.log(`Processing subscription: ${latestSub.id} (${latestSub.status})`);
-        
-        // Manually trigger the subscription update handler
-        const isActive = ['active', 'trialing'].includes(latestSub.status);
-        
-        const profileUpdate = {
-          subscription_status: latestSub.status,
-          subscription_tier: isActive ? 'premium' : 'free',
-          subscription_end_date: latestSub.current_period_end ? 
-            new Date(latestSub.current_period_end * 1000).toISOString() : null,
-          updated_at: new Date().toISOString()
-        };
-
-        await supabase
-          .from('profiles')
-          .update(profileUpdate)
-          .eq('id', user.id);
-
-        console.log(`✅ Updated user profile: tier=${isActive ? 'premium' : 'free'}, status=${latestSub.status}`);
-        
-        res.json({ 
-          message: 'Subscription status refreshed successfully',
-          updated: true,
-          subscription: {
-            id: latestSub.id,
-            status: latestSub.status,
-            tier: isActive ? 'premium' : 'free',
-            current_period_end: latestSub.current_period_end
-          }
-        });
-      } else {
-        // No subscriptions found, set to free
-        await supabase
-          .from('profiles')
-          .update({
-            subscription_status: 'inactive',
-            subscription_tier: 'free',
-            subscription_end_date: null,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
-
-        console.log(`✅ Set user to free tier (no active subscriptions)`);
-        
-        res.json({ 
-          message: 'No active subscriptions found, set to free tier',
-          updated: true,
-          subscription: null
-        });
-      }
-
-    } catch (error) {
-      console.error('Error refreshing subscription:', error);
-      res.status(500).json({ error: 'Failed to refresh subscription status' });
-    }
-  });
-
-  // Mount route modules
+  app.use('/api/subscription', subscriptionRoutes); // NEW: Enhanced subscription API
   app.use('/admin', adminRoutes);
   app.use('/content', contentRoutes);
-  
   app.use('/beta', betaRoutes);
   app.use('/world', worldRoutes);
   app.use('/files', filesRoutes);
@@ -415,7 +234,6 @@ async function startServer() {
         cancel_url: `${process.env.FRONTEND_URL}/subscriptions`,
         metadata: {
           user_id: userId,
-          // You can add more metadata here if needed
         },
         subscription_data: {
           metadata: {
@@ -428,245 +246,6 @@ async function startServer() {
     } catch (error) {
       console.error('Error creating checkout session:', error);
       res.status(500).json({ error: error.message });
-    }
-  });
-
-  // Endpoint to manage Stripe Billing Portal
-  app.post('/api/manage-billing-portal', async (req, res) => {
-    try {
-      console.log('Received manage-billing-portal request. Body:', req.body);
-      const { userId } = req.body;
-
-      if (!userId) {
-        console.error('Validation Error: Missing userId in manage-billing-portal request.');
-        return res.status(400).json({ error: 'Missing userId' });
-      }
-
-      // Fetch the user's Stripe customer ID from your Supabase 'customers' table
-      const { data: customerData, error: customerError } = await supabase
-        .from('customers')
-        .select('stripe_customer_id')
-        .eq('id', userId)
-        .single();
-
-      if (customerError || !customerData || !customerData.stripe_customer_id) {
-        console.error('Error fetching customer ID from Supabase:', customerError || 'Stripe customer ID not found for user.');
-        return res.status(404).json({ error: 'Stripe customer ID not found for user.' });
-      }
-
-      const customerId = customerData.stripe_customer_id;
-
-      const session = await stripe.billingPortal.sessions.create({
-        customer: customerId,
-        return_url: `${process.env.FRONTEND_URL}/subscriptions`, // URL to return to after managing subscription
-      });
-
-      res.json({ url: session.url });
-    } catch (error) {
-      console.error('Error creating billing portal session:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // FIXED: Enhanced create-subscription endpoint
-  app.post('/api/stripe/create-subscription', async (req, res) => {
-    console.log('=== CREATE SUBSCRIPTION REQUEST ===');
-    console.log('Request body:', req.body);
-    console.log('Request headers origin:', req.headers.origin);
-    
-    try {
-      const { paymentMethodId, priceId } = req.body;
-      
-      // Validate required fields
-      if (!paymentMethodId || !priceId) {
-        console.error('Validation Error: Missing paymentMethodId or priceId');
-        return res.status(400).json({ 
-          error: 'Missing required fields: paymentMethodId and priceId are required' 
-        });
-      }
-
-      // Extract and validate token
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        console.error('Authentication Error: Missing or invalid authorization header');
-        return res.status(401).json({ error: 'Missing or invalid authorization header' });
-      }
-
-      const token = authHeader.split(' ')[1];
-      if (!token) {
-        console.error('Authentication Error: Missing token');
-        return res.status(401).json({ error: 'Missing authentication token' });
-      }
-
-      console.log('Token extracted, verifying user...');
-
-      // Verify user with Supabase
-      const { data: { user }, error: userError } = await supabase.auth.getUser(token);
-      if (userError || !user) {
-        console.error('Error fetching user from Supabase:', userError);
-        return res.status(401).json({ error: 'Invalid authentication token' });
-      }
-
-      console.log('User verified:', user.id, user.email);
-
-      let customerId;
-
-      // Try to get existing customer from both possible tables
-      let existingCustomer = null;
-      
-      // First try the stripe_customers table
-      const { data: stripeCustomer, error: stripeCustomerError } = await supabase
-        .from('stripe_customers')
-        .select('stripe_customer_id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!stripeCustomerError && stripeCustomer) {
-        existingCustomer = stripeCustomer;
-        customerId = stripeCustomer.stripe_customer_id;
-        console.log('Found existing customer in stripe_customers table:', customerId);
-      } else {
-        // If stripe_customers table doesn't exist or no customer found, try customers table
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('stripe_customer_id')
-          .eq('id', user.id)
-          .single();
-
-        if (!customerError && customerData && customerData.stripe_customer_id) {
-          existingCustomer = customerData;
-          customerId = customerData.stripe_customer_id;
-          console.log('Found existing customer in customers table:', customerId);
-        }
-      }
-
-      if (!existingCustomer) {
-        console.log('No existing customer found, creating new Stripe customer...');
-        
-        // Create a new customer in Stripe
-        const stripeCustomer = await stripe.customers.create({
-          email: user.email,
-          metadata: { user_id: user.id },
-        });
-        customerId = stripeCustomer.id;
-        console.log('Created new Stripe customer:', customerId);
-
-        // Try to store in stripe_customers table first, fallback to customers table
-        try {
-          const { error: insertError } = await supabase
-            .from('stripe_customers')
-            .insert({
-              user_id: user.id,
-              stripe_customer_id: customerId,
-              email: user.email,
-            });
-
-          if (insertError) {
-            console.log('stripe_customers table not available, trying customers table...');
-            
-            // Fallback to customers table
-            const { error: customerInsertError } = await supabase
-              .from('customers')
-              .upsert({
-                id: user.id,
-                stripe_customer_id: customerId,
-                email: user.email,
-              });
-
-            if (customerInsertError) {
-              console.error('Error inserting customer into both tables:', customerInsertError);
-              // Don't throw error here - customer creation in Stripe succeeded
-            } else {
-              console.log('Stored customer in customers table');
-            }
-          } else {
-            console.log('Stored customer in stripe_customers table');
-          }
-        } catch (dbError) {
-          console.error('Database error storing customer (non-critical):', dbError);
-          // Continue with subscription creation even if DB storage fails
-        }
-      }
-
-      console.log('Attaching payment method to customer...');
-      
-      // Attach payment method to customer
-      await stripe.paymentMethods.attach(paymentMethodId, { 
-        customer: customerId 
-      });
-
-      // Set as default payment method
-      await stripe.customers.update(customerId, {
-        invoice_settings: { default_payment_method: paymentMethodId },
-      });
-
-      console.log('Creating subscription...');
-      
-      // Create subscription
-      const subscription = await stripe.subscriptions.create({
-        customer: customerId,
-        items: [{ price: priceId }],
-        expand: ['latest_invoice.payment_intent'],
-        metadata: { user_id: user.id },
-      });
-
-      console.log('Subscription created:', subscription.id);
-
-      // Immediately update user profile status (don't wait for webhook)
-      const isActive = ['active', 'trialing'].includes(subscription.status);
-      const profileUpdate = {
-        subscription_status: subscription.status,
-        subscription_tier: isActive ? 'premium' : 'free',
-        subscription_end_date: subscription.current_period_end ? 
-          new Date(subscription.current_period_end * 1000).toISOString() : null,
-        stripe_customer_id: customerId,
-        updated_at: new Date().toISOString()
-      };
-
-      await supabase
-        .from('profiles')
-        .update(profileUpdate)
-        .eq('id', user.id);
-        
-      console.log('✅ Immediately updated user profile with subscription status');
-
-      // Try to update database with subscription (non-critical)
-      try {
-        await upsertSubscription(subscription);
-        console.log('Subscription stored in database');
-      } catch (dbError) {
-        console.error('Error storing subscription in database (non-critical):', dbError);
-        // Continue - subscription was created successfully in Stripe
-      }
-
-      // Return success response
-      const response = {
-        success: true,
-        subscriptionId: subscription.id,
-        customerId: customerId,
-        status: subscription.status,
-        tier: isActive ? 'premium' : 'free',
-        clientSecret: subscription.latest_invoice?.payment_intent?.client_secret || null
-      };
-
-      console.log('Sending success response:', response);
-      res.json(response);
-
-    } catch (error) {
-      console.error('=== ERROR IN CREATE-SUBSCRIPTION ===');
-      console.error('Error details:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      
-      // Always return a proper JSON error response
-      const errorResponse = {
-        error: error.message || 'An unexpected error occurred while creating subscription',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      };
-      
-      if (!res.headersSent) {
-        res.status(500).json(errorResponse);
-      }
     }
   });
 
@@ -686,8 +265,9 @@ async function startServer() {
     console.log(`✅ CORS configured for:`, Array.from(allowedOrigins));
     console.log(`🔧 Using Stripe API version: 2024-09-30.acacia`);
     console.log(`🎣 Webhook endpoint: http://localhost:${PORT}/api/stripe/webhook`);
-    console.log(`📊 Subscription status: http://localhost:${PORT}/api/subscription/status`);
+    console.log(`📊 Enhanced Subscription API: http://localhost:${PORT}/api/subscription/status`);
     console.log(`🔄 Subscription refresh: http://localhost:${PORT}/api/subscription/refresh`);
+    console.log(`💳 Billing info: http://localhost:${PORT}/api/subscription/billing`);
   });
 }
 

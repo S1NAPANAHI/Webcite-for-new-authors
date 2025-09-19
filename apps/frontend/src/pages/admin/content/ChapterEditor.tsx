@@ -17,7 +17,7 @@ interface ChapterFormData {
   slug: string;
   issue_id: string;
   content_text: string;
-  content_json: any;
+  content_html: string;  // Store HTML separately for the editor
   state: 'planning' | 'writing' | 'editing' | 'published' | 'on_hold' | 'archived';
 }
 
@@ -35,7 +35,7 @@ const ChapterEditor: React.FC = () => {
     slug: '',
     issue_id: issueId || '',
     content_text: '',
-    content_json: null,
+    content_html: '',
     state: 'planning'
   });
 
@@ -67,6 +67,18 @@ const ChapterEditor: React.FC = () => {
           console.log('Issues Error:', issuesError);
         } catch (err) {
           console.log('issues table may not exist:', err);
+        }
+        
+        // Check actual chapters table schema
+        try {
+          const { data: chapters, error: chaptersError } = await supabase
+            .from('chapters')
+            .select('*')
+            .limit(1);
+          console.log('Chapters Table Sample:', chapters);
+          console.log('Chapters Error:', chaptersError);
+        } catch (err) {
+          console.log('chapters table may not exist:', err);
         }
         
         console.log('=== END DEBUG ===');
@@ -222,7 +234,7 @@ const ChapterEditor: React.FC = () => {
             slug: chapterData.slug || '',
             issue_id: chapterData.issue_id || '',
             content_text: chapterData.content_text || '',
-            content_json: chapterData.content_json || null,
+            content_html: chapterData.content_html || chapterData.content_text || '',  // Fallback to content_text if content_html doesn't exist
             state: chapterData.state || 'planning'
           });
         }
@@ -260,7 +272,7 @@ const ChapterEditor: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       content_text: plainText,
-      content_json: { html: content, plainText }
+      content_html: content
     }));
   };
 
@@ -292,13 +304,12 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      // Prepare chapter data according to actual schema
+      // Prepare chapter data - only include fields that exist in the database
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\\s-]/g, '').replace(/\\s+/g, '-'),
         issue_id: formData.issue_id,
         content_text: formData.content_text,
-        content_json: formData.content_json,
         word_count: wordCount,
         estimated_reading_time: estimatedReadTime,
         state: formData.state,
@@ -517,7 +528,7 @@ const ChapterEditor: React.FC = () => {
               </label>
               <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                 <ReactQuill
-                  value={formData.content_json?.html || ''}
+                  value={formData.content_html}
                   onChange={handleContentChange}
                   modules={{
                     toolbar: [

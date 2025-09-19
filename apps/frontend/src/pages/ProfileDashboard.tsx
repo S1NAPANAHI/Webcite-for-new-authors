@@ -4,7 +4,8 @@ import { NavLink, useNavigate, Outlet, Routes, Route, useLocation, Link } from '
 import { ProtectedRoute } from '../components/ProtectedRoute/ProtectedRoute';
 import { useQuery } from '@tanstack/react-query';
 import { supabase, getUserStats, getSubscription, useAuth } from '@zoroaster/shared';
-import type { UserStats, Subscription } from '@zoroaster/shared';
+import type { UserStats, Subscription, EnhancedSubscription } from '@zoroaster/shared';
+import SubscriptionDetailsPage from './account/SubscriptionDetailsPage';
 import {
   BookOpen,
   Clock,
@@ -18,7 +19,9 @@ import {
   Bookmark as BookmarkIcon,
   Crown,
   CheckCircle,
-  LayoutDashboard
+  LayoutDashboard,
+  ExternalLink,
+  RefreshCcw
 } from 'lucide-react';
 
 
@@ -49,6 +52,19 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
   username,
   onSignOut
 }) => {
+  // Fetch real subscription data
+  const { data: subscription, isLoading: isLoadingSubscription, refetch: refetchSubscription } = useQuery<EnhancedSubscription | null>({
+    queryKey: ['subscription', userId],
+    queryFn: () => getSubscription(userId),
+    enabled: !!userId,
+  });
+
+  // Use real subscription data if available
+  const actualSubscriptionTier = subscription?.tier || 'free';
+  const actualIsSubscribed = subscription?.is_subscribed || false;
+  const actualSubscriptionStatus = subscription?.status || 'inactive';
+  const actualSubscriptionEndDate = subscription?.current_period_end;
+
   // Fetch user activities
   const { data: activities, isLoading: isLoadingActivities, isError: isErrorActivities } = useQuery({
     queryKey: ['userActivities', userId],
@@ -64,6 +80,10 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
     },
     enabled: !!userId,
   });
+
+  const handleRefreshSubscription = async () => {
+    await refetchSubscription();
+  };
 
   if (isLoadingActivities) {
     return <div className="text-gray-100">Loading activities...</div>;
@@ -82,27 +102,39 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
   ];
 
   // Format subscription end date if exists
-  const formattedEndDate = subscriptionEndDate
-    ? new Date(subscriptionEndDate).toLocaleDateString('en-US', {
+  const formattedEndDate = actualSubscriptionEndDate
+    ? new Date(actualSubscriptionEndDate).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
       })
     : null;
 
+  // Calculate days remaining
+  const getDaysRemaining = (): number | null => {
+    if (!actualSubscriptionEndDate) return null;
+    const end = new Date(actualSubscriptionEndDate);
+    const now = new Date();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+  };
+
+  const daysRemaining = getDaysRemaining();
+
   // Get subscription tier display name and color
   const getSubscriptionTierInfo = (tier: string) => {
     switch(tier) {
       case 'premium':
-        return { name: 'Premium', color: 'bg-blue-500' };
+        return { name: 'Premium', color: 'bg-blue-500', displayName: 'Premium Subscriber' };
       case 'patron':
-        return { name: 'Patron', color: 'bg-purple-500' };
+        return { name: 'Patron', color: 'bg-purple-500', displayName: 'Patron Supporter' };
       default:
-        return { name: 'Free', color: 'bg-gray-500' };
+        return { name: 'Free', color: 'bg-gray-500', displayName: 'Free Tier' };
     }
   };
 
-  const subscriptionInfo = getSubscriptionTierInfo(subscriptionTier);
+  const subscriptionInfo = getSubscriptionTierInfo(actualSubscriptionTier);
 
   // Get beta reader status display info
   const getBetaReaderStatusInfo = (status: string) => {
@@ -142,25 +174,68 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
         {/* Subscription Status */}
         <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-white">Subscription Status</h3>
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-white">Subscription Status</h3>
+                {isLoadingSubscription ? (
+                  <RefreshCcw size={16} className="text-gray-400 animate-spin" />
+                ) : (
+                  <button
+                    onClick={handleRefreshSubscription}
+                    className="p-1 rounded hover:bg-gray-700/50 transition-colors"
+                    title="Refresh subscription status"
+                  >
+                    <RefreshCcw size={16} className="text-gray-400 hover:text-gray-300" />
+                  </button>
+                )}
+              </div>
               <div className="flex items-center mt-2">
                 <span className={`w-3 h-3 rounded-full mr-2 ${subscriptionInfo.color}`}></span>
-                <span className="text-white">{subscriptionInfo.name} Tier</span>
+                <span className="text-white">{subscriptionInfo.displayName}</span>
               </div>
-              {isSubscribed && subscriptionEndDate && (
-                <p className="text-sm text-gray-400 mt-1">Renews on {formattedEndDate}</p>
+              {actualIsSubscribed && actualSubscriptionStatus === 'active' && (
+                <div className="mt-2 space-y-1">
+                  {formattedEndDate && (
+                    <p className="text-sm text-gray-400">Renews on {formattedEndDate}</p>
+                  )}
+                  {daysRemaining !== null && (
+                    <p className="text-sm text-green-400">
+                      {daysRemaining > 0 ? `${daysRemaining} days remaining` : 'Subscription expired'}
+                    </p>
+                  )}
+                </div>
+              )}
+              {actualIsSubscribed && actualSubscriptionStatus !== 'active' && (
+                <p className="text-sm text-yellow-400 mt-1">
+                  Status: {actualSubscriptionStatus.charAt(0).toUpperCase() + actualSubscriptionStatus.slice(1)}
+                </p>
+              )}
+              {!actualIsSubscribed && actualSubscriptionTier === 'free' && (
+                <p className="text-sm text-gray-400 mt-1">Access to free content and features</p>
               )}
             </div>
             <div className="p-3 rounded-lg bg-primary/10">
               <Crown size={24} className="text-yellow-400" />
             </div>
           </div>
-          {!isSubscribed && (
-            <button className="mt-4 w-full py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors text-sm font-medium">
-              Upgrade Plan
-            </button>
-          )}
+          
+          <div className="mt-4 flex gap-2">
+            <Link 
+              to="/account/subscription"
+              className="flex-1 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors text-sm font-medium text-center flex items-center justify-center gap-2"
+            >
+              <ExternalLink size={14} />
+              View Details
+            </Link>
+            {!actualIsSubscribed && (
+              <Link 
+                to="/store"
+                className="flex-1 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors text-sm font-medium text-center"
+              >
+                Upgrade Plan
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Beta Reader Status */}
@@ -393,8 +468,6 @@ export const ProfileContent: React.FC = () => {
     </div>
   );
 };
-
-
 
 // Mock data for achievements
 const achievements = [
@@ -1427,6 +1500,7 @@ const ProfileDashboard = () => {
   const baseTabs = [
     { id: 'overview', name: 'Overview', icon: <Home size={18} />, path: '/account' },
     { id: 'profile', name: 'Profile', icon: <UserIcon size={18} />, path: '/account/profile' },
+    { id: 'subscription', name: 'Subscription', icon: <Crown size={18} />, path: '/account/subscription' },
     { id: 'reading', name: 'Reading', icon: <BookOpen size={18} />, path: '/account/reading' },
     { id: 'achievements', name: 'Achievements', icon: <Award size={18} />, path: '/account/achievements' },
     { id: 'preferences', name: 'Preferences', icon: <Settings size={18} />, path: '/account/preferences' },
@@ -1439,7 +1513,7 @@ const ProfileDashboard = () => {
       allTabs.push({ id: 'admin', name: 'Admin', icon: <LayoutDashboard size={18} />, path: '/admin' });
     }
     return allTabs;
-  }, [isAdmin, baseTabs]);
+  }, [isAdmin]);
 
   const { data: userStats, isLoading: isLoadingStats } = useQuery<UserStats | null>({
     queryKey: ['userStats', user?.id],
@@ -1473,8 +1547,8 @@ const ProfileDashboard = () => {
     if (subscription) {
       setDisplayProfile(prev => ({
         ...prev,
-        isSubscribed: true,
-        subscriptionTier: subscription.plan_id as any,
+        isSubscribed: subscription.is_subscribed || false,
+        subscriptionTier: (subscription.tier as 'free' | 'premium' | 'patron') || 'free',
         subscriptionEndDate: subscription.current_period_end,
       }));
     }
@@ -1614,6 +1688,7 @@ const ProfileDashboard = () => {
                     }
                   />
                   <Route path="profile" element={<ProfileContent />} />
+                  <Route path="subscription" element={<SubscriptionDetailsPage />} />
                   <Route element={<ProtectedRoute requireSubscription={true} />}>
                     <Route path="reading" element={<UserLibrary />} />
                   </Route>

@@ -16,10 +16,15 @@ import {
   MoreVertical,
   Archive,
   Trash2,
-  Edit
+  Edit,
+  Plus,
+  Eye,
+  Loader,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@zoroaster/shared';
+import { useAuth, supabase } from '@zoroaster/shared';
 import {
   UserLibraryItemWithContent,
   ReadingProgress,
@@ -27,74 +32,15 @@ import {
   HIERARCHY_LEVELS
 } from '../../types/content';
 
-// Mock user library data
-const mockUserLibrary: UserLibraryItemWithContent[] = [
-  {
-    id: 'lib1',
-    user_id: 'user1',
-    content_item_id: '5',
-    added_at: '2025-09-10T00:00:00Z',
-    last_accessed_at: '2025-09-17T00:00:00Z',
-    is_favorite: true,
-    personal_rating: 5,
-    personal_notes: 'Amazing start to the series!',
-    content_item: {
-      id: '5',
-      type: 'issue',
-      title: 'Issue #1: The Calling',
-      slug: 'issue-1-the-calling',
-      description: 'The journey begins with a mysterious calling...',
-      cover_image_url: '/api/placeholder/300/400',
-      parent_id: '4',
-      order_index: 1,
-      completion_percentage: 75,
-      average_rating: 4.8,
-      rating_count: 32,
-      status: 'published',
-      published_at: '2025-02-10T00:00:00Z',
-      metadata: { chapter_count: 4, estimated_read_time: 60 },
-      created_at: '2025-01-20T00:00:00Z',
-      updated_at: '2025-09-18T00:00:00Z'
-    },
-    overall_progress: 65
-  },
-  {
-    id: 'lib2',
-    user_id: 'user1',
-    content_item_id: '1',
-    added_at: '2025-09-05T00:00:00Z',
-    last_accessed_at: '2025-09-15T00:00:00Z',
-    is_favorite: false,
-    content_item: {
-      id: '1',
-      type: 'book',
-      title: 'The Chronicles of Ahura',
-      slug: 'chronicles-of-ahura',
-      description: 'The epic tale of light versus darkness in ancient Persia...',
-      cover_image_url: '/api/placeholder/300/400',
-      order_index: 1,
-      completion_percentage: 45,
-      average_rating: 4.8,
-      rating_count: 127,
-      status: 'published',
-      published_at: '2025-01-15T00:00:00Z',
-      metadata: { total_chapters: 24, estimated_read_time: 480 },
-      created_at: '2025-01-01T00:00:00Z',
-      updated_at: '2025-09-15T00:00:00Z'
-    },
-    overall_progress: 12
-  }
-];
-
-// Mock reading stats
+// Mock reading stats - in real app, calculate from actual data
 const mockReadingStats = {
-  totalItems: 12,
-  itemsCompleted: 3,
-  currentStreak: 7,
-  totalReadingTime: 1240, // minutes
-  chaptersRead: 45,
-  averageRating: 4.6,
-  thisWeekProgress: 23, // chapters
+  totalItems: 0,
+  itemsCompleted: 0,
+  currentStreak: 0,
+  totalReadingTime: 0, // minutes
+  chaptersRead: 0,
+  averageRating: 0,
+  thisWeekProgress: 0, // chapters
   favoriteGenre: 'Fantasy'
 };
 
@@ -221,21 +167,27 @@ function LibraryItemCard({ item, onRemove, onToggleFavorite, onUpdateRating }: L
                   <div className="absolute right-0 top-8 w-48 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
                     <div className="py-1">
                       <button
-                        onClick={() => onToggleFavorite(item.id)}
+                        onClick={() => {
+                          onToggleFavorite(item.id);
+                          setShowMenu(false);
+                        }}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                       >
                         <Heart className={`w-4 h-4 ${item.is_favorite ? 'text-red-500 fill-current' : ''}`} />
                         <span>{item.is_favorite ? 'Remove from Favorites' : 'Add to Favorites'}</span>
                       </button>
                       <button
-                        onClick={() => {}}
+                        onClick={() => setShowMenu(false)}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                       >
                         <Edit className="w-4 h-4" />
                         <span>Add Notes</span>
                       </button>
                       <button
-                        onClick={() => onRemove(item.id)}
+                        onClick={() => {
+                          onRemove(item.id);
+                          setShowMenu(false);
+                        }}
                         className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -331,7 +283,7 @@ function LibraryItemCard({ item, onRemove, onToggleFavorite, onUpdateRating }: L
       <div className="px-6 py-3 bg-gray-50 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center space-x-4 text-gray-600">
-            <span>Last read: {new Date(item.last_accessed_at).toLocaleDateString()}</span>
+            <span>Last read: {item.last_accessed_at ? new Date(item.last_accessed_at).toLocaleDateString() : 'Never'}</span>
             {nextChapter && (
               <span>Next: {nextChapter.title}</span>
             )}
@@ -392,11 +344,111 @@ function FilterTabs({ activeFilter, onFilterChange, counts }: FilterTabsProps) {
 
 export default function MyLibraryPage() {
   const { user } = useAuth();
-  const [libraryItems, setLibraryItems] = useState<UserLibraryItemWithContent[]>(mockUserLibrary);
-  const [readingStats] = useState(mockReadingStats);
-  const [loading, setLoading] = useState(false);
+  const [libraryItems, setLibraryItems] = useState<UserLibraryItemWithContent[]>([]);
+  const [readingStats, setReadingStats] = useState(mockReadingStats);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  
+  // Load user's library from database
+  useEffect(() => {
+    if (user) {
+      loadUserLibrary();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+  
+  const loadUserLibrary = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🔍 Loading user library for:', user?.id);
+      
+      // Fetch user's library items with content details
+      const { data: libraryData, error: libraryError } = await supabase
+        .from('user_library')
+        .select(`
+          id,
+          user_id,
+          content_item_id,
+          added_at,
+          last_accessed_at,
+          is_favorite,
+          personal_rating,
+          personal_notes,
+          content_items!inner (
+            id,
+            type,
+            title,
+            slug,
+            description,
+            cover_image_url,
+            parent_id,
+            order_index,
+            completion_percentage,
+            average_rating,
+            rating_count,
+            status,
+            published_at,
+            metadata,
+            created_at,
+            updated_at
+          )
+        `)
+        .eq('user_id', user?.id)
+        .eq('content_items.status', 'published')
+        .order('added_at', { ascending: false });
+      
+      if (libraryError) {
+        console.error('❌ Error fetching library:', libraryError);
+        throw libraryError;
+      }
+      
+      console.log('✅ Library data loaded:', libraryData?.length || 0, 'items');
+      
+      if (!libraryData || libraryData.length === 0) {
+        console.log('📭 No library items found');
+        setLibraryItems([]);
+        setReadingStats(prev => ({ ...prev, totalItems: 0 }));
+        return;
+      }
+      
+      // Transform data to match expected structure
+      const transformedItems: UserLibraryItemWithContent[] = libraryData.map(item => ({
+        id: item.id,
+        user_id: item.user_id,
+        content_item_id: item.content_item_id,
+        added_at: item.added_at,
+        last_accessed_at: item.last_accessed_at,
+        is_favorite: item.is_favorite || false,
+        personal_rating: item.personal_rating,
+        personal_notes: item.personal_notes,
+        content_item: Array.isArray(item.content_items) ? item.content_items[0] : item.content_items,
+        overall_progress: 0 // TODO: Calculate from reading_progress table
+      }));
+      
+      setLibraryItems(transformedItems);
+      
+      // Update reading stats
+      const completedItems = transformedItems.filter(item => item.overall_progress === 100).length;
+      setReadingStats(prev => ({
+        ...prev,
+        totalItems: transformedItems.length,
+        itemsCompleted: completedItems
+      }));
+      
+      console.log('📚 Library items set:', transformedItems.length);
+      
+    } catch (error) {
+      console.error('💥 Error loading user library:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load library');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Calculate filter counts
   const filterCounts = {
@@ -432,18 +484,38 @@ export default function MyLibraryPage() {
   
   const handleRemoveFromLibrary = async (id: string) => {
     try {
-      // API call to remove from library
-      console.log('Removing from library:', id);
+      console.log('➖ Removing from library:', id);
+      
+      const { error } = await supabase
+        .from('user_library')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      console.log('✅ Removed from library successfully');
       setLibraryItems(prev => prev.filter(item => item.id !== id));
     } catch (error) {
-      console.error('Error removing from library:', error);
+      console.error('❌ Error removing from library:', error);
+      alert('Failed to remove from library. Please try again.');
     }
   };
   
   const handleToggleFavorite = async (id: string) => {
     try {
-      // API call to toggle favorite
-      console.log('Toggling favorite:', id);
+      console.log('💖 Toggling favorite:', id);
+      
+      const item = libraryItems.find(item => item.id === id);
+      if (!item) return;
+      
+      const { error } = await supabase
+        .from('user_library')
+        .update({ is_favorite: !item.is_favorite })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      console.log('✅ Favorite toggled successfully');
       setLibraryItems(prev => 
         prev.map(item => 
           item.id === id 
@@ -452,14 +524,23 @@ export default function MyLibraryPage() {
         )
       );
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      console.error('❌ Error toggling favorite:', error);
+      alert('Failed to update favorite status. Please try again.');
     }
   };
   
   const handleUpdateRating = async (id: string, rating: number) => {
     try {
-      // API call to update personal rating
-      console.log('Updating rating:', id, rating);
+      console.log('⭐ Updating rating:', id, rating);
+      
+      const { error } = await supabase
+        .from('user_library')
+        .update({ personal_rating: rating })
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      console.log('✅ Rating updated successfully');
       setLibraryItems(prev => 
         prev.map(item => 
           item.id === id 
@@ -468,7 +549,8 @@ export default function MyLibraryPage() {
         )
       );
     } catch (error) {
-      console.error('Error updating rating:', error);
+      console.error('❌ Error updating rating:', error);
+      alert('Failed to update rating. Please try again.');
     }
   };
   
@@ -490,6 +572,45 @@ export default function MyLibraryPage() {
     );
   }
   
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading your library...</h3>
+          <p className="text-gray-600">Fetching your reading collection</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Library</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="space-x-3">
+            <button
+              onClick={loadUserLibrary}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>Try Again</span>
+            </button>
+            <Link
+              to="/library"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
+            >
+              <span>Browse Library</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -503,13 +624,25 @@ export default function MyLibraryPage() {
               </p>
             </div>
             
-            <Link
-              to="/library"
-              className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Browse Library</span>
-            </Link>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={loadUserLibrary}
+                disabled={loading}
+                className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50"
+                title="Refresh library"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+              
+              <Link
+                to="/library"
+                className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Browse Library</span>
+              </Link>
+            </div>
           </div>
           
           {/* Reading Stats */}
@@ -525,7 +658,7 @@ export default function MyLibraryPage() {
               value={`${readingStats.currentStreak} days`}
               icon={Zap}
               color="from-green-500 to-green-600"
-              trend="+2 this week"
+              trend={readingStats.currentStreak > 0 ? "+2 this week" : undefined}
             />
             <StatCard
               title="Reading Time"
@@ -538,7 +671,7 @@ export default function MyLibraryPage() {
               value={readingStats.chaptersRead}
               icon={Target}
               color="from-orange-500 to-orange-600"
-              trend="+8 this week"
+              trend={readingStats.chaptersRead > 0 ? "+8 this week" : undefined}
             />
           </div>
         </div>
@@ -572,20 +705,18 @@ export default function MyLibraryPage() {
           
           {/* Library Items */}
           <div className="p-6">
-            {loading ? (
-              <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-              </div>
-            ) : filteredItems.length === 0 ? (
+            {filteredItems.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  {searchQuery ? 'No items match your search' : 'Your library is empty'}
+                  {searchQuery ? 'No items match your search' : 
+                   libraryItems.length === 0 ? 'Your library is empty' : 'No items in this category'}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  {searchQuery ? 'Try adjusting your search terms' : 'Start by adding some content to your library'}
+                  {searchQuery ? 'Try adjusting your search terms' : 
+                   libraryItems.length === 0 ? 'Start by adding some content to your library' : 'Try a different filter'}
                 </p>
-                {!searchQuery && (
+                {libraryItems.length === 0 && (
                   <Link
                     to="/library"
                     className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
@@ -620,7 +751,7 @@ export default function MyLibraryPage() {
                 .filter(item => item.overall_progress > 0 && item.overall_progress < 100)
                 .slice(0, 6)
                 .map((item) => {
-                  const nextChapter = getNextChapterInfo(); // You'd implement this
+                  const nextChapter = { title: 'Next Chapter', number: 1 }; // Mock data
                   return (
                     <Link
                       key={item.id}

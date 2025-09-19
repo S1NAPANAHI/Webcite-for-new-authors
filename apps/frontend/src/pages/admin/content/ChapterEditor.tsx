@@ -15,11 +15,10 @@ interface Issue {
 interface ChapterFormData {
   title: string;
   slug: string;
-  chapter_number: number;
   issue_id: string;
-  content: string;
-  plain_content: string;
-  status: 'draft' | 'published';
+  content_text: string;
+  content_json: any;
+  state: 'planning' | 'writing' | 'editing' | 'published' | 'on_hold' | 'archived';
 }
 
 const ChapterEditor: React.FC = () => {
@@ -34,11 +33,10 @@ const ChapterEditor: React.FC = () => {
   const [formData, setFormData] = useState<ChapterFormData>({
     title: '',
     slug: '',
-    chapter_number: 1,
     issue_id: issueId || '',
-    content: '',
-    plain_content: '',
-    status: 'draft'
+    content_text: '',
+    content_json: null,
+    state: 'planning'
   });
 
   // Load issues for dropdown
@@ -48,11 +46,11 @@ const ChapterEditor: React.FC = () => {
         setError(null);
         setLoading(true);
 
+        // Load issues from the issues table
         const { data: issuesData, error: issuesError } = await supabase
-          .from('content_items')
+          .from('issues')
           .select('id, title, slug')
-          .eq('type', 'issue')
-          .eq('status', 'published')
+          .eq('state', 'published')
           .order('title');
 
         if (issuesError) {
@@ -109,11 +107,10 @@ const ChapterEditor: React.FC = () => {
           setFormData({
             title: chapterData.title || '',
             slug: chapterData.slug || '',
-            chapter_number: chapterData.chapter_number || 1,
             issue_id: chapterData.issue_id || '',
-            content: chapterData.content || '',
-            plain_content: chapterData.plain_content || '',
-            status: chapterData.status || 'draft'
+            content_text: chapterData.content_text || '',
+            content_json: chapterData.content_json || null,
+            state: chapterData.state || 'planning'
           });
         }
         
@@ -135,25 +132,27 @@ const ChapterEditor: React.FC = () => {
     if (formData.title) {
       const slug = formData.title
         .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9\\s-]/g, '')
+        .replace(/\\s+/g, '-')
         .trim();
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title]);
 
-  // Handle content change and generate plain text
+  // Handle content change
   const handleContentChange = (content: string) => {
+    // Convert HTML to plain text for word count
     const plainText = content.replace(/<[^>]*>/g, '').trim();
+    
     setFormData(prev => ({
       ...prev,
-      content,
-      plain_content: plainText
+      content_text: plainText,
+      content_json: { html: content, plainText }
     }));
   };
 
   // Calculate word count and estimated read time
-  const wordCount = formData.plain_content.split(/\s+/).filter(word => word.length > 0).length;
+  const wordCount = formData.content_text.split(/\\s+/).filter(word => word.length > 0).length;
   const estimatedReadTime = Math.max(1, Math.round(wordCount / 200));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,23 +174,23 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      if (!formData.content.trim()) {
+      if (!formData.content_text.trim()) {
         setError('Chapter content is required.');
         return;
       }
 
       const chapterData = {
         title: formData.title.trim(),
-        slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
-        chapter_number: formData.chapter_number,
+        slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\\s-]/g, '').replace(/\\s+/g, '-'),
         issue_id: formData.issue_id,
-        content: formData.content,
-        plain_content: formData.plain_content,
+        content_text: formData.content_text,
+        content_json: formData.content_json,
+        content_format: 'html',
         word_count: wordCount,
-        estimated_read_time: estimatedReadTime,
-        status: formData.status,
-        published_at: formData.status === 'published' ? new Date().toISOString() : null,
-        created_by: user.id
+        estimated_reading_time: estimatedReadTime,
+        state: formData.state,
+        publish_at: formData.state === 'published' ? new Date().toISOString() : null,
+        subscription_required: false
       };
 
       let result;
@@ -202,26 +201,26 @@ const ChapterEditor: React.FC = () => {
           .update(chapterData)
           .eq('id', id);
       } else {
-        // Create new chapter - first get next chapter number for the selected issue
+        // Create new chapter - first get next order index for the selected issue
         const { data: existingChapters } = await supabase
           .from('chapters')
-          .select('chapter_number')
+          .select('order_index')
           .eq('issue_id', formData.issue_id)
-          .order('chapter_number', { ascending: false })
+          .order('order_index', { ascending: false })
           .limit(1);
 
-        const nextChapterNumber = existingChapters && existingChapters.length > 0 
-          ? existingChapters[0].chapter_number + 1 
+        const nextOrderIndex = existingChapters && existingChapters.length > 0 
+          ? existingChapters[0].order_index + 1 
           : 1;
 
         result = await supabase
           .from('chapters')
-          .insert([{ ...chapterData, chapter_number: nextChapterNumber }]);
+          .insert([{ ...chapterData, order_index: nextOrderIndex }]);
       }
 
       if (result.error) {
         console.error('Error saving chapter:', result.error);
-        setError('Failed to save chapter. Please try again.');
+        setError(`Failed to save chapter: ${result.error.message}`);
         return;
       }
 
@@ -375,18 +374,22 @@ const ChapterEditor: React.FC = () => {
                 />
               </div>
 
-              {/* Status */}
+              {/* State */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Status
                 </label>
                 <select
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
+                  value={formData.state}
+                  onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value as ChapterFormData['state'] }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="draft">Draft</option>
+                  <option value="planning">Planning</option>
+                  <option value="writing">Writing</option>
+                  <option value="editing">Editing</option>
                   <option value="published">Published</option>
+                  <option value="on_hold">On Hold</option>
+                  <option value="archived">Archived</option>
                 </select>
               </div>
             </div>
@@ -398,7 +401,7 @@ const ChapterEditor: React.FC = () => {
               </label>
               <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                 <ReactQuill
-                  value={formData.content}
+                  value={formData.content_json?.html || ''}
                   onChange={handleContentChange}
                   modules={{
                     toolbar: [
@@ -444,7 +447,7 @@ const ChapterEditor: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={saving || !formData.title || !formData.issue_id || !formData.content}
+              disabled={saving || !formData.title || !formData.issue_id || !formData.content_text}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
               {saving ? (

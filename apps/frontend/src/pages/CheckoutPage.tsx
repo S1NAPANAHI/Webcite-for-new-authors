@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared';
 import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { API_CONFIG } from '../lib/config';
 import './CheckoutPage.css';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
@@ -51,30 +52,6 @@ const CheckoutForm: React.FC = () => {
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [currentCardBackground] = useState(Math.floor(Math.random() * 25) + 1);
-
-  // Get the correct API URL based on environment
-  const getApiUrl = () => {
-    // If VITE_API_BASE_URL is set, use it
-    if (import.meta.env.VITE_API_BASE_URL) {
-      return import.meta.env.VITE_API_BASE_URL.replace('/api', '');
-    }
-    
-    // If VITE_BACKEND_URL is set, use it  
-    if (import.meta.env.VITE_BACKEND_URL) {
-      return import.meta.env.VITE_BACKEND_URL;
-    }
-    
-    // For Vercel deployments, use relative path
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      if (hostname.includes('vercel.app') || hostname.includes('vercel.com')) {
-        return ''; // Use relative path for Vercel
-      }
-    }
-    
-    // Fallback to localhost for development
-    return 'http://localhost:3001';
-  };
 
   // Detect card type based on number
   const getCardType = (number: string) => {
@@ -166,15 +143,12 @@ const CheckoutForm: React.FC = () => {
 
       console.log('User authenticated, creating subscription...');
 
-      // Create subscription using the serverless API
-      const apiUrl = getApiUrl();
-      const requestUrl = `${apiUrl}/api/stripe/create-subscription`;
+      // Create subscription using the configured API
+      const requestUrl = `${API_CONFIG.API_BASE_URL}/stripe/create-subscription`;
       
-      console.log('Environment variables:');
-      console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-      console.log('VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
-      console.log('Window location:', typeof window !== 'undefined' ? window.location.href : 'SSR');
-      console.log('Calculated API URL:', apiUrl);
+      console.log('API Configuration:');
+      console.log('BASE_URL:', API_CONFIG.BASE_URL);
+      console.log('API_BASE_URL:', API_CONFIG.API_BASE_URL);
       console.log('Full request URL:', requestUrl);
       
       console.log('Request payload:', {

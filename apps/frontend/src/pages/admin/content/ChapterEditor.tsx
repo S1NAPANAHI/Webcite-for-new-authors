@@ -292,13 +292,13 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
+      // Prepare chapter data according to actual schema
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\\s-]/g, '').replace(/\\s+/g, '-'),
         issue_id: formData.issue_id,
         content_text: formData.content_text,
         content_json: formData.content_json,
-        content_format: 'html',
         word_count: wordCount,
         estimated_reading_time: estimatedReadTime,
         state: formData.state,

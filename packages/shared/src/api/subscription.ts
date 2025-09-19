@@ -1,7 +1,7 @@
 // API utilities for subscription management
 
 const API_BASE = typeof window !== 'undefined' 
-  ? (import.meta.env?.VITE_API_URL || 'http://localhost:3001')
+  ? (import.meta.env?.['VITE_API_URL'] || 'http://localhost:3001')
   : 'http://localhost:3001';
 
 /**

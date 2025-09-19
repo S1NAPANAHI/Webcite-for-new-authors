@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 import bodyParser from 'body-parser';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2025-08-27',
+  apiVersion: '2024-09-30',
 });
 import helmet from 'helmet';
 import cors from 'cors';

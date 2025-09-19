@@ -153,9 +153,108 @@ export const getSubscriptionTier = async (userId: string): Promise<'free' | 'pre
 };
 
 /**
+ * Calculate days remaining until subscription expires
+ */
+export const getSubscriptionDaysRemaining = (endDate?: string): number | null => {
+    if (!endDate) return null;
+    const end = new Date(endDate);
+    const now = new Date();
+    const diffTime = end.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays > 0 ? diffDays : 0;
+};
+
+/**
+ * Get subscription tier display information
+ */
+export const getSubscriptionTierInfo = (tier: string) => {
+    switch(tier) {
+        case 'premium':
+            return {
+                name: 'Premium',
+                color: 'bg-blue-500',
+                textColor: 'text-blue-400',
+                price: '$9.99/month',
+                description: 'Access to premium content and features'
+            };
+        case 'patron':
+            return {
+                name: 'Patron',
+                color: 'bg-purple-500',
+                textColor: 'text-purple-400',
+                price: '$19.99/month',
+                description: 'Full access plus exclusive patron benefits'
+            };
+        default:
+            return {
+                name: 'Free',
+                color: 'bg-gray-500',
+                textColor: 'text-gray-400',
+                price: '$0/month',
+                description: 'Access to free content and basic features'
+            };
+    }
+};
+
+/**
+ * Format subscription status for display
+ */
+export const getSubscriptionStatusInfo = (subscription: EnhancedSubscription | null) => {
+    if (!subscription || !subscription.is_subscribed) {
+        return {
+            displayStatus: 'Free Tier',
+            color: 'text-gray-400',
+            bgColor: 'bg-gray-500/10',
+            isActive: false
+        };
+    }
+
+    const statusMap = {
+        'active': {
+            displayStatus: 'Active',
+            color: 'text-green-400',
+            bgColor: 'bg-green-500/10',
+            isActive: true
+        },
+        'trialing': {
+            displayStatus: 'Trial',
+            color: 'text-blue-400',
+            bgColor: 'bg-blue-500/10',
+            isActive: true
+        },
+        'past_due': {
+            displayStatus: 'Past Due',
+            color: 'text-yellow-400',
+            bgColor: 'bg-yellow-500/10',
+            isActive: false
+        },
+        'canceled': {
+            displayStatus: 'Canceled',
+            color: 'text-red-400',
+            bgColor: 'bg-red-500/10',
+            isActive: false
+        },
+        'incomplete': {
+            displayStatus: 'Incomplete',
+            color: 'text-orange-400',
+            bgColor: 'bg-orange-500/10',
+            isActive: false
+        },
+        'incomplete_expired': {
+            displayStatus: 'Expired',
+            color: 'text-red-400',
+            bgColor: 'bg-red-500/10',
+            isActive: false
+        }
+    };
+
+    return statusMap[subscription.status as keyof typeof statusMap] || statusMap['canceled'];
+};
+
+/**
  * Force refresh subscription status from backend
  */
-export const refreshSubscriptionStatus = async (_userId: string): Promise<boolean> => {
+export const refreshSubscriptionStatus = async (userId: string): Promise<boolean> => {
     try {
         const API_BASE = import.meta.env['VITE_API_URL'] || 'http://localhost:3001';
         const token = localStorage.getItem('supabase.auth.token') || 
@@ -172,6 +271,7 @@ export const refreshSubscriptionStatus = async (_userId: string): Promise<boolea
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
+            body: JSON.stringify({ userId })
         });
 
         if (!response.ok) {

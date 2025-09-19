@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { getSubscription, getSubscriptionStatusInfo, getSubscriptionDaysRemaining, refreshSubscriptionStatus } from '../../../packages/shared/src/subscription';
-import { supabase } from '../lib/supabaseClient';
+import { getSubscription, getSubscriptionStatusInfo, getSubscriptionDaysRemaining, refreshSubscriptionStatus, supabase } from '../../../packages/shared/src/index';
 import { Link } from 'react-router-dom';
 
 interface UserProfile {

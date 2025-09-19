@@ -32,9 +32,9 @@ api/
 # Ignore backend app since it's deployed on Render.com
 apps/backend/
 
-# Ignore other non-frontend packages for deployment
-packages/shared/
-packages/ui/dist/
+# Keep required workspace packages for frontend build
+# packages/ - DO NOT IGNORE, needed for @zoroaster/shared and @zoroaster/ui
 
-# Keep only frontend for Vercel deployment
-!apps/frontend/
+# Ignore build artifacts after build is complete (but keep source)
+packages/*/dist/
+packages/*/build/

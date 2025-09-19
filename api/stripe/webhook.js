@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import getRawBody from 'raw-body';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-09-30.acacia',
 });
 
 const supabase = createClient(

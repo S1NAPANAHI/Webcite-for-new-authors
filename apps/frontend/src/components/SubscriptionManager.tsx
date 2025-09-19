@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@zoroaster/shared/AuthContext';
+import { buildApiUrl } from '../lib/config';
 import { 
   Crown, 
   Calendar, 
@@ -43,7 +44,7 @@ const SubscriptionManager: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      const response = await fetch('/api/subscriptions/user', {
+      const response = await fetch(buildApiUrl('subscriptions/user'), {
         headers: {
           'Authorization': `Bearer ${user?.id}`,
         },
@@ -66,7 +67,7 @@ const SubscriptionManager: React.FC = () => {
     try {
       setIsCanceling(true);
       
-      const response = await fetch(`/api/subscriptions/${subscriptionId}/cancel`, {
+      const response = await fetch(buildApiUrl(`subscriptions/${subscriptionId}/cancel`), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${user?.id}`,

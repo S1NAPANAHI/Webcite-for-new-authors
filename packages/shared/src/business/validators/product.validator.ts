@@ -75,11 +75,11 @@ export const ProductQuerySchema = z.object({
   limit: z.string()
     .transform(val => parseInt(val))
     .refine(val => val > 0 && val <= 100, 'Limit must be between 1 and 100')
-    .default(50),
+    .default('50'),
   offset: z.string()
     .transform(val => parseInt(val))
     .refine(val => val >= 0, 'Offset must be non-negative')
-    .default(0),
+    .default('0'),
   search: z.string().max(100).optional(),
   sort_by: z.enum(['created_at', 'name', 'price', 'updated_at']).default('created_at'),
   sort_order: z.enum(['asc', 'desc']).default('desc')

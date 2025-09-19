@@ -16,9 +16,10 @@ interface ChapterFormData {
   title: string;
   slug: string;
   issue_id: string;
-  content_text: string;
-  content_json: any;
-  state: 'planning' | 'writing' | 'editing' | 'published' | 'on_hold' | 'archived';
+  content: any; // JSONB rich content
+  plain_content: string; // Plain text for search
+  chapter_number: number;
+  status: 'draft' | 'published' | 'scheduled' | 'archived';
 }
 
 const ChapterEditor: React.FC = () => {
@@ -34,9 +35,10 @@ const ChapterEditor: React.FC = () => {
     title: '',
     slug: '',
     issue_id: issueId || '',
-    content_text: '',
-    content_json: null,
-    state: 'planning'
+    content: { type: 'doc', content: [] }, // Initialize with empty Quill-compatible JSON
+    plain_content: '',
+    chapter_number: 1,
+    status: 'draft'
   });
 
   // Debug helper to check database tables
@@ -57,16 +59,19 @@ const ChapterEditor: React.FC = () => {
           console.log('content_items table may not exist:', err);
         }
         
-        // Check if issues table exists
+        // Check actual chapters table schema
         try {
-          const { data: issues, error: issuesError } = await supabase
-            .from('issues')
+          const { data: chapters, error: chaptersError } = await supabase
+            .from('chapters')
             .select('*')
-            .limit(5);
-          console.log('Issues Table Sample:', issues);
-          console.log('Issues Error:', issuesError);
+            .limit(1);
+          console.log('Chapters Table Sample:', chapters);
+          console.log('Chapters Error:', chaptersError);
+          if (chapters && chapters.length > 0) {
+            console.log('Actual Chapters Schema:', Object.keys(chapters[0]));
+          }
         } catch (err) {
-          console.log('issues table may not exist:', err);
+          console.log('chapters table may not exist:', err);
         }
         
         console.log('=== END DEBUG ===');
@@ -84,103 +89,50 @@ const ChapterEditor: React.FC = () => {
         setLoading(true);
         console.log('Starting to load issues...');
 
-        // Try loading from content_items first (most likely location)
-        let { data: issuesData, error: issuesError } = await supabase
+        // Load from content_items with type 'issue'
+        const { data: issuesData, error: issuesError } = await supabase
           .from('content_items')
           .select('id, title, slug')
           .eq('type', 'issue')
-          .in('status', ['published', 'active'])
+          .eq('status', 'published')
           .order('title');
 
-        console.log('Content items query result:', { issuesData, issuesError });
+        console.log('Issues query result:', { issuesData, issuesError });
 
-        // If no results from content_items, try the issues table
-        if (!issuesData || issuesData.length === 0) {
-          console.log('No content_items found, trying issues table...');
-          const { data: issuesTableData, error: issuesTableError } = await supabase
-            .from('issues')
-            .select('id, title, slug')
-            .order('title');
-          
-          console.log('Issues table query result:', { issuesTableData, issuesTableError });
-          
-          if (!issuesTableError && issuesTableData && issuesTableData.length > 0) {
-            issuesData = issuesTableData;
-            issuesError = null;
-          }
-        }
-
-        // If still no results, try broader queries
-        if (!issuesData || issuesData.length === 0) {
-          console.log('No issues found with standard queries, trying broader search...');
-          
-          // Try getting ANY content_items
-          const { data: allContentItems } = await supabase
-            .from('content_items')
-            .select('id, title, slug, type, status')
-            .limit(10);
-          
-          console.log('All available content_items:', allContentItems);
-          
-          // Try getting issues with any state
-          const { data: allIssues } = await supabase
-            .from('issues')
-            .select('id, title, slug, state')
-            .limit(10);
-          
-          console.log('All available issues:', allIssues);
-          
-          // Use whatever we found
-          if (allIssues && allIssues.length > 0) {
-            issuesData = allIssues;
-            console.log('Using issues from issues table with any state');
-          } else if (allContentItems && allContentItems.length > 0) {
-            // Filter for anything that looks like an issue
-            const issueItems = allContentItems.filter(item => 
-              item.type === 'issue' || 
-              item.title?.toLowerCase().includes('issue') ||
-              item.title?.toLowerCase().includes('chapter')
-            );
-            if (issueItems.length > 0) {
-              issuesData = issueItems;
-              console.log('Using filtered content items that look like issues');
-            }
-          }
-        }
-
-        if (!issuesData || issuesData.length === 0) {
-          console.log('Still no issues found. Creating fallback...');
-          // Create a temporary fallback issue for testing
-          issuesData = [{
-            id: 'temp-issue-1',
-            title: 'Default Issue (Create issues first)',
-            slug: 'default-issue'
-          }];
-          setError('No published issues found. Please create an issue first or check that issues exist in your database.');
-        }
-
-        if (issuesError && (!issuesData || issuesData.length === 0)) {
+        if (issuesError) {
           console.error('Error loading issues:', issuesError);
           setError(`Failed to load issues: ${issuesError.message}`);
-          return;
-        }
-
-        console.log('Final issues data:', issuesData);
-        setIssues(issuesData || []);
-        
-        // If creating a new chapter and we have issues, set the first one as default if no issueId in URL
-        if (!id && !issueId && issuesData && issuesData.length > 0) {
-          setFormData(prev => ({ ...prev, issue_id: issuesData[0].id }));
+          // Create fallback for testing
+          setIssues([{
+            id: 'fallback-issue',
+            title: 'Fallback Issue (Check console)',
+            slug: 'fallback'
+          }]);
+        } else if (!issuesData || issuesData.length === 0) {
+          console.log('No published issues found');
+          setError('No published issues found. Please create and publish an issue first.');
+          setIssues([{
+            id: 'temp-issue',
+            title: 'No Issues Available',
+            slug: 'no-issues'
+          }]);
+        } else {
+          console.log('Found issues:', issuesData);
+          setIssues(issuesData);
+          
+          // If creating a new chapter and we have issues, set the first one as default if no issueId in URL
+          if (!id && !issueId && issuesData.length > 0) {
+            setFormData(prev => ({ ...prev, issue_id: issuesData[0].id }));
+          }
         }
         
       } catch (err) {
         console.error('Unexpected error loading issues:', err);
         setError(`An unexpected error occurred while loading issues: ${err.message}`);
-        // Provide fallback so user can still create chapters
         setIssues([{
-          id: 'fallback-issue',
-          title: 'Fallback Issue (Error occurred)',
-          slug: 'fallback'
+          id: 'error-fallback',
+          title: 'Error Loading Issues',
+          slug: 'error'
         }]);
       } finally {
         setLoading(false);
@@ -217,13 +169,15 @@ const ChapterEditor: React.FC = () => {
         }
 
         if (chapterData) {
+          console.log('Loaded chapter data:', chapterData);
           setFormData({
             title: chapterData.title || '',
             slug: chapterData.slug || '',
             issue_id: chapterData.issue_id || '',
-            content_text: chapterData.content_text || '',
-            content_json: chapterData.content_json || null,
-            state: chapterData.state || 'planning'
+            content: chapterData.content || { type: 'doc', content: [] },
+            plain_content: chapterData.plain_content || '',
+            chapter_number: chapterData.chapter_number || 1,
+            status: chapterData.status || 'draft'
           });
         }
         
@@ -252,20 +206,36 @@ const ChapterEditor: React.FC = () => {
     }
   }, [formData.title]);
 
-  // Handle content change
-  const handleContentChange = (content: string) => {
-    // Convert HTML to plain text for word count
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
+  // Handle content change from ReactQuill
+  const handleContentChange = (htmlContent: string) => {
+    // Convert HTML to plain text for search
+    const plainText = htmlContent.replace(/<[^>]*>/g, '').trim();
+    
+    // Store as simple JSON structure for now - you might want to use a proper rich text format
+    const contentJson = {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: plainText
+            }
+          ]
+        }
+      ]
+    };
     
     setFormData(prev => ({
       ...prev,
-      content_text: plainText,
-      content_json: { html: content, plainText }
+      content: contentJson,
+      plain_content: plainText
     }));
   };
 
   // Calculate word count and estimated read time
-  const wordCount = formData.content_text.split(/\\s+/).filter(word => word.length > 0).length;
+  const wordCount = formData.plain_content.split(/\\s+/).filter(word => word.length > 0).length;
   const estimatedReadTime = Math.max(1, Math.round(wordCount / 200));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -287,24 +257,27 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      if (!formData.content_text.trim()) {
+      if (!formData.plain_content.trim()) {
         setError('Chapter content is required.');
         return;
       }
 
+      // Prepare chapter data to match the actual database schema
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\\s-]/g, '').replace(/\\s+/g, '-'),
         issue_id: formData.issue_id,
-        content_text: formData.content_text,
-        content_json: formData.content_json,
-        content_format: 'html',
+        content: formData.content, // JSONB rich content
+        plain_content: formData.plain_content, // Plain text for search
+        chapter_number: formData.chapter_number,
         word_count: wordCount,
-        estimated_reading_time: estimatedReadTime,
-        state: formData.state,
-        publish_at: formData.state === 'published' ? new Date().toISOString() : null,
-        subscription_required: false
+        estimated_read_time: estimatedReadTime,
+        status: formData.status,
+        published_at: formData.status === 'published' ? new Date().toISOString() : null,
+        metadata: { created_by: user.id } // Track who created it
       };
+
+      console.log('Submitting chapter data:', chapterData);
 
       let result;
       if (id) {
@@ -314,21 +287,10 @@ const ChapterEditor: React.FC = () => {
           .update(chapterData)
           .eq('id', id);
       } else {
-        // Create new chapter - first get next order index for the selected issue
-        const { data: existingChapters } = await supabase
-          .from('chapters')
-          .select('order_index')
-          .eq('issue_id', formData.issue_id)
-          .order('order_index', { ascending: false })
-          .limit(1);
-
-        const nextOrderIndex = existingChapters && existingChapters.length > 0 
-          ? existingChapters[0].order_index + 1 
-          : 1;
-
+        // Create new chapter
         result = await supabase
           .from('chapters')
-          .insert([{ ...chapterData, order_index: nextOrderIndex }]);
+          .insert([chapterData]);
       }
 
       if (result.error) {
@@ -337,6 +299,8 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
+      console.log('Chapter saved successfully:', result);
+      
       // Success - redirect to chapters list
       navigate('/admin/content/chapters');
       
@@ -397,6 +361,23 @@ const ChapterEditor: React.FC = () => {
     );
   }
 
+  // Get HTML content for the editor - extract text from JSON structure
+  const getHtmlContent = () => {
+    if (!formData.content || !formData.content.content) return '';
+    
+    // Simple extraction - you might want to implement proper JSON-to-HTML conversion
+    try {
+      const firstParagraph = formData.content.content[0];
+      if (firstParagraph && firstParagraph.content && firstParagraph.content[0]) {
+        return firstParagraph.content[0].text || '';
+      }
+    } catch (e) {
+      console.log('Error extracting HTML content:', e);
+    }
+    
+    return formData.plain_content || '';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -453,6 +434,21 @@ const ChapterEditor: React.FC = () => {
                 />
               </div>
 
+              {/* Chapter Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Chapter Number *
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.chapter_number}
+                  onChange={(e) => setFormData(prev => ({ ...prev, chapter_number: parseInt(e.target.value) || 1 }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
+
               {/* Issue Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -476,8 +472,25 @@ const ChapterEditor: React.FC = () => {
                 )}
               </div>
 
-              {/* Slug */}
+              {/* Status */}
               <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Status
+                </label>
+                <select
+                  value={formData.status}
+                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ChapterFormData['status'] }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+
+              {/* Slug */}
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   URL Slug
                 </label>
@@ -489,25 +502,6 @@ const ChapterEditor: React.FC = () => {
                   placeholder="auto-generated from title"
                 />
               </div>
-
-              {/* State */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </label>
-                <select
-                  value={formData.state}
-                  onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value as ChapterFormData['state'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="planning">Planning</option>
-                  <option value="writing">Writing</option>
-                  <option value="editing">Editing</option>
-                  <option value="published">Published</option>
-                  <option value="on_hold">On Hold</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
             </div>
 
             {/* Content Editor */}
@@ -517,7 +511,7 @@ const ChapterEditor: React.FC = () => {
               </label>
               <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
                 <ReactQuill
-                  value={formData.content_json?.html || ''}
+                  value={getHtmlContent()}
                   onChange={handleContentChange}
                   modules={{
                     toolbar: [
@@ -563,7 +557,7 @@ const ChapterEditor: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={saving || !formData.title || !formData.issue_id || !formData.content_text}
+              disabled={saving || !formData.title || !formData.issue_id || !formData.plain_content}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
             >
               {saving ? (

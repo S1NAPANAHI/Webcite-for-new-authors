@@ -1,7 +1,7 @@
 // Centralized API configuration
 export const API_CONFIG = {
-  // Use environment variable for API base URL, fallback to localhost for development
-  BASE_URL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  // Use environment variable for API base URL, fallback to production backend
+  BASE_URL: import.meta.env.VITE_API_URL || 'https://webcite-for-new-authors.onrender.com',
   
   // Ensure we always append /api to the base URL if not already present
   get API_BASE_URL() {

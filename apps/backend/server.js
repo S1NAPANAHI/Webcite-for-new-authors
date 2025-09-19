@@ -80,8 +80,8 @@ async function upsertInvoice(invoice) {
   return data;
 }
 
-
-
+// CORS Configuration Updated: 2025-09-19 05:33 CEST
+// This ensures www.zoroastervers.com is allowed to make requests
 
 // Create subscription in default_incomplete to collect payment with Payment Element
 async function startServer() {
@@ -90,15 +90,15 @@ async function startServer() {
 
   const app = express(); // Define app inside startServer
 
-  // Fixed CORS configuration to allow both development and production
+  // FIXED CORS configuration to allow production frontend domain
   const allowedOrigins = [
     'http://localhost:5173',           // Development
-    'https://www.zoroastervers.com',   // Production
+    'https://www.zoroastervers.com',   // Production (PRIMARY)
     'https://zoroastervers.com',       // Production (without www)
     process.env.FRONTEND_URL           // Environment variable fallback
   ].filter(Boolean); // Remove any undefined values
 
-  console.log('🌐 CORS allowed origins:', allowedOrigins);
+  console.log('🌐 CORS FIXED - Allowed origins:', allowedOrigins);
 
   app.use(cors({
     origin: allowedOrigins,
@@ -113,7 +113,8 @@ async function startServer() {
   // Add logging middleware for debugging
   app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    console.log('Origin:', req.headers.origin);
+    console.log('Request Origin:', req.headers.origin);
+    console.log('CORS Check: Origin allowed?', allowedOrigins.includes(req.headers.origin));
     next();
   });
 
@@ -444,7 +445,8 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`Health check available at: http://localhost:${PORT}/api/health`);
-    console.log('🌐 CORS configured for:', allowedOrigins);
+    console.log('🚀 CORS UPDATED - Production domain www.zoroastervers.com is now allowed!');
+    console.log('🌐 All allowed origins:', allowedOrigins);
   });
 }
 

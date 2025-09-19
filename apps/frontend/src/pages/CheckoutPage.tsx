@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '@zoroaster/shared';
 import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { API_CONFIG } from '../lib/config';
+import { buildApiUrl, logApiConfig } from '../lib/config';
 import './CheckoutPage.css';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY!);
@@ -52,6 +52,11 @@ const CheckoutForm: React.FC = () => {
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [currentCardBackground] = useState(Math.floor(Math.random() * 25) + 1);
+
+  // Log API configuration on component mount for debugging
+  useEffect(() => {
+    logApiConfig();
+  }, []);
 
   // Detect card type based on number
   const getCardType = (number: string) => {
@@ -143,13 +148,12 @@ const CheckoutForm: React.FC = () => {
 
       console.log('User authenticated, creating subscription...');
 
-      // Create subscription using the configured API
-      const requestUrl = `${API_CONFIG.API_BASE_URL}/stripe/create-subscription`;
+      // Use the centralized API configuration
+      const requestUrl = buildApiUrl('stripe/create-subscription');
       
-      console.log('API Configuration:');
-      console.log('BASE_URL:', API_CONFIG.BASE_URL);
-      console.log('API_BASE_URL:', API_CONFIG.API_BASE_URL);
-      console.log('Full request URL:', requestUrl);
+      console.log('API Configuration Debug:');
+      logApiConfig();
+      console.log('Request URL:', requestUrl);
       
       console.log('Request payload:', {
         paymentMethodId: paymentMethod.id,

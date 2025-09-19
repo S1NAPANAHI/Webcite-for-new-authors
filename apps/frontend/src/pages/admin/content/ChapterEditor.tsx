@@ -39,26 +39,133 @@ const ChapterEditor: React.FC = () => {
     state: 'planning'
   });
 
+  // Debug helper to check database tables
+  useEffect(() => {
+    const debugTables = async () => {
+      if (user) {
+        console.log('=== DEBUGGING CHAPTER EDITOR TABLES ===');
+        
+        // Check content_items structure
+        try {
+          const { data: contentItems, error: contentError } = await supabase
+            .from('content_items')
+            .select('*')
+            .limit(5);
+          console.log('Content Items Sample:', contentItems);
+          console.log('Content Items Error:', contentError);
+        } catch (err) {
+          console.log('content_items table may not exist:', err);
+        }
+        
+        // Check if issues table exists
+        try {
+          const { data: issues, error: issuesError } = await supabase
+            .from('issues')
+            .select('*')
+            .limit(5);
+          console.log('Issues Table Sample:', issues);
+          console.log('Issues Error:', issuesError);
+        } catch (err) {
+          console.log('issues table may not exist:', err);
+        }
+        
+        console.log('=== END DEBUG ===');
+      }
+    };
+    
+    debugTables();
+  }, [user]);
+
   // Load issues for dropdown
   useEffect(() => {
     const loadIssues = async () => {
       try {
         setError(null);
         setLoading(true);
+        console.log('Starting to load issues...');
 
-        // Load issues from the issues table
-        const { data: issuesData, error: issuesError } = await supabase
-          .from('issues')
+        // Try loading from content_items first (most likely location)
+        let { data: issuesData, error: issuesError } = await supabase
+          .from('content_items')
           .select('id, title, slug')
-          .eq('state', 'published')
+          .eq('type', 'issue')
+          .in('status', ['published', 'active'])
           .order('title');
 
-        if (issuesError) {
+        console.log('Content items query result:', { issuesData, issuesError });
+
+        // If no results from content_items, try the issues table
+        if (!issuesData || issuesData.length === 0) {
+          console.log('No content_items found, trying issues table...');
+          const { data: issuesTableData, error: issuesTableError } = await supabase
+            .from('issues')
+            .select('id, title, slug')
+            .order('title');
+          
+          console.log('Issues table query result:', { issuesTableData, issuesTableError });
+          
+          if (!issuesTableError && issuesTableData && issuesTableData.length > 0) {
+            issuesData = issuesTableData;
+            issuesError = null;
+          }
+        }
+
+        // If still no results, try broader queries
+        if (!issuesData || issuesData.length === 0) {
+          console.log('No issues found with standard queries, trying broader search...');
+          
+          // Try getting ANY content_items
+          const { data: allContentItems } = await supabase
+            .from('content_items')
+            .select('id, title, slug, type, status')
+            .limit(10);
+          
+          console.log('All available content_items:', allContentItems);
+          
+          // Try getting issues with any state
+          const { data: allIssues } = await supabase
+            .from('issues')
+            .select('id, title, slug, state')
+            .limit(10);
+          
+          console.log('All available issues:', allIssues);
+          
+          // Use whatever we found
+          if (allIssues && allIssues.length > 0) {
+            issuesData = allIssues;
+            console.log('Using issues from issues table with any state');
+          } else if (allContentItems && allContentItems.length > 0) {
+            // Filter for anything that looks like an issue
+            const issueItems = allContentItems.filter(item => 
+              item.type === 'issue' || 
+              item.title?.toLowerCase().includes('issue') ||
+              item.title?.toLowerCase().includes('chapter')
+            );
+            if (issueItems.length > 0) {
+              issuesData = issueItems;
+              console.log('Using filtered content items that look like issues');
+            }
+          }
+        }
+
+        if (!issuesData || issuesData.length === 0) {
+          console.log('Still no issues found. Creating fallback...');
+          // Create a temporary fallback issue for testing
+          issuesData = [{
+            id: 'temp-issue-1',
+            title: 'Default Issue (Create issues first)',
+            slug: 'default-issue'
+          }];
+          setError('No published issues found. Please create an issue first or check that issues exist in your database.');
+        }
+
+        if (issuesError && (!issuesData || issuesData.length === 0)) {
           console.error('Error loading issues:', issuesError);
-          setError('Failed to load issues. Please try again.');
+          setError(`Failed to load issues: ${issuesError.message}`);
           return;
         }
 
+        console.log('Final issues data:', issuesData);
         setIssues(issuesData || []);
         
         // If creating a new chapter and we have issues, set the first one as default if no issueId in URL
@@ -68,7 +175,13 @@ const ChapterEditor: React.FC = () => {
         
       } catch (err) {
         console.error('Unexpected error loading issues:', err);
-        setError('An unexpected error occurred while loading issues.');
+        setError(`An unexpected error occurred while loading issues: ${err.message}`);
+        // Provide fallback so user can still create chapters
+        setIssues([{
+          id: 'fallback-issue',
+          title: 'Fallback Issue (Error occurred)',
+          slug: 'fallback'
+        }]);
       } finally {
         setLoading(false);
       }
@@ -254,7 +367,7 @@ const ChapterEditor: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading issues...</p>
           </div>
         </div>
       </div>
@@ -343,7 +456,7 @@ const ChapterEditor: React.FC = () => {
               {/* Issue Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Issue *
+                  Issue * {issues.length > 0 && `(${issues.length} available)`}
                 </label>
                 <select
                   value={formData.issue_id}
@@ -358,6 +471,9 @@ const ChapterEditor: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                {issues.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">No issues found. Check console for debugging info.</p>
+                )}
               </div>
 
               {/* Slug */}

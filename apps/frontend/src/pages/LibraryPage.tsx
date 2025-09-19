@@ -114,14 +114,14 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
                   </div>
                   
                   <div className="flex items-center space-x-1">
-                    <BarChart3 className="w-4 h-4" />
+                    <BarChart3 className="w-4 h-4 text-green-500" />
                     <span>{item.completion_percentage}% complete</span>
                   </div>
                   
-                  {item.metadata?.total_chapters && (
+                  {item.total_chapters && (
                     <div className="flex items-center space-x-1">
                       <FileText className="w-4 h-4" />
-                      <span>{item.metadata.total_chapters} chapters</span>
+                      <span>{item.total_chapters} chapters</span>
                     </div>
                   )}
                 </div>
@@ -277,17 +277,17 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         {/* Metadata */}
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
           <div className="flex items-center space-x-3">
-            {item.metadata?.total_chapters && (
+            {item.total_chapters && (
               <div className="flex items-center space-x-1">
                 <FileText className="w-4 h-4" />
-                <span>{item.metadata.total_chapters} chapters</span>
+                <span>{item.total_chapters} chapters</span>
               </div>
             )}
             
-            {item.metadata?.estimated_read_time && (
+            {item.estimated_read_time && (
               <div className="flex items-center space-x-1">
                 <Calendar className="w-4 h-4" />
-                <span>{item.metadata.estimated_read_time} min read</span>
+                <span>{item.estimated_read_time} min read</span>
               </div>
             )}
           </div>
@@ -477,9 +477,9 @@ export default function LibraryPage() {
       
       console.log('🔍 Loading library data from Supabase...');
       
-      // Build the query
+      // Use the new library_content_view for better performance and consistent data
       let query = supabase
-        .from('content_items')
+        .from('library_content_view')
         .select('*');
       
       // Apply filters
@@ -544,7 +544,15 @@ export default function LibraryPage() {
       
       // Transform data for library cards
       const transformedData: LibraryCardData[] = contentItems.map(item => ({
-        item: item as ContentItem,
+        item: {
+          ...item,
+          // Map the view fields to match the ContentItem interface
+          metadata: {
+            ...item.metadata,
+            total_chapters: item.total_chapters,
+            estimated_read_time: item.estimated_read_time
+          }
+        } as ContentItem,
         overallProgress: 0, // TODO: Calculate actual progress from reading_progress table
         inUserLibrary: userLibraryItemIds.includes(item.id)
       }));

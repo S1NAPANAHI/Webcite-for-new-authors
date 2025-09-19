@@ -15,6 +15,6 @@
     "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
     "VITE_SUPABASE_URL": "https://opukvvmumyegtkukqint.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9wdWt2dm11bXllZ3RrdWtxaW50Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzMDM3ODQsImV4cCI6MjA3MDg3OTc4NH0.rqMHc03LOI4z5j1V0b0LHeW6J1fCQOiBm-I10tF82_s",
-    "VITE_API_URL": "https://your-render-app.onrender.com"
+    "VITE_API_URL": "YOUR_RENDER_BACKEND_URL_HERE"
   }
 }

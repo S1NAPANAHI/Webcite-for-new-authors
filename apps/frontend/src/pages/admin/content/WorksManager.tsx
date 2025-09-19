@@ -92,6 +92,12 @@ function TreeItem({ item, depth, onEdit, onDelete, onAddChild, expandedItems, to
             <span className="text-xs text-gray-500 uppercase">
               {HIERARCHY_LEVELS[item.type].label}
             </span>
+            {/* Published indicator */}
+            {item.status === 'published' && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <Eye className="w-3 h-3 mr-1" />Public
+              </span>
+            )}
           </div>
           
           {item.description && (
@@ -198,8 +204,8 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
     cover_image_url: '',
     parent_id: parentItem?.id,
     order_index: 0,
-    status: 'draft',
-    published_at: '',
+    status: 'published', // Default to published so content is visible immediately
+    published_at: new Date().toISOString().slice(0, 16), // Current date/time
     metadata: {}
   });
   
@@ -216,7 +222,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
         parent_id: item.parent_id,
         order_index: item.order_index,
         status: item.status,
-        published_at: item.published_at || '',
+        published_at: item.published_at || new Date().toISOString().slice(0, 16),
         metadata: item.metadata || {}
       });
     } else if (parentItem) {
@@ -227,7 +233,9 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
       setFormData(prev => ({
         ...prev,
         type: defaultType,
-        parent_id: parentItem.id
+        parent_id: parentItem.id,
+        status: 'published', // Default to published
+        published_at: new Date().toISOString().slice(0, 16)
       }));
     } else {
       // Reset to default for new root item
@@ -239,8 +247,8 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
         cover_image_url: '',
         parent_id: undefined,
         order_index: 0,
-        status: 'draft',
-        published_at: '',
+        status: 'published', // Default to published
+        published_at: new Date().toISOString().slice(0, 16),
         metadata: {}
       });
     }
@@ -271,7 +279,8 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
       // Convert empty strings to null for optional fields
       description: formData.description?.trim() || null,
       cover_image_url: formData.cover_image_url?.trim() || null,
-      published_at: formData.published_at?.trim() || null,
+      published_at: formData.status === 'published' ? 
+        (formData.published_at?.trim() || new Date().toISOString()) : null,
       // Ensure parent_id is properly set or null
       parent_id: formData.parent_id || null,
       // Ensure metadata is a valid object
@@ -300,6 +309,18 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
             <p className="text-sm text-gray-600 mt-1">
               {parentItem && `Adding to: ${parentItem.title}`}
             </p>
+            
+            {!item && (
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-medium text-blue-800">Publishing Automatically</span>
+                </div>
+                <p className="text-xs text-blue-700 mt-1">
+                  New content will be published immediately and visible to all users in the library.
+                </p>
+              </div>
+            )}
             
             {errors.length > 0 && (
               <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -409,10 +430,15 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="draft">Draft</option>
-                  <option value="published">Published</option>
+                  <option value="published">Published (Recommended)</option>
                   <option value="scheduled">Scheduled</option>
                   <option value="archived">Archived</option>
                 </select>
+                {formData.status === 'published' && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ Will be visible to all users immediately
+                  </p>
+                )}
               </div>
               
               <div>
@@ -430,11 +456,11 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
               </div>
             </div>
             
-            {/* Published At (for scheduled items) */}
-            {formData.status === 'scheduled' && (
+            {/* Published At (for scheduled items or published items) */}
+            {(formData.status === 'scheduled' || formData.status === 'published') && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Publish Date
+                  {formData.status === 'scheduled' ? 'Publish Date' : 'Published Date'}
                 </label>
                 <input
                   type="datetime-local"
@@ -467,7 +493,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
                   <span>Saving...</span>
                 </>
               ) : (
-                <span>{item ? 'Update' : 'Create'}</span>
+                <span>{item ? 'Update' : 'Create & Publish'}</span>
               )}
             </button>
           </div>
@@ -592,11 +618,17 @@ export default function WorksManager() {
       if (editingItem) {
         // Update existing item
         await supabaseContentApi.updateContentItem(editingItem.id, data);
-        setNotification({ message: 'Content updated successfully!', type: 'success' });
+        setNotification({ 
+          message: `Content updated and ${data.status === 'published' ? 'published' : 'saved'} successfully!`, 
+          type: 'success' 
+        });
       } else {
         // Create new item
         await supabaseContentApi.createContentItem(data);
-        setNotification({ message: 'Content created successfully!', type: 'success' });
+        setNotification({ 
+          message: `Content created and ${data.status === 'published' ? 'published' : 'saved'} successfully! ${data.status === 'published' ? 'It is now visible to all users.' : ''}`, 
+          type: 'success' 
+        });
       }
       
       setShowModal(false);
@@ -684,6 +716,9 @@ export default function WorksManager() {
             <h1 className="text-3xl font-bold text-gray-900">Content Hierarchy</h1>
             <p className="text-gray-600 mt-1">
               Manage your BOOKS → VOLUMES → SAGAS → ARCS → ISSUES structure
+            </p>
+            <p className="text-sm text-blue-600 mt-1">
+              💡 New content is automatically published and visible to all users
             </p>
           </div>
           

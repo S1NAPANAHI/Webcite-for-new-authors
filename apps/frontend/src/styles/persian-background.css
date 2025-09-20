@@ -1,0 +1,207 @@
+/* Persian Sci-Fi Background System for Zoroasterverse */
+
+:root {
+  /* Light Mode Variables */
+  --bg-base-light: #faf8ff;
+  --bg-pattern-light: url('/patterns/persian-light.svg');
+  --gradient-light: linear-gradient(
+    120deg,
+    rgba(212, 175, 55, 0.06),
+    rgba(32, 178, 170, 0.08), 
+    rgba(205, 133, 63, 0.05),
+    rgba(70, 130, 180, 0.07),
+    rgba(212, 175, 55, 0.06)
+  );
+  
+  /* Dark Mode Variables */
+  --bg-base-dark: #0b0612;
+  --bg-pattern-dark: url('/patterns/persian-dark.svg');
+  --gradient-dark: linear-gradient(
+    120deg,
+    rgba(255, 215, 0, 0.12),
+    rgba(0, 201, 255, 0.10),
+    rgba(106, 17, 203, 0.08),
+    rgba(255, 110, 199, 0.06),
+    rgba(255, 215, 0, 0.12)
+  );
+  
+  /* Default to light mode */
+  --bg-base: var(--bg-base-light);
+  --bg-pattern: var(--bg-pattern-light);
+  --gradient: var(--gradient-light);
+}
+
+/* Dark mode detection */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-base: var(--bg-base-dark);
+    --bg-pattern: var(--bg-pattern-dark);
+    --gradient: var(--gradient-dark);
+  }
+}
+
+/* Manual theme override */
+:root[data-theme="light"] {
+  --bg-base: var(--bg-base-light);
+  --bg-pattern: var(--bg-pattern-light);
+  --gradient: var(--gradient-light);
+}
+
+:root[data-theme="dark"] {
+  --bg-base: var(--bg-base-dark);
+  --bg-pattern: var(--bg-pattern-dark);
+  --gradient: var(--gradient-dark);
+}
+
+/* Main body background */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-base);
+  background-image: var(--gradient), var(--bg-pattern);
+  background-repeat: repeat;
+  background-size: 600% 600%, 350px 350px;
+  background-attachment: fixed;
+  animation: cosmicShift 45s ease-in-out infinite;
+  transition: background-color 0.3s ease;
+}
+
+/* Cosmic gradient animation */
+@keyframes cosmicShift {
+  0% {
+    background-position: 0% 20%, 0 0;
+  }
+  25% {
+    background-position: 100% 40%, 0 0;
+  }
+  50% {
+    background-position: 50% 80%, 0 0;
+  }
+  75% {
+    background-position: 150% 60%, 0 0;
+  }
+  100% {
+    background-position: 0% 20%, 0 0;
+  }
+}
+
+/* Content overlay to ensure readability */
+.main-content {
+  position: relative;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(0.5px);
+  min-height: 100vh;
+}
+
+@media (prefers-color-scheme: dark) {
+  .main-content {
+    background: rgba(11, 6, 18, 0.88);
+  }
+}
+
+:root[data-theme="light"] .main-content {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+:root[data-theme="dark"] .main-content {
+  background: rgba(11, 6, 18, 0.88);
+}
+
+/* Enhanced patterns for different sections */
+.hero-section {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
+  backdrop-filter: blur(1px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero-section {
+    background: linear-gradient(
+      135deg,
+      rgba(26, 15, 46, 0.9) 0%,
+      rgba(11, 6, 18, 0.8) 100%
+    );
+  }
+}
+
+/* Card backgrounds with Persian accent */
+.card-persian {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  backdrop-filter: blur(2px);
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 0 20px rgba(212, 175, 55, 0.02);
+}
+
+@media (prefers-color-scheme: dark) {
+  .card-persian {
+    background: rgba(26, 15, 46, 0.95);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    box-shadow: 
+      0 4px 6px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(255, 215, 0, 0.05);
+  }
+}
+
+/* Timeline specific styling */
+.timeline-container {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(1px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .timeline-container {
+    background: rgba(17, 10, 35, 0.92);
+  }
+}
+
+/* Performance optimizations */
+@media (max-width: 768px) {
+  body {
+    background-size: 400% 400%, 250px 250px;
+    animation-duration: 60s; /* Slower on mobile for better performance */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    background-image: none !important;
+    animation: none !important;
+  }
+  
+  .main-content {
+    background: transparent !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  body {
+    background-image: none;
+    animation: none;
+  }
+  
+  .main-content {
+    background: var(--bg-base);
+    backdrop-filter: none;
+  }
+}

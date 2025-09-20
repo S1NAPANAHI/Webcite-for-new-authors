@@ -1,0 +1,70 @@
+/* Hero image block */
+.chapter-hero {
+  width: 100%;
+  margin: 0 0 16px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f4f6;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.chapter-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 52vh;
+  object-fit: cover;
+}
+
+/* Ensure scroll container can actually scroll */
+.reader-root, .reader-container, .reader-content, .page-content {
+  min-height: 0; /* critical for flex/grid children */
+}
+
+.reader-content {
+  overflow-y: auto; /* make this the scroll container */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* If you have a wrapper that used overflow: hidden; remove or override it */
+.reader-wrapper {
+  overflow: visible !important;
+}
+
+/* Chapter card banner styling */
+.chapter-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.chapter-card-banner {
+  height: 120px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.chapter-card-body {
+  padding: 12px 14px;
+}
+
+/* Work card styling */
+.work-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.work-cover {
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.work-body { 
+  padding: 12px 14px; 
+}

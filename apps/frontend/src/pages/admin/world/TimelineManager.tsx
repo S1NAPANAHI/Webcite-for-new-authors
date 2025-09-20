@@ -25,13 +25,14 @@ import {
   Save,
   GripVertical
 } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
 
 // Enhanced Types with Nested Structure
 interface NestedEvent {
   id: string;
   title: string;
   date: string;
-  blurb: string;
+  description: string;
   children?: NestedEvent[];
 }
 
@@ -39,14 +40,16 @@ interface TimelineEvent {
   id: string;
   title: string;
   date: string;
-  blurb: string;
+  description: string;
   details?: string;
+  era: string;
+  category: string;
   background_image?: string;
   is_published: boolean;
-  order: number;
-  category?: 'political' | 'religious' | 'military' | 'cultural' | 'mystical';
-  importance?: 'minor' | 'major' | 'legendary';
-  children?: NestedEvent[];
+  order_index: number;
+  parent_event_id?: string;
+  depth: number;
+  children?: TimelineEvent[];
   created_at: string;
   updated_at: string;
 }
@@ -63,72 +66,275 @@ interface Era {
 interface CreateTimelineEventDto {
   title: string;
   date: string;
-  blurb: string;
+  description: string;
   details?: string;
+  era: string;
+  category: string;
   background_image?: string;
   is_published: boolean;
-  category?: string;
-  importance?: string;
-  children?: NestedEvent[];
+  parent_event_id?: string;
+  depth?: number;
 }
 
-// Mock Fantasy Timeline Data for Admin
-const mockTimelineData: Era[] = [
-  {
-    id: "era-1",
-    title: "Age of Flame",
-    start: "Dawn of Time",
-    end: "Year 1247",
-    description: "When Ahura Mazda first kindled the Sacred Fires and light pierced the primordial darkness.",
-    events: [
-      {
-        id: "af-1",
-        title: "The First Sacred Fire",
-        date: "Dawn of Time",
-        blurb: "Ahura Mazda kindles the eternal flame that shall never be extinguished.",
-        category: "mystical",
-        importance: "legendary",
-        is_published: true,
-        order: 0,
-        children: [
-          {
-            id: "af-1-1",
-            title: "Gathering of the Magi",
-            date: "First Dawn + 7 Days",
-            blurb: "Seven wise men witness the divine flame and become its first guardians."
-          }
-        ],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ]
-  }
-];
+// Real Supabase API Functions
+const fetchTimelineEvents = async (): Promise<{ data: Era[] }> => {
+  try {
+    const { data, error } = await supabase
+      .from('timeline_events')
+      .select('*')
+      .order('era', { ascending: true })
+      .order('order_index', { ascending: true });
 
-// Mock API functions
-const fetchTimelineEvents = async () => ({ data: mockTimelineData });
-const createTimelineEvent = async (eventData: CreateTimelineEventDto) => {
-  console.log('Creating event:', eventData);
-  return { id: Date.now().toString(), ...eventData, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), order: 0 };
+    if (error) throw error;
+
+    // Group events by era and build hierarchy
+    const eventsByEra = new Map<string, TimelineEvent[]>();
+    const eventMap = new Map<string, TimelineEvent>();
+
+    // First pass: create all event objects
+    data.forEach(event => {
+      const timelineEvent: TimelineEvent = {
+        id: event.id,
+        title: event.title,
+        date: event.date,
+        description: event.description || '',
+        details: event.details,
+        era: event.era,
+        category: event.category || 'Other',
+        background_image: event.background_image,
+        is_published: event.is_published,
+        order_index: event.order_index,
+        parent_event_id: event.parent_event_id,
+        depth: event.depth || 0,
+        children: [],
+        created_at: event.created_at,
+        updated_at: event.updated_at
+      };
+      eventMap.set(event.id, timelineEvent);
+    });
+
+    // Second pass: build parent-child relationships
+    const rootEvents: TimelineEvent[] = [];
+    eventMap.forEach(event => {
+      if (event.parent_event_id) {
+        const parent = eventMap.get(event.parent_event_id);
+        if (parent) {
+          parent.children = parent.children || [];
+          parent.children.push(event);
+        }
+      } else {
+        rootEvents.push(event);
+      }
+    });
+
+    // Group root events by era
+    rootEvents.forEach(event => {
+      if (!eventsByEra.has(event.era)) {
+        eventsByEra.set(event.era, []);
+      }
+      eventsByEra.get(event.era)!.push(event);
+    });
+
+    // Convert to Era format
+    const eras: Era[] = Array.from(eventsByEra.entries()).map(([eraName, events]) => ({
+      id: eraName.toLowerCase().replace(/\s+/g, '-'),
+      title: eraName,
+      start: events.length > 0 ? events[0].date : 'Unknown',
+      end: events.length > 0 ? events[events.length - 1].date : 'Unknown',
+      description: getEraDescription(eraName),
+      events
+    }));
+
+    return { data: eras };
+  } catch (error) {
+    console.error('Error fetching timeline events:', error);
+    throw error;
+  }
 };
-const updateTimelineEvent = async (id: string, eventData: Partial<CreateTimelineEventDto>) => {
-  console.log('Updating event:', id, eventData);
-  return { id, ...eventData, updated_at: new Date().toISOString() };
+
+const getEraDescription = (eraName: string): string => {
+  const descriptions: Record<string, string> = {
+    'The First Age': 'The age of creation and the first civilizations in the Zoroasterverse.',
+    'Golden Age': 'An era of prosperity, peace, and magical advancement.',
+    'The Dark Times': 'A period of chaos, war, and the falling of the ancient ways.',
+    'Second Dawn': 'The age of rebuilding and new hope.',
+    'Age of Flame': 'When Ahura Mazda first kindled the Sacred Fires and light pierced the primordial darkness.',
+    'The Shadow Wars': 'When darkness crept across the lands and the Sacred Fires flickered.',
+    'Dawn of the Second Sun': 'The age of renewal, when the Sacred Fires burn brighter than ever.'
+  };
+  return descriptions[eraName] || 'A significant period in the history of the Zoroasterverse.';
 };
-const deleteTimelineEvent = async (id: string) => {
-  console.log('Deleting event:', id);
+
+const createTimelineEvent = async (eventData: CreateTimelineEventDto): Promise<TimelineEvent> => {
+  try {
+    const { data, error } = await supabase
+      .from('timeline_events')
+      .insert([
+        {
+          title: eventData.title,
+          date: eventData.date,
+          description: eventData.description,
+          details: eventData.details,
+          era: eventData.era,
+          category: eventData.category,
+          background_image: eventData.background_image,
+          is_published: eventData.is_published,
+          parent_event_id: eventData.parent_event_id,
+          depth: eventData.depth || 0,
+          order_index: Date.now() // Simple ordering for now
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      title: data.title,
+      date: data.date,
+      description: data.description || '',
+      details: data.details,
+      era: data.era,
+      category: data.category || 'Other',
+      background_image: data.background_image,
+      is_published: data.is_published,
+      order_index: data.order_index,
+      parent_event_id: data.parent_event_id,
+      depth: data.depth || 0,
+      children: [],
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
+  } catch (error) {
+    console.error('Error creating timeline event:', error);
+    throw error;
+  }
 };
-const toggleTimelineEventPublishStatus = async (id: string, isPublished: boolean) => {
-  console.log('Toggling publish status:', id, isPublished);
+
+const updateTimelineEvent = async (id: string, eventData: Partial<CreateTimelineEventDto>): Promise<TimelineEvent> => {
+  try {
+    const { data, error } = await supabase
+      .from('timeline_events')
+      .update({
+        ...(eventData.title && { title: eventData.title }),
+        ...(eventData.date && { date: eventData.date }),
+        ...(eventData.description && { description: eventData.description }),
+        ...(eventData.details !== undefined && { details: eventData.details }),
+        ...(eventData.era && { era: eventData.era }),
+        ...(eventData.category && { category: eventData.category }),
+        ...(eventData.background_image !== undefined && { background_image: eventData.background_image }),
+        ...(eventData.is_published !== undefined && { is_published: eventData.is_published }),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      title: data.title,
+      date: data.date,
+      description: data.description || '',
+      details: data.details,
+      era: data.era,
+      category: data.category || 'Other',
+      background_image: data.background_image,
+      is_published: data.is_published,
+      order_index: data.order_index,
+      parent_event_id: data.parent_event_id,
+      depth: data.depth || 0,
+      children: [],
+      created_at: data.created_at,
+      updated_at: data.updated_at
+    };
+  } catch (error) {
+    console.error('Error updating timeline event:', error);
+    throw error;
+  }
+};
+
+const deleteTimelineEvent = async (id: string): Promise<void> => {
+  try {
+    // First delete all children (cascade)
+    await supabase
+      .from('timeline_events')
+      .delete()
+      .eq('parent_event_id', id);
+
+    // Then delete the parent
+    const { error } = await supabase
+      .from('timeline_events')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting timeline event:', error);
+    throw error;
+  }
+};
+
+const toggleTimelineEventPublishStatus = async (id: string): Promise<void> => {
+  try {
+    // Get current status
+    const { data: current, error: fetchError } = await supabase
+      .from('timeline_events')
+      .select('is_published')
+      .eq('id', id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Toggle status
+    const { error } = await supabase
+      .from('timeline_events')
+      .update({ 
+        is_published: !current.is_published,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error toggling publish status:', error);
+    throw error;
+  }
 };
 
 const CATEGORY_ICONS = {
-  political: Crown,
-  religious: Scroll,
-  military: Sword,
-  cultural: BookOpen,
-  mystical: Flame
+  Political: Crown,
+  Religious: Scroll,
+  Military: Sword,
+  Cultural: BookOpen,
+  Magical: Flame,
+  Technological: Star,
+  Natural: Globe2,
+  Other: Sparkles
 };
+
+const AVAILABLE_ERAS = [
+  'The First Age',
+  'Golden Age', 
+  'The Dark Times',
+  'Second Dawn',
+  'Age of Flame',
+  'The Shadow Wars',
+  'Dawn of the Second Sun'
+];
+
+const AVAILABLE_CATEGORIES = [
+  'Political',
+  'Religious', 
+  'Military',
+  'Cultural',
+  'Magical',
+  'Technological',
+  'Natural',
+  'Other'
+];
 
 // Simple Loading Component
 const LoadingSkeleton: React.FC<{ className?: string }> = ({ className = "" }) => {
@@ -136,6 +342,46 @@ const LoadingSkeleton: React.FC<{ className?: string }> = ({ className = "" }) =
     <div className={`animate-pulse bg-gray-700 rounded ${className}`}>
       <div className="h-full w-full bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700"></div>
     </div>
+  );
+};
+
+// Success/Error Toast Component
+const Toast: React.FC<{ message: string; type: 'success' | 'error'; onClose: () => void }> = ({ message, type, onClose }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+      className={`fixed top-4 right-4 z-50 max-w-sm p-4 rounded-lg shadow-2xl backdrop-blur-lg border ${
+        type === 'success' 
+          ? 'bg-green-900/90 border-green-500/30 text-green-100' 
+          : 'bg-red-900/90 border-red-500/30 text-red-100'
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+          type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        }`}>
+          {type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 text-white" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-white" />
+          )}
+        </div>
+        <span className="flex-1 text-sm font-medium">{message}</span>
+        <button 
+          onClick={onClose}
+          className="p-1 hover:bg-white/10 rounded transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
   );
 };
 
@@ -150,40 +396,37 @@ const ScribeForm: React.FC<{
   const [formData, setFormData] = useState<CreateTimelineEventDto>({
     title: '',
     date: '',
-    blurb: '',
+    description: '',
     details: '',
+    era: 'Golden Age',
+    category: 'Other',
     background_image: '',
-    is_published: false,
-    category: 'mystical',
-    importance: 'minor'
+    is_published: false
   });
-  const [nestedEvents, setNestedEvents] = useState<NestedEvent[]>([]);
 
   useEffect(() => {
     if (event && open) {
       setFormData({
         title: event.title,
         date: event.date,
-        blurb: event.blurb,
+        description: event.description,
         details: event.details || '',
+        era: event.era,
+        category: event.category,
         background_image: event.background_image || '',
-        is_published: event.is_published,
-        category: event.category || 'mystical',
-        importance: event.importance || 'minor'
+        is_published: event.is_published
       });
-      setNestedEvents(event.children || []);
     } else if (!event && open) {
       setFormData({
         title: '',
         date: '',
-        blurb: '',
+        description: '',
         details: '',
+        era: 'Golden Age',
+        category: 'Other',
         background_image: '',
-        is_published: false,
-        category: 'mystical',
-        importance: 'minor'
+        is_published: false
       });
-      setNestedEvents([]);
     }
   }, [event, open]);
 
@@ -191,11 +434,10 @@ const ScribeForm: React.FC<{
     mutationFn: createTimelineEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      alert('Chronicle inscribed in the ancient tomes!');
       onSuccess();
     },
-    onError: () => {
-      alert('The quill has failed to write. Try again, scribe.');
+    onError: (error) => {
+      console.error('Create failed:', error);
     }
   });
 
@@ -204,42 +446,21 @@ const ScribeForm: React.FC<{
       updateTimelineEvent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      alert('The chronicle has been amended in the scrolls!');
       onSuccess();
     },
-    onError: () => {
-      alert('The amendment could not be inscribed. Try again.');
+    onError: (error) => {
+      console.error('Update failed:', error);
     }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const eventWithNested = { ...formData, children: nestedEvents };
     
     if (event) {
-      updateMutation.mutate({ id: event.id, data: eventWithNested });
+      updateMutation.mutate({ id: event.id, data: formData });
     } else {
-      createMutation.mutate(eventWithNested);
+      createMutation.mutate(formData);
     }
-  };
-
-  const addNestedEvent = () => {
-    setNestedEvents(prev => [...prev, {
-      id: `nested-${Date.now()}`,
-      title: '',
-      date: '',
-      blurb: ''
-    }]);
-  };
-
-  const removeNestedEvent = (id: string) => {
-    setNestedEvents(prev => prev.filter(ne => ne.id !== id));
-  };
-
-  const updateNestedEvent = (id: string, field: keyof NestedEvent, value: string) => {
-    setNestedEvents(prev => prev.map(ne => 
-      ne.id === id ? { ...ne, [field]: value } : ne
-    ));
   };
 
   if (!open) return null;
@@ -311,8 +532,8 @@ const ScribeForm: React.FC<{
               Chronicle Description *
             </label>
             <textarea
-              value={formData.blurb}
-              onChange={(e) => setFormData(prev => ({ ...prev, blurb: e.target.value }))}
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Describe this moment in history..."
               rows={3}
               className="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 resize-none"
@@ -320,36 +541,53 @@ const ScribeForm: React.FC<{
             />
           </div>
           
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-purple-300">
+              Detailed Account
+            </label>
+            <textarea
+              value={formData.details || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
+              placeholder="Additional details and context..."
+              rows={4}
+              className="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 resize-none"
+            />
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-purple-300">
-                Chronicle Type
+                Era
+              </label>
+              <select
+                value={formData.era}
+                onChange={(e) => setFormData(prev => ({ ...prev, era: e.target.value }))}
+                className="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg text-white focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
+              >
+                {AVAILABLE_ERAS.map(era => (
+                  <option key={era} value={era}>{era}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-purple-300">
+                Category
               </label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                 className="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg text-white focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
               >
-                <option value="mystical">🔥 Mystical</option>
-                <option value="religious">📜 Religious</option>
-                <option value="political">👑 Political</option>
-                <option value="military">⚔️ Military</option>
-                <option value="cultural">📚 Cultural</option>
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-purple-300">
-                Importance
-              </label>
-              <select
-                value={formData.importance}
-                onChange={(e) => setFormData(prev => ({ ...prev, importance: e.target.value }))}
-                className="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg text-white focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
-              >
-                <option value="minor">Minor Tale</option>
-                <option value="major">Major Chronicle</option>
-                <option value="legendary">⭐ Legendary Deed</option>
+                {AVAILABLE_CATEGORIES.map(category => (
+                  <option key={category} value={category}>
+                    {category === 'Magical' ? '🔥' : 
+                     category === 'Religious' ? '📜' : 
+                     category === 'Political' ? '👑' : 
+                     category === 'Military' ? '⚔️' : 
+                     category === 'Cultural' ? '📚' : '✨'} {category}
+                  </option>
+                ))}
               </select>
             </div>
             
@@ -366,67 +604,17 @@ const ScribeForm: React.FC<{
             </div>
           </div>
           
-          {/* Nested Events Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-purple-300">
-                <Sparkles className="w-4 h-4 mr-2 inline" />
-                Related Tales ({nestedEvents.length})
-              </label>
-              <button
-                type="button"
-                onClick={addNestedEvent}
-                className="flex items-center gap-2 px-3 py-2 bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-lg text-purple-300 hover:text-white transition-colors text-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Add Tale
-              </button>
-            </div>
-            
-            <div className="space-y-3 max-h-48 overflow-y-auto">
-              {nestedEvents.map((nestedEvent, index) => (
-                <motion.div
-                  key={nestedEvent.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="bg-black/20 rounded-lg p-4 border border-purple-500/20"
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      value={nestedEvent.title}
-                      onChange={(e) => updateNestedEvent(nestedEvent.id, 'title', e.target.value)}
-                      placeholder="Tale title..."
-                      className="px-3 py-2 bg-black/30 border border-purple-500/30 rounded text-white placeholder-purple-400 text-sm focus:border-yellow-400 focus:outline-none"
-                    />
-                    <input
-                      type="text"
-                      value={nestedEvent.date}
-                      onChange={(e) => updateNestedEvent(nestedEvent.id, 'date', e.target.value)}
-                      placeholder="When..."
-                      className="px-3 py-2 bg-black/30 border border-purple-500/30 rounded text-white placeholder-purple-400 text-sm focus:border-yellow-400 focus:outline-none"
-                    />
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={nestedEvent.blurb}
-                        onChange={(e) => updateNestedEvent(nestedEvent.id, 'blurb', e.target.value)}
-                        placeholder="What happened..."
-                        className="flex-1 px-3 py-2 bg-black/30 border border-purple-500/30 rounded text-white placeholder-purple-400 text-sm focus:border-yellow-400 focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeNestedEvent(nestedEvent.id)}
-                        className="p-2 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-purple-300">
+              Background Image URL
+            </label>
+            <input
+              type="url"
+              value={formData.background_image || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, background_image: e.target.value }))}
+              placeholder="https://example.com/image.jpg"
+              className="w-full px-4 py-3 bg-black/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50"
+            />
           </div>
           
           <div className="flex justify-end gap-3 pt-6 border-t border-purple-500/20">
@@ -470,6 +658,7 @@ const TimelineManager: React.FC = () => {
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [expandedEras, setExpandedEras] = useState<Set<string>>(new Set(['era-1']));
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['timelineEvents'],
@@ -480,23 +669,25 @@ const TimelineManager: React.FC = () => {
     mutationFn: deleteTimelineEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      alert('The chronicle has been erased from the scrolls.');
+      setToast({ message: 'Chronicle has been erased from the scrolls', type: 'success' });
       setEventToDelete(null);
     },
-    onError: () => {
-      alert('The chronicle resists erasure. Try again.');
+    onError: (error) => {
+      console.error('Delete failed:', error);
+      setToast({ message: 'The chronicle resists erasure. Try again.', type: 'error' });
+      setEventToDelete(null);
     }
   });
 
   const togglePublishMutation = useMutation({
-    mutationFn: ({ id, isPublished }: { id: string; isPublished: boolean }) =>
-      toggleTimelineEventPublishStatus(id, !isPublished),
+    mutationFn: toggleTimelineEventPublishStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      alert('The chronicle\'s visibility has been changed.');
+      setToast({ message: 'Chronicle visibility has been changed', type: 'success' });
     },
-    onError: () => {
-      alert('The seals of secrecy could not be altered.');
+    onError: (error) => {
+      console.error('Toggle publish failed:', error);
+      setToast({ message: 'The seals of secrecy could not be altered', type: 'error' });
     }
   });
 
@@ -510,11 +701,7 @@ const TimelineManager: React.FC = () => {
       events: era.events.filter(event => {
         const matchesSearch = searchTerm === '' || 
           event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.blurb.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (event.children && event.children.some(child => 
-            child.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            child.blurb.toLowerCase().includes(searchTerm.toLowerCase())
-          ));
+          event.description.toLowerCase().includes(searchTerm.toLowerCase());
         
         const matchesStatus = statusFilter === 'all' || 
           (statusFilter === 'published' && event.is_published) ||
@@ -538,6 +725,15 @@ const TimelineManager: React.FC = () => {
   const handleEdit = (event: TimelineEvent) => {
     setEditingEvent(event);
     setIsFormOpen(true);
+  };
+
+  const handleFormSuccess = () => {
+    setIsFormOpen(false);
+    setEditingEvent(null);
+    setToast({ 
+      message: editingEvent ? 'Chronicle has been amended' : 'New chronicle has been inscribed', 
+      type: 'success' 
+    });
   };
 
   if (isLoading) {
@@ -569,6 +765,12 @@ const TimelineManager: React.FC = () => {
           <p className="text-gray-400 mb-6">
             The ancient tomes cannot be accessed. Perhaps the guardian spirits need appeasing...
           </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg font-medium transition-all"
+          >
+            Rekindle the Flames
+          </button>
         </div>
       </div>
     );
@@ -577,7 +779,6 @@ const TimelineManager: React.FC = () => {
   // Calculate statistics
   const totalEvents = eras.reduce((sum, era) => sum + era.events.length, 0);
   const publishedEvents = eras.reduce((sum, era) => sum + era.events.filter(e => e.is_published).length, 0);
-  const totalTales = eras.reduce((sum, era) => sum + era.events.reduce((eSum, event) => eSum + (event.children?.length || 0), 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -618,23 +819,6 @@ const TimelineManager: React.FC = () => {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
-        
-        .legendary-glow {
-          animation: legendary-pulse 3s ease-in-out infinite;
-        }
-        
-        @keyframes legendary-pulse {
-          0%, 100% {
-            box-shadow: 
-              0 0 20px rgba(212, 175, 55, 0.3),
-              0 0 40px rgba(212, 175, 55, 0.1);
-          }
-          50% {
-            box-shadow: 
-              0 0 30px rgba(212, 175, 55, 0.5),
-              0 0 60px rgba(212, 175, 55, 0.2);
-          }
-        }
       `}</style>
       
       <div className="fantasy-bg min-h-screen p-8">
@@ -673,7 +857,7 @@ const TimelineManager: React.FC = () => {
                   { icon: Scroll, label: 'Chronicles', value: totalEvents, color: 'purple-400' },
                   { icon: Eye, label: 'Revealed', value: publishedEvents, color: 'green-400' },
                   { icon: EyeOff, label: 'Hidden', value: totalEvents - publishedEvents, color: 'yellow-400' },
-                  { icon: Sparkles, label: 'Tales', value: totalTales, color: 'blue-400' }
+                  { icon: Sparkles, label: 'Eras', value: eras.length, color: 'blue-400' }
                 ].map((stat, index) => (
                   <motion.div
                     key={stat.label}
@@ -696,7 +880,7 @@ const TimelineManager: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-purple-400" />
               <input
-                placeholder="Search chronicles and tales..."
+                placeholder="Search chronicles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 mystical-border rounded-lg text-white placeholder-purple-300 focus:border-purple-400 focus:ring-purple-400/50 focus:outline-none focus:ring-2"
@@ -779,10 +963,6 @@ const TimelineManager: React.FC = () => {
                               <Scroll className="w-3 h-3 mr-1 inline" />
                               {era.events.length} chronicles
                             </span>
-                            <span className="text-xs bg-black/20 border border-yellow-500/20 text-yellow-300 px-2 py-1 rounded">
-                              <Sparkles className="w-3 h-3 mr-1 inline" />
-                              {era.events.reduce((sum, event) => sum + (event.children?.length || 0), 0)} tales
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -808,8 +988,8 @@ const TimelineManager: React.FC = () => {
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
-                                    {CATEGORY_ICONS[event.category || 'mystical'] && 
-                                      React.createElement(CATEGORY_ICONS[event.category || 'mystical'], { className: "w-4 h-4 text-yellow-400" })
+                                    {CATEGORY_ICONS[event.category] && 
+                                      React.createElement(CATEGORY_ICONS[event.category], { className: "w-4 h-4 text-yellow-400" })
                                     }
                                     <h3 className="text-xl font-semibold text-white">{event.title}</h3>
                                     <span className="text-sm bg-black/30 border border-yellow-500/30 text-yellow-300 px-2 py-1 rounded">
@@ -817,16 +997,10 @@ const TimelineManager: React.FC = () => {
                                     </span>
                                   </div>
                                   
-                                  <p className="text-purple-200 mb-3 italic">{event.blurb}</p>
+                                  <p className="text-purple-200 mb-3 italic">{event.description}</p>
                                   
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                      {event.importance === 'legendary' && (
-                                        <span className="text-xs bg-gradient-to-r from-yellow-600 to-orange-500 text-yellow-100 px-2 py-1 rounded">
-                                          <Star className="w-3 h-3 mr-1 inline" />
-                                          Legendary
-                                        </span>
-                                      )}
                                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs ${
                                         event.is_published 
                                           ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
@@ -838,14 +1012,10 @@ const TimelineManager: React.FC = () => {
                                           <><Clock className="h-3 w-3" />Hidden</>
                                         )}
                                       </span>
-                                    </div>
-                                    
-                                    {event.children && event.children.length > 0 && (
-                                      <span className="text-xs text-purple-300">
-                                        <Sparkles className="w-3 h-3 mr-1 inline" />
-                                        {event.children.length} tales
+                                      <span className="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-1 rounded">
+                                        {event.category}
                                       </span>
-                                    )}
+                                    </div>
                                   </div>
                                 </div>
                                 
@@ -858,9 +1028,10 @@ const TimelineManager: React.FC = () => {
                                     <Pencil className="h-4 w-4" />
                                   </button>
                                   <button
-                                    onClick={() => togglePublishMutation.mutate({ id: event.id, isPublished: event.is_published })}
+                                    onClick={() => togglePublishMutation.mutate(event.id)}
                                     className="p-2 hover:bg-purple-500/20 rounded text-purple-400 hover:text-purple-300 transition-colors"
                                     title={event.is_published ? 'Hide Chronicle' : 'Reveal Chronicle'}
+                                    disabled={togglePublishMutation.isPending}
                                   >
                                     {event.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                   </button>
@@ -886,15 +1057,23 @@ const TimelineManager: React.FC = () => {
         </div>
       </div>
 
+      {/* Toast Notifications */}
+      <AnimatePresence>
+        {toast && (
+          <Toast 
+            message={toast.message} 
+            type={toast.type} 
+            onClose={() => setToast(null)} 
+          />
+        )}
+      </AnimatePresence>
+
       {/* Scribe's Form */}
       <ScribeForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         event={editingEvent}
-        onSuccess={() => {
-          setIsFormOpen(false);
-          setEditingEvent(null);
-        }}
+        onSuccess={handleFormSuccess}
       />
 
       {/* Erasure Confirmation */}

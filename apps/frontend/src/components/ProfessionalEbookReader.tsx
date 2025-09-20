@@ -26,7 +26,8 @@ import {
   Shield,
   Zap,
   BookOpen,
-  FileText
+  FileText,
+  ArrowLeft
 } from 'lucide-react';
 
 interface Chapter {
@@ -522,7 +523,7 @@ export const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = (
 
   // Paginate content based on settings
   useEffect(() => {
-    if (!chapter?.content) return;
+    if (!chapter?.plain_content) return;
 
     const paginateContent = () => {
       try {
@@ -538,11 +539,11 @@ export const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = (
           newPages.push(pageWords.join(' '));
         }
         
-        setPages(newPages.length > 0 ? newPages : ['']);
+        setPages(newPages.length > 0 ? newPages : [content]);
         setTotalPages(newPages.length || 1);
         
         // Reset to first page if current page is beyond new total
-        if (currentPage > newPages.length) {
+        if (currentPage > newPages.length && newPages.length > 0) {
           setCurrentPage(1);
         }
       } catch (error) {
@@ -718,7 +719,7 @@ export const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = (
     );
   }
 
-  const currentContent = pages[currentPage - 1] || '';
+  const currentContent = pages[currentPage - 1] || chapter.plain_content || '';
 
   return (
     <div 
@@ -953,7 +954,7 @@ export const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = (
               
               <div className="hidden sm:flex items-center space-x-2">
                 <FileText className="w-4 h-4" />
-                <span>{chapter.word_count.toLocaleString()} words</span>
+                <span>{chapter.word_count?.toLocaleString() || '0'} words</span>
               </div>
               
               <div className="flex items-center space-x-2">

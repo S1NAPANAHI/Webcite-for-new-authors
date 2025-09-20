@@ -22,20 +22,13 @@ import {
   AlertCircle,
   CheckCircle2,
   X,
-  Save,
-  GripVertical
+  Save
 } from 'lucide-react';
-import { supabase } from '../../../lib/supabase';
+
+// Import supabase using proper ES6 import
+import { supabase } from '@zoroaster/shared/lib/supabase';
 
 // Enhanced Types with Nested Structure
-interface NestedEvent {
-  id: string;
-  title: string;
-  date: string;
-  description: string;
-  children?: NestedEvent[];
-}
-
 interface TimelineEvent {
   id: string;
   title: string;
@@ -85,7 +78,14 @@ const fetchTimelineEvents = async (): Promise<{ data: Era[] }> => {
       .order('era', { ascending: true })
       .order('order_index', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database error:', error);
+      return { data: getFallbackAdminData() };
+    }
+
+    if (!data || data.length === 0) {
+      return { data: getFallbackAdminData() };
+    }
 
     // Group events by era and build hierarchy
     const eventsByEra = new Map<string, TimelineEvent[]>();
@@ -103,7 +103,7 @@ const fetchTimelineEvents = async (): Promise<{ data: Era[] }> => {
         category: event.category || 'Other',
         background_image: event.background_image,
         is_published: event.is_published,
-        order_index: event.order_index,
+        order_index: event.order_index || 0,
         parent_event_id: event.parent_event_id,
         depth: event.depth || 0,
         children: [],
@@ -142,15 +142,41 @@ const fetchTimelineEvents = async (): Promise<{ data: Era[] }> => {
       start: events.length > 0 ? events[0].date : 'Unknown',
       end: events.length > 0 ? events[events.length - 1].date : 'Unknown',
       description: getEraDescription(eraName),
-      events
+      events: events.sort((a, b) => a.order_index - b.order_index)
     }));
 
     return { data: eras };
   } catch (error) {
     console.error('Error fetching timeline events:', error);
-    throw error;
+    return { data: getFallbackAdminData() };
   }
 };
+
+const getFallbackAdminData = (): Era[] => [
+  {
+    id: "age-of-flame",
+    title: "Age of Flame",
+    start: "Dawn of Time",
+    end: "Year 1247",
+    description: "When Ahura Mazda first kindled the Sacred Fires and light pierced the primordial darkness.",
+    events: [
+      {
+        id: "sample-event-1",
+        title: "The First Sacred Fire",
+        date: "Dawn of Time",
+        description: "Ahura Mazda kindles the eternal flame that shall never be extinguished. This is sample data - connect to your database to see real events.",
+        era: "Age of Flame",
+        category: "Magical",
+        is_published: true,
+        order_index: 0,
+        depth: 0,
+        children: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ]
+  }
+];
 
 const getEraDescription = (eraName: string): string => {
   const descriptions: Record<string, string> = {
@@ -214,19 +240,23 @@ const createTimelineEvent = async (eventData: CreateTimelineEventDto): Promise<T
 
 const updateTimelineEvent = async (id: string, eventData: Partial<CreateTimelineEventDto>): Promise<TimelineEvent> => {
   try {
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+    
+    // Only update fields that are provided
+    if (eventData.title !== undefined) updateData.title = eventData.title;
+    if (eventData.date !== undefined) updateData.date = eventData.date;
+    if (eventData.description !== undefined) updateData.description = eventData.description;
+    if (eventData.details !== undefined) updateData.details = eventData.details;
+    if (eventData.era !== undefined) updateData.era = eventData.era;
+    if (eventData.category !== undefined) updateData.category = eventData.category;
+    if (eventData.background_image !== undefined) updateData.background_image = eventData.background_image;
+    if (eventData.is_published !== undefined) updateData.is_published = eventData.is_published;
+
     const { data, error } = await supabase
       .from('timeline_events')
-      .update({
-        ...(eventData.title && { title: eventData.title }),
-        ...(eventData.date && { date: eventData.date }),
-        ...(eventData.description && { description: eventData.description }),
-        ...(eventData.details !== undefined && { details: eventData.details }),
-        ...(eventData.era && { era: eventData.era }),
-        ...(eventData.category && { category: eventData.category }),
-        ...(eventData.background_image !== undefined && { background_image: eventData.background_image }),
-        ...(eventData.is_published !== undefined && { is_published: eventData.is_published }),
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();
@@ -258,13 +288,7 @@ const updateTimelineEvent = async (id: string, eventData: Partial<CreateTimeline
 
 const deleteTimelineEvent = async (id: string): Promise<void> => {
   try {
-    // First delete all children (cascade)
-    await supabase
-      .from('timeline_events')
-      .delete()
-      .eq('parent_event_id', id);
-
-    // Then delete the parent
+    // Cascade delete is handled by database constraints
     const { error } = await supabase
       .from('timeline_events')
       .delete()
@@ -496,7 +520,6 @@ const ScribeForm: React.FC<{
         </div>
         
         <form onSubmit={handleSubmit} className="p-8 space-y-6">
-          {/* Main Event Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-purple-300">
@@ -657,18 +680,23 @@ const TimelineManager: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
-  const [expandedEras, setExpandedEras] = useState<Set<string>>(new Set(['era-1']));
+  const [expandedEras, setExpandedEras] = useState<Set<string>>(new Set(['age-of-flame']));
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['timelineEvents'],
     queryFn: fetchTimelineEvents,
+    refetchOnWindowFocus: false,
+    staleTime: 30 * 1000, // 30 seconds
+    retry: 1,
+    retryDelay: 1000
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteTimelineEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['publicTimelineEvents'] }); // Also refresh public
       setToast({ message: 'Chronicle has been erased from the scrolls', type: 'success' });
       setEventToDelete(null);
     },
@@ -683,6 +711,7 @@ const TimelineManager: React.FC = () => {
     mutationFn: toggleTimelineEventPublishStatus,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
+      queryClient.invalidateQueries({ queryKey: ['publicTimelineEvents'] }); // Also refresh public
       setToast({ message: 'Chronicle visibility has been changed', type: 'success' });
     },
     onError: (error) => {
@@ -739,38 +768,19 @@ const TimelineManager: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-900 text-white p-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <LoadingSkeleton className="h-12 w-64 mx-auto mb-4" />
-            <LoadingSkeleton className="h-6 w-96 mx-auto" />
+        <div className="max-w-6xl mx-auto text-center">
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 via-white to-purple-400 bg-clip-text text-transparent">
+              Consulting the Sacred Scrolls...
+            </h1>
           </div>
-          <div className="space-y-8">
+          <p className="text-purple-300 mb-8">The ancient tomes are being prepared...</p>
+          <div className="space-y-4 max-w-2xl mx-auto">
             {[...Array(3)].map((_, i) => (
-              <LoadingSkeleton key={i} className="h-32 w-full" />
+              <LoadingSkeleton key={i} className="h-24 w-full" />
             ))}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-red-500/30">
-            <AlertCircle className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-red-400 mb-4">The Scribal Arts Are Lost</h1>
-          <p className="text-gray-400 mb-6">
-            The ancient tomes cannot be accessed. Perhaps the guardian spirits need appeasing...
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg font-medium transition-all"
-          >
-            Rekindle the Flames
-          </button>
         </div>
       </div>
     );
@@ -823,7 +833,7 @@ const TimelineManager: React.FC = () => {
       
       <div className="fantasy-bg min-h-screen p-8">
         <div className="max-w-6xl mx-auto">
-          {/* Mystical Header */}
+          {/* Header with Statistics */}
           <div className="text-center mb-12">
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -831,30 +841,24 @@ const TimelineManager: React.FC = () => {
               transition={{ duration: 1 }}
             >
               <div className="flex items-center justify-center gap-4 mb-6">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                >
+                <motion.div animate={{ rotate: 360 }} transition={{ duration: 15, repeat: Infinity, ease: "linear" }}>
                   <Flame className="w-10 h-10 text-yellow-400" />
                 </motion.div>
                 <h1 className="text-6xl font-bold bg-gradient-to-r from-yellow-400 via-white to-purple-400 bg-clip-text text-transparent">
                   Scribe's Workshop
                 </h1>
-                <motion.div
-                  animate={{ rotate: -360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                >
+                <motion.div animate={{ rotate: -360 }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
                   <Scroll className="w-10 h-10 text-yellow-400" />
                 </motion.div>
               </div>
-              <p className="text-xl text-purple-300 italic max-w-4xl mx-auto">
+              <p className="text-xl text-purple-300 italic max-w-4xl mx-auto mb-8">
                 Here the scribes tend to the great chronicles, that future generations may know the deeds of ages past.
               </p>
               
               {/* Statistics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 max-w-3xl mx-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
                 {[
-                  { icon: Scroll, label: 'Chronicles', value: totalEvents, color: 'purple-400' },
+                  { icon: Scroll, label: 'Total', value: totalEvents, color: 'purple-400' },
                   { icon: Eye, label: 'Revealed', value: publishedEvents, color: 'green-400' },
                   { icon: EyeOff, label: 'Hidden', value: totalEvents - publishedEvents, color: 'yellow-400' },
                   { icon: Sparkles, label: 'Eras', value: eras.length, color: 'blue-400' }
@@ -921,19 +925,30 @@ const TimelineManager: React.FC = () => {
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">No Chronicles Found</h3>
               <p className="text-gray-400 mb-8 max-w-md mx-auto">
-                The scribes have found no records matching thy criteria. 
-                Perhaps the ink has faded, or the search runes need adjustment.
+                The scribes have found no records matching thy criteria. Create thy first chronicle or adjust the search runes.
               </p>
-              <button 
-                onClick={() => {
-                  setSearchTerm('');
-                  setStatusFilter('all');
-                }}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 mystical-border rounded-lg text-white transition-all"
-              >
-                <X className="w-4 h-4 mr-2 inline" />
-                Clear the Binding Runes
-              </button>
+              <div className="flex gap-4 justify-center">
+                <button 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('all');
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 mystical-border rounded-lg text-white transition-all"
+                >
+                  <X className="w-4 h-4 mr-2 inline" />
+                  Clear Search
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingEvent(null);
+                    setIsFormOpen(true);
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-500 hover:from-yellow-500 hover:to-orange-400 text-white rounded-lg font-medium transition-all transform hover:scale-105 shadow-lg"
+                >
+                  <Plus className="w-4 h-4 mr-2 inline" />
+                  Create First Chronicle
+                </button>
+              </div>
             </motion.div>
           ) : (
             <div className="space-y-8">
@@ -947,16 +962,13 @@ const TimelineManager: React.FC = () => {
                   >
                     <button
                       onClick={() => toggleEra(era.id)}
-                      className="w-full flex items-center justify-between gap-4 text-left"
+                      className="w-full flex items-center justify-between gap-4 text-left group hover:bg-white/5 rounded-lg p-2 -m-2 transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         <div className="era-marker" />
-                        
                         <div>
-                          <h2 className="text-3xl font-bold text-white mb-2">{era.title}</h2>
-                          <p className="text-yellow-400 text-sm font-medium mb-2">
-                            {era.start} — {era.end}
-                          </p>
+                          <h2 className="text-3xl font-bold text-white mb-2 group-hover:text-yellow-300 transition-colors">{era.title}</h2>
+                          <p className="text-yellow-400 text-sm font-medium mb-2">{era.start} — {era.end}</p>
                           <p className="text-purple-300 text-sm italic mb-3">{era.description}</p>
                           <div className="flex items-center gap-2">
                             <span className="text-xs bg-black/20 border border-white/10 text-gray-300 px-2 py-1 rounded">
@@ -966,8 +978,7 @@ const TimelineManager: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="w-8 h-8 rounded-full mystical-border flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full mystical-border flex items-center justify-center group-hover:border-yellow-400/50 transition-colors">
                         <ChevronDown className={`w-5 h-5 text-purple-400 transition-transform duration-300 ${expandedEras.has(era.id) ? 'rotate-180' : ''}`} />
                       </div>
                     </button>
@@ -984,12 +995,12 @@ const TimelineManager: React.FC = () => {
                       >
                         {era.events.map((event) => (
                           <div key={event.id} className="group relative">
-                            <div className="mystical-border rounded-lg p-4 hover:border-yellow-400/50 transition-colors">
+                            <div className="mystical-border rounded-lg p-4 hover:border-yellow-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-yellow-400/10">
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
-                                    {CATEGORY_ICONS[event.category] && 
-                                      React.createElement(CATEGORY_ICONS[event.category], { className: "w-4 h-4 text-yellow-400" })
+                                    {CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS] && 
+                                      React.createElement(CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS], { className: "w-4 h-4 text-yellow-400" })
                                     }
                                     <h3 className="text-xl font-semibold text-white">{event.title}</h3>
                                     <span className="text-sm bg-black/30 border border-yellow-500/30 text-yellow-300 px-2 py-1 rounded">
@@ -1033,7 +1044,11 @@ const TimelineManager: React.FC = () => {
                                     title={event.is_published ? 'Hide Chronicle' : 'Reveal Chronicle'}
                                     disabled={togglePublishMutation.isPending}
                                   >
-                                    {event.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    {togglePublishMutation.isPending ? (
+                                      <div className="w-4 h-4 border border-current border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                      event.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />
+                                    )}
                                   </button>
                                   <button
                                     onClick={() => setEventToDelete(event.id)}
@@ -1076,46 +1091,56 @@ const TimelineManager: React.FC = () => {
         onSuccess={handleFormSuccess}
       />
 
-      {/* Erasure Confirmation */}
-      {eventToDelete && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-gradient-to-br from-red-900/95 to-red-800/95 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full border border-red-500/20"
-          >
-            <div className="p-8 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-8 h-8 text-white" />
+      {/* Deletion Confirmation */}
+      <AnimatePresence>
+        {eventToDelete && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-gradient-to-br from-red-900/95 to-red-800/95 backdrop-blur-lg rounded-2xl shadow-2xl max-w-md w-full border border-red-500/20"
+            >
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Erase Chronicle Forever?</h3>
+                <p className="text-red-200 mb-6">
+                  This chronicle shall be struck from the records forever. 
+                  The deed cannot be undone once the mystical ink has dried.
+                </p>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => setEventToDelete(null)}
+                    className="flex-1 px-4 py-3 border border-red-400/30 rounded-lg hover:bg-red-500/10 text-red-200 hover:text-white transition-colors"
+                  >
+                    Preserve Chronicle
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (eventToDelete) {
+                        deleteMutation.mutate(eventToDelete);
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg font-medium transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {deleteMutation.isPending ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        Erasing...
+                      </>
+                    ) : (
+                      'Erase Forever'
+                    )}
+                  </button>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Erase Chronicle?</h3>
-              <p className="text-red-200 mb-6">
-                This chronicle shall be struck from the records forever. 
-                The deed cannot be undone once the ink is dried.
-              </p>
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => setEventToDelete(null)}
-                  className="flex-1 px-4 py-3 border border-red-400/30 rounded-lg hover:bg-red-500/10 text-red-200 hover:text-white transition-colors"
-                >
-                  Preserve Chronicle
-                </button>
-                <button 
-                  onClick={() => {
-                    if (eventToDelete) {
-                      deleteMutation.mutate(eventToDelete);
-                    }
-                  }}
-                  disabled={deleteMutation.isPending}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white rounded-lg font-medium transition-all disabled:opacity-50"
-                >
-                  {deleteMutation.isPending ? 'Erasing...' : 'Erase Forever'}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -12,7 +12,8 @@ const StarsBackground: React.FC = () => {
       const star = document.createElement('div');
       star.className = 'star';
       star.style.position = 'absolute';
-      star.style.backgroundColor = '#ffffff';
+      // Use theme-aware color instead of hardcoded white
+      star.style.backgroundColor = 'hsl(var(--foreground))';
       star.style.borderRadius = '50%';
       star.style.left = Math.random() * 100 + '%';
       star.style.top = Math.random() * 100 + '%';
@@ -21,6 +22,10 @@ const StarsBackground: React.FC = () => {
       star.style.animationDelay = Math.random() * 3 + 's';
       star.style.animationDuration = (Math.random() * 2 + 2) + 's'; // 2s to 4s
       star.style.pointerEvents = 'none';
+      // Add subtle opacity for better theme integration
+      star.style.opacity = '0.6';
+      // Add CSS animation class
+      star.classList.add('animate-twinkle');
       starsContainer.appendChild(star);
     };
 
@@ -47,7 +52,10 @@ const StarsBackground: React.FC = () => {
   }, []);
 
   return (
-    <div ref={starsRef} className="stars fixed top-0 left-0 w-full h-full pointer-events-none -z-10"> {/* Removed bg-background */}
+    <div 
+      ref={starsRef} 
+      className="stars fixed top-0 left-0 w-full h-full pointer-events-none -z-10 transition-opacity duration-300"
+    >
       {/* Stars will be injected here by JavaScript */}
     </div>
   );

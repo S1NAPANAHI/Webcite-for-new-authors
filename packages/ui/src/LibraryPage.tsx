@@ -231,7 +231,7 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
   const authorName = "S. Azar"; // Hardcoded for now
 
   return (
-    <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden" data-book-id={work.id} aria-label={`Book card: ${work.title} by ${authorName}`}>
+    <article className="bg-card text-card-foreground rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden" data-book-id={work.id} aria-label={`Book card: ${work.title} by ${authorName}`}>
       <div className="flex flex-col sm:flex-row">
         {/* Book Cover */}
         <div className="relative w-full sm:w-48 h-64 sm:h-auto flex-shrink-0">
@@ -256,13 +256,13 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
         <div className="flex-1 p-4 sm:p-6">
           {/* Header */}
           <div className="mb-4">
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1">{work.title}</h3>
-            <div className="text-gray-600 dark:text-gray-400">{authorName}</div>
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground mb-1">{work.title}</h3>
+            <div className="text-muted-foreground">{authorName}</div>
           </div>
 
           {/* Release Date */}
           {(work.release_date || work.estimated_release) && (
-            <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
+            <div className="mb-3 text-sm text-muted-foreground">
               {work.release_date ? (
                 <span>Released: {new Date(work.release_date).toLocaleDateString()}</span>
               ) : (
@@ -275,17 +275,17 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
           {(work.status === 'planning' || work.status === 'writing' || work.status === 'editing') && (
             <div className="mb-4" aria-label="Author writing progress">
               <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{progressPercentage}% written</span>
-                <span className="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">{progressPercentage}%</span>
+                <span className="text-sm font-medium text-foreground">{progressPercentage}% written</span>
+                <span className="text-sm text-muted-foreground" aria-live="polite">{progressPercentage}%</span>
               </div>
-              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercentage} aria-label="Author writing progress">
+              <div className="w-full bg-muted rounded-full h-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercentage} aria-label="Author writing progress">
                 <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
               </div>
             </div>
           )}
 
           {/* Description */}
-          <p className="text-gray-700 dark:text-gray-300 mb-4 text-sm sm:text-base">
+          <p className="text-foreground mb-4 text-sm sm:text-base">
             {work.description || 'No description available.'}
           </p>
 
@@ -299,7 +299,7 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
                     className={`w-5 h-5 cursor-pointer transition-colors ${
                       i < (userCurrentRating !== null ? userCurrentRating : Math.floor(work.rating || 0)) 
                         ? 'text-yellow-400 fill-current' 
-                        : 'text-gray-300 dark:text-gray-600'
+                        : 'text-muted-foreground'
                     }`}
                     onClick={() => handleStarClick(i + 1)}
                     onMouseEnter={() => user && setUserCurrentRating(i + 1)}
@@ -308,8 +308,8 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
                   />
                 ))}
               </div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{work.rating?.toFixed(1) || '0.0'}</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">• {work.reviews_count || 0} reviews</span>
+              <span className="text-sm font-medium text-foreground">{work.rating?.toFixed(1) || '0.0'}</span>
+              <span className="text-xs text-muted-foreground">• {work.reviews_count || 0} reviews</span>
             </div>
           </div>
 
@@ -333,7 +333,7 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
             {/* Sample Toggle Button */}
             {work.sample_content && (
               <button 
-                className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors duration-200 min-h-[44px]"
+                className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 bg-muted hover:bg-muted/80 text-muted-foreground font-medium rounded-lg transition-colors duration-200 min-h-[44px]"
                 onClick={() => setIsSampleExpanded(!isSampleExpanded)}
                 aria-expanded={isSampleExpanded}
               >
@@ -349,12 +349,12 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
 
       {/* Expandable Sample Card */}
       {isSampleExpanded && work.sample_content && (
-        <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-4 sm:p-6">
+        <div className="border-t border-border bg-muted/50 p-4 sm:p-6">
           <div className="mb-4">
-            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Sample from "{work.title}"</h4>
+            <h4 className="text-lg font-semibold text-foreground">Sample from "{work.title}"</h4>
           </div>
           <div className="prose prose-sm sm:prose dark:prose-invert max-w-none mb-4">
-            <p className="text-gray-700 dark:text-gray-300">{work.sample_content}</p>
+            <p className="text-foreground">{work.sample_content}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             {userLibraryItem ? (
@@ -409,10 +409,10 @@ export const LibraryPage: React.FC = () => {
 
   if (isLoadingWorks || isLoadingUserLibrary) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your library...</p>
+          <p className="text-muted-foreground">Loading your library...</p>
         </div>
       </div>
     );
@@ -420,7 +420,7 @@ export const LibraryPage: React.FC = () => {
   
   if (isErrorWorks) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-red-600 mb-4">Error loading works: {errorWorks?.message}</p>
           <button 
@@ -436,7 +436,7 @@ export const LibraryPage: React.FC = () => {
   
   if (isErrorUserLibrary) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <p className="text-red-600 mb-4">Error loading user library: {errorUserLibrary?.message}</p>
           <button 
@@ -451,12 +451,12 @@ export const LibraryPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background transition-colors duration-300">
       {/* Mobile-friendly header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-16 z-40">
+      <div className="bg-card border-b border-border sticky top-16 z-40 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-4 sm:py-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-4">
               Your Library
             </h1>
             
@@ -464,13 +464,13 @@ export const LibraryPage: React.FC = () => {
             <div className="space-y-4">
               {/* Search bar */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <input
                   type="text"
                   placeholder="Search your library..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base"
+                  className="w-full pl-10 pr-4 py-3 border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-background text-foreground text-base transition-colors duration-200"
                 />
               </div>
 
@@ -480,7 +480,7 @@ export const LibraryPage: React.FC = () => {
                   {/* Mobile filter toggle */}
                   <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="sm:hidden flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium min-h-[44px]"
+                    className="sm:hidden flex items-center justify-center px-4 py-2 bg-muted text-muted-foreground rounded-lg font-medium min-h-[44px] transition-colors duration-200"
                   >
                     <Filter className="w-4 h-4 mr-2" />
                     Filters
@@ -494,7 +494,7 @@ export const LibraryPage: React.FC = () => {
                       <select
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
-                        className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px] min-h-[44px]"
+                        className="appearance-none bg-background border border-border rounded-md px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px] min-h-[44px] text-foreground transition-colors duration-200"
                       >
                         <option value="All">All Types</option>
                         <option value="Book">Books</option>
@@ -503,7 +503,7 @@ export const LibraryPage: React.FC = () => {
                         <option value="Arc">Arcs</option>
                         <option value="Issue">Issues</option>
                       </select>
-                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
 
                     {/* Status filter */}
@@ -511,7 +511,7 @@ export const LibraryPage: React.FC = () => {
                       <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[140px] min-h-[44px]"
+                        className="appearance-none bg-background border border-border rounded-md px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[140px] min-h-[44px] text-foreground transition-colors duration-200"
                       >
                         <option value="All">All Status</option>
                         <option value="Published">Published</option>
@@ -520,19 +520,19 @@ export const LibraryPage: React.FC = () => {
                         <option value="Editing">Editing</option>
                         <option value="On_hold">On Hold</option>
                       </select>
-                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                     </div>
                   </div>
                 </div>
 
                 {/* View mode toggle */}
-                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                <div className="flex items-center space-x-2 bg-muted rounded-lg p-1">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded-md transition-colors duration-200 min-h-[40px] min-w-[40px] ${
                       viewMode === 'grid' 
-                        ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                        ? 'bg-background text-blue-600 shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <Grid className="h-5 w-5" />
@@ -541,8 +541,8 @@ export const LibraryPage: React.FC = () => {
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded-md transition-colors duration-200 min-h-[40px] min-w-[40px] ${
                       viewMode === 'list' 
-                        ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' 
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                        ? 'bg-background text-blue-600 shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <List className="h-5 w-5" />
@@ -557,7 +557,7 @@ export const LibraryPage: React.FC = () => {
       {/* Info Banner */}
       {showInfoBanner && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200 p-4 rounded-md flex items-center justify-between">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200 p-4 rounded-md flex items-center justify-between transition-colors duration-300">
             <div className="flex items-center gap-3">
               <Info size={20} />
               <p className="text-sm">Files may include a purchaser-specific watermark. Download limits: 5 per format.</p>
@@ -573,13 +573,13 @@ export const LibraryPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {filteredWorks.length === 0 ? (
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-              <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+              <Search className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-foreground mb-2">
               {searchTerm ? 'No matching content' : 'No content available'}
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-muted-foreground mb-6">
               {searchTerm 
                 ? 'Try adjusting your search or filters' 
                 : 'Start by creating some content in the admin panel'
@@ -589,7 +589,7 @@ export const LibraryPage: React.FC = () => {
         ) : (
           <>
             <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 Showing {filteredWorks.length} {filteredWorks.length === 1 ? 'item' : 'items'}
               </p>
             </div>

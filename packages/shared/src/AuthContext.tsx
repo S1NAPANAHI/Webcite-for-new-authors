@@ -45,7 +45,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
-        console.error("Error getting session:", sessionError);
+        if (import.meta.env.DEV) {
+          console.error("Error getting session:", sessionError);
+        }
         setSession(null);
         setUser(null);
         setUserProfile(null);
@@ -75,13 +77,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
               .insert({
                 id: session.user.id,
                 email: session.user.email,
-                // Add other default values if necessary, e.g., username: session.user.email.split('@')[0]
               })
               .select('*')
               .single();
 
             if (insertError) {
-              console.error("Error creating user profile:", insertError);
+              if (import.meta.env.DEV) {
+                console.error("Error creating user profile:", insertError);
+              }
               setUserProfile(null);
               setRole(null);
               setIsSubscribed(false);
@@ -89,14 +92,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
               setUserProfile(newProfile);
               setRole(newProfile.role || 'user');
               const isAdmin = newProfile.role === 'admin' || newProfile.role === 'super_admin';
-              if (isAdmin) {
-                  setIsSubscribed(true);
-              } else {
-                  setIsSubscribed(false);
-              }
+              setIsSubscribed(isAdmin);
             }
           } else {
-            console.error("Error fetching user profile:", profileError);
+            if (import.meta.env.DEV) {
+              console.error("Error fetching user profile:", profileError);
+            }
             setUserProfile(null);
             setRole(null);
             setIsSubscribed(false);
@@ -104,14 +105,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         } else if (profile) {
           setUserProfile(profile);
           setRole(profile.role || 'user');
-          // Keep the existing isSubscribed logic for now
           const isAdmin = profile.role === 'admin' || profile.role === 'super_admin';
-          if (isAdmin) {
-              setIsSubscribed(true);
-          } else {
-              // Add real subscription check here if needed
-              setIsSubscribed(false);
-          }
+          setIsSubscribed(isAdmin);
         }
       } else {
         setUserProfile(null);
@@ -139,7 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     user,
     userProfile,
     isAuthenticated,
-    role, // Use role instead of isAdmin
+    role,
     isSubscribed,
     isLoading,
     supabase,
@@ -150,7 +145,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  console.log('useAuth context:', context);
+  
+  // Only log in development mode
+  if (import.meta.env.DEV && context) {
+    console.log('useAuth context:', { 
+      isAuthenticated: context.isAuthenticated, 
+      role: context.role,
+      isLoading: context.isLoading 
+    });
+  }
+  
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

@@ -1,45 +1,41 @@
-/* Header Container - Modern Theme-Aware Design */
+/* Header Container - Clean Original Design */
 .zoroHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* Use theme-aware background */
-  background: var(--hf-bg);
-  color: var(--hf-text);
+  background: hsl(var(--background));
   padding: 1rem 2rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Georgia', serif;
+  color: hsl(var(--foreground));
   position: sticky;
   top: 0;
   z-index: 1000;
-  border-bottom: 1px solid var(--hf-border);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-bottom: 2px solid hsl(var(--border));
   min-height: 70px;
-  transition: all var(--transition);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* Logo - Modern Typography */
+/* Logo - Golden Style like in your image */
 .logo h1 {
-  font-size: 1.75rem;
+  font-size: 1.8rem;
   margin: 0;
-  color: var(--hf-text);
+  color: #d4af37; /* Golden color like in your image */
   white-space: nowrap;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  background: linear-gradient(135deg, var(--hf-text), #9B5DE5);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-fill-color: transparent;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  letter-spacing: 0.05em;
 }
 
 .logo a {
   text-decoration: none;
-  transition: transform var(--transition-fast);
 }
 
-.logo a:hover {
+.logo a:hover h1 {
+  color: #e6c547;
   transform: scale(1.02);
+  transition: all 0.2s ease;
 }
 
 /* Header Controls Container */
@@ -49,23 +45,20 @@
   gap: 1rem;
 }
 
-/* Modern Search Bar */
+/* Desktop Search - Clean styling */
+.desktopSearch {
+  display: flex;
+}
+
 .searchForm {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1.25rem;
   overflow: hidden;
   flex: 1;
   max-width: 300px;
-  transition: all var(--transition);
-}
-
-.searchForm:focus-within {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: #9B5DE5;
-  box-shadow: 0 0 0 3px rgba(155, 93, 229, 0.1);
 }
 
 .searchForm input {
@@ -73,55 +66,48 @@
   outline: none;
   padding: 0.75rem 1rem;
   background: transparent;
-  color: var(--hf-text);
+  color: hsl(var(--foreground));
   flex: 1;
   min-width: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: 1rem;
 }
 
 .searchForm input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: hsl(var(--muted-foreground));
 }
 
 .searchForm button {
-  background: linear-gradient(135deg, #9B5DE5, #6C63FF);
+  background: hsl(var(--primary));
   border: none;
-  color: white;
+  color: hsl(var(--primary-foreground));
   padding: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: background-color 0.2s ease;
 }
 
 .searchForm button:hover {
-  background: linear-gradient(135deg, #8B4BD5, #5C53EF);
-  transform: scale(1.05);
-}
-
-/* Desktop Search */
-.desktopSearch {
-  display: flex;
+  background: hsl(var(--primary) / 0.9);
 }
 
 /* Mobile Search Toggle */
 .mobileSearchToggle {
   display: none;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--hf-text);
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
   cursor: pointer;
   padding: 0.75rem;
-  border-radius: 8px;
-  transition: all var(--transition-fast);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
   min-width: 44px;
   min-height: 44px;
 }
 
 .mobileSearchToggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: hsl(var(--primary) / 0.9);
   transform: scale(1.05);
 }
 
@@ -132,11 +118,11 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: var(--hf-bg);
-  border-bottom: 1px solid var(--hf-border);
+  background: hsl(var(--background));
+  border-top: 1px solid hsl(var(--border));
+  border-bottom: 2px solid hsl(var(--border));
   padding: 1rem 2rem;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   z-index: 999;
 }
 
@@ -144,23 +130,23 @@
   display: block;
 }
 
-/* Mobile Menu Toggle - Modern Design */
+/* Mobile Menu Toggle */
 .mobileMenuToggle {
   display: none;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: var(--hf-text);
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
   cursor: pointer;
   padding: 0.75rem;
-  border-radius: 8px;
-  transition: all var(--transition-fast);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
   z-index: 1001;
   min-width: 48px;
   min-height: 48px;
 }
 
 .mobileMenuToggle:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: hsl(var(--primary) / 0.9);
   transform: scale(1.05);
 }
 
@@ -204,14 +190,14 @@
   position: relative;
 }
 
-/* Modern Navigation Links */
+/* Navigation Links - Clean style */
 .navLink {
   display: block;
   padding: 0.75rem 1rem;
-  color: var(--hf-text);
+  color: hsl(var(--foreground));
   text-decoration: none;
-  transition: all var(--transition);
-  border-radius: 8px;
+  transition: all 0.3s ease;
+  border-radius: 0.375rem;
   background: none;
   border: none;
   cursor: pointer;
@@ -219,30 +205,11 @@
   font-family: inherit;
   white-space: nowrap;
   font-weight: 500;
-  position: relative;
-  overflow: hidden;
-}
-
-.navLink::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(155, 93, 229, 0.1), rgba(108, 99, 255, 0.1));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--transition);
-  z-index: -1;
-}
-
-.navLink:hover::before {
-  transform: scaleX(1);
 }
 
 .navLink:hover {
-  color: #9B5DE5;
+  background: hsl(var(--muted));
+  color: hsl(var(--primary));
   transform: translateY(-1px);
 }
 
@@ -256,7 +223,7 @@
 }
 
 .dropdownArrow {
-  transition: transform var(--transition);
+  transition: transform 0.3s ease;
   margin-left: 0.5rem;
 }
 
@@ -268,20 +235,19 @@
   position: absolute;
   top: 100%;
   left: 0;
-  background: var(--surface);
+  background: hsl(var(--background));
   min-width: 12rem;
   overflow: hidden;
   max-height: 0;
   opacity: 0;
-  transition: all var(--transition);
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  transition: all 0.4s ease;
+  border-radius: 0.5rem;
+  border: 2px solid hsl(var(--border));
   z-index: 999;
-  box-shadow: var(--shadow-2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   list-style: none;
   margin: 0;
   padding: 0;
-  margin-top: 0.5rem;
 }
 
 .dropdownMenu.expanded {
@@ -299,17 +265,15 @@
 .dropdownMenuItem {
   display: block;
   padding: 0.75rem 1rem;
-  color: var(--text);
+  color: hsl(var(--foreground));
   text-decoration: none;
-  transition: all var(--transition-fast);
+  transition: background-color 0.2s ease;
   white-space: nowrap;
-  font-weight: 500;
 }
 
 .dropdownMenuItem:hover {
-  background: var(--accent-soft);
-  color: var(--accent);
-  padding-left: 1.5rem;
+  background: hsl(var(--muted));
+  color: hsl(var(--primary));
 }
 
 /* Mobile Menu Overlay */
@@ -331,9 +295,6 @@
   .zoroHeader {
     padding: 1rem;
     flex-wrap: wrap;
-    position: sticky;
-    top: 0;
-    min-height: 60px;
   }
 
   .logo h1 {
@@ -358,7 +319,7 @@
     right: 0;
     bottom: 0;
     transform: translateX(-100%);
-    transition: transform var(--transition);
+    transition: transform 0.3s ease;
     z-index: 999;
     pointer-events: none;
   }
@@ -377,18 +338,18 @@
     position: fixed;
     top: 0;
     left: 0;
-    width: 85%;
-    max-width: 20rem;
+    width: 90%;
+    max-width: 24rem;
     height: 100vh;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    background: hsl(var(--background));
+    border-right: 3px solid hsl(var(--primary));
     flex-direction: column;
     gap: 0;
-    padding: 5rem 0 2rem;
+    padding: 6rem 0 2rem;
     overflow-y: auto;
-    box-shadow: var(--shadow-2);
+    box-shadow: 6px 0 20px rgba(0, 0, 0, 0.3);
     transform: translateX(-100%);
-    transition: transform var(--transition);
+    transition: transform 0.3s ease;
   }
 
   .navbar.mobileMenuOpen .navMenu {
@@ -397,7 +358,7 @@
 
   .navMenu li {
     width: 100%;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid hsl(var(--border));
   }
 
   .navMenu li:last-child {
@@ -410,10 +371,10 @@
     border-radius: 0;
     width: 100%;
     text-align: left;
-    font-size: 1.1rem;
-    font-weight: 600;
+    font-size: 1.2rem;
+    font-weight: 700;
     background: transparent;
-    color: var(--text);
+    color: hsl(var(--foreground));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -421,20 +382,31 @@
     min-height: 60px;
   }
 
-  .navLink::before {
-    display: none;
-  }
-
   .navLink:hover {
     transform: none;
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* Mobile Touch-Friendly */
+  .touchFriendly {
+    min-height: 60px;
+    padding: 1.25rem 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .touchFriendlyButton {
+    min-height: 48px;
+    min-width: 48px;
   }
 
   /* Mobile Dropdown Styles */
   .dropdownMenu {
     position: static;
-    background: var(--surface-elev-1);
+    background: hsl(var(--muted));
     border: none;
     border-radius: 0;
     box-shadow: none;
@@ -444,16 +416,17 @@
     max-height: 0;
     opacity: 0;
     overflow: hidden;
-    transition: all var(--transition);
+    transition: all 0.3s ease;
   }
 
   .dropdownMenu.expanded {
     max-height: 25rem;
     opacity: 1;
     padding: 1rem 0;
-    border-top: 1px solid var(--border);
+    border-top: 2px solid hsl(var(--border));
   }
 
+  /* Disable desktop hover on mobile */
   .dropdown:hover .dropdownMenu {
     max-height: 0;
     opacity: 0;
@@ -463,19 +436,19 @@
   /* Mobile Dropdown Items */
   .dropdownMenuItem {
     padding: 1rem 2.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text);
-    background: var(--surface-elev-1);
-    border-bottom: 1px solid var(--border);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+    background: hsl(var(--muted));
+    border-bottom: 1px solid hsl(var(--border));
     min-height: 50px;
     display: flex;
     align-items: center;
   }
 
   .dropdownMenuItem:hover {
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     padding-left: 3rem;
   }
 
@@ -483,20 +456,10 @@
     border-bottom: none;
   }
 
-  /* Mobile Search */
-  .mobileSearchContainer {
-    background: var(--hf-bg);
-  }
-
-  .mobileSearchContainer .searchForm {
-    max-width: none;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .mobileSearchContainer .searchForm input {
-    background: transparent;
-    color: var(--hf-text);
+  .dropdownMenuItem.touchFriendly {
+    min-height: 50px;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
   }
 }
 
@@ -517,17 +480,29 @@
   .navMenu {
     width: 95%;
     max-width: none;
-    padding-top: 4rem;
+    padding-top: 5rem;
   }
 
   .navLink {
     padding: 1rem;
-    font-size: 1rem;
+    font-size: 1.1rem;
+  }
+
+  .touchFriendly {
+    min-height: 50px;
+    padding: 1rem;
+    font-size: 1.1rem;
   }
 
   .dropdownMenuItem {
     padding: 0.875rem 2rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
+  }
+
+  .dropdownMenuItem.touchFriendly {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    min-height: 44px;
   }
 }
 
@@ -555,7 +530,7 @@
 .dropdownMenuItem:focus-visible,
 .mobileMenuToggle:focus-visible,
 .mobileSearchToggle:focus-visible {
-  outline: 2px solid #9B5DE5;
+  outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
 }
 
@@ -567,8 +542,7 @@
   .dropdownArrow,
   .navLink,
   .mobileMenuToggle,
-  .mobileSearchToggle,
-  .navLink::before {
+  .mobileSearchToggle {
     transition: none !important;
   }
 }

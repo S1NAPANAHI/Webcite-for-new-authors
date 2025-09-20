@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { useAuth } from '@zoroaster/shared/AuthContext';
-import { XCircle, Info, Star } from 'lucide-react';
+import { XCircle, Info, Star, ChevronDown, Search, Filter, Grid, List } from 'lucide-react';
 // import './LibraryPage.css'; // Import the external CSS file
 
 // Define types for work and user_library_item
@@ -142,7 +142,7 @@ const upsertUserRating = async (userId: string, workId: string, rating: number) 
   return data[0];
 };
 
-// --- Work Card Component (New Design) ---
+// --- Work Card Component (Mobile-Enhanced Design) ---
 export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem; queryClient: any }> = ({ work, userLibraryItem, queryClient }) => {
   const { user } = useAuth(); // Get current user for rating
   const [userCurrentRating, setUserCurrentRating] = useState<number | null>(null);
@@ -175,16 +175,16 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userLibraryItems', user?.id] });
-      toast.success('Book added to your library!');
+      // toast.success('Book added to your library!');
     },
     onError: (error) => {
-      toast.error(`Error adding to library: ${error.message}`);
+      // toast.error(`Error adding to library: ${error.message}`);
     },
   });
 
   const handleAddToLibrary = (productId: string) => {
     if (!user) {
-      toast.error('Please log in to add books to your library.');
+      // toast.error('Please log in to add books to your library.');
       return;
     }
     addToLibraryMutation.mutate(productId);
@@ -231,26 +231,38 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
   const authorName = "S. Azar"; // Hardcoded for now
 
   return (
-    <article className="book-card" data-book-id={work.id} aria-label={`Book card: ${work.title} by ${authorName}`}>
-      <div className="book-main">
-        <div className="cover" role="img" aria-label={`Book cover: ${work.title} by ${authorName}`} style={{ background: work.cover_image_url ? `url(${work.cover_image_url}) center center / cover` : 'var(--teal)' }}>
-          {!work.cover_image_url && (
-            <div className="cover-content">
-              <div className="cover-title">{work.title}</div>
-              <div className="cover-author">{authorName}</div>
-            </div>
-          )}
+    <article className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 overflow-hidden" data-book-id={work.id} aria-label={`Book card: ${work.title} by ${authorName}`}>
+      <div className="flex flex-col sm:flex-row">
+        {/* Book Cover */}
+        <div className="relative w-full sm:w-48 h-64 sm:h-auto flex-shrink-0">
+          <div 
+            className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-700 flex items-center justify-center text-white p-4"
+            role="img" 
+            aria-label={`Book cover: ${work.title} by ${authorName}`} 
+            style={{ 
+              background: work.cover_image_url ? `url(${work.cover_image_url}) center center / cover` : 'linear-gradient(135deg, #3b82f6, #8b5cf6)' 
+            }}
+          >
+            {!work.cover_image_url && (
+              <div className="text-center">
+                <div className="text-lg sm:text-xl font-bold mb-2">{work.title}</div>
+                <div className="text-sm opacity-90">{authorName}</div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="details">
-          <div className="book-header">
-            <h3 className="book-title">{work.title}</h3>
-            <div className="author">{authorName}</div>
+        {/* Book Details */}
+        <div className="flex-1 p-4 sm:p-6">
+          {/* Header */}
+          <div className="mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1">{work.title}</h3>
+            <div className="text-gray-600 dark:text-gray-400">{authorName}</div>
           </div>
 
           {/* Release Date */}
           {(work.release_date || work.estimated_release) && (
-            <div className="release-info text-sm text-muted mt-1">
+            <div className="mb-3 text-sm text-gray-500 dark:text-gray-400">
               {work.release_date ? (
                 <span>Released: {new Date(work.release_date).toLocaleDateString()}</span>
               ) : (
@@ -261,94 +273,98 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
 
           {/* Progress Bar */}
           {(work.status === 'planning' || work.status === 'writing' || work.status === 'editing') && (
-            <div className="progress" aria-label="Author writing progress">
-              <div className="progress-head">
-                <span>{progressPercentage}% written</span>
-                <span aria-live="polite">{progressPercentage}%</span>
+            <div className="mb-4" aria-label="Author writing progress">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{progressPercentage}% written</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">{progressPercentage}%</span>
               </div>
-              <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercentage} aria-label="Author writing progress">
-                <span style={{ width: `${progressPercentage}%` }}></span>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progressPercentage} aria-label="Author writing progress">
+                <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${progressPercentage}%` }}></div>
               </div>
             </div>
           )}
 
           {/* Description */}
-          <p className="desc">
+          <p className="text-gray-700 dark:text-gray-300 mb-4 text-sm sm:text-base">
             {work.description || 'No description available.'}
           </p>
 
           {/* Rating */}
-          <div className="rating" aria-label={`Rating ${work.rating?.toFixed(1) || '0.0'} out of 5 based on ${work.reviews_count || 0} reviews`}>
-            <span className="stars" aria-hidden="true">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`star ${i < (userCurrentRating !== null ? userCurrentRating : Math.floor(work.rating || 0)) ? 'filled' : ''}`}
-                  onClick={() => handleStarClick(i + 1)}
-                  onMouseEnter={() => user && setUserCurrentRating(i + 1)}
-                  onMouseLeave={() => user && setUserCurrentRating(fetchedUserRating ?? null)}
-                  style={{ cursor: user ? 'pointer' : 'default' }}
-                />
-              ))}
-            </span>
-            <span>{work.rating?.toFixed(1) || '0.0'}</span>
-            <small>• {work.reviews_count || 0} reviews</small>
+          <div className="mb-4" aria-label={`Rating ${work.rating?.toFixed(1) || '0.0'} out of 5 based on ${work.reviews_count || 0} reviews`}>
+            <div className="flex items-center space-x-2">
+              <div className="flex space-x-1" aria-hidden="true">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-5 h-5 cursor-pointer transition-colors ${
+                      i < (userCurrentRating !== null ? userCurrentRating : Math.floor(work.rating || 0)) 
+                        ? 'text-yellow-400 fill-current' 
+                        : 'text-gray-300 dark:text-gray-600'
+                    }`}
+                    onClick={() => handleStarClick(i + 1)}
+                    onMouseEnter={() => user && setUserCurrentRating(i + 1)}
+                    onMouseLeave={() => user && setUserCurrentRating(fetchedUserRating ?? null)}
+                    style={{ cursor: user ? 'pointer' : 'default' }}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{work.rating?.toFixed(1) || '0.0'}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">• {work.reviews_count || 0} reviews</span>
+            </div>
           </div>
 
           {/* Actions */}
-          <div className="actions">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             {userLibraryItem && work.epub_file_key ? (
               <a
                 href={`/apps/frontend/src/reader/reader.html?book=${work.epub_file_key}`}
-                className="btn primary"
+                className="flex-1 sm:flex-none inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 min-h-[44px]"
                 target="_blank" // Open in new tab
                 rel="noopener noreferrer"
               >
-                Open
+                Open Book
               </a>
             ) : (
-              <button className="btn primary">Buy now</button>
+              <button className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 min-h-[44px]">
+                Buy Now
+              </button>
+            )}
+            
+            {/* Sample Toggle Button */}
+            {work.sample_content && (
+              <button 
+                className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors duration-200 min-h-[44px]"
+                onClick={() => setIsSampleExpanded(!isSampleExpanded)}
+                aria-expanded={isSampleExpanded}
+              >
+                <span>Read Sample</span>
+                <ChevronDown 
+                  className={`ml-2 w-4 h-4 transition-transform duration-200 ${isSampleExpanded ? 'rotate-180' : ''}`}
+                />
+              </button>
             )}
           </div>
-
-          {/* Sample Toggle Button */}
-          {work.sample_content && (
-            <button 
-              className="sample-toggle-btn" 
-              onClick={() => setIsSampleExpanded(!isSampleExpanded)}
-              aria-expanded={isSampleExpanded}
-            >
-              <span>Read Sample</span>
-              <svg 
-                className={`toggle-arrow ${isSampleExpanded ? 'expanded' : ''}`} 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-              >
-                <polyline points="6,9 12,15 18,9"></polyline>
-              </svg>
-            </button>
-          )}
         </div>
       </div>
 
       {/* Expandable Sample Card */}
       {isSampleExpanded && work.sample_content && (
-        <div className="sample-card expanded">
-          <div className="sample-header">
-            <h4>Sample from "{work.title}"</h4>
+        <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 p-4 sm:p-6">
+          <div className="mb-4">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Sample from "{work.title}"</h4>
           </div>
-          <div className="sample-excerpt">
-            <p>{work.sample_content}</p>
+          <div className="prose prose-sm sm:prose dark:prose-invert max-w-none mb-4">
+            <p className="text-gray-700 dark:text-gray-300">{work.sample_content}</p>
           </div>
-          <div className="sample-actions">
+          <div className="flex flex-col sm:flex-row gap-3">
             {userLibraryItem ? (
-              <button className="continue-btn">Continue reading</button>
+              <button className="flex-1 sm:flex-none px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 min-h-[44px]">
+                Continue Reading
+              </button>
             ) : (
-              <button className="buy-btn">Buy now</button>
+              <button className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 min-h-[44px]">
+                Buy Now
+              </button>
             )}
           </div>
         </div>
@@ -357,21 +373,19 @@ export const WorkCard: React.FC<{ work: Work; userLibraryItem?: UserLibraryItem;
   );
 };
 
-
-
-// --- Main Library Page Component ---
+// --- Main Library Page Component (Mobile-Enhanced) ---
 export const LibraryPage: React.FC = () => {
   const { user } = useAuth(); // Get current user from AuthContext
   const queryClient = useQueryClient();
 
   // Fetch all works
-  const { data: allWorks, isLoading: isLoadingWorks, isError: isErrorWorks, error: errorWorks } = useQuery<Work[]>({ // Changed from any to Work[]
+  const { data: allWorks, isLoading: isLoadingWorks, isError: isErrorWorks, error: errorWorks } = useQuery<Work[]>({
     queryKey: ['allWorks'],
     queryFn: fetchAllWorks,
   });
 
   // Conditionally fetch user library items if user is logged in
-  const { data: userLibraryItems, isLoading: isLoadingUserLibrary, isError: isErrorUserLibrary, error: errorUserLibrary } = useQuery<UserLibraryItem[]>({ // Changed from any to UserLibraryItem[]
+  const { data: userLibraryItems, isLoading: isLoadingUserLibrary, isError: isErrorUserLibrary, error: errorUserLibrary } = useQuery<UserLibraryItem[]>({
     queryKey: ['userLibraryItems', user?.id],
     queryFn: () => fetchUserLibraryItems(user?.id || ''),
     enabled: !!user?.id, // Only run query if user is logged in
@@ -380,80 +394,222 @@ export const LibraryPage: React.FC = () => {
   const [showInfoBanner, setShowInfoBanner] = useState(true);
   const [filterType, setFilterType] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
-
-  // Mock calendar data for now
-  
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredWorks = allWorks?.filter(work => {
     const matchesType = filterType === 'All' || work.type === filterType.toLowerCase();
     const matchesStatus = filterStatus === 'All' || work.status === filterStatus.toLowerCase();
-    return matchesType && matchesStatus;
+    const matchesSearch = !searchTerm || 
+      work.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      work.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesType && matchesStatus && matchesSearch;
   }) || [];
 
-  if (isLoadingWorks || isLoadingUserLibrary) return <div className="text-center py-8 text-text-light">Loading library...</div>;
-  if (isErrorWorks) return <div className="text-center py-8 text-red-400">Error loading works: {errorWorks?.message}</div>;
-  if (isErrorUserLibrary) return <div className="text-center py-8 text-red-400">Error loading user library: {errorUserLibrary?.message}</div>;
+  if (isLoadingWorks || isLoadingUserLibrary) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your library...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (isErrorWorks) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading works: {errorWorks?.message}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (isErrorUserLibrary) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Error loading user library: {errorUserLibrary?.message}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8 bg-background-dark text-text-light min-h-screen">
-      <h1 className="text-4xl font-bold text-text-light mb-6">Your Library</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Mobile-friendly header */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-16 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-4 sm:py-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Your Library
+            </h1>
+            
+            {/* Mobile-optimized search and filters */}
+            <div className="space-y-4">
+              {/* Search bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search your library..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-base"
+                />
+              </div>
 
-      {showInfoBanner && (
-        <div className="bg-blue-900 bg-opacity-30 border border-blue-700 text-blue-200 p-4 rounded-md mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Info size={20} />
-            <p className="text-sm">Files may include a purchaser-specific watermark. Download limits: 5 per format.</p>
+              {/* Filters row */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                  {/* Mobile filter toggle */}
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="sm:hidden flex items-center justify-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium min-h-[44px]"
+                  >
+                    <Filter className="w-4 h-4 mr-2" />
+                    Filters
+                    <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {/* Desktop filters or mobile expanded */}
+                  <div className={`flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 ${showFilters ? 'block' : 'hidden sm:flex'}`}>
+                    {/* Type filter */}
+                    <div className="relative">
+                      <select
+                        value={filterType}
+                        onChange={(e) => setFilterType(e.target.value)}
+                        className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[120px] min-h-[44px]"
+                      >
+                        <option value="All">All Types</option>
+                        <option value="Book">Books</option>
+                        <option value="Volume">Volumes</option>
+                        <option value="Saga">Sagas</option>
+                        <option value="Arc">Arcs</option>
+                        <option value="Issue">Issues</option>
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    </div>
+
+                    {/* Status filter */}
+                    <div className="relative">
+                      <select
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value)}
+                        className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-4 py-2 pr-8 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm min-w-[140px] min-h-[44px]"
+                      >
+                        <option value="All">All Status</option>
+                        <option value="Published">Published</option>
+                        <option value="Planning">Planning</option>
+                        <option value="Writing">Writing</option>
+                        <option value="Editing">Editing</option>
+                        <option value="On_hold">On Hold</option>
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* View mode toggle */}
+                <div className="flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-md transition-colors duration-200 min-h-[40px] min-w-[40px] ${
+                      viewMode === 'grid' 
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <Grid className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-md transition-colors duration-200 min-h-[40px] min-w-[40px] ${
+                      viewMode === 'list' 
+                        ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' 
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <List className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-          <button onClick={() => setShowInfoBanner(false)} className="text-blue-200 hover:text-white">
-            <XCircle size={20} />
-          </button>
+        </div>
+      </div>
+
+      {/* Info Banner */}
+      {showInfoBanner && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200 p-4 rounded-md flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Info size={20} />
+              <p className="text-sm">Files may include a purchaser-specific watermark. Download limits: 5 per format.</p>
+            </div>
+            <button onClick={() => setShowInfoBanner(false)} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 min-h-[44px] min-w-[44px] flex items-center justify-center">
+              <XCircle size={20} />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Sub-navigation Chips */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button onClick={() => setFilterType('All')} className={`px-4 py-2 rounded-full text-sm font-semibold ${filterType === 'All' ? 'bg-primary-DEFAULT text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>All</button>
-        <button onClick={() => setFilterType('Book')} className={`px-4 py-2 rounded-full text-sm font-semibold ${filterType === 'Book' ? 'bg-primary-DEFAULT text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>Books</button>
-        <button onClick={() => setFilterType('Volume')} className={`px-4 py-2 rounded-full text-sm font-semibold ${filterType === 'Volume' ? 'bg-primary-DEFAULT text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>Volumes</button>
-        <button onClick={() => setFilterType('Saga')} className={`px-4 py-2 rounded-full text-sm font-semibold ${filterType === 'Saga' ? 'bg-primary-DEFAULT text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>Sagas</button>
-        <button onClick={() => setFilterType('Arc')} className={`px-4 py-2 rounded-full text-sm font-semibold ${filterType === 'Arc' ? 'bg-primary-DEFAULT text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>Arcs</button>
-        <button onClick={() => setFilterType('Issue')} className={`px-4 py-2 rounded-full text-sm font-semibold ${filterType === 'Issue' ? 'bg-primary-DEFAULT text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>Issues</button>
-        {/* Status Filters */}
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-3 py-2 rounded-full text-sm font-semibold bg-gray-700 text-gray-300 hover:bg-gray-600"
-        >
-          <option value="All">All Status</option>
-          <option value="Published">Published</option>
-          <option value="Planning">Planning</option>
-          <option value="Writing">Writing</option>
-          <option value="Editing">Editing</option>
-          <option value="On_hold">On Hold</option>
-        </select>
-      </div>
-
-      {/* Main content and sidebar layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* Main content area (books) */}
-        <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 gap-6 mb-8">
-            {filteredWorks.map((work) => {
-              const userLibraryItem = userLibraryItems?.find(item => item.work_id === work.id);
-              return (
-                <WorkCard
-                  key={work.id}
-                  work={work}
-                  userLibraryItem={userLibraryItem}
-                  queryClient={queryClient}
-                />
-              );
-            })}
+      {/* Content area */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {filteredWorks.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              {searchTerm ? 'No matching content' : 'No content available'}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {searchTerm 
+                ? 'Try adjusting your search or filters' 
+                : 'Start by creating some content in the admin panel'
+              }
+            </p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {filteredWorks.length} {filteredWorks.length === 1 ? 'item' : 'items'}
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {filteredWorks.map((work) => {
+                const userLibraryItem = userLibraryItems?.find(item => item.work_id === work.id);
+                return (
+                  <WorkCard
+                    key={work.id}
+                    work={work}
+                    userLibraryItem={userLibraryItem}
+                    queryClient={queryClient}
+                  />
+                );
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 };
-
-

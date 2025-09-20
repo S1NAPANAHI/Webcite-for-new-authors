@@ -6,17 +6,91 @@ import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
 import { Button } from './button';
 import { Input } from './input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
 import { LoadingSkeleton } from './LoadingSkeleton';
-import { fetchTimelineEvents } from './api/timeline';
-import type { TimelineEvent } from './types/timeline';
+
+// Types
+interface TimelineEvent {
+  id: string;
+  title: string;
+  description: string;
+  details?: string;
+  date: string;
+  background_image?: string;
+  is_published: boolean;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
 
 interface TimelineEventWithPosition extends TimelineEvent {
   year: number;
   era?: string;
   category?: 'political' | 'cultural' | 'technological' | 'religious' | 'military' | 'other';
 }
+
+// Mock API function - replace with actual implementation
+const fetchTimelineEvents = async ({ includeUnpublished = false }) => {
+  // This is a mock - replace with actual API call
+  return {
+    data: [
+      {
+        id: '1',
+        title: 'The Great Reformation',
+        description: 'A pivotal moment in religious history that reshaped the spiritual landscape of Europe and beyond.',
+        details: '<p>The Protestant Reformation was a major movement within Western Christianity that posed a religious and political challenge to the Catholic Church.</p>',
+        date: '1517 CE',
+        background_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800',
+        is_published: true,
+        order: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: '2',
+        title: 'Discovery of the New World',
+        description: 'Columbus arrives in the Americas, opening a new chapter in human history and global exploration.',
+        details: '<p>Christopher Columbus completed four round-trip voyages between Spain and the Americas, each voyage being sponsored by the Crown of Castile.</p>',
+        date: '1492 CE',
+        background_image: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=800',
+        is_published: true,
+        order: 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: '3',
+        title: 'Fall of Constantinople',
+        description: 'The capture of Constantinople by the Ottoman Empire marked the end of the Byzantine Empire.',
+        details: '<p>The fall of Constantinople was the capture of the capital of the Byzantine Empire by the Ottoman Empire.</p>',
+        date: '1453 CE',
+        is_published: true,
+        order: 2,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: '4',
+        title: 'The Black Death',
+        description: 'A devastating pandemic that swept across Europe, fundamentally changing society.',
+        date: '1347-1351 CE',
+        is_published: true,
+        order: 3,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      },
+      {
+        id: '5',
+        title: 'Founding of Rome',
+        description: 'According to legend, the city of Rome was founded by Romulus and Remus.',
+        date: '753 BCE',
+        is_published: true,
+        order: 4,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ] as TimelineEvent[]
+  };
+};
 
 const CATEGORY_COLORS = {
   political: 'bg-red-500',
@@ -37,9 +111,20 @@ const CATEGORY_LABELS = {
 };
 
 const parseEventYear = (dateString: string): number => {
+  // Handle ranges like "1347-1351 CE"
+  const rangeMatch = dateString.match(/(\d{4})-(\d{4})/);
+  if (rangeMatch) {
+    return parseInt(rangeMatch[1]);
+  }
+  
   // Try to extract year from various date formats
   const yearMatch = dateString.match(/(\d{4})/);
-  return yearMatch ? parseInt(yearMatch[1]) : 0;
+  if (yearMatch) {
+    const year = parseInt(yearMatch[1]);
+    // Handle BCE dates
+    return dateString.includes('BCE') || dateString.includes('BC') ? -year : year;
+  }
+  return 0;
 };
 
 const categorizeEvent = (event: TimelineEvent): TimelineEventWithPosition['category'] => {
@@ -47,18 +132,16 @@ const categorizeEvent = (event: TimelineEvent): TimelineEventWithPosition['categ
   const description = event.description.toLowerCase();
   const text = `${title} ${description}`;
   
-  if (text.includes('war') || text.includes('battle') || text.includes('conquest')) return 'military';
-  if (text.includes('king') || text.includes('emperor') || text.includes('dynasty')) return 'political';
-  if (text.includes('temple') || text.includes('religion') || text.includes('god')) return 'religious';
-  if (text.includes('culture') || text.includes('art') || text.includes('literature')) return 'cultural';
+  if (text.includes('war') || text.includes('battle') || text.includes('conquest') || text.includes('fall')) return 'military';
+  if (text.includes('king') || text.includes('emperor') || text.includes('dynasty') || text.includes('empire')) return 'political';
+  if (text.includes('temple') || text.includes('religion') || text.includes('god') || text.includes('reformation') || text.includes('church')) return 'religious';
+  if (text.includes('culture') || text.includes('art') || text.includes('literature') || text.includes('discovery')) return 'cultural';
   if (text.includes('invention') || text.includes('discovery') || text.includes('technology')) return 'technological';
   
   return 'other';
 };
 
 const TimelineEventCard: React.FC<{ event: TimelineEventWithPosition; index: number }> = ({ event, index }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  
   return (
     <motion.div
       initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
@@ -104,41 +187,10 @@ const TimelineEventCard: React.FC<{ event: TimelineEventWithPosition; index: num
           </p>
           
           {event.details && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="group">
-                  <BookOpen className="w-4 h-4 mr-2 group-hover:animate-pulse" />
-                  Read More
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl">{event.title}</DialogTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      {event.date}
-                    </Badge>
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-white ${CATEGORY_COLORS[event.category || 'other']}`}
-                    >
-                      {CATEGORY_LABELS[event.category || 'other']}
-                    </Badge>
-                  </div>
-                </DialogHeader>
-                <div className="mt-6">
-                  {event.background_image && (
-                    <img 
-                      src={event.background_image} 
-                      alt={event.title}
-                      className="w-full h-64 object-cover rounded-lg mb-6"
-                    />
-                  )}
-                  <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: event.details }} />
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button variant="outline" size="sm" className="group">
+              <BookOpen className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+              Read More
+            </Button>
           )}
         </CardContent>
       </Card>
@@ -254,12 +306,16 @@ export const TimelinesPage: React.FC = () => {
         ...event,
         year: parseEventYear(event.date),
         category: categorizeEvent(event),
-        era: event.date.includes('BC') || event.date.includes('BCE') ? 'Ancient Era' : 
-             event.year < 1000 ? 'Classical Era' :
-             event.year < 1500 ? 'Medieval Era' :
-             event.year < 1800 ? 'Renaissance Era' :
-             event.year < 1900 ? 'Industrial Era' :
-             event.year < 2000 ? 'Modern Era' : 'Contemporary Era'
+        era: (() => {
+          const year = parseEventYear(event.date);
+          if (year < 0 || event.date.includes('BC')) return 'Ancient Era';
+          if (year < 1000) return 'Classical Era';
+          if (year < 1500) return 'Medieval Era';
+          if (year < 1800) return 'Renaissance Era';
+          if (year < 1900) return 'Industrial Era';
+          if (year < 2000) return 'Modern Era';
+          return 'Contemporary Era';
+        })()
       } as TimelineEventWithPosition))
       .sort((a, b) => sortOrder === 'asc' ? a.year - b.year : b.year - a.year);
   }, [timelineData, sortOrder]);
@@ -401,23 +457,16 @@ export const TimelinesPage: React.FC = () => {
               </div>
               
               {/* Category Filter */}
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-48">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${CATEGORY_COLORS[key as keyof typeof CATEGORY_COLORS]}`} />
-                        {label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 border border-border rounded-md bg-background"
+              >
+                <option value="all">All Categories</option>
+                {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
             </div>
             
             {/* Sort Order */}

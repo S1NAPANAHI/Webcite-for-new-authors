@@ -17,7 +17,9 @@ import {
   Heart,
   Share2,
   Download,
-  Loader
+  Loader,
+  Lock,
+  Crown
 } from 'lucide-react';
 import { useAuth, supabase } from '@zoroaster/shared';
 import {
@@ -27,18 +29,22 @@ import {
   HIERARCHY_LEVELS,
   ReadingProgress
 } from '../types/content';
+import { getChapterReadingUrl, getStartReadingUrl } from '../utils/chapterUtils';
 
 interface ChapterCardProps {
   chapter: Chapter;
   progress?: ReadingProgress;
-  onStartReading: (chapterId: string) => void;
+  onStartReading: (chapterSlug: string) => void;
   canRead: boolean;
+  issueSlug: string;
+  isAccessible: boolean;
+  isFree: boolean;
 }
 
-function ChapterCard({ chapter, progress, onStartReading, canRead }: ChapterCardProps) {
+function ChapterCard({ chapter, progress, onStartReading, canRead, issueSlug, isAccessible, isFree }: ChapterCardProps) {
   const isCompleted = progress?.completed || false;
   const progressPercentage = progress?.progress_percentage || 0;
-  const canReadChapter = canRead && chapter.status === 'published';
+  const canReadChapter = canRead && chapter.status === 'published' && isAccessible;
   
   return (
     <div className={`border border-gray-200 rounded-lg p-4 transition-all duration-200 ${
@@ -56,6 +62,17 @@ function ChapterCard({ chapter, progress, onStartReading, canRead }: ChapterCard
             {chapter.status === 'draft' && (
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                 Coming Soon
+              </span>
+            )}
+            {isFree && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                FREE
+              </span>
+            )}
+            {!isFree && chapter.status === 'published' && (
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 space-x-1">
+                <Crown className="w-3 h-3" />
+                <span>PREMIUM</span>
               </span>
             )}
           </div>
@@ -106,7 +123,7 @@ function ChapterCard({ chapter, progress, onStartReading, canRead }: ChapterCard
         <div className="ml-4">
           {canReadChapter ? (
             <button
-              onClick={() => onStartReading(chapter.id)}
+              onClick={() => onStartReading(chapter.slug)}
               className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
                 progressPercentage > 0
                   ? 'bg-indigo-600 text-white hover:bg-indigo-700'
@@ -120,8 +137,17 @@ function ChapterCard({ chapter, progress, onStartReading, canRead }: ChapterCard
               )}
             </button>
           ) : (
-            <div className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm">
-              {chapter.status === 'draft' ? 'Coming Soon' : 'Locked'}
+            <div className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm flex items-center space-x-2">
+              {chapter.status === 'draft' ? (
+                <span>Coming Soon</span>
+              ) : !isAccessible ? (
+                <>
+                  <Lock className="w-4 h-4" />
+                  <span>Locked</span>
+                </>
+              ) : (
+                <span>Unavailable</span>
+              )}
             </div>
           )}
         </div>
@@ -287,6 +313,7 @@ export default function ContentItemDetailPage() {
   const [item, setItem] = useState<ContentItemWithChildren | null>(null);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
   const [userProgress, setUserProgress] = useState<Record<string, ReadingProgress>>({});
+  const [chapterAccessInfo, setChapterAccessInfo] = useState<Record<string, { hasAccess: boolean; isFree: boolean }>>({});
   const [inUserLibrary, setInUserLibrary] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -305,7 +332,7 @@ export default function ContentItemDetailPage() {
       
       console.log('🔍 Loading item details for:', type, slug);
       
-      // Fetch the main content item
+      // Fetch the main content item with chapters
       const { data: itemData, error: itemError } = await supabase
         .from('content_items')
         .select(`
@@ -322,6 +349,8 @@ export default function ContentItemDetailPage() {
             estimated_read_time,
             status,
             published_at,
+            is_free,
+            subscription_tier_required,
             metadata,
             created_at,
             updated_at
@@ -404,6 +433,27 @@ export default function ContentItemDetailPage() {
               console.log('📖 User progress loaded:', progressMap);
             }
           }
+          
+          // Get chapter access info using new database function
+          const { data: accessibleChapters, error: accessError } = await supabase
+            .rpc('get_accessible_chapters_for_issue', {
+              p_issue_id: loadedItem.id,
+              p_user_id: user.id
+            });
+            
+          if (accessError) {
+            console.warn('⚠️ Error loading chapter access info:', accessError);
+          } else if (accessibleChapters) {
+            const accessMap: Record<string, { hasAccess: boolean; isFree: boolean }> = {};
+            accessibleChapters.forEach(ch => {
+              accessMap[ch.id] = {
+                hasAccess: ch.has_access,
+                isFree: ch.is_free
+              };
+            });
+            setChapterAccessInfo(accessMap);
+            console.log('🔐 Chapter access info loaded:', accessMap);
+          }
         }
         
         // Load user rating
@@ -419,6 +469,29 @@ export default function ContentItemDetailPage() {
         } else if (ratingData) {
           setUserRating(ratingData.rating);
           console.log('⭐ User rating loaded:', ratingData.rating);
+        }
+      } else {
+        // For non-logged-in users, still get chapter access info
+        if (loadedItem.type === 'issue' && loadedItem.chapters) {
+          const { data: accessibleChapters, error: accessError } = await supabase
+            .rpc('get_accessible_chapters_for_issue', {
+              p_issue_id: loadedItem.id,
+              p_user_id: null
+            });
+            
+          if (accessError) {
+            console.warn('⚠️ Error loading chapter access info for anonymous user:', accessError);
+          } else if (accessibleChapters) {
+            const accessMap: Record<string, { hasAccess: boolean; isFree: boolean }> = {};
+            accessibleChapters.forEach(ch => {
+              accessMap[ch.id] = {
+                hasAccess: ch.has_access,
+                isFree: ch.is_free
+              };
+            });
+            setChapterAccessInfo(accessMap);
+            console.log('🔓 Chapter access info loaded for anonymous user:', accessMap);
+          }
         }
       }
     } catch (error) {
@@ -481,8 +554,10 @@ export default function ContentItemDetailPage() {
     }
   };
   
-  const handleStartReading = (chapterId: string) => {
-    navigate(`/read/${item?.slug}/${chapterId}`);
+  const handleStartReading = (chapterSlug: string) => {
+    if (!item) return;
+    // Use the clean URL structure
+    navigate(getChapterReadingUrl(item.slug, chapterSlug));
   };
   
   const handleRateContent = async (rating: number) => {
@@ -507,6 +582,33 @@ export default function ContentItemDetailPage() {
     } catch (error) {
       console.error('❌ Error rating content:', error);
       alert('Failed to save rating. Please try again.');
+    }
+  };
+  
+  const handleQuickStartReading = async () => {
+    if (!item || item.type !== 'issue') return;
+    
+    try {
+      // Use our utility to get the first accessible chapter
+      const startUrl = await getStartReadingUrl(item.slug, user?.id);
+      
+      if (startUrl) {
+        navigate(startUrl);
+      } else {
+        // No accessible chapters - show appropriate message
+        if (!user) {
+          navigate('/login');
+        } else {
+          navigate('/subscriptions');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error getting start reading URL:', error);
+      // Fallback - go to first chapter
+      if (item.chapters && item.chapters.length > 0) {
+        const firstChapter = item.chapters.sort((a, b) => a.chapter_number - b.chapter_number)[0];
+        navigate(getChapterReadingUrl(item.slug, firstChapter.slug));
+      }
     }
   };
   
@@ -596,8 +698,9 @@ export default function ContentItemDetailPage() {
                   </span>
                 </div>
                 
-                {/* Main Action Button */}
+                {/* Main Action Buttons */}
                 <div className="space-y-3">
+                  {/* Add/Remove from Library */}
                   {user ? (
                     <button
                       onClick={inUserLibrary ? handleRemoveFromLibrary : handleAddToLibrary}
@@ -623,15 +726,27 @@ export default function ContentItemDetailPage() {
                     </Link>
                   )}
                   
-                  {/* Continue Reading (if in progress) */}
-                  {inUserLibrary && overallProgress > 0 && (
-                    <Link
-                      to={`/read/${item.slug}`}
-                      className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center space-x-2"
-                    >
-                      <Play className="w-5 h-5" />
-                      <span>Continue Reading ({overallProgress}%)</span>
-                    </Link>
+                  {/* Start/Continue Reading (for issues with chapters) */}
+                  {item.type === 'issue' && publishedChapters.length > 0 && (
+                    <>
+                      {overallProgress > 0 ? (
+                        <button
+                          onClick={handleQuickStartReading}
+                          className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                        >
+                          <Play className="w-5 h-5" />
+                          <span>Continue Reading ({overallProgress}%)</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleQuickStartReading}
+                          className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                        >
+                          <BookOpen className="w-5 h-5" />
+                          <span>Start Reading</span>
+                        </button>
+                      )}
+                    </>
                   )}
                   
                   {/* Secondary Actions */}
@@ -739,15 +854,21 @@ export default function ContentItemDetailPage() {
                 </div>
                 
                 <div className="p-6 space-y-4">
-                  {item.chapters.map((chapter) => (
-                    <ChapterCard
-                      key={chapter.id}
-                      chapter={chapter}
-                      progress={userProgress[chapter.id]}
-                      onStartReading={handleStartReading}
-                      canRead={inUserLibrary || !user} // Can read if in library or not logged in (preview)
-                    />
-                  ))}
+                  {item.chapters.map((chapter) => {
+                    const accessInfo = chapterAccessInfo[chapter.id] || { hasAccess: false, isFree: true };
+                    return (
+                      <ChapterCard
+                        key={chapter.id}
+                        chapter={chapter}
+                        progress={userProgress[chapter.id]}
+                        onStartReading={handleStartReading}
+                        canRead={inUserLibrary || !user} // Can read if in library or not logged in (preview)
+                        issueSlug={item.slug}
+                        isAccessible={accessInfo.hasAccess}
+                        isFree={accessInfo.isFree}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}

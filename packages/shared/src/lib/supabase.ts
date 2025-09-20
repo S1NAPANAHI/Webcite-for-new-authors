@@ -1,30 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Database } from '../database.types';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-// Singleton pattern to prevent multiple GoTrueClient instances
-let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+// Singleton pattern with global storage to prevent multiple instances
+declare global {
+  var __SUPABASE_CLIENT__: SupabaseClient<Database> | undefined;
+}
 
-export const supabase = (() => {
-  if (!supabaseInstance) {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Supabase URL or anonymous key is missing');
-      throw new Error('Supabase configuration is incomplete');
-    }
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
+}
 
-    supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        // Ensure single auth instance
-        persistSession: true,
-        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
-    });
-  }
-  return supabaseInstance;
-})();
+export const supabase: SupabaseClient<Database> = 
+  globalThis.__SUPABASE_CLIENT__ ?? 
+  (globalThis.__SUPABASE_CLIENT__ = createClient<Database>(supabaseUrl, supabaseKey, {
+    auth: {
+      storageKey: 'zoroaster_auth', // unique key prevents storage collisions
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  }));
 
 export default supabase;

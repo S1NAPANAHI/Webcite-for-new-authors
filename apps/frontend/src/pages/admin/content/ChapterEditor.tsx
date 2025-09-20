@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '@zoroaster/shared';
-import { BookOpen, ArrowLeft, Save, AlertCircle, Loader2, Lock, Crown, Gift } from 'lucide-react';
+import { BookOpen, ArrowLeft, Save, AlertCircle, Loader2, Lock, Crown, Gift, Image as ImageIcon, Layout, Eye } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import ImageInput from '../../../components/ImageInput';
+import { FileRecord } from '../../../utils/fileUpload';
 
 interface Issue {
   id: string;
@@ -24,6 +26,19 @@ interface ChapterFormData {
   is_free: boolean;
   subscription_tier_required: 'free' | 'premium' | 'patron';
   free_chapter_order: number | null;
+  // NEW: Visual assets
+  hero_file_id?: string | null;
+  banner_file_id?: string | null;
+  word_count?: number;
+  estimated_read_time?: number;
+}
+
+interface ChapterWithFiles extends ChapterFormData {
+  id: string;
+  hero_file?: FileRecord;
+  banner_file?: FileRecord;
+  created_at: string;
+  updated_at: string;
 }
 
 const ChapterEditor: React.FC = () => {
@@ -34,8 +49,13 @@ const ChapterEditor: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [issues, setIssues] = useState<Issue[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const quillRef = useRef<ReactQuill | null>(null);
   const [editorContent, setEditorContent] = useState<string>(''); // Direct HTML content
+  
+  // NEW: Hero and Banner file states
+  const [heroFile, setHeroFile] = useState<FileRecord | null>(null);
+  const [bannerFile, setBannerFile] = useState<FileRecord | null>(null);
   
   const [formData, setFormData] = useState<ChapterFormData>({
     title: '',
@@ -48,7 +68,10 @@ const ChapterEditor: React.FC = () => {
     // New subscription fields with smart defaults
     is_free: true, // Default to free for first chapters
     subscription_tier_required: 'free',
-    free_chapter_order: null
+    free_chapter_order: null,
+    // NEW: Visual assets
+    hero_file_id: null,
+    banner_file_id: null
   });
 
   // Load issues for dropdown
@@ -113,9 +136,14 @@ const ChapterEditor: React.FC = () => {
         setError(null);
         setLoading(true);
 
+        // Load chapter with related files
         const { data: chapterData, error: chapterError } = await supabase
           .from('chapters')
-          .select('*')
+          .select(`
+            *,
+            hero_file:files!hero_file_id(*),
+            banner_file:files!banner_file_id(*)
+          `)
           .eq('id', id)
           .single();
 
@@ -127,6 +155,15 @@ const ChapterEditor: React.FC = () => {
 
         if (chapterData) {
           console.log('Loaded chapter data:', chapterData);
+          
+          // Set file records
+          if (chapterData.hero_file && Array.isArray(chapterData.hero_file) && chapterData.hero_file[0]) {
+            setHeroFile(chapterData.hero_file[0]);
+          }
+          
+          if (chapterData.banner_file && Array.isArray(chapterData.banner_file) && chapterData.banner_file[0]) {
+            setBannerFile(chapterData.banner_file[0]);
+          }
           
           // Extract HTML content for editor
           let htmlContent = '';
@@ -161,7 +198,12 @@ const ChapterEditor: React.FC = () => {
             // Load subscription fields with fallbacks
             is_free: chapterData.is_free ?? (chapterData.chapter_number <= 2), // Default first 2 chapters to free
             subscription_tier_required: chapterData.subscription_tier_required || 'free',
-            free_chapter_order: chapterData.free_chapter_order || null
+            free_chapter_order: chapterData.free_chapter_order || null,
+            // NEW: Load visual assets
+            hero_file_id: chapterData.hero_file_id,
+            banner_file_id: chapterData.banner_file_id,
+            word_count: chapterData.word_count,
+            estimated_read_time: chapterData.estimated_read_time
           });
         }
         
@@ -217,6 +259,10 @@ const ChapterEditor: React.FC = () => {
     tempDiv.innerHTML = htmlContent;
     const plainText = tempDiv.textContent || tempDiv.innerText || '';
     
+    // Calculate stats
+    const wordCount = plainText.trim().split(/\s+/).filter(word => word.length > 0).length;
+    const readTime = Math.max(1, Math.round(wordCount / 200)); // 200 words per minute
+    
     // Create simple content structure
     const contentJson = {
       type: 'doc',
@@ -237,7 +283,9 @@ const ChapterEditor: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       content: contentJson,
-      plain_content: plainText
+      plain_content: plainText,
+      word_count: wordCount,
+      estimated_read_time: readTime
     }));
   }, []);
 
@@ -251,9 +299,35 @@ const ChapterEditor: React.FC = () => {
     }));
   };
 
+  // NEW: Handle hero image change
+  const handleHeroChange = (fileRecord: FileRecord | null, url: string | null) => {
+    setHeroFile(fileRecord);
+    setFormData(prev => ({
+      ...prev,
+      hero_file_id: fileRecord?.id || null
+    }));
+  };
+
+  // NEW: Handle banner image change
+  const handleBannerChange = (fileRecord: FileRecord | null, url: string | null) => {
+    setBannerFile(fileRecord);
+    setFormData(prev => ({
+      ...prev,
+      banner_file_id: fileRecord?.id || null
+    }));
+  };
+
+  const handlePreview = () => {
+    const selectedIssue = issues.find(i => i.id === formData.issue_id);
+    if (selectedIssue && formData.slug) {
+      const previewUrl = `/read/${selectedIssue.slug}/${formData.slug}`;
+      window.open(previewUrl, '_blank');
+    }
+  };
+
   // Calculate word count and estimated read time
-  const wordCount = formData.plain_content.split(/\s+/).filter(word => word.length > 0).length;
-  const estimatedReadTime = Math.max(1, Math.round(wordCount / 200));
+  const wordCount = formData.word_count || formData.plain_content.split(/\s+/).filter(word => word.length > 0).length;
+  const estimatedReadTime = formData.estimated_read_time || Math.max(1, Math.round(wordCount / 200));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,6 +336,7 @@ const ChapterEditor: React.FC = () => {
     try {
       setSaving(true);
       setError(null);
+      setSuccess(null);
 
       // Validation
       if (!formData.title.trim()) {
@@ -279,7 +354,7 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      // Prepare chapter data with subscription fields
+      // Prepare chapter data with subscription fields and visual assets
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
@@ -292,6 +367,11 @@ const ChapterEditor: React.FC = () => {
         is_free: formData.is_free,
         subscription_tier_required: formData.subscription_tier_required,
         free_chapter_order: formData.is_free ? formData.free_chapter_order : null,
+        // NEW: Add visual assets
+        hero_file_id: formData.hero_file_id,
+        banner_file_id: formData.banner_file_id,
+        word_count: wordCount,
+        estimated_read_time: estimatedReadTime,
         metadata: { created_by: user.id }
       };
 
@@ -318,9 +398,12 @@ const ChapterEditor: React.FC = () => {
       }
 
       console.log('Chapter saved successfully:', result);
+      setSuccess(`Chapter ${id ? 'updated' : 'created'} successfully!`);
       
-      // Success - redirect to chapters list
-      navigate('/admin/content/chapters');
+      // Navigate back to chapters list after success
+      setTimeout(() => {
+        navigate('/admin/content/chapters');
+      }, 1500);
       
     } catch (err) {
       console.error('Unexpected error saving chapter:', err);
@@ -346,10 +429,10 @@ const ChapterEditor: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-            <p className="text-gray-600 dark:text-gray-400">Loading issues...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading chapter editor...</p>
           </div>
         </div>
       </div>
@@ -360,7 +443,7 @@ const ChapterEditor: React.FC = () => {
   if (error && issues.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
@@ -381,7 +464,7 @@ const ChapterEditor: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -390,18 +473,41 @@ const ChapterEditor: React.FC = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
               <BookOpen className="w-6 h-6 text-blue-600" />
               {id ? 'Edit Chapter' : 'Create New Chapter'}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {id ? 'Update your chapter' : 'Add a new chapter to your story'}
+              {id ? 'Update your chapter content and settings' : 'Add a new chapter to your story'}
             </p>
+            
+            {/* Live Stats */}
+            {wordCount > 0 && (
+              <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                <span>📝 {wordCount.toLocaleString()} words</span>
+                <span>•</span>
+                <span>🕰 ~{estimatedReadTime} min read</span>
+                {formData.is_free && <span>• 🎁 FREE</span>}
+                {!formData.is_free && <span>• 👑 {formData.subscription_tier_required.toUpperCase()}</span>}
+              </div>
+            )}
           </div>
+          
+          {/* Header Actions */}
+          {id && formData.issue_id && formData.slug && (
+            <button
+              type="button"
+              onClick={handlePreview}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <Eye className="w-4 h-4" />
+              Preview
+            </button>
+          )}
         </div>
 
-        {/* Error Alert */}
+        {/* Status Messages */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
             <div className="flex items-start">
@@ -415,331 +521,415 @@ const ChapterEditor: React.FC = () => {
             </div>
           </div>
         )}
+        
+        {success && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
+            <div className="flex items-start">
+              <div className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3">✓</div>
+              <div>
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Success
+                </h3>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">{success}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Chapter Title *
-                </label>
-                <input
-                  type="text"
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="e.g., Chapter 1: The Beginning"
-                  required
-                />
+          {/* Two-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Content Column (2/3 width) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Basic Information */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  📝 Chapter Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Title */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Chapter Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="e.g., The Beginning"
+                      required
+                    />
+                  </div>
+
+                  {/* Chapter Number */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Chapter # *
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={formData.chapter_number}
+                      onChange={(e) => setFormData(prev => ({ ...prev, chapter_number: parseInt(e.target.value) || 1 }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
+                  </div>
+                  
+                  {/* Issue Selection */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Issue * {issues.length > 0 && `(${issues.length} available)`}
+                    </label>
+                    <select
+                      value={formData.issue_id}
+                      onChange={(e) => setFormData(prev => ({ ...prev, issue_id: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    >
+                      <option value="">Select an issue...</option>
+                      {issues.map((issue) => (
+                        <option key={issue.id} value={issue.id}>
+                          {issue.title}
+                        </option>
+                      ))}
+                    </select>
+                    {issues.length === 0 && (
+                      <p className="text-xs text-red-500 mt-1">No issues found. Please create an issue first.</p>
+                    )}
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ChapterFormData['status'] }))}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    >
+                      <option value="draft">📝 Draft</option>
+                      <option value="published">✅ Published</option>
+                      <option value="scheduled">📅 Scheduled</option>
+                      <option value="archived">📦 Archived</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Chapter Content */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">✏️ Chapter Content</h3>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Chapter Content *
+                  </label>
+                  <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white">
+                    <ReactQuill
+                      ref={quillRef}
+                      value={editorContent}
+                      onChange={handleContentChange}
+                      modules={{
+                        toolbar: [
+                          [{ 'header': [1, 2, 3, false] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                          ['blockquote', 'code-block'],
+                          ['link'],
+                          ['clean']
+                        ],
+                      }}
+                      formats={[
+                        'header',
+                        'bold', 'italic', 'underline', 'strike',
+                        'list', 'bullet',
+                        'blockquote', 'code-block',
+                        'link'
+                      ]}
+                      style={{ minHeight: '400px' }}
+                      placeholder="Write your chapter content here...\n\nUse the toolbar above to format your text with headings, bold, italic, lists, and more."
+                      theme="snow"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Use the formatting toolbar to style your chapter. Word count and reading time are calculated automatically.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Column (1/3 width) */}
+            <div className="space-y-6">
+              {/* NEW: Visual Assets Card */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  🎨 Visual Assets
+                </h3>
+                
+                <div className="space-y-6">
+                  <ImageInput
+                    label="Hero Image"
+                    value={heroFile}
+                    onChange={handleHeroChange}
+                    placeholder="Chapter opening artwork"
+                    allowedTypes={['images']}
+                  />
+                  <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+                    🎨 <strong>Hero Image:</strong> Displayed at the very beginning of the chapter when reading. Creates an immersive opening experience.
+                  </div>
+
+                  <ImageInput
+                    label="Banner Image"
+                    value={bannerFile}
+                    onChange={handleBannerChange}
+                    placeholder="Library card background"
+                    allowedTypes={['images']}
+                  />
+                  <div className="text-xs text-purple-600 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-md">
+                    🇿 <strong>Banner Image:</strong> Used as the background for chapter cards in the library. Should be landscape orientation (16:9 or similar).
+                  </div>
+                </div>
               </div>
 
-              {/* Chapter Number */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Chapter Number *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={formData.chapter_number}
-                  onChange={(e) => setFormData(prev => ({ ...prev, chapter_number: parseInt(e.target.value) || 1 }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                />
-              </div>
+              {/* Subscription Access Control */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-dashed border-yellow-300 dark:border-yellow-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-yellow-600" />
+                  Access Control
+                </h3>
+                
+                <div className="space-y-4">
+                  {/* Free Chapter Toggle */}
+                  <div className="flex items-start space-x-3">
+                    <input
+                      type="checkbox"
+                      id="is_free"
+                      checked={formData.is_free}
+                      onChange={(e) => handleFreeToggle(e.target.checked)}
+                      className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="is_free" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                        <Gift className="w-4 h-4 text-green-600" />
+                        This is a FREE chapter
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Free chapters can be read by anyone without a subscription. Usually the first 1-2 chapters of each issue.
+                      </p>
+                    </div>
+                  </div>
 
-              {/* Issue Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Issue * {issues.length > 0 && `(${issues.length} available)`}
-                </label>
-                <select
-                  value={formData.issue_id}
-                  onChange={(e) => setFormData(prev => ({ ...prev, issue_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  required
-                >
-                  <option value="">Select an issue...</option>
-                  {issues.map((issue) => (
-                    <option key={issue.id} value={issue.id}>
-                      {issue.title}
-                    </option>
-                  ))}
-                </select>
-                {issues.length === 0 && (
-                  <p className="text-xs text-red-500 mt-1">No issues found. Please create an issue first.</p>
-                )}
-              </div>
+                  {/* Subscription Tier Required */}
+                  {!formData.is_free && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Required Subscription Tier
+                      </label>
+                      <div className="space-y-2">
+                        {([                       
+                          { value: 'premium', label: 'Premium', icon: Crown, desc: '👑 $9.99/mo subscribers', color: 'yellow' },
+                          { value: 'patron', label: 'Patron', icon: Crown, desc: '💜 $19.99/mo supporters', color: 'purple' }
+                        ] as const).map(({ value, label, icon: Icon, desc, color }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, subscription_tier_required: value }))}
+                            className={`w-full p-3 border-2 rounded-lg transition-all duration-200 text-left flex items-center gap-3 ${
+                              formData.subscription_tier_required === value
+                                ? `border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20`
+                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                            }`}
+                          >
+                            <Icon className={`w-4 h-4 ${color === 'yellow' ? 'text-yellow-600' : 'text-purple-600'}`} />
+                            <div>
+                              <div className="font-medium text-sm">{label}</div>
+                              <div className="text-xs opacity-70">{desc}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Status
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ChapterFormData['status'] }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="scheduled">Scheduled</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
+                  {/* Free Chapter Order (only shown for free chapters) */}
+                  {formData.is_free && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Free Chapter Order
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={formData.free_chapter_order || ''}
+                        onChange={(e) => setFormData(prev => ({ 
+                          ...prev, 
+                          free_chapter_order: e.target.value ? parseInt(e.target.value) : null 
+                        }))}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        placeholder="1, 2, 3... (order among free chapters)"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        The position of this chapter among free chapters (1st free, 2nd free, etc.)
+                      </p>
+                    </div>
+                  )}
 
-              {/* Slug */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  URL Slug
-                </label>
-                <input
-                  type="text"
-                  value={formData.slug}
-                  onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="auto-generated from title"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  This will be used in URLs: /read/{'{issue-slug}'}/{formData.slug || 'chapter-slug'}
-                </p>
+                  {/* Access Preview */}
+                  <div className={`p-3 rounded-lg border-2 border-dashed ${
+                    formData.is_free 
+                      ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
+                      : 'border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {formData.is_free ? (
+                        <>
+                          <Gift className="w-4 h-4 text-green-600" />
+                          <span className="font-medium text-green-800 dark:text-green-200">FREE Chapter</span>
+                        </>
+                      ) : (
+                        <>
+                          <Crown className="w-4 h-4 text-yellow-600" />
+                          <span className="font-medium text-yellow-800 dark:text-yellow-200">
+                            {formData.subscription_tier_required.toUpperCase()} Chapter
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <p className={`text-xs ${
+                      formData.is_free 
+                        ? 'text-green-700 dark:text-green-300'
+                        : 'text-yellow-700 dark:text-yellow-300'
+                    }`}>
+                      {formData.is_free 
+                        ? 'This chapter will be available to all users without a subscription'
+                        : `This chapter will require a ${formData.subscription_tier_required} subscription to read`
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* URL Settings */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔗 URL Settings</h3>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    URL Slug
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.slug}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="auto-generated from title"
+                  />
+                  
+                  {formData.slug && issues.find(i => i.id === formData.issue_id) && (
+                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
+                      <strong>Preview URL:</strong> 
+                      <code className="ml-1 text-blue-600 dark:text-blue-400">
+                        /read/{issues.find(i => i.id === formData.issue_id)?.slug}/{formData.slug}
+                      </code>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Sidebar Column (1/3 width) */}
+            <div className="space-y-6">
+              {/* Chapter Stats */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📈 Statistics</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Word Count:</span>
+                    <span className="font-medium">{wordCount.toLocaleString()}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Est. Read Time:</span>
+                    <span className="font-medium">{estimatedReadTime} min</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Access Level:</span>
+                    <span className={`font-medium ${
+                      formData.is_free ? 'text-green-600' : 'text-yellow-600'
+                    }`}>
+                      {formData.is_free ? '🎁 Free' : `👑 ${formData.subscription_tier_required}`}
+                    </span>
+                  </div>
+                  
+                  {heroFile && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Hero Image:</span>
+                      <span className="font-medium text-purple-600">🎨 Set</span>
+                    </div>
+                  )}
+                  
+                  {bannerFile && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Banner Image:</span>
+                      <span className="font-medium text-indigo-600">🇿 Set</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* NEW: Subscription Access Control */}
+          {/* Bottom Actions */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Lock className="w-5 h-5 text-yellow-600" />
-              Subscription Access Control
-            </h3>
-            
-            <div className="space-y-6">
-              {/* Free Chapter Toggle */}
-              <div className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  id="is_free"
-                  checked={formData.is_free}
-                  onChange={(e) => handleFreeToggle(e.target.checked)}
-                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <div className="flex-1">
-                  <label htmlFor="is_free" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Gift className="w-4 h-4 text-green-600" />
-                    This is a FREE chapter
-                  </label>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Free chapters can be read by anyone without a subscription. Usually the first 1-2 chapters of each issue.
-                  </p>
-                </div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                {formData.is_free ? (
+                  <span className="text-green-600">
+                    🎁 This chapter will be <strong>free</strong> for all readers
+                  </span>
+                ) : (
+                  <span className="text-yellow-600">
+                    👑 This chapter requires a <strong>{formData.subscription_tier_required}</strong> subscription
+                  </span>
+                )}
               </div>
-
-              {/* Subscription Tier Required */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Subscription Tier Required
-                </label>
-                <div className="grid grid-cols-3 gap-3">
-                  {([
-                    { value: 'free', label: 'Free', icon: Gift, desc: 'Available to all users', color: 'green' },
-                    { value: 'premium', label: 'Premium', icon: Crown, desc: 'Requires premium subscription', color: 'yellow' },
-                    { value: 'patron', label: 'Patron', icon: Crown, desc: 'Exclusive patron content', color: 'purple' }
-                  ] as const).map(({ value, label, icon: Icon, desc, color }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, subscription_tier_required: value }))}
-                      className={`p-4 border-2 rounded-lg transition-all duration-200 text-left ${
-                        formData.subscription_tier_required === value
-                          ? `border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20`
-                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
-                      }`}
-                      disabled={formData.is_free && value !== 'free'}
-                    >
-                      <div className={`flex items-center gap-2 mb-2 ${
-                        formData.subscription_tier_required === value
-                          ? `text-${color}-700 dark:text-${color}-300`
-                          : 'text-gray-700 dark:text-gray-300'
-                      }`}>
-                        <Icon className="w-4 h-4" />
-                        <span className="font-medium">{label}</span>
-                      </div>
-                      <p className={`text-xs ${
-                        formData.subscription_tier_required === value
-                          ? `text-${color}-600 dark:text-${color}-400`
-                          : 'text-gray-500 dark:text-gray-400'
-                      }`}>
-                        {desc}
-                      </p>
-                      {formData.is_free && value !== 'free' && (
-                        <p className="text-xs text-gray-400 mt-1">
-                          (Disabled - free chapters must use 'free' tier)
-                        </p>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Free Chapter Order (only shown for free chapters) */}
-              {formData.is_free && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Free Chapter Order
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={formData.free_chapter_order || ''}
-                    onChange={(e) => setFormData(prev => ({ 
-                      ...prev, 
-                      free_chapter_order: e.target.value ? parseInt(e.target.value) : null 
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="1, 2, 3... (order of free chapters)"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    The order of this chapter among free chapters (1st free chapter, 2nd free chapter, etc.)
-                  </p>
-                </div>
-              )}
-
-              {/* Access Preview */}
-              <div className={`p-4 rounded-lg border-2 border-dashed ${
-                formData.is_free 
-                  ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
-                  : 'border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700'
-              }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {formData.is_free ? (
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/content/chapters')}
+                  className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+                
+                <button
+                  type="submit"
+                  disabled={saving || !formData.title || !formData.issue_id || !formData.plain_content}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                >
+                  {saving ? (
                     <>
-                      <Gift className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-green-800 dark:text-green-200">FREE Chapter</span>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {id ? 'Updating...' : 'Creating...'}
                     </>
                   ) : (
                     <>
-                      <Crown className="w-5 h-5 text-yellow-600" />
-                      <span className="font-medium text-yellow-800 dark:text-yellow-200">
-                        {formData.subscription_tier_required.toUpperCase()} Chapter
-                      </span>
+                      <Save className="w-4 h-4" />
+                      {id ? 'Update Chapter' : 'Create Chapter'}
                     </>
                   )}
-                </div>
-                <p className={`text-sm ${
-                  formData.is_free 
-                    ? 'text-green-700 dark:text-green-300'
-                    : 'text-yellow-700 dark:text-yellow-300'
-                }`}>
-                  {formData.is_free 
-                    ? 'This chapter will be available to all users without a subscription'
-                    : `This chapter will require a ${formData.subscription_tier_required} subscription to read`
-                  }
-                </p>
+                </button>
               </div>
             </div>
-          </div>
-
-          {/* Chapter Content */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Chapter Content</h3>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Chapter Content *
-              </label>
-              <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white">
-                <ReactQuill
-                  ref={quillRef}
-                  value={editorContent}
-                  onChange={handleContentChange}
-                  modules={{
-                    toolbar: [
-                      [{ 'header': [1, 2, 3, false] }],
-                      ['bold', 'italic', 'underline', 'strike'],
-                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                      ['blockquote', 'code-block'],
-                      ['link'],
-                      ['clean']
-                    ],
-                  }}
-                  formats={[
-                    'header',
-                    'bold', 'italic', 'underline', 'strike',
-                    'list', 'bullet',
-                    'blockquote', 'code-block',
-                    'link'
-                  ]}
-                  style={{ minHeight: '300px' }}
-                  placeholder="Write your chapter content here..."
-                  theme="snow"
-                />
-              </div>
-              
-              {/* Word count and read time */}
-              {wordCount > 0 && (
-                <div className="flex gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  <span>{wordCount} words</span>
-                  <span>~{estimatedReadTime} min read</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Advanced Settings */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Advanced Settings</h3>
-            
-            {/* Slug */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                URL Slug
-              </label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                placeholder="auto-generated from title"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This will be used in URLs: /read/{'{issue-slug}'}/{formData.slug || 'chapter-slug'}
-              </p>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/admin/content/chapters')}
-              className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
-              disabled={saving}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || !formData.title || !formData.issue_id || !formData.plain_content}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {id ? 'Updating...' : 'Creating...'}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {id ? 'Update Chapter' : 'Create Chapter'}
-                </>
-              )}
-            </button>
           </div>
         </form>
       </div>

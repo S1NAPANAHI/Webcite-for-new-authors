@@ -1,14 +1,17 @@
 import React, { useEffect } from 'react';
 import useTheme from '../hooks/useTheme';
+import './PersianBackground.css';
 
 interface PersianBackgroundProps {
   className?: string;
   animated?: boolean;
+  premium?: boolean;
 }
 
 const PersianBackground: React.FC<PersianBackgroundProps> = ({ 
   className = '', 
-  animated = true 
+  animated = true,
+  premium = false
 }) => {
   const { isDark } = useTheme();
 
@@ -23,11 +26,15 @@ const PersianBackground: React.FC<PersianBackgroundProps> = ({
       body.classList.add('persian-animated');
     }
     
+    if (premium) {
+      body.classList.add('persian-background-premium');
+    }
+    
     // Cleanup function
     return () => {
-      body.classList.remove('persian-background', 'persian-animated');
+      body.classList.remove('persian-background', 'persian-animated', 'persian-background-premium');
     };
-  }, [animated]);
+  }, [animated, premium]);
 
   // Parallax effect for the pattern overlay
   useEffect(() => {

@@ -188,7 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Logo */}
       <div className={styles.logo}>
         <NavLink to="/" onClick={handleLinkClick}>
-          <h1>Zoroastervers</h1>
+          <h1>ZOROASTERVERS</h1>
         </NavLink>
       </div>
 
@@ -210,8 +210,6 @@ export const Navbar: React.FC<NavbarProps> = ({
         >
           <Search size={20} />
         </button>
-
-        {/* REMOVED: Extra Theme Toggle - keeping only the existing one in header */}
 
         {/* Mobile Menu Toggle - ENHANCED */}
         <button 

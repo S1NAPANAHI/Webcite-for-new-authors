@@ -3,9 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zoroasterverse - Home</title>
+    <title>Zoroasterverse - A journey through the cosmic realms of imagination and code</title>
     <meta name="description" content="Explore the dark fantasy world of Zoroasterverse, a portal into an epic saga with rich lore, interactive timelines, and character profiles.">
     <meta name="keywords" content="Zoroasterverse, dark fantasy, epic saga, lore, interactive timelines, character profiles, speculative fiction, web novel, fantasy website">
+    
+    <!-- FOUC Prevention Script - Must be in head before any CSS loads -->
+    <script>
+      (function() {
+        try {
+          const saved = localStorage.getItem('zoroaster-theme');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = saved || (prefersDark ? 'dark' : 'light');
+          
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (e) {
+          // Fallback to light mode if anything fails
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.style.colorScheme = 'light';
+        }
+      })();
+    </script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

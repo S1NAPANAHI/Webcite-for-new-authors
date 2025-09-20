@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '@zoroaster/shared';
-import { BookOpen, ArrowLeft, Save, AlertCircle, Loader2 } from 'lucide-react';
+import { BookOpen, ArrowLeft, Save, AlertCircle, Loader2, Lock, Crown, Gift } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -20,6 +20,10 @@ interface ChapterFormData {
   plain_content: string; // Plain text for search
   chapter_number: number;
   status: 'draft' | 'published' | 'scheduled' | 'archived';
+  // New subscription fields
+  is_free: boolean;
+  subscription_tier_required: 'free' | 'premium' | 'patron';
+  free_chapter_order: number | null;
 }
 
 const ChapterEditor: React.FC = () => {
@@ -40,7 +44,11 @@ const ChapterEditor: React.FC = () => {
     content: { type: 'doc', content: [] },
     plain_content: '',
     chapter_number: 1,
-    status: 'draft'
+    status: 'draft',
+    // New subscription fields with smart defaults
+    is_free: true, // Default to free for first chapters
+    subscription_tier_required: 'free',
+    free_chapter_order: null
   });
 
   // Load issues for dropdown
@@ -149,7 +157,11 @@ const ChapterEditor: React.FC = () => {
             content: chapterData.content || { type: 'doc', content: [] },
             plain_content: chapterData.plain_content || '',
             chapter_number: chapterData.chapter_number || 1,
-            status: chapterData.status || 'draft'
+            status: chapterData.status || 'draft',
+            // Load subscription fields with fallbacks
+            is_free: chapterData.is_free ?? (chapterData.chapter_number <= 2), // Default first 2 chapters to free
+            subscription_tier_required: chapterData.subscription_tier_required || 'free',
+            free_chapter_order: chapterData.free_chapter_order || null
           });
         }
         
@@ -177,6 +189,21 @@ const ChapterEditor: React.FC = () => {
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title]);
+
+  // Smart defaults for subscription settings based on chapter number
+  useEffect(() => {
+    const chapterNum = formData.chapter_number;
+    
+    // Auto-set subscription defaults for new chapters
+    if (!id && chapterNum) {
+      setFormData(prev => ({
+        ...prev,
+        is_free: chapterNum <= 2,
+        subscription_tier_required: chapterNum <= 2 ? 'free' : 'premium',
+        free_chapter_order: chapterNum <= 2 ? chapterNum : null
+      }));
+    }
+  }, [formData.chapter_number, id]);
 
   // Handle content change from ReactQuill - using useCallback to prevent re-renders
   const handleContentChange = useCallback((htmlContent: string) => {
@@ -214,6 +241,16 @@ const ChapterEditor: React.FC = () => {
     }));
   }, []);
 
+  // Handle free chapter toggle
+  const handleFreeToggle = (isFree: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      is_free: isFree,
+      subscription_tier_required: isFree ? 'free' : 'premium',
+      free_chapter_order: isFree ? (prev.chapter_number <= 10 ? prev.chapter_number : null) : null
+    }));
+  };
+
   // Calculate word count and estimated read time
   const wordCount = formData.plain_content.split(/\s+/).filter(word => word.length > 0).length;
   const estimatedReadTime = Math.max(1, Math.round(wordCount / 200));
@@ -242,7 +279,7 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      // Prepare chapter data
+      // Prepare chapter data with subscription fields
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
@@ -251,6 +288,10 @@ const ChapterEditor: React.FC = () => {
         plain_content: formData.plain_content, // Plain text for search
         chapter_number: formData.chapter_number,
         status: formData.status,
+        // Add subscription fields
+        is_free: formData.is_free,
+        subscription_tier_required: formData.subscription_tier_required,
+        free_chapter_order: formData.is_free ? formData.free_chapter_order : null,
         metadata: { created_by: user.id }
       };
 
@@ -377,7 +418,9 @@ const ChapterEditor: React.FC = () => {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Title */}
               <div>
@@ -461,11 +504,152 @@ const ChapterEditor: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="auto-generated from title"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  This will be used in URLs: /read/{'{issue-slug}'}/{formData.slug || 'chapter-slug'}
+                </p>
               </div>
             </div>
+          </div>
 
-            {/* Content Editor */}
-            <div className="mt-6">
+          {/* NEW: Subscription Access Control */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-yellow-600" />
+              Subscription Access Control
+            </h3>
+            
+            <div className="space-y-6">
+              {/* Free Chapter Toggle */}
+              <div className="flex items-start space-x-3">
+                <input
+                  type="checkbox"
+                  id="is_free"
+                  checked={formData.is_free}
+                  onChange={(e) => handleFreeToggle(e.target.checked)}
+                  className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <label htmlFor="is_free" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <Gift className="w-4 h-4 text-green-600" />
+                    This is a FREE chapter
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Free chapters can be read by anyone without a subscription. Usually the first 1-2 chapters of each issue.
+                  </p>
+                </div>
+              </div>
+
+              {/* Subscription Tier Required */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Subscription Tier Required
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {([
+                    { value: 'free', label: 'Free', icon: Gift, desc: 'Available to all users', color: 'green' },
+                    { value: 'premium', label: 'Premium', icon: Crown, desc: 'Requires premium subscription', color: 'yellow' },
+                    { value: 'patron', label: 'Patron', icon: Crown, desc: 'Exclusive patron content', color: 'purple' }
+                  ] as const).map(({ value, label, icon: Icon, desc, color }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, subscription_tier_required: value }))}
+                      className={`p-4 border-2 rounded-lg transition-all duration-200 text-left ${
+                        formData.subscription_tier_required === value
+                          ? `border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20`
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      }`}
+                      disabled={formData.is_free && value !== 'free'}
+                    >
+                      <div className={`flex items-center gap-2 mb-2 ${
+                        formData.subscription_tier_required === value
+                          ? `text-${color}-700 dark:text-${color}-300`
+                          : 'text-gray-700 dark:text-gray-300'
+                      }`}>
+                        <Icon className="w-4 h-4" />
+                        <span className="font-medium">{label}</span>
+                      </div>
+                      <p className={`text-xs ${
+                        formData.subscription_tier_required === value
+                          ? `text-${color}-600 dark:text-${color}-400`
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {desc}
+                      </p>
+                      {formData.is_free && value !== 'free' && (
+                        <p className="text-xs text-gray-400 mt-1">
+                          (Disabled - free chapters must use 'free' tier)
+                        </p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Free Chapter Order (only shown for free chapters) */}
+              {formData.is_free && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Free Chapter Order
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={formData.free_chapter_order || ''}
+                    onChange={(e) => setFormData(prev => ({ 
+                      ...prev, 
+                      free_chapter_order: e.target.value ? parseInt(e.target.value) : null 
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    placeholder="1, 2, 3... (order of free chapters)"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    The order of this chapter among free chapters (1st free chapter, 2nd free chapter, etc.)
+                  </p>
+                </div>
+              )}
+
+              {/* Access Preview */}
+              <div className={`p-4 rounded-lg border-2 border-dashed ${
+                formData.is_free 
+                  ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
+                  : 'border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  {formData.is_free ? (
+                    <>
+                      <Gift className="w-5 h-5 text-green-600" />
+                      <span className="font-medium text-green-800 dark:text-green-200">FREE Chapter</span>
+                    </>
+                  ) : (
+                    <>
+                      <Crown className="w-5 h-5 text-yellow-600" />
+                      <span className="font-medium text-yellow-800 dark:text-yellow-200">
+                        {formData.subscription_tier_required.toUpperCase()} Chapter
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p className={`text-sm ${
+                  formData.is_free 
+                    ? 'text-green-700 dark:text-green-300'
+                    : 'text-yellow-700 dark:text-yellow-300'
+                }`}>
+                  {formData.is_free 
+                    ? 'This chapter will be available to all users without a subscription'
+                    : `This chapter will require a ${formData.subscription_tier_required} subscription to read`
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Chapter Content */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Chapter Content</h3>
+            
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Chapter Content *
               </label>
@@ -504,6 +688,28 @@ const ChapterEditor: React.FC = () => {
                   <span>~{estimatedReadTime} min read</span>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Advanced Settings */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Advanced Settings</h3>
+            
+            {/* Slug */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                URL Slug
+              </label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="auto-generated from title"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                This will be used in URLs: /read/{'{issue-slug}'}/{formData.slug || 'chapter-slug'}
+              </p>
             </div>
           </div>
 

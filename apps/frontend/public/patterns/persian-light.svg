@@ -1,0 +1,107 @@
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Light Mode Persian Motif Gradients -->
+    <linearGradient id="lightCopper" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4af37" stop-opacity="0.08"/>
+      <stop offset="30%" stop-color="#20b2aa" stop-opacity="0.06"/>
+      <stop offset="70%" stop-color="#cd853f" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#4682b4" stop-opacity="0.04"/>
+    </linearGradient>
+    
+    <!-- Light Circuit Lines -->
+    <linearGradient id="lightCircuit" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#20b2aa" stop-opacity="0.08"/>
+      <stop offset="50%" stop-color="#d4af37" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#20b2aa" stop-opacity="0.08"/>
+    </linearGradient>
+    
+    <!-- Subtle Light Star -->
+    <radialGradient id="lightStar">
+      <stop offset="0%" stop-color="#4682b4" stop-opacity="0.4"/>
+      <stop offset="50%" stop-color="#20b2aa" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#d4af37" stop-opacity="0.0"/>
+    </radialGradient>
+    
+    <!-- Reusable Light Persian Motif -->
+    <g id="lightPersianMotif">
+      <!-- Central ornate crown -->
+      <path d="M0,-18 Q-7,-13 -11,-6 Q-13,0 -11,6 Q-7,13 0,18 Q7,13 11,6 Q13,0 11,-6 Q7,-13 0,-18" 
+            fill="url(#lightCopper)" stroke="url(#lightCircuit)" stroke-width="0.3"/>
+      
+      <!-- Delicate flourishes -->
+      <path d="M-13,-8 Q-22,-4 -18,4 Q-13,8 -9,4 Q-11,0 -13,-8" fill="url(#lightCopper)"/>
+      <path d="M13,-8 Q22,-4 18,4 Q13,8 9,4 Q11,0 13,-8" fill="url(#lightCopper)"/>
+      <path d="M-8,-13 Q-4,-22 4,-18 Q8,-13 4,-9 Q0,-11 -8,-13" fill="url(#lightCopper)"/>
+      <path d="M-8,13 Q-4,22 4,18 Q8,13 4,9 Q0,11 -8,13" fill="url(#lightCopper)"/>
+      
+      <!-- Small tech details -->
+      <circle cx="-5" cy="-5" r="1.5" fill="url(#lightCircuit)" opacity="0.4"/>
+      <circle cx="5" cy="-5" r="1.5" fill="url(#lightCircuit)" opacity="0.4"/>
+      <circle cx="-5" cy="5" r="1.5" fill="url(#lightCircuit)" opacity="0.4"/>
+      <circle cx="5" cy="5" r="1.5" fill="url(#lightCircuit)" opacity="0.4"/>
+      
+      <!-- Subtle hexagonal tech accent -->
+      <polygon points="-2,-6 0,-8 2,-6 2,-2 0,0 -2,-2" fill="url(#lightCircuit)" opacity="0.2"/>
+      <polygon points="-2,6 0,8 2,6 2,2 0,0 -2,2" fill="url(#lightCircuit)" opacity="0.2"/>
+    </g>
+  </defs>
+  
+  <!-- Light background base -->
+  <rect width="400" height="400" fill="#faf8ff"/>
+  
+  <!-- Soft cosmic overlay -->
+  <rect width="400" height="400" fill="url(#lightCosmicGradient)"/>
+  
+  <defs>
+    <radialGradient id="lightCosmicGradient" cx="40%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#e6f3ff" stop-opacity="0.3"/>
+      <stop offset="40%" stop-color="#f0f8ff" stop-opacity="0.2"/>
+      <stop offset="80%" stop-color="#faf8ff" stop-opacity="0.1"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Subtle light stars/particles -->
+  <circle cx="60" cy="90" r="0.8" fill="url(#lightStar)"/>
+  <circle cx="160" cy="50" r="0.6" fill="url(#lightStar)"/>
+  <circle cx="260" cy="130" r="1" fill="url(#lightStar)"/>
+  <circle cx="360" cy="70" r="0.5" fill="url(#lightStar)"/>
+  <circle cx="90" cy="210" r="0.7" fill="url(#lightStar)"/>
+  <circle cx="190" cy="170" r="0.9" fill="url(#lightStar)"/>
+  <circle cx="290" cy="250" r="0.6" fill="url(#lightStar)"/>
+  <circle cx="40" cy="310" r="0.8" fill="url(#lightStar)"/>
+  <circle cx="140" cy="330" r="0.5" fill="url(#lightStar)"/>
+  <circle cx="240" cy="290" r="1.1" fill="url(#lightStar)"/>
+  <circle cx="340" cy="350" r="0.4" fill="url(#lightStar)"/>
+  <circle cx="340" cy="190" r="0.7" fill="url(#lightStar)"/>
+  
+  <!-- Persian motifs in elegant grid -->
+  <g transform="translate(100,100)">
+    <use href="#lightPersianMotif"/>
+  </g>
+  <g transform="translate(300,100)">
+    <use href="#lightPersianMotif" transform="rotate(30)"/>
+  </g>
+  <g transform="translate(100,300)">
+    <use href="#lightPersianMotif" transform="rotate(-45)"/>
+  </g>
+  <g transform="translate(300,300)">
+    <use href="#lightPersianMotif" transform="rotate(75)"/>
+  </g>
+  <g transform="translate(200,200)">
+    <use href="#lightPersianMotif" transform="scale(0.6) rotate(15)"/>
+  </g>
+  
+  <!-- Ethereal connecting lines -->
+  <path d="M100,100 Q150,110 200,100 Q250,90 300,100" 
+        stroke="url(#lightCircuit)" stroke-width="0.3" fill="none" opacity="0.4"/>
+  <path d="M100,300 Q150,290 200,300 Q250,310 300,300" 
+        stroke="url(#lightCircuit)" stroke-width="0.3" fill="none" opacity="0.4"/>
+  <path d="M100,100 Q110,150 100,200 Q90,250 100,300" 
+        stroke="url(#lightCircuit)" stroke-width="0.3" fill="none" opacity="0.4"/>
+  <path d="M300,100 Q290,150 300,200 Q310,250 300,300" 
+        stroke="url(#lightCircuit)" stroke-width="0.3" fill="none" opacity="0.4"/>
+  
+  <!-- Diagonal tech accent lines -->
+  <path d="M50,50 L80,80 M320,50 L350,80 M50,350 L80,320 M320,350 L350,320" 
+        stroke="url(#lightCircuit)" stroke-width="0.2" opacity="0.3"/>
+</svg>

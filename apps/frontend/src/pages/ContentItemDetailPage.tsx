@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -233,11 +233,18 @@ export default function ContentItemDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [userRating, setUserRating] = useState<number>(0);
   
+  // FIXED: Memoize cover image resolution to prevent infinite re-renders
+  const coverUrlFromFile = useFileUrl(item?.cover_file_id);
+  const finalCoverUrl = useMemo(() => {
+    return coverUrlFromFile || item?.cover_image_url || null;
+  }, [coverUrlFromFile, item?.cover_image_url]);
+  
+  // Only run this effect when the route parameters change or user changes
   useEffect(() => {
     if (type && slug) {
       loadItemDetails();
     }
-  }, [type, slug, user]);
+  }, [type, slug, user?.id]); // Added user?.id to dependency array
   
   const loadItemDetails = async () => {
     try {
@@ -334,99 +341,124 @@ export default function ContentItemDetailPage() {
       // Check if item is in user's library
       if (user) {
         console.log('👤 Checking if item is in user library...');
-        const { data: libraryData, error: libraryError } = await supabase
-          .from('user_library')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('content_item_id', loadedItem.id)
-          .single();
-        
-        if (libraryError && libraryError.code !== 'PGRST116') {
-          console.warn('⚠️ Error checking library status:', libraryError);
-        } else {
-          setInUserLibrary(!!libraryData);
-          console.log('📚 In user library:', !!libraryData);
+        try {
+          const { data: libraryData, error: libraryError } = await supabase
+            .from('user_library')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('content_item_id', loadedItem.id)
+            .single();
+          
+          if (libraryError && libraryError.code !== 'PGRST116') {
+            console.warn('⚠️ Error checking library status:', libraryError);
+          } else {
+            setInUserLibrary(!!libraryData);
+            console.log('📚 In user library:', !!libraryData);
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to check library status:', err);
+          setInUserLibrary(false);
         }
         
         // Load user progress for chapters if this is an issue
         if (loadedItem.type === 'issue' && loadedItem.chapters) {
           const chapterIds = loadedItem.chapters.map(ch => ch.id);
           if (chapterIds.length > 0) {
-            const { data: progressData, error: progressError } = await supabase
-              .from('reading_progress')
-              .select('*')
-              .eq('user_id', user.id)
-              .in('chapter_id', chapterIds);
-              
-            if (progressError) {
-              console.warn('⚠️ Error loading reading progress:', progressError);
-            } else if (progressData) {
-              const progressMap: Record<string, ReadingProgress> = {};
-              progressData.forEach(p => {
-                progressMap[p.chapter_id] = p;
-              });
-              setUserProgress(progressMap);
-              console.log('📖 User progress loaded:', progressMap);
+            try {
+              const { data: progressData, error: progressError } = await supabase
+                .from('reading_progress')
+                .select('*')
+                .eq('user_id', user.id)
+                .in('chapter_id', chapterIds);
+                
+              if (progressError) {
+                console.warn('⚠️ Error loading reading progress:', progressError);
+              } else if (progressData) {
+                const progressMap: Record<string, ReadingProgress> = {};
+                progressData.forEach(p => {
+                  progressMap[p.chapter_id] = p;
+                });
+                setUserProgress(progressMap);
+                console.log('📖 User progress loaded:', progressMap);
+              }
+            } catch (err) {
+              console.warn('⚠️ Failed to load reading progress:', err);
             }
           }
           
           // Get chapter access info using new database function
-          const { data: accessibleChapters, error: accessError } = await supabase
-            .rpc('get_accessible_chapters_for_issue', {
-              p_issue_id: loadedItem.id,
-              p_user_id: user.id
-            });
-            
-          if (accessError) {
-            console.warn('⚠️ Error loading chapter access info:', accessError);
-          } else if (accessibleChapters) {
-            const accessMap: Record<string, { hasAccess: boolean; isFree: boolean }> = {};
-            accessibleChapters.forEach(ch => {
-              accessMap[ch.id] = {
-                hasAccess: ch.has_access,
-                isFree: ch.is_free
-              };
-            });
-            setChapterAccessInfo(accessMap);
-            console.log('🔐 Chapter access info loaded:', accessMap);
+          try {
+            const { data: accessibleChapters, error: accessError } = await supabase
+              .rpc('get_accessible_chapters_for_issue', {
+                p_issue_id: loadedItem.id,
+                p_user_id: user.id
+              });
+              
+            if (accessError) {
+              console.warn('⚠️ Error loading chapter access info:', accessError);
+            } else if (accessibleChapters) {
+              const accessMap: Record<string, { hasAccess: boolean; isFree: boolean }> = {};
+              accessibleChapters.forEach(ch => {
+                accessMap[ch.id] = {
+                  hasAccess: ch.has_access,
+                  isFree: ch.is_free
+                };
+              });
+              setChapterAccessInfo(accessMap);
+              console.log('🔐 Chapter access info loaded:', accessMap);
+            }
+          } catch (err) {
+            console.warn('⚠️ Failed to load chapter access info:', err);
           }
         }
         
-        // Load user rating
-        const { data: ratingData, error: ratingError } = await supabase
-          .from('content_ratings')
-          .select('rating')
-          .eq('user_id', user.id)
-          .eq('content_item_id', loadedItem.id)
-          .single();
-          
-        if (ratingError && ratingError.code !== 'PGRST116') {
-          console.warn('⚠️ Error loading user rating:', ratingError);
-        } else if (ratingData) {
-          setUserRating(ratingData.rating);
-          console.log('⭐ User rating loaded:', ratingData.rating);
+        // Load user rating - FIXED: Skip if content_ratings table doesn't exist
+        try {
+          const { data: ratingData, error: ratingError } = await supabase
+            .from('content_ratings')
+            .select('rating')
+            .eq('user_id', user.id)
+            .eq('content_item_id', loadedItem.id)
+            .single();
+            
+          if (ratingError && ratingError.code !== 'PGRST116') {
+            console.warn('⚠️ Error loading user rating:', ratingError);
+            // If it's a 406 error (table doesn't exist), just skip rating functionality
+            if (ratingError.message?.includes('406')) {
+              console.log('🚫 Rating system not available - content_ratings table missing');
+            }
+          } else if (ratingData) {
+            setUserRating(ratingData.rating);
+            console.log('⭐ User rating loaded:', ratingData.rating);
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to load user rating:', err);
         }
       } else {
         // For non-logged-in users, still get chapter access info
         if (loadedItem.type === 'issue' && loadedItem.chapters) {
-          const { data: accessibleChapters, error: accessError } = await supabase
-            .rpc('get_accessible_chapters_for_issue', {
-              p_issue_id: loadedItem.id,
-              p_user_id: null
-            });
-            
-          if (accessError) {
-            console.warn('⚠️ Error loading chapter access info for anonymous user:', accessError);
-          } else if (accessibleChapters) {
-            const accessMap: Record<string, { hasAccess: boolean; isFree: boolean }> = {};
-            accessibleChapters.forEach(ch => {
-              accessMap[ch.id] = {
-                hasAccess: ch.has_access,
-                isFree: ch.is_free
-              };
-            });
-            setChapterAccessInfo(accessMap);
-            console.log('🔓 Chapter access info loaded for anonymous user:', accessMap);
+          try {
+            const { data: accessibleChapters, error: accessError } = await supabase
+              .rpc('get_accessible_chapters_for_issue', {
+                p_issue_id: loadedItem.id,
+                p_user_id: null
+              });
+              
+            if (accessError) {
+              console.warn('⚠️ Error loading chapter access info for anonymous user:', accessError);
+            } else if (accessibleChapters) {
+              const accessMap: Record<string, { hasAccess: boolean; isFree: boolean }> = {};
+              accessibleChapters.forEach(ch => {
+                accessMap[ch.id] = {
+                  hasAccess: ch.has_access,
+                  isFree: ch.is_free
+                };
+              });
+              setChapterAccessInfo(accessMap);
+              console.log('🔓 Chapter access info loaded for anonymous user:', accessMap);
+            }
+          } catch (err) {
+            console.warn('⚠️ Failed to load chapter access info for anonymous user:', err);
           }
         }
       }
@@ -549,6 +581,23 @@ export default function ContentItemDetailPage() {
     }
   };
   
+  // Memoize computed values to prevent unnecessary re-renders
+  const publishedChapters = useMemo(() => {
+    return item?.chapters?.filter(chapter => chapter.status === 'published') || [];
+  }, [item?.chapters]);
+  
+  const totalChapters = useMemo(() => {
+    return item?.chapters?.length || 0;
+  }, [item?.chapters]);
+  
+  const completedChapters = useMemo(() => {
+    return Object.values(userProgress).filter(p => p.completed).length;
+  }, [userProgress]);
+  
+  const overallProgress = useMemo(() => {
+    return totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+  }, [totalChapters, completedChapters]);
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -594,21 +643,12 @@ export default function ContentItemDetailPage() {
     );
   }
   
-  const publishedChapters = item.chapters?.filter(chapter => chapter.status === 'published') || [];
-  const totalChapters = item.chapters?.length || 0;
-  const completedChapters = Object.values(userProgress).filter(p => p.completed).length;
-  const overallProgress = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
-  
   console.log('\n📊 CONTENT ITEM DETAIL - Render stats:', {
     publishedChapters: publishedChapters.length,
     totalChapters,
     completedChapters,
     overallProgress
   });
-  
-  // Get cover image URL using our file utility hook
-  const coverUrlFromFile = useFileUrl(item.cover_file_id);
-  const finalCoverUrl = coverUrlFromFile || item.cover_image_url || null;
   
   console.log('🎨 COVER IMAGE DEBUG:', {
     cover_file_id: item.cover_file_id,
@@ -638,6 +678,7 @@ export default function ContentItemDetailPage() {
                       src={finalCoverUrl} 
                       alt={item.title}
                       className="w-full h-full object-cover"
+                      loading="lazy"
                       onLoad={() => console.log('✅ Cover image loaded:', finalCoverUrl)}
                       onError={(e) => {
                         console.error('❌ Cover image failed to load:', finalCoverUrl);

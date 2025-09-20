@@ -50,13 +50,13 @@ import MyLibraryPage from './pages/account/MyLibraryPage';
 import ChapterReaderPage from './pages/ChapterReaderPage';
 // NEW: File Manager Import
 import FileManagerPage from './pages/FileManagerPage';
-// UPDATED: Clean Background System
-import CleanBackground from './components/CleanBackground';
+// UPDATED: Global Theme System
+import ThemeProvider from './components/ThemeProvider';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
-    <h1 className="text-4xl font-bold mb-4 text-foreground">{title}</h1>
-    <p className="text-muted-foreground">This page is under construction.</p>
+    <h1 className="text-4xl font-bold mb-4">{title}</h1>
+    <p className="text-muted">This page is under construction.</p>
   </div>
 );
 
@@ -67,15 +67,13 @@ const PublicLayout: React.FC = () => {
   console.log('PublicLayout', { isAuthenticated });
 
   return (
-    <CleanBackground>
-      <Layout 
-        isAuthenticated={isAuthenticated}
-        betaApplicationStatus={"none"}
-        onLogout={() => supabase.auth.signOut()}
-      >
-        <Outlet />
-      </Layout>
-    </CleanBackground>
+    <Layout 
+      isAuthenticated={isAuthenticated}
+      betaApplicationStatus={"none"}
+      onLogout={() => supabase.auth.signOut()}
+    >
+      <Outlet />
+    </Layout>
   );
 };
 
@@ -95,15 +93,13 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <CleanBackground>
-      <Layout 
-        isAuthenticated={isAuthenticated}
-        betaApplicationStatus={"none"}
-        onLogout={() => supabase.auth.signOut()}
-      >
-        <Outlet />
-      </Layout>
-    </CleanBackground>
+    <Layout 
+      isAuthenticated={isAuthenticated}
+      betaApplicationStatus={"none"}
+      onLogout={() => supabase.auth.signOut()}
+    >
+      <Outlet />
+    </Layout>
   );
 };
 
@@ -127,20 +123,12 @@ const AppContent: React.FC = () => {
   }, [params.pageSlug]);
 
   if (isLoading) {
-    return (
-      <CleanBackground>
-        <LoadingSkeleton />
-      </CleanBackground>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
     <Routes>
-      <Route path="/login" element={
-        <CleanBackground>
-          <LoginPage />
-        </CleanBackground>
-      } />
+      <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<HomePage />} />
 
       {/* Public Routes */}
@@ -193,9 +181,7 @@ const AppContent: React.FC = () => {
       {/* Admin Routes */}
       <Route path="/admin" element={
         <ProtectedRoute requiredRole="admin">
-          <CleanBackground>
-            <AdminLayout />
-          </CleanBackground>
+          <AdminLayout />
         </ProtectedRoute>
       }>
         <Route index element={<AdminDashboard />} />
@@ -246,10 +232,12 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <CartProvider className="bg-red-500">
-      <Toaster />
-      <AppContent />
-    </CartProvider>
+    <ThemeProvider>
+      <CartProvider className="bg-red-500">
+        <Toaster />
+        <AppContent />
+      </CartProvider>
+    </ThemeProvider>
   );
 };
 

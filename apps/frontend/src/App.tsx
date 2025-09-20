@@ -154,8 +154,12 @@ const AppContent: React.FC = () => {
         <Route path="/library" element={<LibraryPageNew />} />
         <Route path="/library/:type/:slug" element={<ContentItemDetailPage />} />
         
-        {/* Chapter Reader Routes - Available to all users */}
+        {/* Chapter Reader Routes - FIXED: Clean URL structure with proper parameter names */}
+        <Route path="/read/:issueSlug/chapter/:chapterSlug" element={<ChapterReaderPage />} />
         <Route path="/read/:issueSlug/:chapterSlug" element={<ChapterReaderPage />} />
+        
+        {/* Legacy support for old UUID-based URLs - redirect to clean URLs */}
+        <Route path="/read/:issueSlug/:chapterUuid" element={<ChapterReaderPage />} />
         
         <Route path="/:slug" element={<PlaceholderPage title="Page" />} />
       </Route>

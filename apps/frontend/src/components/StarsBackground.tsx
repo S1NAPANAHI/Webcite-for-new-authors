@@ -10,7 +10,7 @@ const StarsBackground: React.FC = () => {
     const numberOfStars = 50;
     const createStar = () => {
       const star = document.createElement('div');
-      star.className = 'star absolute bg-white rounded-full';
+      star.className = 'star absolute bg-foreground rounded-full opacity-60';
       star.style.left = Math.random() * 100 + '%';
       star.style.top = Math.random() * 100 + '%';
       const size = Math.random() * 3 + 1; // 1px to 4px
@@ -43,7 +43,7 @@ const StarsBackground: React.FC = () => {
   }, []);
 
   return (
-    <div ref={starsRef} className="stars fixed top-0 left-0 w-full h-full pointer-events-none z-10">
+    <div ref={starsRef} className="stars fixed top-0 left-0 w-full h-full pointer-events-none z-10 transition-colors duration-300">
       {/* Stars will be injected here by JavaScript */}
     </div>
   );

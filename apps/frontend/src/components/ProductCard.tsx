@@ -1,118 +1,129 @@
 import React from 'react';
-import { Star, Crown, Download, ShoppingCart } from 'lucide-react';
-import type { Product } from '@zoroaster/shared';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@zoroaster/ui';
+import { Badge, Button } from '@zoroaster/ui';
+import { ShoppingCart, Star, Eye } from 'lucide-react';
 
 interface ProductCardProps {
-  product: Product;
-  onCheckoutProduct?: (product: Product, price: any) => void;
+  id: string;
+  title: string;
+  description?: string;
+  price: number;
+  image?: string;
+  category?: string;
+  rating?: number;
+  views?: number;
+  onAddToCart?: (id: string) => void;
+  onClick?: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onCheckoutProduct }) => {
-  const getProductTypeLabel = (type: string) => {
-    switch (type) {
-      case 'single_issue':
-        return 'Single Issue';
-      case 'bundle':
-        return 'Bundle';
-      case 'chapter_pass':
-        return 'Chapter Pass';
-      case 'arc_pass':
-        return 'Arc Pass';
-      default:
-        return type;
-    }
-  };
-
-  const getProductTypeColor = (type: string) => {
-    switch (type) {
-      case 'single_issue':
-        return 'bg-accent/20 text-accent';
-      case 'bundle':
-        return 'bg-secondary/20 text-secondary';
-      case 'chapter_pass':
-        return 'bg-primary/20 text-primary';
-      case 'arc_pass':
-        return 'bg-gradient-to-r from-primary/20 to-secondary/20 text-primary';
-      default:
-        return 'bg-text-dark/20 text-text-dark';
-    }
-  };
-
-  const handleCheckout = () => {
-    if (onCheckoutProduct && product.prices && product.prices.length > 0) {
-      onCheckoutProduct(product, product.prices[0]);
-    }
-  };
-
-  const formatPrice = (price: any) => {
-    if (!price) return 'Free';
-    const amount = price.unit_amount / 100;
-    return `$${amount.toFixed(2)}${price.interval ? `/${price.interval}` : ''}`;
+const ProductCard: React.FC<ProductCardProps> = ({
+  id,
+  title,
+  description,
+  price,
+  image,
+  category,
+  rating,
+  views,
+  onAddToCart,
+  onClick
+}) => {
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
   };
 
   return (
-    <div className="bg-background-light/50 backdrop-blur-sm rounded-2xl p-6 border border-border/30 hover:border-secondary/50 transition-all duration-300 group">
-      {/* Product Image Placeholder */}
-      <div className="relative w-full h-48 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-xl mb-4 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Crown className="w-16 h-16 text-secondary/50" />
+    <Card className="group relative overflow-hidden bg-card border-border hover:shadow-lg transition-all duration-300 cursor-pointer product-card-hover" onClick={onClick}>
+      {/* Product Image */}
+      {image && (
+        <div className="relative h-48 overflow-hidden">
+          <img
+            src={image}
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          
+          {/* Category Badge */}
+          {category && (
+            <Badge 
+              variant="secondary"
+              className="absolute top-3 left-3"
+            >
+              {category}
+            </Badge>
+          )}
         </div>
-        {/* Product Type Badge */}
-        <div className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-medium ${getProductTypeColor(product.product_type)}`}>
-          {getProductTypeLabel(product.product_type)}
+      )}
+
+      <CardHeader className="space-y-3">
+        <div className="space-y-2">
+          <CardTitle className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+            {title}
+          </CardTitle>
+          
+          {description && (
+            <CardDescription className="text-muted-foreground line-clamp-3">
+              {description}
+            </CardDescription>
+          )}
         </div>
-      </div>
 
-      {/* Product Info */}
-      <div className="space-y-3">
-        <h3 className="text-xl font-heading text-text-light group-hover:text-secondary transition-colors">
-          {product.name}
-        </h3>
-        
-        {product.description && (
-          <p className="text-text-dark text-sm line-clamp-2">
-            {product.description}
-          </p>
-        )}
-
-        {/* Pricing */}
+        {/* Price */}
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            {product.prices && product.prices.length > 0 ? (
-              product.prices.map((price, index) => (
-                <div key={index} className="text-lg font-semibold text-text-light">
-                  {formatPrice(price)}
-                </div>
-              ))
-            ) : (
-              <div className="text-lg font-semibold text-accent">Free</div>
+          <span className="text-2xl font-bold text-primary">
+            {formatPrice(price)}
+          </span>
+          
+          {/* Rating & Views */}
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            {rating && (
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 fill-current text-yellow-400" />
+                <span>{rating.toFixed(1)}</span>
+              </div>
+            )}
+            
+            {views && (
+              <div className="flex items-center gap-1">
+                <Eye className="h-4 w-4" />
+                <span>{views}</span>
+              </div>
             )}
           </div>
-          
-          {/* Rating placeholder */}
-          <div className="flex items-center space-x-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-4 h-4 text-secondary/30" />
-            ))}
-            <span className="text-text-dark text-sm ml-1">(0)</span>
-          </div>
         </div>
+      </CardHeader>
 
-        {/* Action Buttons */}
-        <div className="flex space-x-2 pt-2">
-          <button
-            onClick={handleCheckout}
-            className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-secondary hover:bg-secondary-dark text-background rounded-xl transition-colors"
+      <CardContent className="pt-0">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 mr-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick?.();
+            }}
           >
-            <ShoppingCart className="w-4 h-4" />
-            <span>Purchase</span>
-          </button>
-          <button className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary rounded-xl transition-colors">
-            <Download className="w-4 h-4" />
-          </button>
+            View Details
+          </Button>
+          
+          <Button
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCart?.(id);
+            }}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            <ShoppingCart className="h-4 w-4 mr-1" />
+            Add to Cart
+          </Button>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

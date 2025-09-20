@@ -4,6 +4,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 
+* THEME USAGE GUIDE
+* 
+* For consistent theming across all components, use these Tailwind classes:
+* 
+* BACKGROUNDS:
+* - bg-background (main page background)
+* - bg-card (cards, panels, surfaces)
+* - bg-muted (subtle accents, hover states)
+* 
+* TEXT:
+* - text-foreground (primary text)
+* - text-muted-foreground (secondary/dimmed text)
+* 
+* BORDERS:
+* - border-border (consistent border color)
+* 
+* INTERACTIVE ELEMENTS:
+* - Use bg-primary and text-primary-foreground for main actions
+* - Use bg-secondary and text-secondary-foreground for secondary actions
+* 
+* ALWAYS prefer theme tokens over direct color classes!
+* Avoid: bg-white, bg-gray-50, text-black, text-gray-600
+* Use: bg-background, bg-card, text-foreground, text-muted-foreground
+*/
+
 /* Keep existing custom styles for now, can be refactored later */
 .prose h1,
 .prose h2,
@@ -12,22 +38,22 @@
 .prose h5,
 .prose h6 {
   font-family: 'Cinzel', serif;
-  color: var(--gold-2);
+  color: hsl(var(--primary));
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .prose blockquote {
-  background: rgba(245, 208, 122, 0.1);
-  border-left: 4px solid var(--gold-2);
+  background: hsl(var(--muted));
+  border-left: 4px solid hsl(var(--primary));
   padding: 1.5rem;
   margin: 2rem 0;
   border-radius: 0 10px 10px 0;
   font-style: italic;
-  color: var(--ink-dim);
+  color: hsl(var(--muted-foreground));
 }
 
 .prose a {
-  color: var(--gold-1);
+  color: hsl(var(--primary));
   text-decoration: underline;
 }
 
@@ -39,7 +65,7 @@
 .slider {
   -webkit-appearance: none;
   appearance: none;
-  background: linear-gradient(to right, var(--gold-2) 0%, var(--gold-1) 50%, #4a4a6a 50%, #4a4a6a 100%);
+  background: linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--muted)) 50%, hsl(var(--muted)) 100%);
   outline: none;
   border-radius: 8px;
   height: 8px;
@@ -51,9 +77,9 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--gold-1);
+  background: hsl(var(--primary));
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid hsl(var(--background));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -61,9 +87,9 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--gold-1);
+  background: hsl(var(--primary));
   cursor: pointer;
-  border: 2px solid #ffffff;
+  border: 2px solid hsl(var(--background));
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -72,28 +98,30 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 37, 57, 0.3);
+  background: hsl(var(--muted));
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--gold-3), var(--gold-2));
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+  border-radius: 4px;
 }
 
 input:focus,
 select:focus,
 button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px var(--focus);
+  box-shadow: 0 0 0 3px hsl(var(--ring));
 }
 
 .transition-all {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Updated glass effect to be theme-aware */
 .glass-effect {
-  background: rgba(15, 37, 57, 0.7);
+  background: hsl(var(--card) / 0.7);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--line);
+  border: 1px solid hsl(var(--border));
 }
 
 /* New gradient background classes for LearnAdmin */
@@ -109,16 +137,16 @@ button:focus {
   background: linear-gradient(to right, #0e0e4a, #00008b); /* Dark blue to blue */
 }
 
-/* New glass effect with silver background */
+/* Updated glass effect with theme-aware silver background */
 .glass-effect-silver {
-  background: rgba(192, 192, 192, 0.7); /* Silver with transparency */
+  background: hsl(var(--muted) / 0.7);
   backdrop-filter: blur(16px);
-  border: 1px solid var(--line);
+  border: 1px solid hsl(var(--border));
 }
 
 .product-card-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px hsl(var(--foreground) / 0.1);
 }
 
 @keyframes fadeInUp {
@@ -134,21 +162,21 @@ button:focus {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--bg-accent) 25%, #2c4a6e 50%, var(--bg-accent) 75%);
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--card)) 50%, hsl(var(--muted)) 75%);
   background-size: 200px 100%;
   animation: shimmer 1.5s infinite;
 }
 
 /* Spoiler text styling */
 .spoiler {
-  background-color: black; /* Hide text by making background and text color the same */
-  color: black;
-  transition: all 0.3s ease; /* Smooth transition for reveal */
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--foreground));
+  transition: all 0.3s ease;
 }
 
 .spoiler:hover {
-  background-color: transparent; /* Reveal text on hover */
-  color: inherit; /* Inherit original text color */
+  background-color: transparent;
+  color: hsl(var(--foreground));
 }
 
 .line-clamp-2, .line-clamp-3, .line-clamp-4 {
@@ -163,85 +191,71 @@ button:focus {
 @layer base {
   :root {
     /* Light Theme Colors */
-    --bg: #ffffff; /* White */
-    --bg-accent: #ffffff; /* White for cards/surfaces */
-    --gold-1: #8b5a2b;   /* Warm brown */
-    --gold-2: #6b4e3c;   /* Darker brown */
-    --gold-3: #d4a76a;    /* Gold accent */
-    --ink: #000000;      /* Black for text */
-    --ink-dim: #8a8a8a;  /* Muted text */
-    --line: rgba(0, 0, 0, 0.12); /* Light line */
-    --focus: #d4a76a; /* Gold accent for focus */
-
-    --background: 0 0% 100%; /* Converted from #ffffff */
-    --foreground: 0 0% 0%; /* Converted from #000000 */
-    --card: 0 0% 100%; /* Converted from #ffffff */
-    --card-foreground: 0 0% 0%;
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 3.9%; /* Near black */
+    --card: 0 0% 100%; /* White for cards/surfaces */
+    --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    --primary: 29 55% 35%; /* Converted from #8b5a2b */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 25 28% 32%; /* Converted from #6b4e3c */
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 14% 22%;
-    --muted-foreground: 220 14% 54%; /* Converted from #8a8a8a */
-    --accent: 35 50% 62%; /* Converted from #d4a76a */
-    --accent-foreground: 220 14% 22%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 29 55% 35%; /* Warm brown */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%; /* Light gray */
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%; /* Very light gray */
+    --muted-foreground: 0 0% 45.1%; /* Medium gray text */
+    --accent: 35 50% 62%; /* Gold accent */
+    --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 220 14% 88%; /* Converted from rgba(0,0,0,0.12) */
-    --input: 220 14% 88%;
-    --ring: 35 50% 62%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%; /* Light border */
+    --input: 0 0% 89.8%;
+    --ring: 29 55% 35%; /* Same as primary */
     --radius: 0.5rem;
-    --radius-lg: 0.5rem; /* For rounded-lg */
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06); /* Soft shadow */
-
-    --background-rgb: 255, 255, 255;
-    --foreground-rgb: 0, 0, 0;
-    --card-rgb: 255, 255, 255;
-    --primary-rgb: 139, 90, 43;
-    --destructive-rgb: 220, 53, 69;
+    
+    /* Legacy CSS variables for backward compatibility */
+    --bg: #ffffff;
+    --bg-accent: #ffffff;
+    --gold-1: #8b5a2b;
+    --gold-2: #6b4e3c;
+    --gold-3: #d4a76a;
+    --ink: #000000;
+    --ink-dim: #737373;
+    --line: rgba(0, 0, 0, 0.12);
+    --focus: #d4a76a;
   }
 
   .dark {
-    /* Dark Theme Colors (updated for gray background/cards and white text) */
-    --bg: #121212; /* Very dark gray for background */
-    --bg-accent: #1e1e1e; /* Slightly lighter gray for accents */
+    /* Enhanced Dark Theme Colors */
+    --background: 0 0% 7%; /* Very dark gray #121212 */
+    --foreground: 0 0% 98%; /* Near white */
+    --card: 0 0% 11%; /* Dark gray for cards #1c1c1c */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 45 89% 72%; /* Bright gold */
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%; /* Darker gray */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%; /* Dark muted */
+    --muted-foreground: 0 0% 63.9%; /* Light gray text */
+    --accent: 45 89% 72%; /* Gold accent */
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 18%; /* Dark border */
+    --input: 0 0% 18%;
+    --ring: 45 89% 72%;
+    
+    /* Legacy CSS variables for backward compatibility */
+    --bg: #121212;
+    --bg-accent: #1e1e1e;
     --gold-1: #f5d07a;
     --gold-2: #d4a64a;
     --gold-3: #b8852a;
-    --ink: #ffffff; /* Pure white for text */
-    --ink-dim: #c6d0de; /* Muted text, can be adjusted if needed */
+    --ink: #ffffff;
+    --ink-dim: #a3a3a3;
     --line: rgba(255, 255, 255, 0.12);
     --focus: #ffd36b;
-
-    --background: 0 0% 7%; /* HSL for #121212 */
-    --foreground: 0 0% 100%; /* HSL for #ffffff */
-    --card: 0 0% 11%; /* HSL for #1e1e1e */
-    --card-foreground: 0 0% 100%;
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 45 89% 72%;
-    --primary-foreground: 0 0% 10%;
-    --secondary: 222 65% 14%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 222 65% 14%;
-    --muted-foreground: 0 0% 80%; /* Slightly darker white for muted text */
-    --accent: 222 65% 14%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 0 0% 25%; /* Darker border */
-    --input: 0 0% 25%;
-    --ring: 45 89% 72%;
-    --radius-lg: 0.5rem; /* For rounded-lg */
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2); /* Darker shadow for dark mode */
-
-    --background-rgb: 18, 18, 18;
-    --foreground-rgb: 255, 255, 255;
-    --card-rgb: 30, 30, 30;
-    --primary-rgb: 245, 208, 122;
-    --destructive-rgb: 122, 31, 31;
   }
 }
 
@@ -253,14 +267,13 @@ html, body, #root {
   * {
     @apply border-border;
   }
+  
   body {
+    @apply bg-background text-foreground;
     margin: 0;
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
       Arial, "Noto Sans", "Liberation Sans", sans-serif;
-    color: var(--ink);
-    background: var(--background); /* Use theme background */
     background-attachment: fixed;
-    transition: background-color 0.3s ease, color 0.3s ease; /* Added transition */
-    transition: background-color 0.3s ease, color 0.3s ease; /* Added transition */
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 }

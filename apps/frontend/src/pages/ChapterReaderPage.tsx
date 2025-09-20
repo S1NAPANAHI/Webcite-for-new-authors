@@ -282,7 +282,7 @@ export default function ChapterReaderPage() {
   const [accessDenied, setAccessDenied] = useState(false);
   const [showImmersiveReader, setShowImmersiveReader] = useState(false);
 
-  // Load chapter data using new database functions
+  // Load chapter data using database functions
   useEffect(() => {
     const loadChapterData = async () => {
       try {
@@ -314,7 +314,7 @@ export default function ChapterReaderPage() {
           }
         }
         
-        // Get chapter with access control using our new database function
+        // Get chapter with access control using database function
         const { data: chapterData, error: chapterError } = await supabase
           .rpc('get_chapter_with_access', {
             p_issue_slug: issueSlug,
@@ -329,13 +329,13 @@ export default function ChapterReaderPage() {
         }
         
         if (!chapterData || chapterData.length === 0) {
-          console.log('📭 No chapter found for:', { issueSlug, chapterSlug });
+          console.log('📖 No chapter found for:', { issueSlug, chapterSlug });
           setError('Chapter not found');
           return;
         }
         
         const chapterInfo = chapterData[0];
-        console.log('📖 Loaded chapter:', chapterInfo);
+        console.log('📚 Loaded chapter:', chapterInfo);
         
         // Check if access is denied
         if (!chapterInfo.has_access) {
@@ -387,8 +387,6 @@ export default function ChapterReaderPage() {
         
         // Auto-start immersive reader if user has access
         if (chapterInfo.has_access) {
-          // Add class to body to prevent scrolling
-          document.body.classList.add('reader-active');
           setShowImmersiveReader(true);
         }
         
@@ -408,13 +406,6 @@ export default function ChapterReaderPage() {
       setLoading(false);
     }
   }, [issueSlug, chapterSlug, user?.id, navigate]);
-  
-  // Cleanup body class on unmount
-  useEffect(() => {
-    return () => {
-      document.body.classList.remove('reader-active');
-    };
-  }, []);
   
   // Handle chapter navigation
   const handleChapterChange = (direction: 'prev' | 'next') => {
@@ -442,8 +433,6 @@ export default function ChapterReaderPage() {
   };
   
   const handleExitReader = () => {
-    // Remove body class
-    document.body.classList.remove('reader-active');
     setShowImmersiveReader(false);
     navigate('/library');
   };
@@ -578,17 +567,15 @@ export default function ChapterReaderPage() {
                   📚 <strong>Immersive Reading Experience</strong><br/>
                   • Distraction-free fullscreen mode<br/>
                   • Word-based page turning<br/>
-                  • Table of contents navigation<br/>
-                  • Customizable reading settings
+                  • Collapsible navigation sidebar<br/>
+                  • Customizable reading settings<br/>
+                  • Mobile-optimized interface
                 </p>
               </div>
             </div>
             
             <button
-              onClick={() => {
-                document.body.classList.add('reader-active');
-                setShowImmersiveReader(true);
-              }}
+              onClick={() => setShowImmersiveReader(true)}
               className="px-12 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               📖 Enter Immersive Reader

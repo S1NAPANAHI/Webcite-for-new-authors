@@ -24,7 +24,9 @@ import {
   Eye,
   EyeOff,
   Shield,
-  Zap
+  Zap,
+  BookOpen,
+  FileText
 } from 'lucide-react';
 
 interface Chapter {
@@ -98,7 +100,8 @@ const useContentProtection = (enabled: boolean = true) => {
         if (['a', 'c', 'v', 'x', 's', 'p'].includes(e.key.toLowerCase())) {
           e.preventDefault();
           return false;
-        }\      }
+        }
+      }
       
       // Disable F12, Ctrl+Shift+I, Ctrl+U
       if (e.key === 'F12' || 
@@ -215,7 +218,8 @@ function ReadingSettingsModal({ isOpen, onClose, settings, onSettingsChange }: R
               {themes.map(({ value, label, bg, text, icon: Icon }) => (
                 <button
                   key={value}
-                  onClick={() => handleCustomTheme({ value, bg, text })}\n                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                  onClick={() => handleCustomTheme({ value, bg, text })}
+                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                     settings.theme === value
                       ? 'border-blue-500 shadow-lg transform scale-[1.02]'
                       : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md'
@@ -228,7 +232,8 @@ function ReadingSettingsModal({ isOpen, onClose, settings, onSettingsChange }: R
                     Sample Text
                   </div>
                 </button>
-              ))}\n            </div>
+              ))}
+            </div>
           </div>
 
           {/* Font Family */}
@@ -255,7 +260,8 @@ function ReadingSettingsModal({ isOpen, onClose, settings, onSettingsChange }: R
                   </div>
                   <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{label}</div>
                 </button>
-              ))}\n            </div>
+              ))}
+            </div>
           </div>
 
           {/* Font Size */}
@@ -483,4 +489,530 @@ export const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = (
   const [protectionEnabled, setProtectionEnabled] = useState(true);
   const [pageFlipAnimation, setPageFlipAnimation] = useState(false);
   
-  const [settings, setSettings] = useState<ReadingSettings>(() => {\n    const saved = localStorage.getItem('ebookReaderSettings');\n    if (saved) {\n      try {\n        return JSON.parse(saved);\n      } catch (e) {\n        console.error('Error loading reading settings:', e);\n      }\n    }\n    return {\n      theme: 'light',\n      fontSize: 16,\n      fontFamily: 'serif',\n      lineHeight: 1.6,\n      textAlign: 'justify',\n      columnWidth: 'normal',\n      pageWidth: 600,\n      backgroundColor: '#ffffff',\n      textColor: '#1f2937',\n      pageMargin: 40\n    };\n  });\n\n  // Enable content protection\n  useContentProtection(protectionEnabled && !user?.metadata?.isAdmin);\n\n  // Save settings to localStorage\n  useEffect(() => {\n    localStorage.setItem('ebookReaderSettings', JSON.stringify(settings));\n  }, [settings]);\n\n  // Paginate content based on settings\n  useEffect(() => {\n    if (!chapter?.content) return;\n\n    const paginateContent = () => {\n      try {\n        const content = chapter.plain_content || '';\n        const wordsPerPage = Math.floor((settings.pageWidth * 0.8) / (settings.fontSize * 0.6)) * \n                           Math.floor(((window.innerHeight - 200) / (settings.fontSize * settings.lineHeight)));\n        \n        const words = content.split(/\\s+/);\n        const newPages: string[] = [];\n        \n        for (let i = 0; i < words.length; i += wordsPerPage) {\n          const pageWords = words.slice(i, i + wordsPerPage);\n          newPages.push(pageWords.join(' '));\n        }\n        \n        setPages(newPages.length > 0 ? newPages : ['']);\n        setTotalPages(newPages.length || 1);\n        \n        // Reset to first page if current page is beyond new total\n        if (currentPage > newPages.length) {\n          setCurrentPage(1);\n        }\n      } catch (error) {\n        console.error('Error paginating content:', error);\n        setPages([chapter.plain_content || '']);\n        setTotalPages(1);\n      }\n    };\n\n    paginateContent();\n    \n    // Re-paginate on window resize\n    const handleResize = () => {\n      setTimeout(paginateContent, 100);\n    };\n    \n    window.addEventListener('resize', handleResize);\n    return () => window.removeEventListener('resize', handleResize);\n  }, [chapter, settings, currentPage]);\n\n  // Handle page navigation\n  const goToPage = useCallback((page: number, withAnimation: boolean = true) => {\n    if (page < 1 || page > totalPages) return;\n    \n    if (withAnimation) {\n      setPageFlipAnimation(true);\n      setTimeout(() => {\n        setCurrentPage(page);\n        setPageFlipAnimation(false);\n      }, 150);\n    } else {\n      setCurrentPage(page);\n    }\n    \n    // Update reading progress\n    const progress = Math.round((page / totalPages) * 100);\n    setReadingProgress(progress);\n  }, [totalPages]);\n\n  // Keyboard navigation\n  useEffect(() => {\n    const handleKeyPress = (e: KeyboardEvent) => {\n      if (showSettings) return; // Don't navigate when settings are open\n      \n      switch (e.key) {\n        case 'ArrowLeft':\n        case 'PageUp':\n          e.preventDefault();\n          if (currentPage > 1) {\n            goToPage(currentPage - 1);\n          } else if (onChapterChange && navigationInfo?.hasPrev) {\n            onChapterChange('prev');\n          }\n          break;\n        case 'ArrowRight':\n        case 'PageDown':\n        case ' ': // Spacebar\n          e.preventDefault();\n          if (currentPage < totalPages) {\n            goToPage(currentPage + 1);\n          } else if (onChapterChange && navigationInfo?.hasNext) {\n            onChapterChange('next');\n          }\n          break;\n        case 'Home':\n          e.preventDefault();\n          goToPage(1);\n          break;\n        case 'End':\n          e.preventDefault();\n          goToPage(totalPages);\n          break;\n        case 'f':\n        case 'F11':\n          e.preventDefault();\n          toggleFullscreen();\n          break;\n      }\n    };\n\n    document.addEventListener('keydown', handleKeyPress);\n    return () => document.removeEventListener('keydown', handleKeyPress);\n  }, [currentPage, totalPages, showSettings, onChapterChange, navigationInfo]);\n\n  // Track reading time\n  useEffect(() => {\n    const interval = setInterval(() => {\n      setReadingTime(prev => prev + 1);\n    }, 1000);\n    \n    return () => clearInterval(interval);\n  }, []);\n\n  // Auto-save reading progress\n  useEffect(() => {\n    if (!user || !chapter) return;\n    \n    const saveProgress = setTimeout(async () => {\n      try {\n        const progressData = {\n          user_id: user.id,\n          chapter_id: chapter.id,\n          progress_percentage: readingProgress,\n          last_read_at: new Date().toISOString(),\n          reading_time_minutes: Math.floor(readingTime / 60),\n          completed: readingProgress >= 95,\n          bookmarks: JSON.stringify([{ page: currentPage, timestamp: Date.now() }])\n        };\n        \n        const { error } = await supabase\n          .from('reading_progress')\n          .upsert(progressData);\n          \n        if (error) {\n          console.error('Error saving reading progress:', error);\n        }\n      } catch (err) {\n        console.error('Error saving progress:', err);\n      }\n    }, 3000);\n    \n    return () => clearTimeout(saveProgress);\n  }, [readingProgress, readingTime, user, chapter, currentPage]);\n\n  // Fullscreen toggle\n  const toggleFullscreen = () => {\n    if (!isFullscreen) {\n      document.documentElement.requestFullscreen?.();\n      setIsFullscreen(true);\n    } else {\n      document.exitFullscreen?.();\n      setIsFullscreen(false);\n    }\n  };\n\n  // Touch gesture handlers for mobile\n  const [touchStart, setTouchStart] = useState<number | null>(null);\n  const [touchEnd, setTouchEnd] = useState<number | null>(null);\n\n  const handleTouchStart = (e: React.TouchEvent) => {\n    setTouchEnd(null);\n    setTouchStart(e.targetTouches[0].clientX);\n  };\n\n  const handleTouchMove = (e: React.TouchEvent) => {\n    setTouchEnd(e.targetTouches[0].clientX);\n  };\n\n  const handleTouchEnd = () => {\n    if (!touchStart || !touchEnd) return;\n    \n    const distance = touchStart - touchEnd;\n    const isLeftSwipe = distance > 50;\n    const isRightSwipe = distance < -50;\n\n    if (isLeftSwipe && currentPage < totalPages) {\n      goToPage(currentPage + 1);\n    }\n    if (isRightSwipe && currentPage > 1) {\n      goToPage(currentPage - 1);\n    }\n  };\n\n  if (!chapter) {\n    return (\n      <div className=\"min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900\">\n        <div className=\"text-center\">\n          <Lock className=\"w-16 h-16 text-red-500 mx-auto mb-4\" />\n          <h2 className=\"text-xl font-semibold text-gray-900 dark:text-white mb-2\">Access Denied</h2>\n          <p className=\"text-gray-600 dark:text-gray-400\">Chapter not found or access denied</p>\n        </div>\n      </div>\n    );\n  }\n\n  const currentContent = pages[currentPage - 1] || '';\n\n  return (\n    <div \n      className={`min-h-screen transition-all duration-500 relative overflow-hidden ${\n        isFullscreen ? 'fixed inset-0 z-50' : ''\n      }`}\n      style={{\n        backgroundColor: settings.backgroundColor,\n        color: settings.textColor\n      }}\n      onTouchStart={handleTouchStart}\n      onTouchMove={handleTouchMove}\n      onTouchEnd={handleTouchEnd}\n    >\n      {/* Content Protection Overlay */}\n      {protectionEnabled && (\n        <div className=\"absolute inset-0 pointer-events-none select-none z-10\">\n          <div className=\"absolute top-4 right-4 opacity-20 rotate-45 text-gray-400 text-xs\">\n            <Shield className=\"w-4 h-4\" />\n          </div>\n        </div>\n      )}\n\n      {/* Header Controls */}\n      <header className={`sticky top-0 z-20 backdrop-blur-md border-b transition-all duration-300 ${\n        isFullscreen ? 'bg-opacity-95' : 'bg-opacity-90'\n      }`} style={{ backgroundColor: `${settings.backgroundColor}e6`, borderColor: `${settings.textColor}20` }}>\n        <div className=\"max-w-5xl mx-auto px-4 py-3\">\n          <div className=\"flex items-center justify-between\">\n            {/* Left Controls */}\n            <div className=\"flex items-center space-x-3\">\n              <button\n                onClick={() => window.history.back()}\n                className=\"p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200\"\n                title=\"Back\"\n              >\n                <ArrowLeft className=\"w-5 h-5\" />\n              </button>\n              \n              <div className=\"hidden sm:block\">\n                <h1 className=\"font-semibold text-lg truncate max-w-sm\" style={{ color: settings.textColor }}>\n                  {chapter.title}\n                </h1>\n                <div className=\"flex items-center space-x-3 text-sm opacity-75\">\n                  <span>Chapter {chapter.chapter_number}</span>\n                  {chapter.is_free && (\n                    <span className=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800\">\n                      FREE\n                    </span>\n                  )}\n                  {!chapter.is_free && (\n                    <span className=\"inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800\">\n                      <Crown className=\"w-3 h-3 mr-1\" />\n                      PREMIUM\n                    </span>\n                  )}\n                </div>\n              </div>\n            </div>\n\n            {/* Center - Page Progress */}\n            <div className=\"hidden md:flex items-center space-x-4\">\n              <div className=\"flex items-center space-x-2 text-sm\">\n                <BookOpen className=\"w-4 h-4\" />\n                <span>Page {currentPage} of {totalPages}</span>\n              </div>\n              \n              <div className=\"w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5\">\n                <div \n                  className=\"bg-blue-600 h-1.5 rounded-full transition-all duration-500\"\n                  style={{ width: `${(currentPage / totalPages) * 100}%` }}\n                />\n              </div>\n              \n              <div className=\"flex items-center space-x-2 text-sm opacity-75\">\n                <Clock className=\"w-4 h-4\" />\n                <span>{Math.floor(readingTime / 60)}:{(readingTime % 60).toString().padStart(2, '0')}</span>\n              </div>\n            </div>\n\n            {/* Right Controls */}\n            <div className=\"flex items-center space-x-2\">\n              <button\n                onClick={() => setProtectionEnabled(!protectionEnabled)}\n                className={`p-2 rounded-lg transition-colors duration-200 ${\n                  protectionEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'\n                }`}\n                title={protectionEnabled ? 'Protection Enabled' : 'Protection Disabled'}\n              >\n                {protectionEnabled ? <Shield className=\"w-4 h-4\" /> : <Eye className=\"w-4 h-4\" />}\n              </button>\n              \n              <button\n                onClick={() => setShowSettings(true)}\n                className=\"p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200\"\n                title=\"Reading Settings\"\n              >\n                <Settings className=\"w-4 h-4\" />\n              </button>\n              \n              <button\n                onClick={toggleFullscreen}\n                className=\"p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200\"\n                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}\n              >\n                {isFullscreen ? <Minimize className=\"w-4 h-4\" /> : <Maximize className=\"w-4 h-4\" />}\n              </button>\n            </div>\n          </div>\n        </div>\n      </header>\n\n      {/* Main Reader */}\n      <main className=\"relative flex-1 min-h-0\" ref={contentRef}>\n        {/* Page Container */}\n        <div \n          className={`relative transition-transform duration-300 ${\n            pageFlipAnimation ? 'transform scale-95 opacity-50' : ''\n          }`}\n          style={{ minHeight: 'calc(100vh - 120px)' }}\n        >\n          <Page\n            content={currentContent}\n            pageNumber={currentPage}\n            totalPages={totalPages}\n            settings={settings}\n            isActive={true}\n          />\n        </div>\n\n        {/* Navigation Arrows */}\n        <div className=\"absolute inset-y-0 left-0 flex items-center\">\n          <button\n            onClick={() => {\n              if (currentPage > 1) {\n                goToPage(currentPage - 1);\n              } else if (onChapterChange && navigationInfo?.hasPrev && navigationInfo.prevHasAccess) {\n                onChapterChange('prev');\n              }\n            }}\n            className={`ml-4 p-3 rounded-full transition-all duration-200 ${\n              (currentPage > 1) || (navigationInfo?.hasPrev && navigationInfo.prevHasAccess)\n                ? 'bg-white bg-opacity-80 hover:bg-opacity-100 shadow-lg hover:shadow-xl'\n                : 'bg-gray-200 bg-opacity-50 cursor-not-allowed'\n            }`}\n            disabled={currentPage === 1 && !(navigationInfo?.hasPrev && navigationInfo.prevHasAccess)}\n          >\n            <ChevronLeft className=\"w-6 h-6\" style={{ color: settings.textColor }} />\n          </button>\n        </div>\n\n        <div className=\"absolute inset-y-0 right-0 flex items-center\">\n          <button\n            onClick={() => {\n              if (currentPage < totalPages) {\n                goToPage(currentPage + 1);\n              } else if (onChapterChange && navigationInfo?.hasNext && navigationInfo.nextHasAccess) {\n                onChapterChange('next');\n              }\n            }}\n            className={`mr-4 p-3 rounded-full transition-all duration-200 ${\n              (currentPage < totalPages) || (navigationInfo?.hasNext && navigationInfo.nextHasAccess)\n                ? 'bg-white bg-opacity-80 hover:bg-opacity-100 shadow-lg hover:shadow-xl'\n                : 'bg-gray-200 bg-opacity-50 cursor-not-allowed'\n            }`}\n            disabled={currentPage === totalPages && !(navigationInfo?.hasNext && navigationInfo.nextHasAccess)}\n          >\n            <ChevronRight className=\"w-6 h-6\" style={{ color: settings.textColor }} />\n          </button>\n        </div>\n\n        {/* Click zones for page navigation */}\n        <div \n          className=\"absolute inset-0 grid grid-cols-3\"\n          style={{ zIndex: 5 }}\n        >\n          {/* Left click zone - Previous page */}\n          <div \n            className=\"cursor-pointer\"\n            onClick={() => currentPage > 1 && goToPage(currentPage - 1)}\n            title=\"Previous page\"\n          />\n          \n          {/* Center click zone - Settings */}\n          <div \n            className=\"cursor-pointer\"\n            onClick={() => setShowSettings(true)}\n            title=\"Settings\"\n          />\n          \n          {/* Right click zone - Next page */}\n          <div \n            className=\"cursor-pointer\"\n            onClick={() => currentPage < totalPages && goToPage(currentPage + 1)}\n            title=\"Next page\"\n          />\n        </div>\n      </main>\n\n      {/* Footer Controls */}\n      <footer className={`sticky bottom-0 z-20 backdrop-blur-md border-t transition-all duration-300 ${\n        isFullscreen ? 'bg-opacity-95' : 'bg-opacity-90'\n      }`} style={{ backgroundColor: `${settings.backgroundColor}e6`, borderColor: `${settings.textColor}20` }}>\n        <div className=\"max-w-5xl mx-auto px-4 py-3\">\n          <div className=\"flex items-center justify-between\">\n            {/* Chapter Navigation */}\n            <div className=\"flex items-center space-x-2\">\n              {showNavigation && onChapterChange && navigationInfo?.hasPrev && (\n                <button\n                  onClick={() => onChapterChange('prev')}\n                  disabled={!navigationInfo.prevHasAccess}\n                  className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center space-x-2 ${\n                    navigationInfo.prevHasAccess\n                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700'\n                      : 'opacity-50 cursor-not-allowed'\n                  }`}\n                  title={navigationInfo.prevHasAccess ? navigationInfo.prevTitle : 'Previous chapter requires subscription'}\n                >\n                  <ChevronLeft className=\"w-4 h-4\" />\n                  <span className=\"hidden sm:inline\">Previous</span>\n                  {!navigationInfo.prevHasAccess && <Lock className=\"w-3 h-3 text-yellow-500\" />}\n                </button>\n              )}\n            </div>\n\n            {/* Reading Stats */}\n            <div className=\"flex items-center space-x-4 text-sm\">\n              <div className=\"flex items-center space-x-2\">\n                <BarChart3 className=\"w-4 h-4\" />\n                <span>{readingProgress}%</span>\n              </div>\n              \n              <div className=\"hidden sm:flex items-center space-x-2\">\n                <FileText className=\"w-4 h-4\" />\n                <span>{chapter.word_count.toLocaleString()} words</span>\n              </div>\n              \n              <div className=\"flex items-center space-x-2\">\n                <span className=\"font-mono text-xs\">{currentPage}/{totalPages}</span>\n              </div>\n            </div>\n\n            {/* Chapter Navigation */}\n            <div className=\"flex items-center space-x-2\">\n              {showNavigation && onChapterChange && navigationInfo?.hasNext && (\n                <button\n                  onClick={() => onChapterChange('next')}\n                  disabled={!navigationInfo.nextHasAccess}\n                  className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center space-x-2 ${\n                    navigationInfo.nextHasAccess\n                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700'\n                      : 'opacity-50 cursor-not-allowed'\n                  }`}\n                  title={navigationInfo.nextHasAccess ? navigationInfo.nextTitle : 'Next chapter requires subscription'}\n                >\n                  <span className=\"hidden sm:inline\">Next</span>\n                  <ChevronRight className=\"w-4 h-4\" />\n                  {!navigationInfo.nextHasAccess && <Lock className=\"w-3 h-3 text-yellow-500\" />}\n                </button>\n              )}\n            </div>\n          </div>\n        </div>\n      </footer>\n\n      {/* Settings Modal */}\n      <ReadingSettingsModal\n        isOpen={showSettings}\n        onClose={() => setShowSettings(false)}\n        settings={settings}\n        onSettingsChange={setSettings}\n      />\n\n      {/* Anti-copy overlay (when protection is enabled) */}\n      {protectionEnabled && (\n        <div className=\"fixed inset-0 pointer-events-none select-none z-[5]\">\n          <div \n            className=\"absolute inset-0 opacity-[0.01]\" \n            style={{\n              background: `url(\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><text y='50' font-size='20' fill='%23000000' opacity='0.1'>PROTECTED</text></svg>\") repeat`\n            }}\n          />\n        </div>\n      )}\n\n      {/* Keyboard shortcuts help (show on hover) */}\n      <div className=\"fixed bottom-20 left-4 z-30\">\n        <div className=\"bg-black bg-opacity-75 text-white text-xs rounded-lg px-3 py-2 opacity-0 hover:opacity-100 transition-opacity duration-300\">\n          <div>← → Arrow keys: Navigate pages</div>\n          <div>Space: Next page</div>\n          <div>F: Toggle fullscreen</div>\n          <div>Home/End: First/Last page</div>\n        </div>\n      </div>\n    </div>\n  );\n};
+  const [settings, setSettings] = useState<ReadingSettings>(() => {
+    const saved = localStorage.getItem('ebookReaderSettings');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error loading reading settings:', e);
+      }
+    }
+    return {
+      theme: 'light',
+      fontSize: 16,
+      fontFamily: 'serif',
+      lineHeight: 1.6,
+      textAlign: 'justify',
+      columnWidth: 'normal',
+      pageWidth: 600,
+      backgroundColor: '#ffffff',
+      textColor: '#1f2937',
+      pageMargin: 40
+    };
+  });
+
+  // Enable content protection
+  useContentProtection(protectionEnabled && !user?.metadata?.isAdmin);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem('ebookReaderSettings', JSON.stringify(settings));
+  }, [settings]);
+
+  // Paginate content based on settings
+  useEffect(() => {
+    if (!chapter?.content) return;
+
+    const paginateContent = () => {
+      try {
+        const content = chapter.plain_content || '';
+        const wordsPerPage = Math.floor((settings.pageWidth * 0.8) / (settings.fontSize * 0.6)) * 
+                           Math.floor(((window.innerHeight - 200) / (settings.fontSize * settings.lineHeight)));
+        
+        const words = content.split(/\s+/);
+        const newPages: string[] = [];
+        
+        for (let i = 0; i < words.length; i += wordsPerPage) {
+          const pageWords = words.slice(i, i + wordsPerPage);
+          newPages.push(pageWords.join(' '));
+        }
+        
+        setPages(newPages.length > 0 ? newPages : ['']);
+        setTotalPages(newPages.length || 1);
+        
+        // Reset to first page if current page is beyond new total
+        if (currentPage > newPages.length) {
+          setCurrentPage(1);
+        }
+      } catch (error) {
+        console.error('Error paginating content:', error);
+        setPages([chapter.plain_content || '']);
+        setTotalPages(1);
+      }
+    };
+
+    paginateContent();
+    
+    // Re-paginate on window resize
+    const handleResize = () => {
+      setTimeout(paginateContent, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [chapter, settings, currentPage]);
+
+  // Handle page navigation
+  const goToPage = useCallback((page: number, withAnimation: boolean = true) => {
+    if (page < 1 || page > totalPages) return;
+    
+    if (withAnimation) {
+      setPageFlipAnimation(true);
+      setTimeout(() => {
+        setCurrentPage(page);
+        setPageFlipAnimation(false);
+      }, 150);
+    } else {
+      setCurrentPage(page);
+    }
+    
+    // Update reading progress
+    const progress = Math.round((page / totalPages) * 100);
+    setReadingProgress(progress);
+  }, [totalPages]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (showSettings) return; // Don't navigate when settings are open
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'PageUp':
+          e.preventDefault();
+          if (currentPage > 1) {
+            goToPage(currentPage - 1);
+          } else if (onChapterChange && navigationInfo?.hasPrev) {
+            onChapterChange('prev');
+          }
+          break;
+        case 'ArrowRight':
+        case 'PageDown':
+        case ' ': // Spacebar
+          e.preventDefault();
+          if (currentPage < totalPages) {
+            goToPage(currentPage + 1);
+          } else if (onChapterChange && navigationInfo?.hasNext) {
+            onChapterChange('next');
+          }
+          break;
+        case 'Home':
+          e.preventDefault();
+          goToPage(1);
+          break;
+        case 'End':
+          e.preventDefault();
+          goToPage(totalPages);
+          break;
+        case 'f':
+        case 'F11':
+          e.preventDefault();
+          toggleFullscreen();
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [currentPage, totalPages, showSettings, onChapterChange, navigationInfo, goToPage]);
+
+  // Track reading time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setReadingTime(prev => prev + 1);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-save reading progress
+  useEffect(() => {
+    if (!user || !chapter) return;
+    
+    const saveProgress = setTimeout(async () => {
+      try {
+        const progressData = {
+          user_id: user.id,
+          chapter_id: chapter.id,
+          progress_percentage: readingProgress,
+          last_read_at: new Date().toISOString(),
+          reading_time_minutes: Math.floor(readingTime / 60),
+          completed: readingProgress >= 95,
+          bookmarks: JSON.stringify([{ page: currentPage, timestamp: Date.now() }])
+        };
+        
+        const { error } = await supabase
+          .from('reading_progress')
+          .upsert(progressData);
+          
+        if (error) {
+          console.error('Error saving reading progress:', error);
+        }
+      } catch (err) {
+        console.error('Error saving progress:', err);
+      }
+    }, 3000);
+    
+    return () => clearTimeout(saveProgress);
+  }, [readingProgress, readingTime, user, chapter, currentPage]);
+
+  // Fullscreen toggle
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      document.documentElement.requestFullscreen?.();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.();
+      setIsFullscreen(false);
+    }
+  };
+
+  // Touch gesture handlers for mobile
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && currentPage < totalPages) {
+      goToPage(currentPage + 1);
+    }
+    if (isRightSwipe && currentPage > 1) {
+      goToPage(currentPage - 1);
+    }
+  };
+
+  if (!chapter) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <div className="text-center">
+          <Lock className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Access Denied</h2>
+          <p className="text-gray-600 dark:text-gray-400">Chapter not found or access denied</p>
+        </div>
+      </div>
+    );
+  }
+
+  const currentContent = pages[currentPage - 1] || '';
+
+  return (
+    <div 
+      className={`min-h-screen transition-all duration-500 relative overflow-hidden ${
+        isFullscreen ? 'fixed inset-0 z-50' : ''
+      }`}
+      style={{
+        backgroundColor: settings.backgroundColor,
+        color: settings.textColor
+      }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Content Protection Overlay */}
+      {protectionEnabled && (
+        <div className="absolute inset-0 pointer-events-none select-none z-10">
+          <div className="absolute top-4 right-4 opacity-20 rotate-45 text-gray-400 text-xs">
+            <Shield className="w-4 h-4" />
+          </div>
+        </div>
+      )}
+
+      {/* Header Controls */}
+      <header className={`sticky top-0 z-20 backdrop-blur-md border-b transition-all duration-300 ${
+        isFullscreen ? 'bg-opacity-95' : 'bg-opacity-90'
+      }`} style={{ backgroundColor: `${settings.backgroundColor}e6`, borderColor: `${settings.textColor}20` }}>
+        <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Left Controls */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => window.history.back()}
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                title="Back"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              
+              <div className="hidden sm:block">
+                <h1 className="font-semibold text-lg truncate max-w-sm" style={{ color: settings.textColor }}>
+                  {chapter.title}
+                </h1>
+                <div className="flex items-center space-x-3 text-sm opacity-75">
+                  <span>Chapter {chapter.chapter_number}</span>
+                  {chapter.is_free && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">
+                      FREE
+                    </span>
+                  )}
+                  {!chapter.is_free && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                      <Crown className="w-3 h-3 mr-1" />
+                      PREMIUM
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Center - Page Progress */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-sm">
+                <BookOpen className="w-4 h-4" />
+                <span>Page {currentPage} of {totalPages}</span>
+              </div>
+              
+              <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                <div 
+                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                  style={{ width: `${(currentPage / totalPages) * 100}%` }}
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2 text-sm opacity-75">
+                <Clock className="w-4 h-4" />
+                <span>{Math.floor(readingTime / 60)}:{(readingTime % 60).toString().padStart(2, '0')}</span>
+              </div>
+            </div>
+
+            {/* Right Controls */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setProtectionEnabled(!protectionEnabled)}
+                className={`p-2 rounded-lg transition-colors duration-200 ${
+                  protectionEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                }`}
+                title={protectionEnabled ? 'Protection Enabled' : 'Protection Disabled'}
+              >
+                {protectionEnabled ? <Shield className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              
+              <button
+                onClick={() => setShowSettings(true)}
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                title="Reading Settings"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={toggleFullscreen}
+                className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+              >
+                {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Reader */}
+      <main className="relative flex-1 min-h-0" ref={contentRef}>
+        {/* Page Container */}
+        <div 
+          className={`relative transition-transform duration-300 ${
+            pageFlipAnimation ? 'transform scale-95 opacity-50' : ''
+          }`}
+          style={{ minHeight: 'calc(100vh - 120px)' }}
+        >
+          <Page
+            content={currentContent}
+            pageNumber={currentPage}
+            totalPages={totalPages}
+            settings={settings}
+            isActive={true}
+          />
+        </div>
+
+        {/* Navigation Arrows */}
+        <div className="absolute inset-y-0 left-0 flex items-center">
+          <button
+            onClick={() => {
+              if (currentPage > 1) {
+                goToPage(currentPage - 1);
+              } else if (onChapterChange && navigationInfo?.hasPrev && navigationInfo.prevHasAccess) {
+                onChapterChange('prev');
+              }
+            }}
+            className={`ml-4 p-3 rounded-full transition-all duration-200 ${
+              (currentPage > 1) || (navigationInfo?.hasPrev && navigationInfo.prevHasAccess)
+                ? 'bg-white bg-opacity-80 hover:bg-opacity-100 shadow-lg hover:shadow-xl'
+                : 'bg-gray-200 bg-opacity-50 cursor-not-allowed'
+            }`}
+            disabled={currentPage === 1 && !(navigationInfo?.hasPrev && navigationInfo.prevHasAccess)}
+          >
+            <ChevronLeft className="w-6 h-6" style={{ color: settings.textColor }} />
+          </button>
+        </div>
+
+        <div className="absolute inset-y-0 right-0 flex items-center">
+          <button
+            onClick={() => {
+              if (currentPage < totalPages) {
+                goToPage(currentPage + 1);
+              } else if (onChapterChange && navigationInfo?.hasNext && navigationInfo.nextHasAccess) {
+                onChapterChange('next');
+              }
+            }}
+            className={`mr-4 p-3 rounded-full transition-all duration-200 ${
+              (currentPage < totalPages) || (navigationInfo?.hasNext && navigationInfo.nextHasAccess)
+                ? 'bg-white bg-opacity-80 hover:bg-opacity-100 shadow-lg hover:shadow-xl'
+                : 'bg-gray-200 bg-opacity-50 cursor-not-allowed'
+            }`}
+            disabled={currentPage === totalPages && !(navigationInfo?.hasNext && navigationInfo.nextHasAccess)}
+          >
+            <ChevronRight className="w-6 h-6" style={{ color: settings.textColor }} />
+          </button>
+        </div>
+
+        {/* Click zones for page navigation */}
+        <div 
+          className="absolute inset-0 grid grid-cols-3"
+          style={{ zIndex: 5 }}
+        >
+          {/* Left click zone - Previous page */}
+          <div 
+            className="cursor-pointer"
+            onClick={() => currentPage > 1 && goToPage(currentPage - 1)}
+            title="Previous page"
+          />
+          
+          {/* Center click zone - Settings */}
+          <div 
+            className="cursor-pointer"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+          />
+          
+          {/* Right click zone - Next page */}
+          <div 
+            className="cursor-pointer"
+            onClick={() => currentPage < totalPages && goToPage(currentPage + 1)}
+            title="Next page"
+          />
+        </div>
+      </main>
+
+      {/* Footer Controls */}
+      <footer className={`sticky bottom-0 z-20 backdrop-blur-md border-t transition-all duration-300 ${
+        isFullscreen ? 'bg-opacity-95' : 'bg-opacity-90'
+      }`} style={{ backgroundColor: `${settings.backgroundColor}e6`, borderColor: `${settings.textColor}20` }}>
+        <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            {/* Chapter Navigation */}
+            <div className="flex items-center space-x-2">
+              {showNavigation && onChapterChange && navigationInfo?.hasPrev && (
+                <button
+                  onClick={() => onChapterChange('prev')}
+                  disabled={!navigationInfo.prevHasAccess}
+                  className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center space-x-2 ${
+                    navigationInfo.prevHasAccess
+                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700'
+                      : 'opacity-50 cursor-not-allowed'
+                  }`}
+                  title={navigationInfo.prevHasAccess ? navigationInfo.prevTitle : 'Previous chapter requires subscription'}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                  {!navigationInfo.prevHasAccess && <Lock className="w-3 h-3 text-yellow-500" />}
+                </button>
+              )}
+            </div>
+
+            {/* Reading Stats */}
+            <div className="flex items-center space-x-4 text-sm">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>{readingProgress}%</span>
+              </div>
+              
+              <div className="hidden sm:flex items-center space-x-2">
+                <FileText className="w-4 h-4" />
+                <span>{chapter.word_count.toLocaleString()} words</span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <span className="font-mono text-xs">{currentPage}/{totalPages}</span>
+              </div>
+            </div>
+
+            {/* Chapter Navigation */}
+            <div className="flex items-center space-x-2">
+              {showNavigation && onChapterChange && navigationInfo?.hasNext && (
+                <button
+                  onClick={() => onChapterChange('next')}
+                  disabled={!navigationInfo.nextHasAccess}
+                  className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 flex items-center space-x-2 ${
+                    navigationInfo.nextHasAccess
+                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700'
+                      : 'opacity-50 cursor-not-allowed'
+                  }`}
+                  title={navigationInfo.nextHasAccess ? navigationInfo.nextTitle : 'Next chapter requires subscription'}
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                  {!navigationInfo.nextHasAccess && <Lock className="w-3 h-3 text-yellow-500" />}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* Settings Modal */}
+      <ReadingSettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        settings={settings}
+        onSettingsChange={setSettings}
+      />
+
+      {/* Anti-copy overlay (when protection is enabled) */}
+      {protectionEnabled && (
+        <div className="fixed inset-0 pointer-events-none select-none z-[5]">
+          <div 
+            className="absolute inset-0 opacity-[0.01]" 
+            style={{
+              background: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><text y='50' font-size='20' fill='%23000000' opacity='0.1'>PROTECTED</text></svg>") repeat`
+            }}
+          />
+        </div>
+      )}
+
+      {/* Keyboard shortcuts help (show on hover) */}
+      <div className="fixed bottom-20 left-4 z-30">
+        <div className="bg-black bg-opacity-75 text-white text-xs rounded-lg px-3 py-2 opacity-0 hover:opacity-100 transition-opacity duration-300">
+          <div>← → Arrow keys: Navigate pages</div>
+          <div>Space: Next page</div>
+          <div>F: Toggle fullscreen</div>
+          <div>Home/End: First/Last page</div>
+        </div>
+      </div>
+    </div>
+  );
+};

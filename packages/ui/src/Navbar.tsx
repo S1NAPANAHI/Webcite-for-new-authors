@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { CartIcon } from './CartIcon';
 import ThemeToggle from './components/ui/ThemeToggle';
-import { Search, Menu, X } from 'lucide-react';
+import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 // Type for the auth state passed as props
@@ -28,15 +28,64 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedDropdown, setExpandedDropdown] = useState<string | null>(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   const handleLogout = () => {
     if (onLogout) {
       onLogout();
     }
     setIsMobileMenuOpen(false); // Close mobile menu after logout
+    setExpandedDropdown(null);
   };
 
-  // Close mobile menu when clicking outside or on escape
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setExpandedDropdown(null);
+  };
+
+  const toggleDropdown = (linkName: string, event: React.MouseEvent | React.TouchEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (isMobile) {
+      setExpandedDropdown(expandedDropdown === linkName ? null : linkName);
+    } else {
+      setExpandedDropdown(expandedDropdown === linkName ? null : linkName);
+    }
+  };
+
+  // Handle clicks outside to close dropdowns and mobile menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+        setExpandedDropdown(null);
+        if (isMobile) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMobile]);
+
+  // Close mobile menu when route changes or on escape
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -46,21 +95,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       }
     };
 
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest(`.${styles.navbar}`) && !target.closest(`.${styles.mobileMenuToggle}`)) {
-        setIsMobileMenuOpen(false);
-        setExpandedDropdown(null);
-      }
-    };
-
     document.addEventListener('keydown', handleEscape);
-    document.addEventListener('click', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.removeEventListener('click', handleClickOutside);
-    };
+    return () => document.removeEventListener('keydown', handleEscape);
   }, []);
 
   // Prevent body scroll when mobile menu is open
@@ -110,17 +146,46 @@ export const Navbar: React.FC<NavbarProps> = ({
     navLinks.push({ name: 'Login', path: '/login' });
   }
 
-  const toggleDropdown = (linkName: string) => {
-    setExpandedDropdown(expandedDropdown === linkName ? null : linkName);
-  };
-
   const handleLinkClick = () => {
     setIsMobileMenuOpen(false);
     setExpandedDropdown(null);
   };
 
+  const NavLinkComponent: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ 
+    to, 
+    children, 
+    onClick 
+  }) => (
+    <NavLink
+      to={to}
+      onClick={onClick}
+      className={`${styles.navLink} ${styles.touchFriendly}`}
+    >
+      {children}
+    </NavLink>
+  );
+
+  const DropdownButton: React.FC<{ 
+    label: string; 
+    isOpen: boolean; 
+    onClick: (e: React.MouseEvent | React.TouchEvent) => void;
+  }> = ({ label, isOpen, onClick }) => (
+    <button
+      onClick={onClick}
+      className={`${styles.navLink} ${styles.dropdownToggle} ${styles.touchFriendly}`}
+      aria-expanded={isOpen}
+      aria-haspopup="true"
+    >
+      <span>{label}</span>
+      <ChevronDown 
+        className={`${styles.dropdownArrow} ${isOpen ? styles.expanded : ''}`}
+        size={16}
+      />
+    </button>
+  );
+
   return (
-    <header className={styles.zoroHeader}>
+    <header ref={headerRef} className={styles.zoroHeader}>
       {/* Logo */}
       <div className={styles.logo}>
         <NavLink to="/" onClick={handleLinkClick}>
@@ -150,10 +215,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Mobile Menu Toggle */}
+        {/* Mobile Menu Toggle - ENHANCED */}
         <button 
-          className={styles.mobileMenuToggle}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className={`${styles.mobileMenuToggle} ${styles.touchFriendlyButton}`}
+          onClick={toggleMobileMenu}
           aria-label="Toggle navigation menu"
           aria-expanded={isMobileMenuOpen}
         >
@@ -187,28 +252,25 @@ export const Navbar: React.FC<NavbarProps> = ({
           {navLinks.map(link => (
             <li key={link.name} className={link.children ? styles.dropdown : ''}>
               {link.onClick ? (
-                <button onClick={link.onClick} className={styles.navLink}>
+                <button 
+                  onClick={link.onClick} 
+                  className={`${styles.navLink} ${styles.touchFriendly}`}
+                >
                   {link.name}
                 </button>
               ) : link.children ? (
                 <>
-                  <button 
-                    className={`${styles.navLink} ${styles.dropdownToggle}`}
-                    onClick={() => toggleDropdown(link.name)}
-                    aria-expanded={expandedDropdown === link.name}
-                    aria-haspopup="true"
-                  >
-                    {link.name} 
-                    <span className={`${styles.dropdownArrow} ${expandedDropdown === link.name ? styles.expanded : ''}`}>
-                      ▾
-                    </span>
-                  </button>
+                  <DropdownButton
+                    label={link.name}
+                    isOpen={expandedDropdown === link.name}
+                    onClick={(e) => toggleDropdown(link.name, e)}
+                  />
                   <ul className={`${styles.dropdownMenu} ${expandedDropdown === link.name ? styles.expanded : ''}`}>
                     {link.children.map(childLink => (
                       <li key={childLink.name}>
                         <NavLink 
                           to={childLink.path} 
-                          className={styles.dropdownMenuItem}
+                          className={`${styles.dropdownMenuItem} ${styles.touchFriendly}`}
                           onClick={handleLinkClick}
                         >
                           {childLink.name}
@@ -218,13 +280,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </ul>
                 </>
               ) : (
-                <NavLink 
+                <NavLinkComponent 
                   to={link.path} 
-                  className={styles.navLink}
                   onClick={handleLinkClick}
                 >
                   {link.name}
-                </NavLink>
+                </NavLinkComponent>
               )}
             </li>
           ))}

@@ -54,8 +54,8 @@ import FileManagerPage from './pages/FileManagerPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
-    <h1 className="text-4xl font-bold mb-4">{title}</h1>
-    <p className="text-gray-600">This page is under construction.</p>
+    <h1 className="text-4xl font-bold mb-4 text-foreground">{title}</h1>
+    <p className="text-muted-foreground">This page is under construction.</p>
   </div>
 );
 
@@ -66,7 +66,7 @@ const PublicLayout: React.FC = () => {
   console.log('PublicLayout', { isAuthenticated });
 
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <StarsBackground />
       <Layout 
         isAuthenticated={isAuthenticated}
@@ -75,7 +75,7 @@ const PublicLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
-    </>
+    </div>
   );
 };
 
@@ -95,7 +95,7 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <StarsBackground />
       <Layout 
         isAuthenticated={isAuthenticated}
@@ -104,7 +104,7 @@ const ProtectedLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
-    </>
+    </div>
   );
 };
 
@@ -133,7 +133,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/login" element={<div className="min-h-screen bg-background text-foreground transition-colors duration-300"><LoginPage /></div>} />
       <Route path="/auth/callback" element={<HomePage />} />
 
       {/* Public Routes */}
@@ -184,7 +184,7 @@ const AppContent: React.FC = () => {
       </Route>
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminLayout /></ProtectedRoute>}>
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><div className="min-h-screen bg-background text-foreground transition-colors duration-300"><AdminLayout /></div></ProtectedRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         

@@ -1,0 +1,312 @@
+/* Core Theme System - Zoroastervers.com */
+/* Base tokens - Light mode (default) */
+:root {
+  /* App Backgrounds */
+  --bg: #F5F3FA;                    /* soft lavender off-white */
+  --bg-gradient: radial-gradient(1200px 800px at 20% -10%, #F0EAFE 0%, transparent 40%),
+                 radial-gradient(900px 600px at 100% 20%, #EDE9F7 0%, transparent 50%),
+                 linear-gradient(#F5F3FA, #F5F3FA);
+
+  /* Typography */
+  --text: #22232A;                  /* primary text */
+  --text-muted: #6A5C7C;            /* secondary text */
+
+  /* Surfaces & Elevations */
+  --surface: #FFFFFF;               /* card base */
+  --surface-elev-1: #FBFAFF;        /* subtle elevation */
+  --surface-elev-2: #F3F0FB;        /* higher elevation */
+  --border: #DDD7EE;                /* borders and dividers */
+
+  /* Interactive Elements */
+  --accent: #4B1D6B;                /* deep plum for buttons/links */
+  --accent-contrast: #FFFFFF;       /* text on accent backgrounds */
+  --accent-soft: #C7B9FF;           /* subtle accent elements */
+  
+  /* State Colors */
+  --success: #2E7D32;
+  --warning: #B26A00;
+  --danger: #8B1E4D;
+  
+  /* Timeline & Decorative */
+  --timeline-line: #4B1D6B;         /* timeline central line */
+  --timeline-node: #8B1E4D;         /* timeline nodes/circles */
+  --decorative: #C7B9FF;            /* decorative corners */
+
+  /* Stars Background */
+  --stars-color: #4B1D6B;           /* dark stars on light bg */
+  --stars-opacity: 0.6;
+
+  /* Shadows & Effects */
+  --shadow-1: 0 6px 20px rgba(40, 20, 80, 0.08);
+  --shadow-2: 0 10px 25px rgba(40, 20, 80, 0.12);
+  --glow: 0 0 0 6px rgba(199, 185, 255, 0.25);
+
+  /* Header/Footer: FIXED - never change */
+  --hf-bg: #0F0F14;                 /* near-black purple-neutral */
+  --hf-text: #ECECF1;
+  --hf-border: #22222A;
+
+  /* Animation */
+  --transition: 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-fast: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 14px; 
+  --radius-lg: 20px;
+}
+
+/* Dark Mode Overrides */
+:root[data-theme="dark"] {
+  --bg: #0D0A14;                    /* near-black with purple undertone */
+  --bg-gradient: radial-gradient(1200px 800px at 30% -15%, #231335 0%, transparent 45%),
+                 radial-gradient(800px 550px at 90% 15%, #1A0B2E 0%, transparent 55%),
+                 linear-gradient(#0D0A14, #0D0A14);
+
+  --text: #E9E6F2;
+  --text-muted: #A89BBC;
+
+  --surface: #151222;
+  --surface-elev-1: #1B1730;
+  --surface-elev-2: #221C3C;
+  --border: #332A4A;
+
+  --accent: #9B5DE5;                /* vivid violet for contrast on dark */
+  --accent-contrast: #0C0814;
+  --accent-soft: #6C63FF;
+  
+  --success: #6BD976;
+  --warning: #FFC75F;
+  --danger: #FF4FA3;
+
+  --timeline-line: #9B5DE5;
+  --timeline-node: #FF4FA3;
+  --decorative: #6C63FF;
+
+  --stars-color: #E9E6F2;           /* light stars on dark bg */
+  --stars-opacity: 0.8;
+
+  --shadow-1: 0 10px 30px rgba(8, 3, 20, 0.6);
+  --shadow-2: 0 20px 40px rgba(8, 3, 20, 0.8);
+  --glow: 0 0 0 6px rgba(155, 93, 229, 0.28);
+
+  /* Header/Footer stay the same - DO NOT override --hf-* */
+}
+
+/* Global Application */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: var(--text);
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  background-size: cover;
+  transition: color var(--transition), background-color var(--transition), background-image var(--transition);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+/* Theme transition for all elements */
+* {
+  transition: 
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+/* Typography Reset */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text);
+}
+
+p, span, li, label {
+  color: var(--text);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+  transition: color var(--transition-fast), text-shadow var(--transition-fast);
+}
+
+a:hover {
+  text-shadow: 0 0 12px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+
+/* Cards and Surfaces */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  padding: 1.2rem;
+  transition: 
+    background var(--transition),
+    border-color var(--transition),
+    box-shadow var(--transition),
+    transform var(--transition-fast);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+}
+
+.surface-1 { background: var(--surface-elev-1); }
+.surface-2 { background: var(--surface-elev-2); }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border: 1px solid color-mix(in oklab, var(--accent) 80%, black);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 
+    transform var(--transition-fast),
+    box-shadow var(--transition),
+    background-color var(--transition);
+  text-decoration: none;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--glow);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--surface-elev-1);
+}
+
+/* Inputs */
+input, select, textarea {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  font-family: inherit;
+  transition: 
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition),
+    box-shadow var(--transition);
+}
+
+input:focus,
+select:focus, 
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--glow);
+}
+
+/* Timeline Components */
+.timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(
+    var(--timeline-line),
+    color-mix(in oklab, var(--timeline-line) 40%, var(--text-muted))
+  );
+  border-radius: 2px;
+}
+
+.timeline-node {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  background: var(--timeline-node);
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--timeline-node) 25%, transparent);
+  transition: all var(--transition);
+}
+
+.timeline-node:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 6px color-mix(in oklab, var(--timeline-node) 35%, transparent);
+}
+
+/* Header & Footer: Fixed, Never Change */
+.site-header,
+.site-footer {
+  background: var(--hf-bg);
+  color: var(--hf-text);
+  border-bottom: 1px solid var(--hf-border);
+}
+
+.site-footer {
+  border-top: 1px solid var(--hf-border);
+  border-bottom: none;
+}
+
+.site-header a,
+.site-footer a {
+  color: var(--hf-text);
+}
+
+/* Utility Classes */
+.bg-background { background: var(--bg); }
+.bg-surface { background: var(--surface); }
+.bg-surface-1 { background: var(--surface-elev-1); }
+.bg-surface-2 { background: var(--surface-elev-2); }
+
+.text-foreground { color: var(--text); }
+.text-muted-foreground { color: var(--text-muted); }
+
+.border-border { border-color: var(--border); }
+
+.shadow-1 { box-shadow: var(--shadow-1); }
+.shadow-2 { box-shadow: var(--shadow-2); }
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+  }
+  
+  .btn {
+    padding: 0.6rem 0.8rem;
+  }
+}

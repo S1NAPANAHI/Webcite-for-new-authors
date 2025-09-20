@@ -53,13 +53,17 @@ import FileManagerPage from './pages/FileManagerPage';
 // UPDATED: Global Theme System
 import ThemeProvider from './components/ThemeProvider';
 
-// CRITICAL: Import new theme system CSS
-import './styles/theme.css';
+// CRITICAL: Import global CSS for universal theme application
+import './styles/globals.css';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
-  <div className="container mx-auto px-4 py-8 text-center">
-    <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--text)' }}>{title}</h1>
-    <p style={{ color: 'var(--text-muted)' }}>This page is under construction.</p>
+  <div className="page-wrapper">
+    <div className="container mx-auto px-4 py-8 text-center">
+      <div className="content-section">
+        <h1 className="text-4xl font-bold mb-4">{title}</h1>
+        <p className="text-muted">This page is under construction.</p>
+      </div>
+    </div>
   </div>
 );
 
@@ -70,15 +74,7 @@ const PublicLayout: React.FC = () => {
   console.log('PublicLayout', { isAuthenticated });
 
   return (
-    <div style={{
-      background: 'var(--bg)',
-      backgroundImage: 'var(--bg-gradient)',
-      backgroundAttachment: 'fixed',
-      backgroundSize: 'cover',
-      minHeight: '100vh',
-      color: 'var(--text)',
-      transition: 'color var(--transition), background-color var(--transition), background-image var(--transition)'
-    }}>
+    <div className="page-wrapper theme-transition">
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -106,15 +102,7 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <div style={{
-      background: 'var(--bg)',
-      backgroundImage: 'var(--bg-gradient)',
-      backgroundAttachment: 'fixed',
-      backgroundSize: 'cover',
-      minHeight: '100vh',
-      color: 'var(--text)',
-      transition: 'color var(--transition), background-color var(--transition), background-image var(--transition)'
-    }}>
+    <div className="page-wrapper theme-transition">
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -147,19 +135,26 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{
-        background: 'var(--bg)',
-        color: 'var(--text)'
-      }}>
-        <LoadingSkeleton />
+      <div className="page-wrapper theme-transition min-h-screen flex items-center justify-center">
+        <div className="content-section text-center">
+          <LoadingSkeleton />
+        </div>
       </div>
     );
   }
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/auth/callback" element={<HomePage />} />
+      <Route path="/login" element={
+        <div className="page-wrapper theme-transition">
+          <LoginPage />
+        </div>
+      } />
+      <Route path="/auth/callback" element={
+        <div className="page-wrapper theme-transition">
+          <HomePage />
+        </div>
+      } />
 
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
@@ -182,11 +177,23 @@ const AppContent: React.FC = () => {
         <Route path="/library/:type/:slug" element={<ContentItemDetailPage />} />
         
         {/* Chapter Reader Routes - FIXED: Clean URL structure with proper parameter names */}
-        <Route path="/read/:issueSlug/chapter/:chapterSlug" element={<ChapterReaderPage />} />
-        <Route path="/read/:issueSlug/:chapterSlug" element={<ChapterReaderPage />} />
+        <Route path="/read/:issueSlug/chapter/:chapterSlug" element={
+          <div className="page-wrapper theme-transition">
+            <ChapterReaderPage />
+          </div>
+        } />
+        <Route path="/read/:issueSlug/:chapterSlug" element={
+          <div className="page-wrapper theme-transition">
+            <ChapterReaderPage />
+          </div>
+        } />
         
         {/* Legacy support for old UUID-based URLs - redirect to clean URLs */}
-        <Route path="/read/:issueSlug/:chapterUuid" element={<ChapterReaderPage />} />
+        <Route path="/read/:issueSlug/:chapterUuid" element={
+          <div className="page-wrapper theme-transition">
+            <ChapterReaderPage />
+          </div>
+        } />
         
         <Route path="/:slug" element={<PlaceholderPage title="Page" />} />
       </Route>
@@ -208,10 +215,12 @@ const AppContent: React.FC = () => {
         <Route path="/beta/portal" element={<PlaceholderPage title="Beta Portal" />} />
       </Route>
 
-      {/* Admin Routes */}
+      {/* Admin Routes - Wrapped in theme-aware container */}
       <Route path="/admin" element={
         <ProtectedRoute requiredRole="admin">
-          <AdminLayout />
+          <div className="page-wrapper theme-transition">
+            <AdminLayout />
+          </div>
         </ProtectedRoute>
       }>
         <Route index element={<AdminDashboard />} />

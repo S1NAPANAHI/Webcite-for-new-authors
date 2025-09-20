@@ -31,6 +31,8 @@ import {
   CreateContentItemForm
 } from '../../../types/content';
 import { contentApi, supabaseContentApi, buildContentTree, generateSlug, validateContentItem, getAvailableChildTypes } from '../../../lib/contentApi';
+import ImageInput from '../../../components/ImageInput';
+import { FileRecord } from '../../../utils/fileUpload';
 
 interface TreeItemProps {
   item: ContentItemWithChildren;
@@ -75,9 +77,20 @@ function TreeItem({ item, depth, onEdit, onDelete, onAddChild, expandedItems, to
           )}
         </button>
         
-        {/* Type Icon */}
-        <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-          <TypeIcon className="w-4 h-4 text-white" />
+        {/* Cover Image Thumbnail */}
+        <div className="w-12 h-16 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+          {item.cover_image_url || item.cover_file_url ? (
+            <img 
+              src={item.cover_file_url || item.cover_image_url} 
+              alt={item.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+              <TypeIcon className="w-4 h-4 text-white" />
+            </div>
+          )}
         </div>
         
         {/* Content Info */}
@@ -202,6 +215,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
     slug: '',
     description: '',
     cover_image_url: '',
+    cover_file_id: undefined,
     parent_id: parentItem?.id,
     order_index: 0,
     status: 'published', // Default to published so content is visible immediately
@@ -210,6 +224,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
   });
   
   const [errors, setErrors] = useState<string[]>([]);
+  const [coverFile, setCoverFile] = useState<FileRecord | null>(null);
   
   useEffect(() => {
     if (item) {
@@ -219,12 +234,20 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
         slug: item.slug,
         description: item.description || '',
         cover_image_url: item.cover_image_url || '',
+        cover_file_id: item.cover_file_id,
         parent_id: item.parent_id,
         order_index: item.order_index,
         status: item.status,
         published_at: item.published_at || new Date().toISOString().slice(0, 16),
         metadata: item.metadata || {}
       });
+      
+      // Set cover file if exists
+      if (item.cover_file_id) {
+        setCoverFile({ id: item.cover_file_id } as FileRecord);
+      } else {
+        setCoverFile(null);
+      }
     } else if (parentItem) {
       // Set appropriate child type based on parent
       const availableTypes = getAvailableChildTypes(parentItem.type);
@@ -237,6 +260,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
         status: 'published', // Default to published
         published_at: new Date().toISOString().slice(0, 16)
       }));
+      setCoverFile(null);
     } else {
       // Reset to default for new root item
       setFormData({
@@ -245,12 +269,14 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
         slug: '',
         description: '',
         cover_image_url: '',
+        cover_file_id: undefined,
         parent_id: undefined,
         order_index: 0,
         status: 'published', // Default to published
         published_at: new Date().toISOString().slice(0, 16),
         metadata: {}
       });
+      setCoverFile(null);
     }
     setErrors([]);
   }, [item, parentItem, isOpen]);
@@ -262,6 +288,16 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
       setFormData(prev => ({ ...prev, slug }));
     }
   }, [formData.title, item]);
+  
+  const handleCoverFileChange = (file: FileRecord | null) => {
+    setCoverFile(file);
+    setFormData(prev => ({
+      ...prev,
+      cover_file_id: file?.id,
+      // Clear URL if we're using file upload
+      cover_image_url: file ? '' : prev.cover_image_url
+    }));
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -279,6 +315,7 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
       // Convert empty strings to null for optional fields
       description: formData.description?.trim() || null,
       cover_image_url: formData.cover_image_url?.trim() || null,
+      cover_file_id: coverFile?.id || null,
       published_at: formData.status === 'published' ? 
         (formData.published_at?.trim() || new Date().toISOString()) : null,
       // Ensure parent_id is properly set or null
@@ -404,19 +441,37 @@ function ContentItemModal({ isOpen, onClose, item, parentItem, onSave, loading }
               />
             </div>
             
-            {/* Cover Image URL */}
+            {/* Cover Image - New ImageInput Component */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cover Image URL
-              </label>
-              <input
-                type="url"
-                value={formData.cover_image_url}
-                onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="https://example.com/image.jpg"
+              <ImageInput
+                label="Cover Image"
+                value={coverFile}
+                onChange={handleCoverFileChange}
+                placeholder="Select a cover image from your gallery..."
+                allowedTypes={['images']}
+                showPreview={true}
+                previewSize="large"
               />
             </div>
+            
+            {/* Legacy Cover Image URL - Show if no file selected */}
+            {!coverFile && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Or use External Image URL
+                </label>
+                <input
+                  type="url"
+                  value={formData.cover_image_url}
+                  onChange={(e) => setFormData(prev => ({ ...prev, cover_image_url: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Use uploaded images above for better performance, or paste an external URL here.
+                </p>
+              </div>
+            )}
             
             {/* Status & Order */}
             <div className="grid grid-cols-2 gap-4">
@@ -723,6 +778,12 @@ export default function WorksManager() {
           </div>
           
           <div className="flex items-center space-x-3">
+            <Link
+              to="/admin/content/files"
+              className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+            >
+              📁 Manage Files
+            </Link>
             <button
               onClick={expandAll}
               className="text-sm text-indigo-600 hover:text-indigo-700"

@@ -50,10 +50,8 @@ import MyLibraryPage from './pages/account/MyLibraryPage';
 import ChapterReaderPage from './pages/ChapterReaderPage';
 // NEW: File Manager Import
 import FileManagerPage from './pages/FileManagerPage';
-// UPDATED: Persian Background System
-import PersianBackground from './components/PersianBackground';
-// Import the global background styles
-import './styles/persian-background.css';
+// UPDATED: Clean Background System
+import CleanBackground from './components/CleanBackground';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -69,7 +67,7 @@ const PublicLayout: React.FC = () => {
   console.log('PublicLayout', { isAuthenticated });
 
   return (
-    <PersianBackground>
+    <CleanBackground>
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -77,7 +75,7 @@ const PublicLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
-    </PersianBackground>
+    </CleanBackground>
   );
 };
 
@@ -97,7 +95,7 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <PersianBackground>
+    <CleanBackground>
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -105,7 +103,7 @@ const ProtectedLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
-    </PersianBackground>
+    </CleanBackground>
   );
 };
 
@@ -130,18 +128,18 @@ const AppContent: React.FC = () => {
 
   if (isLoading) {
     return (
-      <PersianBackground>
+      <CleanBackground>
         <LoadingSkeleton />
-      </PersianBackground>
+      </CleanBackground>
     );
   }
 
   return (
     <Routes>
       <Route path="/login" element={
-        <PersianBackground>
+        <CleanBackground>
           <LoginPage />
-        </PersianBackground>
+        </CleanBackground>
       } />
       <Route path="/auth/callback" element={<HomePage />} />
 
@@ -195,9 +193,9 @@ const AppContent: React.FC = () => {
       {/* Admin Routes */}
       <Route path="/admin" element={
         <ProtectedRoute requiredRole="admin">
-          <PersianBackground>
+          <CleanBackground>
             <AdminLayout />
-          </PersianBackground>
+          </CleanBackground>
         </ProtectedRoute>
       }>
         <Route index element={<AdminDashboard />} />

@@ -1,0 +1,446 @@
+/* Professional Ebook Reader Styles */
+
+/* Import professional reading fonts */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
+
+/* Load OpenDyslexic font for accessibility */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/ttf/OpenDyslexic-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Ebook Reader Container */
+.ebook-reader {
+  --reader-font-serif: 'Crimson Text', 'Times New Roman', serif;
+  --reader-font-sans: 'Inter', 'Helvetica Neue', sans-serif;
+  --reader-font-mono: 'JetBrains Mono', 'Monaco', monospace;
+  --reader-font-dyslexic: 'OpenDyslexic', sans-serif;
+  
+  /* Content protection */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Disable text selection and context menu */
+.ebook-reader *,
+.ebook-reader *::before,
+.ebook-reader *::after {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}
+
+/* Content protection overlay */
+.content-protection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 20px,
+    rgba(0, 0, 0, 0.01) 20px,
+    rgba(0, 0, 0, 0.01) 21px
+  );
+}
+
+/* Page content styling */
+.page-content {
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  background: inherit;
+}
+
+/* Typography enhancements */
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.page-content h4,
+.page-content h5,
+.page-content h6 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.page-content h1 { font-size: 2.25rem; }
+.page-content h2 { font-size: 1.875rem; }
+.page-content h3 { font-size: 1.5rem; }
+
+.page-content p {
+  margin-bottom: 1.25rem;
+  text-indent: 1.5em;
+}
+
+.page-content p:first-of-type {
+  text-indent: 0; /* No indent for first paragraph */
+}
+
+.page-content blockquote {
+  margin: 2rem 0;
+  padding-left: 2rem;
+  border-left: 4px solid rgba(156, 163, 175, 0.5);
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Page flip animation */
+.page-flip-enter {
+  transform: rotateY(-90deg);
+  opacity: 0;
+}
+
+.page-flip-enter-active {
+  transform: rotateY(0);
+  opacity: 1;
+  transition: transform 300ms ease-in-out, opacity 300ms ease-in-out;
+}
+
+.page-flip-exit {
+  transform: rotateY(0);
+  opacity: 1;
+}
+
+.page-flip-exit-active {
+  transform: rotateY(90deg);
+  opacity: 0;
+  transition: transform 300ms ease-in-out, opacity 300ms ease-in-out;
+}
+
+/* Theme-specific styles */
+.theme-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: rgba(156, 163, 175, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-sepia {
+  --bg-primary: #fef7ed;
+  --bg-secondary: #fef3e2;
+  --text-primary: #92400e;
+  --text-secondary: #d97706;
+  --border-color: rgba(217, 119, 6, 0.2);
+  --shadow-color: rgba(146, 64, 14, 0.1);
+}
+
+.theme-dark {
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --border-color: rgba(209, 213, 219, 0.2);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+.theme-night {
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a1f29;
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --border-color: rgba(156, 163, 175, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Reading progress bar */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  z-index: 100;
+  transition: width 0.3s ease;
+}
+
+/* Custom scrollbar for settings */
+.ebook-reader-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ebook-reader-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.ebook-reader-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.ebook-reader-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Range slider styling */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+}
+
+.slider::-webkit-slider-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.slider::-moz-range-thumb:hover {
+  background: #2563eb;
+  transform: scale(1.1);
+}
+
+/* Page transition effects */
+.page-transition {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-enter {
+  opacity: 0;
+  transform: translateX(100px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateX(-100px);
+}
+
+/* Click zones for page navigation */
+.nav-zone-left:hover {
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.1), transparent);
+  cursor: pointer;
+}
+
+.nav-zone-right:hover {
+  background: linear-gradient(-90deg, rgba(59, 130, 246, 0.1), transparent);
+  cursor: pointer;
+}
+
+.nav-zone-center:hover {
+  background: rgba(59, 130, 246, 0.05);
+  cursor: pointer;
+}
+
+/* Fullscreen styles */
+.fullscreen-reader {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.fullscreen-reader .page-content {
+  box-shadow: none;
+  border: none;
+  max-width: 100%;
+  margin: 0;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .page-content {
+    padding: 1.5rem 1rem;
+    margin: 0 0.5rem;
+  }
+  
+  .ebook-reader {
+    font-size: 16px;
+  }
+}
+
+/* Print protection */
+@media print {
+  body { 
+    display: none !important; 
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .theme-light {
+    --text-primary: #000000;
+    --bg-primary: #ffffff;
+    --border-color: #000000;
+  }
+  
+  .theme-dark {
+    --text-primary: #ffffff;
+    --bg-primary: #000000;
+    --border-color: #ffffff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .page-transition,
+  .page-flip-enter,
+  .page-flip-enter-active,
+  .page-flip-exit,
+  .page-flip-exit-active {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Focus styles for accessibility */
+.ebook-reader button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Loading shimmer effect */
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Content protection blur effect */
+.protection-blur {
+  filter: blur(5px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+/* Anti-selection styles */
+.no-select {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Bookmark indicator */
+.bookmark-indicator {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  width: 30px;
+  height: 40px;
+  background: #dc2626;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  z-index: 20;
+}
+
+/* Reading mode enhancements */
+.reading-mode {
+  transition: all 0.5s ease;
+}
+
+.reading-mode.immersive {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* Custom selection styles (when protection is disabled) */
+.ebook-reader.protection-disabled ::selection {
+  background: rgba(59, 130, 246, 0.2);
+  color: inherit;
+}
+
+.ebook-reader.protection-disabled ::-moz-selection {
+  background: rgba(59, 130, 246, 0.2);
+  color: inherit;
+}
+
+/* Page shadow effects */
+.page-shadow {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.page-shadow-hover:hover {
+  box-shadow: 
+    0 14px 28px rgba(0, 0, 0, 0.25),
+    0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+/* Chapter completion celebration */
+.chapter-complete {
+  animation: celebrate 0.5s ease-in-out;
+}
+
+@keyframes celebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .page-content {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

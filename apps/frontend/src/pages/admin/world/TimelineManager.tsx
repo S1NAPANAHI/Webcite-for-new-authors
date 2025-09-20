@@ -1,48 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   Pencil, 
   Trash2, 
   Eye, 
   EyeOff, 
-  GripVertical, 
   Search, 
   Filter, 
   Calendar, 
   Clock, 
   Globe, 
-  Image as ImageIcon,
   AlertCircle,
   CheckCircle2,
-  X,
-  ArrowUpDown
+  X
 } from 'lucide-react';
-import { Button } from '@zoroaster/ui';
-import { Card, CardContent, CardHeader, CardTitle } from '@zoroaster/ui';
-import { Input } from '@zoroaster/ui';
-import { Badge } from '@zoroaster/ui';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@zoroaster/ui';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@zoroaster/ui';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@zoroaster/ui';
-import { Textarea } from '@zoroaster/ui';
-import { Label } from '@zoroaster/ui';
-import { Switch } from '@zoroaster/ui';
-import { LoadingSkeleton } from '@zoroaster/ui';
-import { useToast } from '@zoroaster/ui';
-import { Alert, AlertDescription } from '@zoroaster/ui';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@zoroaster/ui';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { CSS } from '@dnd-kit/utilities';
 
-// Import your timeline API functions and types
-// import { fetchTimelineEvents, createTimelineEvent, updateTimelineEvent, deleteTimelineEvent, toggleTimelineEventPublishStatus, reorderTimelineEvents } from '@zoroaster/shared/api/timeline';
-// import type { TimelineEvent, CreateTimelineEventDto, UpdateTimelineEventDto } from '@zoroaster/shared/types/timeline';
-
-// Temporary mock types and functions - replace with actual imports
+// Temporary types and mock functions - replace with actual implementations
 interface TimelineEvent {
   id: string;
   title: string;
@@ -96,77 +70,20 @@ const fetchTimelineEvents = async ({ includeUnpublished = true }) => {
 
 const createTimelineEvent = async (eventData: CreateTimelineEventDto) => {
   console.log('Creating event:', eventData);
-  // Mock implementation
   return { id: Date.now().toString(), ...eventData, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), order: 0 };
 };
 
 const updateTimelineEvent = async (id: string, eventData: Partial<CreateTimelineEventDto>) => {
   console.log('Updating event:', id, eventData);
-  // Mock implementation 
   return { id, ...eventData, updated_at: new Date().toISOString() };
 };
 
 const deleteTimelineEvent = async (id: string) => {
   console.log('Deleting event:', id);
-  // Mock implementation
 };
 
 const toggleTimelineEventPublishStatus = async (id: string, isPublished: boolean) => {
   console.log('Toggling publish status:', id, isPublished);
-  // Mock implementation
-};
-
-const reorderTimelineEvents = async (events: Array<{ id: string; order: number }>) => {
-  console.log('Reordering events:', events);
-  // Mock implementation
-};
-
-// Sortable row component for drag and drop
-interface SortableRowProps {
-  id: string;
-  children: React.ReactNode;
-}
-
-const SortableRow: React.FC<SortableRowProps> = ({ id, children }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.8 : 1,
-  };
-
-  return (
-    <TableRow ref={setNodeRef} style={style} className={isDragging ? 'bg-muted/50' : ''}>
-      {React.Children.map(children, (child, index) => {
-        if (index === 0) {
-          // First cell contains the drag handle
-          return React.cloneElement(child as React.ReactElement, {
-            children: (
-              <div className="flex items-center gap-2">
-                <div
-                  {...attributes}
-                  {...listeners}
-                  className="cursor-move p-1 hover:bg-muted rounded"
-                >
-                  <GripVertical className="h-4 w-4 text-muted-foreground" />
-                </div>
-                {(child as React.ReactElement).props.children}
-              </div>
-            )
-          });
-        }
-        return child;
-      })}
-    </TableRow>
-  );
 };
 
 // Event form component
@@ -178,7 +95,6 @@ interface EventFormProps {
 }
 
 const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, event, onSuccess }) => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState<CreateTimelineEventDto>({
     title: '',
@@ -190,7 +106,7 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, event, onSucc
   });
 
   useEffect(() => {
-    if (event) {
+    if (event && open) {
       setFormData({
         title: event.title,
         description: event.description,
@@ -199,7 +115,7 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, event, onSucc
         background_image: event.background_image || '',
         is_published: event.is_published
       });
-    } else {
+    } else if (!event && open) {
       setFormData({
         title: '',
         description: '',
@@ -215,11 +131,11 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, event, onSucc
     mutationFn: createTimelineEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({ title: 'Success', description: 'Timeline event created successfully' });
+      alert('Timeline event created successfully');
       onSuccess();
     },
-    onError: (error) => {
-      toast({ title: 'Error', description: 'Failed to create timeline event', variant: 'destructive' });
+    onError: () => {
+      alert('Failed to create timeline event');
     }
   });
 
@@ -228,11 +144,11 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, event, onSucc
       updateTimelineEvent(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({ title: 'Success', description: 'Timeline event updated successfully' });
+      alert('Timeline event updated successfully');
       onSuccess();
     },
-    onError: (error) => {
-      toast({ title: 'Error', description: 'Failed to update timeline event', variant: 'destructive' });
+    onError: () => {
+      alert('Failed to update timeline event');
     }
   });
 
@@ -246,121 +162,144 @@ const EventForm: React.FC<EventFormProps> = ({ open, onOpenChange, event, onSucc
     }
   };
 
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {event ? 'Edit Timeline Event' : 'Create New Timeline Event'}
-          </DialogTitle>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              {event ? 'Edit Timeline Event' : 'Create New Timeline Event'}
+            </h2>
+            <button
+              onClick={() => onOpenChange(false)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
+              <label htmlFor="title" className="block text-sm font-medium">
+                Title *
+              </label>
+              <input
                 id="title"
+                type="text"
                 value={formData.title}
                 onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter event title"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="date">Date *</Label>
-              <Input
+              <label htmlFor="date" className="block text-sm font-medium">
+                Date *
+              </label>
+              <input
                 id="date"
+                type="text"
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
                 placeholder="e.g., 1066 CE, 500 BCE"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
                 required
               />
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
+            <label htmlFor="description" className="block text-sm font-medium">
+              Description *
+            </label>
+            <textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Brief description of the event"
               rows={3}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
               required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="details">Detailed Information</Label>
-            <Textarea
+            <label htmlFor="details" className="block text-sm font-medium">
+              Detailed Information
+            </label>
+            <textarea
               id="details"
               value={formData.details}
               onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
               placeholder="Detailed information about the event (supports HTML)"
               rows={5}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="background_image">Background Image URL</Label>
-            <Input
+            <label htmlFor="background_image" className="block text-sm font-medium">
+              Background Image URL
+            </label>
+            <input
               id="background_image"
+              type="url"
               value={formData.background_image}
               onChange={(e) => setFormData(prev => ({ ...prev, background_image: e.target.value }))}
               placeholder="https://example.com/image.jpg"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
             />
           </div>
           
           <div className="flex items-center space-x-2">
-            <Switch
+            <input
               id="is_published"
+              type="checkbox"
               checked={formData.is_published}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_published: checked }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, is_published: e.target.checked }))}
+              className="rounded border-gray-300 dark:border-gray-600"
             />
-            <Label htmlFor="is_published">Publish immediately</Label>
+            <label htmlFor="is_published" className="text-sm font-medium">
+              Publish immediately
+            </label>
           </div>
           
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button 
+          <div className="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button 
               type="button" 
-              variant="outline" 
               onClick={() => onOpenChange(false)}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Cancel
-            </Button>
-            <Button 
+            </button>
+            <button 
               type="submit" 
               disabled={createMutation.isPending || updateMutation.isPending}
-              className="min-w-20"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 min-w-20"
             >
-              {createMutation.isPending || updateMutation.isPending ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Saving...
-                </div>
-              ) : (
-                event ? 'Update Event' : 'Create Event'
-              )}
-            </Button>
+              {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (event ? 'Update Event' : 'Create Event')}
+            </button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
 // Main Timeline Manager component
 const TimelineManager: React.FC = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
-  const [isReordering, setIsReordering] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -372,11 +311,11 @@ const TimelineManager: React.FC = () => {
     mutationFn: deleteTimelineEvent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({ title: 'Success', description: 'Timeline event deleted successfully' });
+      alert('Timeline event deleted successfully');
       setEventToDelete(null);
     },
-    onError: (error) => {
-      toast({ title: 'Error', description: 'Failed to delete timeline event', variant: 'destructive' });
+    onError: () => {
+      alert('Failed to delete timeline event');
     }
   });
 
@@ -385,21 +324,10 @@ const TimelineManager: React.FC = () => {
       toggleTimelineEventPublishStatus(id, !isPublished),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({ title: 'Success', description: 'Event status updated successfully' });
+      alert('Event status updated successfully');
     },
-    onError: (error) => {
-      toast({ title: 'Error', description: 'Failed to update event status', variant: 'destructive' });
-    }
-  });
-
-  const reorderMutation = useMutation({
-    mutationFn: reorderTimelineEvents,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timelineEvents'] });
-      toast({ title: 'Success', description: 'Timeline events reordered successfully' });
-    },
-    onError: (error) => {
-      toast({ title: 'Error', description: 'Failed to reorder events', variant: 'destructive' });
+    onError: () => {
+      alert('Failed to update event status');
     }
   });
 
@@ -416,33 +344,6 @@ const TimelineManager: React.FC = () => {
     
     return matchesSearch && matchesStatus;
   });
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-    
-    if (active.id !== over?.id) {
-      const oldIndex = filteredEvents.findIndex(item => item.id === active.id);
-      const newIndex = filteredEvents.findIndex(item => item.id === over.id);
-      
-      const updatedEvents = filteredEvents.map((item, index) => ({
-        id: item.id,
-        order: index
-      }));
-      
-      reorderMutation.mutate(updatedEvents);
-    }
-  };
 
   const handleEdit = (event: TimelineEvent) => {
     setEditingEvent(event);
@@ -465,343 +366,281 @@ const TimelineManager: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 p-6">
         <div className="flex justify-between items-center">
-          <LoadingSkeleton className="h-8 w-48" />
-          <LoadingSkeleton className="h-10 w-32" />
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-10 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
         </div>
-        <Card>
-          <CardHeader>
-            <LoadingSkeleton className="h-6 w-full" />
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="p-6">
+            <div className="h-6 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-4" />
             <div className="space-y-4">
               {[...Array(5)].map((_, i) => (
-                <LoadingSkeleton key={i} className="h-16 w-full" />
+                <div key={i} className="h-16 w-full bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Failed to load timeline events. Please try refreshing the page.
-        </AlertDescription>
-      </Alert>
+      <div className="p-6">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+            <AlertCircle className="h-4 w-4" />
+            <span>Failed to load timeline events. Please try refreshing the page.</span>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <TooltipProvider>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Globe className="h-8 w-8 text-primary" />
-              Timeline Manager
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Manage timeline events for the Zoroasterverse
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant={isReordering ? 'destructive' : 'outline'}
-              onClick={() => setIsReordering(!isReordering)}
-              className="flex items-center gap-2"
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              {isReordering ? 'Done Reordering' : 'Reorder Events'}
-            </Button>
-            
-            <Button
-              onClick={() => {
-                setEditingEvent(null);
-                setIsFormOpen(true);
-              }}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Add Event
-            </Button>
-          </div>
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Globe className="h-8 w-8 text-blue-600" />
+            Timeline Manager
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Manage timeline events for the Zoroasterverse
+          </p>
         </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-              <Globe className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{events.length}</div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Published</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {events.filter(e => e.is_published).length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Drafts</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {events.filter(e => !e.is_published).length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters & Search
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search events..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              
-              <Select value={statusFilter} onValueChange={(value: 'all' | 'published' | 'draft') => setStatusFilter(value)}>
-                <SelectTrigger className="w-48">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Events</SelectItem>
-                  <SelectItem value="published">Published Only</SelectItem>
-                  <SelectItem value="draft">Drafts Only</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Events Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Timeline Events ({filteredEvents.length})</span>
-              {isReordering && (
-                <Badge variant="secondary" className="animate-pulse">
-                  Drag to reorder
-                </Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {filteredEvents.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Events Found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm || statusFilter !== 'all' 
-                    ? 'No events match your current filters.' 
-                    : 'No timeline events have been created yet.'}
-                </p>
-                <Button
-                  onClick={() => {
-                    setEditingEvent(null);
-                    setIsFormOpen(true);
-                  }}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Event
-                </Button>
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  modifiers={[restrictToVerticalAxis]}
-                >
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className={isReordering ? 'w-12' : 'w-8'}></TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <SortableContext
-                        items={filteredEvents.map(event => event.id)}
-                        strategy={verticalListSortingStrategy}
-                        disabled={!isReordering}
-                      >
-                        {filteredEvents.map((event) => (
-                          <SortableRow key={event.id} id={event.id}>
-                            <TableCell></TableCell>
-                            <TableCell>
-                              <div>
-                                <div className="font-medium">{event.title}</div>
-                                <div className="text-sm text-muted-foreground truncate max-w-md">
-                                  {event.description}
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="font-mono">
-                                <Calendar className="h-3 w-3 mr-1" />
-                                {event.date}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <Badge 
-                                variant={event.is_published ? 'default' : 'secondary'}
-                                className={event.is_published ? 'bg-green-100 text-green-800' : ''}
-                              >
-                                {event.is_published ? (
-                                  <><CheckCircle2 className="h-3 w-3 mr-1" />Published</>
-                                ) : (
-                                  <><Clock className="h-3 w-3 mr-1" />Draft</>
-                                )}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1">
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => togglePublishStatus(event.id, event.is_published)}
-                                      disabled={togglePublishMutation.isPending}
-                                    >
-                                      {event.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    {event.is_published ? 'Unpublish' : 'Publish'}
-                                  </TooltipContent>
-                                </Tooltip>
-                                
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => handleEdit(event)}
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Edit Event
-                                  </TooltipContent>
-                                </Tooltip>
-                                
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => handleDelete(event.id)}
-                                      className="text-destructive hover:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Delete Event
-                                  </TooltipContent>
-                                </Tooltip>
-                              </div>
-                            </TableCell>
-                          </SortableRow>
-                        ))}
-                      </SortableContext>
-                    </TableBody>
-                  </Table>
-                </DndContext>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Event Form Dialog */}
-        <EventForm
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          event={editingEvent}
-          onSuccess={() => {
-            setIsFormOpen(false);
+        
+        <button
+          onClick={() => {
             setEditingEvent(null);
+            setIsFormOpen(true);
           }}
-        />
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="h-4 w-4" />
+          Add Event
+        </button>
+      </div>
 
-        {/* Delete Confirmation Dialog */}
-        <Dialog open={!!eventToDelete} onOpenChange={(open) => !open && setEventToDelete(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 text-destructive">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Events</p>
+              <p className="text-2xl font-bold">{events.length}</p>
+            </div>
+            <Globe className="h-8 w-8 text-gray-400" />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Published</p>
+              <p className="text-2xl font-bold text-green-600">
+                {events.filter(e => e.is_published).length}
+              </p>
+            </div>
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Drafts</p>
+              <p className="text-2xl font-bold text-yellow-600">
+                {events.filter(e => !e.is_published).length}
+              </p>
+            </div>
+            <Clock className="h-8 w-8 text-yellow-600" />
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="h-5 w-5" />
+          <h3 className="text-lg font-semibold">Filters & Search</h3>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+              />
+            </div>
+          </div>
+          
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 w-48"
+          >
+            <option value="all">All Events</option>
+            <option value="published">Published Only</option>
+            <option value="draft">Drafts Only</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Events Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold">Timeline Events ({filteredEvents.length})</h3>
+        </div>
+        <div className="p-6">
+          {filteredEvents.length === 0 ? (
+            <div className="text-center py-12">
+              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-lg font-medium mb-2">No Events Found</h4>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {searchTerm || statusFilter !== 'all' 
+                  ? 'No events match your current filters.' 
+                  : 'No timeline events have been created yet.'}
+              </p>
+              <button
+                onClick={() => {
+                  setEditingEvent(null);
+                  setIsFormOpen(true);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 mx-auto"
+              >
+                <Plus className="h-4 w-4" />
+                Create First Event
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700">
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">Title</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">Status</th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredEvents.map((event) => (
+                    <tr key={event.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="py-4 px-4">
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{event.title}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-md">
+                            {event.description}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs font-mono">
+                          <Calendar className="h-3 w-3" />
+                          {event.date}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span 
+                          className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
+                            event.is_published 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
+                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                          }`}
+                        >
+                          {event.is_published ? (
+                            <><CheckCircle2 className="h-3 w-3" />Published</>
+                          ) : (
+                            <><Clock className="h-3 w-3" />Draft</>
+                          )}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => togglePublishStatus(event.id, event.is_published)}
+                            disabled={togglePublishMutation.isPending}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            title={event.is_published ? 'Unpublish' : 'Publish'}
+                          >
+                            {event.is_published ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                          
+                          <button
+                            onClick={() => handleEdit(event)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                            title="Edit Event"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          
+                          <button
+                            onClick={() => handleDelete(event.id)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors text-red-600 hover:text-red-700"
+                            title="Delete Event"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Event Form Modal */}
+      <EventForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        event={editingEvent}
+        onSuccess={() => {
+          setIsFormOpen(false);
+          setEditingEvent(null);
+        }}
+      />
+
+      {/* Delete Confirmation Modal */}
+      {eventToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center gap-2 text-red-600 mb-4">
                 <AlertCircle className="h-5 w-5" />
-                Delete Timeline Event
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <p>Are you sure you want to delete this timeline event? This action cannot be undone.</p>
+                <h3 className="text-lg font-semibold">Delete Timeline Event</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to delete this timeline event? This action cannot be undone.
+              </p>
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setEventToDelete(null)}>
+                <button 
+                  onClick={() => setEventToDelete(null)}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   Cancel
-                </Button>
-                <Button 
-                  variant="destructive" 
+                </button>
+                <button 
                   onClick={confirmDelete}
                   disabled={deleteMutation.isPending}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
                 >
-                  {deleteMutation.isPending ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      Deleting...
-                    </div>
-                  ) : (
-                    'Delete Event'
-                  )}
-                </Button>
+                  {deleteMutation.isPending ? 'Deleting...' : 'Delete Event'}
+                </button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </TooltipProvider>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

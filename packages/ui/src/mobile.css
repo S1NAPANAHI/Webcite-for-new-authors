@@ -1,0 +1,290 @@
+/* Mobile-first responsive improvements */
+@media (max-width: 768px) {
+  /* Ensure all touch targets are at least 44px */
+  button, 
+  a, 
+  input[type="button"], 
+  input[type="submit"],
+  .btn,
+  .button,
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Better spacing on mobile */
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, 
+  select, 
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Mobile-specific button styles */
+  .btn-mobile {
+    min-height: 48px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+  }
+
+  /* Enhanced tap targets */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+
+  .tap-target-large {
+    min-height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+}
+
+/* Utility classes for mobile responsiveness */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Smooth transitions for mobile interactions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-transform {
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Better mobile scrolling */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* Mobile-friendly spacing utilities */
+.mobile-px {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.mobile-py {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.mobile-p {
+  padding: 1rem;
+}
+
+.mobile-gap {
+  gap: 1rem;
+}
+
+/* Touch-friendly form elements */
+.form-input-mobile {
+  min-height: 44px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.form-input-mobile:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select-mobile {
+  min-height: 44px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background-color: white;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.form-select-mobile:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile card styles */
+.card-mobile {
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.card-mobile:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile navigation helpers */
+.nav-item-mobile {
+  min-height: 44px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.nav-item-mobile:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+/* Mobile dropdown styles */
+.dropdown-mobile {
+  min-height: 44px;
+  width: 100%;
+  padding: 12px 16px;
+  background-color: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  touch-action: manipulation;
+}
+
+.dropdown-item-mobile {
+  min-height: 44px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+}
+
+.dropdown-item-mobile:hover {
+  background-color: #f3f4f6;
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .transition-all,
+  .transition-transform,
+  .transition-colors {
+    transition: none !important;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  .btn-mobile,
+  .form-input-mobile,
+  .form-select-mobile {
+    border-width: 3px;
+  }
+
+  .nav-item-mobile:focus,
+  .btn-mobile:focus,
+  .form-input-mobile:focus,
+  .form-select-mobile:focus {
+    outline: 3px solid #000;
+    outline-offset: 2px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .form-input-mobile,
+  .form-select-mobile,
+  .dropdown-mobile {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: white;
+  }
+
+  .card-mobile {
+    background-color: #1f2937;
+    color: white;
+  }
+
+  .dropdown-item-mobile:hover {
+    background-color: #4b5563;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.focus-visible:focus-visible {
+  outline: 3px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Mobile loading states */
+.loading-mobile {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

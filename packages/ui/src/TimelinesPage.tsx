@@ -21,6 +21,7 @@ import { Button } from './button';
 import { Input } from './input';
 import { Badge } from './badge';
 import { LoadingSkeleton } from './LoadingSkeleton';
+import './styles/fantasy-timeline.css';
 
 // Enhanced Types with Nested Structure
 interface NestedEvent {
@@ -187,14 +188,6 @@ const mockTimelineData: Era[] = [
   }
 ];
 
-const CATEGORY_COLORS = {
-  political: 'from-red-900 to-red-700',
-  religious: 'from-yellow-800 to-yellow-600', 
-  military: 'from-gray-800 to-gray-600',
-  cultural: 'from-purple-800 to-purple-600',
-  mystical: 'from-indigo-900 to-purple-700'
-};
-
 const CATEGORY_ICONS = {
   political: Crown,
   religious: Scroll,
@@ -203,88 +196,69 @@ const CATEGORY_ICONS = {
   mystical: Flame
 };
 
-const IMPORTANCE_GLOW = {
-  minor: 'shadow-sm',
-  major: 'shadow-lg shadow-purple-500/20',
-  legendary: 'shadow-xl shadow-yellow-500/30'
-};
-
 // Fantasy Event Component
 const FantasyEvent: React.FC<{ 
   event: TimelineEvent | NestedEvent; 
   depth: number;
-  isNested?: boolean;
-}> = ({ event, depth, isNested = false }) => {
+}> = ({ event, depth }) => {
   const [isOpen, setIsOpen] = useState(depth < 1);
   const hasChildren = event.children && event.children.length > 0;
   const Icon = CATEGORY_ICONS[(event as TimelineEvent).category || 'mystical'];
-  const category = (event as TimelineEvent).category || 'mystical';
   const importance = (event as TimelineEvent).importance || 'minor';
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5, delay: depth * 0.1 }}
-      className="event" 
-      style={{ '--depth': depth } as React.CSSProperties}
-    >
+    <div className="event" style={{ '--depth': depth } as React.CSSProperties}>
       <div className="event-row">
-        {/* Event connector line */}
         <span className="event-connector" aria-hidden="true" />
         
-        {/* Mystical event node */}
-        <div className={`event-node ${IMPORTANCE_GLOW[importance]}`}>
-          <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${CATEGORY_COLORS[category]} border border-white/20 flex items-center justify-center`}>
-            {!isNested && importance === 'legendary' && (
-              <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+        <div className={`event-node ${importance === 'legendary' ? 'legendary-glow' : ''}`}>
+          <div className="relative">
+            {importance === 'legendary' && (
+              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-75 animate-pulse" />
             )}
+            <div className="relative w-3 h-3 bg-gradient-to-br from-purple-400 to-yellow-500 rounded-full border border-white/30">
+              {importance === 'legendary' && (
+                <div className="absolute inset-0.5 bg-white rounded-full animate-pulse" />
+              )}
+            </div>
           </div>
         </div>
         
-        {/* Event content */}
-        <div className="event-content group">
+        <div className={`event-content ${importance === 'legendary' ? 'legendary-glow' : ''}`}>
           <div className="event-head">
             <div className="flex items-center gap-2">
-              {!isNested && <Icon className="w-4 h-4 text-yellow-400" />}
+              <Icon className="w-4 h-4 text-yellow-400" />
               <h3 className="event-title">{event.title}</h3>
             </div>
             {event.date && (
-              <Badge variant="outline" className="event-date bg-black/20 border-white/10 text-gray-300">
-                {event.date}
-              </Badge>
+              <span className="event-date">{event.date}</span>
             )}
           </div>
           
-          {event.blurb && (
-            <p className="event-blurb">{event.blurb}</p>
-          )}
+          <p className="event-blurb">{event.blurb}</p>
           
-          {!isNested && (event as TimelineEvent).importance === 'legendary' && (
-            <div className="mt-2">
-              <Badge className="bg-gradient-to-r from-yellow-600 to-yellow-500 text-yellow-100 border-none">
-                <Star className="w-3 h-3 mr-1" />
-                Legendary Event
-              </Badge>
-            </div>
+          {(event as TimelineEvent).importance === 'legendary' && (
+            <Badge className="mt-2 bg-gradient-to-r from-yellow-600 to-orange-500 text-yellow-100 border-none text-xs">
+              <Star className="w-3 h-3 mr-1" />
+              Legendary Chronicle
+            </Badge>
           )}
           
           {hasChildren && (
             <button
-              className="event-toggle group-hover:bg-white/5"
+              className="event-toggle"
               onClick={() => setIsOpen(!isOpen)}
               aria-expanded={isOpen}
             >
-              <ChevronDown className={`w-4 h-4 mr-1 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-              {isOpen ? 'Hide chronicles' : `Show ${event.children!.length} chronicles`}
+              <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              {isOpen ? 'Hide tales' : `Show ${event.children!.length} tales`}
             </button>
           )}
         </div>
       </div>
 
-      {/* Nested events */}
-      <AnimatePresence>
-        {hasChildren && isOpen && (
+      {hasChildren && isOpen && (
+        <AnimatePresence>
           <motion.ol
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -294,13 +268,13 @@ const FantasyEvent: React.FC<{
           >
             {event.children!.map((child) => (
               <li key={child.id}>
-                <FantasyEvent event={child} depth={depth + 1} isNested={true} />
+                <FantasyEvent event={child} depth={depth + 1} />
               </li>
             ))}
           </motion.ol>
-        )}
-      </AnimatePresence>
-    </motion.div>
+        </AnimatePresence>
+      )}
+    </div>
   );
 };
 
@@ -309,25 +283,17 @@ const FantasyEra: React.FC<{ era: Era; position: number }> = ({ era, position })
   const [isOpen, setIsOpen] = useState(true);
   
   return (
-    <motion.section 
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: position * 0.2 }}
-      className="era" 
-      aria-labelledby={`${era.id}-title`}
-    >
-      <button
-        className="era-header group"
+    <section className="era" aria-labelledby={`${era.id}-title`}>
+      <motion.button
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: position * 0.2 }}
+        className="era-header"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-controls={`${era.id}-panel`}
       >
-        {/* Mystical era marker */}
-        <span className="era-marker">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600 animate-pulse" />
-          <div className="absolute inset-0.5 rounded-full bg-gradient-to-br from-purple-900 to-indigo-900" />
-          <div className="absolute inset-1 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 opacity-80" />
-        </span>
+        <span className="era-marker" />
         
         <div className="era-text">
           <h2 id={`${era.id}-title`} className="era-title">
@@ -339,24 +305,22 @@ const FantasyEra: React.FC<{ era: Era; position: number }> = ({ era, position })
           {era.description && (
             <p className="era-desc">{era.description}</p>
           )}
-          <div className="flex items-center gap-2 mt-2">
-            <Badge variant="outline" className="bg-black/20 border-white/10 text-gray-300">
+          <div className="flex items-center gap-2 mt-3">
+            <Badge variant="outline" className="bg-black/20 border-white/10 text-gray-300 text-xs">
+              <Scroll className="w-3 h-3 mr-1" />
               {era.events.length} chronicles
             </Badge>
-            <Badge variant="outline" className="bg-black/20 border-white/10 text-yellow-300">
+            <Badge variant="outline" className="bg-black/20 border-yellow-500/20 text-yellow-300 text-xs">
               <Sparkles className="w-3 h-3 mr-1" />
               {era.events.reduce((sum, event) => sum + (event.children?.length || 0), 0)} tales
             </Badge>
           </div>
         </div>
         
-        <span 
-          className={`chevron transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-          data-open={isOpen ? 'true' : 'false'}
-        >
-          <ChevronDown className="w-5 h-5 text-purple-400" />
+        <span className="chevron">
+          <ChevronDown className={`w-5 h-5 text-purple-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
         </span>
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {isOpen && (
@@ -364,9 +328,10 @@ const FantasyEra: React.FC<{ era: Era; position: number }> = ({ era, position })
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
             id={`${era.id}-panel`} 
             className="era-panel"
+            hidden={!isOpen}
           >
             {era.events?.length ? (
               <ol className="event-list">
@@ -382,7 +347,7 @@ const FantasyEra: React.FC<{ era: Era; position: number }> = ({ era, position })
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.section>
+    </section>
   );
 };
 
@@ -478,21 +443,19 @@ export const TimelinesPage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
         >
-          <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="flex items-center justify-center gap-4 mb-6">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="w-8 h-8 text-yellow-400"
             >
-              <Flame className="w-8 h-8" />
+              <Flame className="w-8 h-8 text-yellow-400" />
             </motion.div>
             <h1>Chronicle of Ages</h1>
             <motion.div
               animate={{ rotate: -360 }}
               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="w-8 h-8 text-yellow-400"
             >
-              <Star className="w-8 h-8" />
+              <Star className="w-8 h-8 text-yellow-400" />
             </motion.div>
           </div>
           <p className="subtitle">
@@ -573,21 +536,7 @@ export const TimelinesPage: React.FC = () => {
           </motion.div>
         ) : (
           <div className="timeline">
-            {/* Mystical timeline rail */}
-            <div className="timeline-rail">
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-b from-purple-500/60 via-blue-500/40 to-yellow-500/60"
-                animate={{
-                  backgroundPosition: ['0% 0%', '0% 100%', '0% 0%'],
-                }}
-                transition={{
-                  duration: 8,
-                  repeat: Infinity,
-                  ease: 'linear'
-                }}
-              />
-            </div>
-            
+            <div className="timeline-rail" aria-hidden="true" />
             <ol className="era-list">
               {filteredEras.map((era, idx) => (
                 <li key={era.id} className="era-item">

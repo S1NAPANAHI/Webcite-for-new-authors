@@ -4,12 +4,12 @@ import useTheme from '../hooks/useTheme';
 
 interface ThemeToggleProps {
   className?: string;
-  variant?: 'default' | 'compact';
+  variant?: 'default' | 'compact' | 'elegant';
 }
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ 
   className = '', 
-  variant = 'default' 
+  variant = 'elegant' 
 }) => {
   const { theme, setTheme, resolvedTheme } = useTheme();
 
@@ -40,6 +40,29 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({
     );
   }
 
+  if (variant === 'elegant') {
+    return (
+      <button
+        onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+        className={`theme-toggle ${className}`}
+        title={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        {resolvedTheme === 'dark' ? (
+          <>
+            <Sun className="w-4 h-4" />
+            <span className="hidden sm:inline">Light Mode</span>
+          </>
+        ) : (
+          <>
+            <Moon className="w-4 h-4" />
+            <span className="hidden sm:inline">Dark Mode</span>
+          </>
+        )}
+      </button>
+    );
+  }
+
+  // Default variant
   return (
     <div className={`flex items-center bg-card/70 backdrop-blur-sm rounded-lg p-1 border border-border/50 shadow-lg ${className}`}>
       {themes.map(({ value, icon: Icon, label }) => (

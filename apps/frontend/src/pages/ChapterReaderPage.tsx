@@ -3,11 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, AlertCircle, Loader2, Lock, Crown, LogIn, CreditCard } from 'lucide-react';
 import { useAuth } from '@zoroaster/shared';
 import { supabase } from '../lib/supabase';
-import { ProfessionalEbookReader } from '../components/ProfessionalEbookReader';
+import { ImmersiveEbookReader } from '../components/ImmersiveEbookReader';
 import { redirectLegacyChapterUrl } from '../utils/chapterUtils';
-
-// Import the ebook reader styles
-import '../styles/ebook-reader.css';
 
 interface Chapter {
   id: string;
@@ -118,13 +115,6 @@ function AccessDeniedPage({ reason, chapter, issue, subscriptionTier, allChapter
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
       <div className="max-w-2xl w-full">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-4 -left-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-          <div className="absolute -top-4 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        </div>
-        
         <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
           {/* Icon */}
           <div className="flex justify-center mb-6">
@@ -214,7 +204,7 @@ function AccessDeniedPage({ reason, chapter, issue, subscriptionTier, allChapter
                         Chapter {ch.chapter_number}: {ch.title}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {ch.word_count.toLocaleString()} words • {ch.estimated_read_time} min
+                        {ch.word_count?.toLocaleString() || 0} words • {ch.estimated_read_time || 0} min
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -287,6 +277,7 @@ export default function ChapterReaderPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [showImmersiveReader, setShowImmersiveReader] = useState(false);
 
   // Load chapter data using new database functions
   useEffect(() => {
@@ -391,6 +382,11 @@ export default function ChapterReaderPage() {
           setNavigation(navData[0]);
         }
         
+        // Auto-start immersive reader if user has access
+        if (chapterInfo.has_access) {
+          setShowImmersiveReader(true);
+        }
+        
       } catch (err) {
         console.error('💥 Unexpected error loading chapter:', err);
         setError('An unexpected error occurred while loading the chapter');
@@ -431,6 +427,11 @@ export default function ChapterReaderPage() {
         navigate(`/read/${issueSlug}/${targetSlug}`);
       }
     }
+  };
+  
+  const handleExitReader = () => {
+    setShowImmersiveReader(false);
+    navigate('/library');
   };
   
   // Show loading
@@ -521,23 +522,45 @@ export default function ChapterReaderPage() {
     );
   }
 
-  // Show the PROFESSIONAL ebook reader if user has access
-  if (chapter.has_access) {
+  // Show the IMMERSIVE ebook reader if user has access
+  if (chapter.has_access && showImmersiveReader) {
     return (
-      <div className="ebook-reader min-h-screen">
-        <ProfessionalEbookReader
-          chapter={chapter}
-          onChapterChange={handleChapterChange}
-          showNavigation={navigation && (navigation.prev_chapter_slug || navigation.next_chapter_slug) ? true : false}
-          navigationInfo={{
-            hasPrev: !!navigation?.prev_chapter_slug,
-            hasNext: !!navigation?.next_chapter_slug,
-            prevTitle: navigation?.prev_chapter_title || undefined,
-            nextTitle: navigation?.next_chapter_title || undefined,
-            prevHasAccess: navigation?.prev_has_access || false,
-            nextHasAccess: navigation?.next_has_access || false
-          }}
-        />
+      <ImmersiveEbookReader
+        chapter={chapter}
+        onChapterChange={handleChapterChange}
+        showNavigation={navigation && (navigation.prev_chapter_slug || navigation.next_chapter_slug) ? true : false}
+        navigationInfo={{
+          hasPrev: !!navigation?.prev_chapter_slug,
+          hasNext: !!navigation?.next_chapter_slug,
+          prevTitle: navigation?.prev_chapter_title || undefined,
+          nextTitle: navigation?.next_chapter_title || undefined,
+          prevHasAccess: navigation?.prev_has_access || false,
+          nextHasAccess: navigation?.next_has_access || false
+        }}
+        onExit={handleExitReader}
+      />
+    );
+  }
+
+  // Fallback - show regular page with option to enter immersive reader
+  if (chapter.has_access && !showImmersiveReader) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
+        <div className="text-center max-w-md w-full">
+          <BookOpen className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            {chapter.title}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Chapter {chapter.chapter_number} • {chapter.word_count?.toLocaleString() || 0} words
+          </p>
+          <button
+            onClick={() => setShowImmersiveReader(true)}
+            className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-lg font-medium"
+          >
+            Start Reading
+          </button>
+        </div>
       </div>
     );
   }

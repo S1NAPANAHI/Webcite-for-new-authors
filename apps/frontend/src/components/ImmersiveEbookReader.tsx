@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@zoroaster/shared';
 import { supabase } from '../lib/supabase';
+import { useFileUrl } from '../utils/fileUrls';
+import './ebook-reader.css';
 
 type Tier = 'free' | 'premium' | 'patron';
 
@@ -43,6 +45,8 @@ export interface ChapterLite {
   hero_file_alt_text?: string;
   banner_file_url?: string;
   banner_file_alt_text?: string;
+  hero_file_id?: string | null; // Add support for file ID
+  banner_file_id?: string | null; // Add support for file ID
 }
 
 interface Chapter extends ChapterLite {
@@ -195,6 +199,10 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
   const [protectionEnabled, setProtectionEnabled] = useState(true);
   const [allChapters, setAllChapters] = useState<ChapterLite[]>([]);
   const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+  
+  // Get hero image URL using the file utility hook
+  const heroUrlFromFile = useFileUrl(chapter?.hero_file_id);
+  const heroUrl = heroUrlFromFile || chapter?.hero_file_url || null;
   
   const contentRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -481,7 +489,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
   const themeColors = getThemeColors();
   
   // Check if this is the first page and we have a hero image
-  const shouldShowHeroImage = settings.showHeroImage && currentPage === 1 && chapter.hero_file_url;
+  const shouldShowHeroImage = settings.showHeroImage && currentPage === 1 && heroUrl;
 
   const overlay = (
     <div 
@@ -566,7 +574,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
                       </span>
                       {!ch.is_free && <Crown className="w-3 h-3 text-yellow-500" />}
                       {!accessible && <span className="text-xs">🔒</span>}
-                      {ch.hero_file_url && <ImageIcon className="w-3 h-3 text-purple-500" title="Has hero image" />}
+                      {(ch.hero_file_url || ch.hero_file_id) && <ImageIcon className="w-3 h-3 text-purple-500" title="Has hero image" />}
                     </div>
                     <div className="font-medium text-sm mb-1">{ch.title}</div>
                     {ch.word_count && ch.estimated_read_time && (
@@ -680,7 +688,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
           {/* Page Content with Scrolling AND Hero Image Support */}
           <div
             ref={contentRef}
-            className="h-full overflow-y-auto overflow-x-hidden relative select-none p-8 rounded-2xl ebook-content-scroll"
+            className="h-full overflow-y-auto overflow-x-hidden relative select-none p-8 rounded-2xl ebook-content-scroll reader-content"
             style={{
               fontFamily: getFontFamily(),
               fontSize: `${settings.fontSize}px`,
@@ -690,27 +698,20 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
               border: `1px solid ${themeColors.accent}`,
               boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
               // Override any global styles
-              fontSizeAdjust: 'none'
+              fontSizeAdjust: 'none',
+              minHeight: 0
             }}
           >
             {/* HERO IMAGE - Show only on first page if enabled */}
             {shouldShowHeroImage && (
-              <div className="hero-image-container mb-8">
+              <div className="chapter-hero">
                 <img 
-                  src={chapter.hero_file_url} 
+                  src={heroUrl} 
                   alt={chapter.hero_file_alt_text || `Hero image for ${chapter.title}`}
                   className="hero-image"
-                  style={{
-                    width: '100%',
-                    height: '300px',
-                    objectFit: 'cover',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
-                    marginBottom: '32px'
-                  }}
                   onLoad={() => setHeroImageLoaded(true)}
                   onError={() => {
-                    console.warn('Hero image failed to load:', chapter.hero_file_url);
+                    console.warn('Hero image failed to load:', heroUrl);
                     setHeroImageLoaded(false);
                   }}
                 />
@@ -830,7 +831,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
           </div>
           
           {/* Hero Image Indicator */}
-          {chapter.hero_file_url && (
+          {heroUrl && (
             <div className="flex items-center space-x-2">
               <ImageIcon className="w-4 h-4 text-purple-500" />
               <span className="text-purple-500">Chapter Art</span>
@@ -1013,7 +1014,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
               </div>
               
               {/* NEW: Hero Image Toggle */}
-              {chapter.hero_file_url && (
+              {heroUrl && (
                 <div>
                   <label className="flex items-center space-x-3 cursor-pointer">
                     <input
@@ -1072,12 +1073,28 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
         }
         
         .hero-image {
+          display: block;
+          width: 100%;
+          height: auto;
+          max-height: 52vh;
+          object-fit: cover;
+          border-radius: 12px;
           box-shadow: 0 8px 30px rgba(0,0,0,0.2);
           transition: transform 0.3s ease;
+          margin-bottom: 16px;
         }
         
         .hero-image:hover {
           transform: scale(1.02);
+        }
+        
+        .chapter-hero {
+          width: 100%;
+          margin: 0 0 16px 0;
+          border-radius: 12px;
+          overflow: hidden;
+          background: #f3f4f6;
+          border: 1px solid rgba(0,0,0,0.06);
         }
         
         .touch-target {

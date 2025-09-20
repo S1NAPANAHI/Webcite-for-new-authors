@@ -296,6 +296,8 @@ export default function ContentItemDetailPage() {
       console.log('✅ CONTENT ITEM DETAIL - Item loaded:', {
         id: itemData.id,
         title: itemData.title,
+        cover_image_url: itemData.cover_image_url,
+        cover_file_id: itemData.cover_file_id,
         chaptersCount: itemData.chapters?.length || 0
       });
       
@@ -604,6 +606,17 @@ export default function ContentItemDetailPage() {
     overallProgress
   });
   
+  // Get cover image URL using our file utility hook
+  const coverUrlFromFile = useFileUrl(item.cover_file_id);
+  const finalCoverUrl = coverUrlFromFile || item.cover_image_url || null;
+  
+  console.log('🎨 COVER IMAGE DEBUG:', {
+    cover_file_id: item.cover_file_id,
+    cover_image_url: item.cover_image_url,
+    resolved_from_file: coverUrlFromFile,
+    final_cover_url: finalCoverUrl
+  });
+  
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -620,11 +633,28 @@ export default function ContentItemDetailPage() {
               {/* Cover Image */}
               <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                 <div className="aspect-[3/4] bg-gray-200 rounded-lg overflow-hidden mb-4">
-                  {item.cover_image_url ? (
+                  {finalCoverUrl ? (
                     <img 
-                      src={item.cover_image_url} 
+                      src={finalCoverUrl} 
                       alt={item.title}
                       className="w-full h-full object-cover"
+                      onLoad={() => console.log('✅ Cover image loaded:', finalCoverUrl)}
+                      onError={(e) => {
+                        console.error('❌ Cover image failed to load:', finalCoverUrl);
+                        // Show fallback icon instead of broken image
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const container = target.parentElement;
+                        if (container) {
+                          container.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center">
+                              <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17l2.5-3.21L14.5 17H9z"/>
+                              </svg>
+                            </div>
+                          `;
+                        }
+                      }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

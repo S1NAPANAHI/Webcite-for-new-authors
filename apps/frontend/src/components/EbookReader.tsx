@@ -13,7 +13,9 @@ import {
   Clock,
   BarChart3,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Lock,
+  Crown
 } from 'lucide-react';
 
 interface Chapter {
@@ -31,6 +33,18 @@ interface Chapter {
   created_at: string;
   updated_at: string;
   metadata: any;
+  is_free?: boolean;
+  subscription_tier_required?: string;
+  has_access?: boolean;
+}
+
+interface NavigationInfo {
+  hasPrev: boolean;
+  hasNext: boolean;
+  prevTitle?: string;
+  nextTitle?: string;
+  prevHasAccess: boolean;
+  nextHasAccess: boolean;
 }
 
 interface ReadingSettings {
@@ -45,6 +59,7 @@ interface EbookReaderProps {
   chapter: Chapter;
   onChapterChange?: (direction: 'prev' | 'next') => void;
   showNavigation?: boolean;
+  navigationInfo?: NavigationInfo;
 }
 
 interface ReadingSettingsModalProps {
@@ -160,7 +175,8 @@ function ReadingSettingsModal({ isOpen, onClose, settings, onSettingsChange }: R
 export const EbookReader: React.FC<EbookReaderProps> = ({ 
   chapter, 
   onChapterChange,
-  showNavigation = true 
+  showNavigation = true,
+  navigationInfo
 }) => {
   const { user } = useAuth();
   const contentRef = useRef<HTMLDivElement>(null);
@@ -378,6 +394,20 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
     }
   };
   
+  const handleNavigation = (direction: 'prev' | 'next') => {
+    if (!onChapterChange || !navigationInfo) return;
+    
+    const hasAccess = direction === 'prev' ? navigationInfo.prevHasAccess : navigationInfo.nextHasAccess;
+    
+    if (hasAccess) {
+      onChapterChange(direction);
+    } else {
+      // Show a toast or modal about needing subscription
+      console.log(`Access denied for ${direction} chapter - subscription required`);
+      // You could show a subscription upgrade prompt here
+    }
+  };
+  
   if (!chapter) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -395,13 +425,21 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
-              {showNavigation && onChapterChange && (
+              {showNavigation && onChapterChange && navigationInfo?.hasPrev && (
                 <button
-                  onClick={() => onChapterChange('prev')}
-                  className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                  title="Previous Chapter"
+                  onClick={() => handleNavigation('prev')}
+                  disabled={!navigationInfo.prevHasAccess}
+                  className={`p-2 rounded-lg transition-colors duration-200 ${
+                    navigationInfo.prevHasAccess 
+                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700' 
+                      : 'opacity-50 cursor-not-allowed'
+                  }`}
+                  title={navigationInfo.prevHasAccess ? `Previous: ${navigationInfo.prevTitle}` : 'Previous chapter requires subscription'}
                 >
                   <ChevronLeft className="w-5 h-5" />
+                  {!navigationInfo.prevHasAccess && (
+                    <Lock className="w-3 h-3 absolute -top-1 -right-1 text-yellow-500" />
+                  )}
                 </button>
               )}
               
@@ -409,9 +447,22 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
                 <h1 className="font-semibold truncate max-w-xs sm:max-w-sm md:max-w-md">
                   {chapter.title}
                 </h1>
-                <p className="text-sm opacity-75">
-                  Chapter {chapter.chapter_number}
-                </p>
+                <div className="flex items-center space-x-2">
+                  <p className="text-sm opacity-75">
+                    Chapter {chapter.chapter_number}
+                  </p>
+                  {chapter.is_free && (
+                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                      FREE
+                    </span>
+                  )}
+                  {!chapter.is_free && (
+                    <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full flex items-center space-x-1">
+                      <Crown className="w-3 h-3" />
+                      <span>PREMIUM</span>
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -436,6 +487,24 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
               >
                 <Settings className="w-5 h-5" />
               </button>
+              
+              {showNavigation && onChapterChange && navigationInfo?.hasNext && (
+                <button
+                  onClick={() => handleNavigation('next')}
+                  disabled={!navigationInfo.nextHasAccess}
+                  className={`p-2 rounded-lg transition-colors duration-200 ${
+                    navigationInfo.nextHasAccess 
+                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700' 
+                      : 'opacity-50 cursor-not-allowed'
+                  }`}
+                  title={navigationInfo.nextHasAccess ? `Next: ${navigationInfo.nextTitle}` : 'Next chapter requires subscription'}
+                >
+                  <ChevronRight className="w-5 h-5" />
+                  {!navigationInfo.nextHasAccess && (
+                    <Lock className="w-3 h-3 absolute -top-1 -right-1 text-yellow-500" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
           
@@ -507,28 +576,58 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
           </div>
           
           {/* Chapter Navigation */}
-          {showNavigation && onChapterChange && (
+          {showNavigation && onChapterChange && navigationInfo && (
             <nav className="flex items-center justify-between border-t border-opacity-20 pt-8">
-              <button 
-                onClick={() => onChapterChange('prev')}
-                className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                <span>Previous Chapter</span>
-              </button>
+              <div className="flex-1">
+                {navigationInfo.hasPrev ? (
+                  <button 
+                    onClick={() => handleNavigation('prev')}
+                    disabled={!navigationInfo.prevHasAccess}
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors duration-200 ${
+                      navigationInfo.prevHasAccess 
+                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <div className="text-left">
+                      <div className="text-xs opacity-75">Previous</div>
+                      <div className="font-medium flex items-center space-x-1">
+                        <span className="truncate max-w-40">{navigationInfo.prevTitle || 'Previous Chapter'}</span>
+                        {!navigationInfo.prevHasAccess && <Lock className="w-3 h-3 text-yellow-500" />}
+                      </div>
+                    </div>
+                  </button>
+                ) : <div></div>}
+              </div>
               
-              <div className="text-center text-sm opacity-75">
+              <div className="text-center text-sm opacity-75 mx-8">
                 <p>Chapter {chapter.chapter_number}</p>
                 <p>{Math.round(readingProgress)}% Complete</p>
               </div>
               
-              <button 
-                onClick={() => onChapterChange('next')}
-                className="flex items-center space-x-2 px-6 py-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-              >
-                <span>Next Chapter</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <div className="flex-1 flex justify-end">
+                {navigationInfo.hasNext ? (
+                  <button 
+                    onClick={() => handleNavigation('next')}
+                    disabled={!navigationInfo.nextHasAccess}
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-colors duration-200 ${
+                      navigationInfo.nextHasAccess 
+                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="text-right">
+                      <div className="text-xs opacity-75">Next</div>
+                      <div className="font-medium flex items-center space-x-1">
+                        <span className="truncate max-w-40">{navigationInfo.nextTitle || 'Next Chapter'}</span>
+                        {!navigationInfo.nextHasAccess && <Lock className="w-3 h-3 text-yellow-500" />}
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                ) : <div></div>}
+              </div>
             </nav>
           )}
           

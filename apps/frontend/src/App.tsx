@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Route, Routes, Outlet, useParams, useNavigate } from 'react-router-dom';
 import { 
   Layout, 
-  StarsBackground,
   LoadingSkeleton,
   LoginPage,
   HomePage
@@ -51,6 +50,8 @@ import MyLibraryPage from './pages/account/MyLibraryPage';
 import ChapterReaderPage from './pages/ChapterReaderPage';
 // NEW: File Manager Import
 import FileManagerPage from './pages/FileManagerPage';
+// UPDATED: Replace StarsBackground with PersianBackground
+import PersianBackground from './components/PersianBackground';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -67,7 +68,7 @@ const PublicLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <StarsBackground />
+      <PersianBackground animated={true} premium={false} />
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -96,7 +97,7 @@ const ProtectedLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <StarsBackground />
+      <PersianBackground animated={true} premium={true} />
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -133,7 +134,7 @@ const AppContent: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={<div className="min-h-screen bg-background text-foreground transition-colors duration-300"><LoginPage /></div>} />
+      <Route path="/login" element={<div className="min-h-screen bg-background text-foreground transition-colors duration-300"><PersianBackground animated={true} /><LoginPage /></div>} />
       <Route path="/auth/callback" element={<HomePage />} />
 
       {/* Public Routes */}
@@ -184,8 +185,7 @@ const AppContent: React.FC = () => {
       </Route>
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><div className="min-h-screen bg-background text-foreground transition-colors duration-300"><AdminLayout /></div></ProtectedRoute>}>
-        <Route index element={<AdminDashboard />} />
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><div className="min-h-screen bg-background text-foreground transition-colors duration-300"><PersianBackground animated={true} premium={true} /><AdminLayout /></div></ProtectedRoute>}>        <Route index element={<AdminDashboard />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         
         <Route path="content/pages" element={<PagesManager />} />

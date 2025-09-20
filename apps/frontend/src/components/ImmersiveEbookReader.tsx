@@ -180,6 +180,55 @@ const useContentProtection = (enabled: boolean = true) => {
   }, [enabled]);
 };
 
+// FIXED: Hero Image Component
+function ChapterHero({ chapter }: { chapter: Chapter }) {
+  const heroUrlFromFile = useFileUrl(chapter?.hero_file_id);
+  const heroUrl = heroUrlFromFile || chapter?.hero_file_url || null;
+
+  // Nothing to show
+  if (!heroUrl) return null;
+
+  return (
+    <div
+      className="chapter-hero"
+      style={{
+        width: '100%',
+        margin: '0 0 32px',
+        borderRadius: 16,
+        overflow: 'hidden',
+        border: '1px solid rgba(0,0,0,0.08)',
+        background: '#f3f4f6',
+      }}
+    >
+      <img
+        src={heroUrl}
+        alt={chapter?.hero_file_alt_text || chapter?.title || 'Chapter hero image'}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxHeight: '55vh',
+          objectFit: 'cover',
+        }}
+        loading="lazy"
+        onLoad={() => {
+          console.log('✅ Hero image loaded successfully:', heroUrl);
+        }}
+        onError={(e) => {
+          console.error('❌ Hero image failed to load:', heroUrl);
+          // Hide the broken image element instead of showing broken icon
+          (e.target as HTMLImageElement).style.display = 'none';
+          // Hide the entire hero container if image fails
+          const heroContainer = (e.target as HTMLImageElement).closest('.chapter-hero') as HTMLElement;
+          if (heroContainer) {
+            heroContainer.style.display = 'none';
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({ 
   chapter, 
   onChapterChange,
@@ -198,11 +247,6 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
   const [readingTime, setReadingTime] = useState(0);
   const [protectionEnabled, setProtectionEnabled] = useState(true);
   const [allChapters, setAllChapters] = useState<ChapterLite[]>([]);
-  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
-  
-  // Get hero image URL using the file utility hook
-  const heroUrlFromFile = useFileUrl(chapter?.hero_file_id);
-  const heroUrl = heroUrlFromFile || chapter?.hero_file_url || null;
   
   const contentRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
@@ -489,7 +533,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
   const themeColors = getThemeColors();
   
   // Check if this is the first page and we have a hero image
-  const shouldShowHeroImage = settings.showHeroImage && currentPage === 1 && heroUrl;
+  const shouldShowHeroImage = settings.showHeroImage && currentPage === 1;
 
   const overlay = (
     <div 
@@ -685,7 +729,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
         }}
       >
         <div className="w-full max-w-4xl px-8">
-          {/* Page Content with Scrolling AND Hero Image Support */}
+          {/* Page Content with Scrolling AND FIXED Hero Image Support */}
           <div
             ref={contentRef}
             className="h-full overflow-y-auto overflow-x-hidden relative select-none p-8 rounded-2xl ebook-content-scroll reader-content"
@@ -702,27 +746,9 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
               minHeight: 0
             }}
           >
-            {/* HERO IMAGE - Show only on first page if enabled */}
+            {/* FIXED HERO IMAGE - Show only on first page if enabled */}
             {shouldShowHeroImage && (
-              <div className="chapter-hero">
-                <img 
-                  src={heroUrl} 
-                  alt={chapter.hero_file_alt_text || `Hero image for ${chapter.title}`}
-                  className="hero-image"
-                  onLoad={() => setHeroImageLoaded(true)}
-                  onError={() => {
-                    console.warn('Hero image failed to load:', heroUrl);
-                    setHeroImageLoaded(false);
-                  }}
-                />
-                
-                {/* Hero image caption */}
-                {chapter.hero_file_alt_text && (
-                  <div className="text-center text-sm opacity-60 mb-6">
-                    {chapter.hero_file_alt_text}
-                  </div>
-                )}
-              </div>
+              <ChapterHero chapter={chapter} />
             )}
             
             {/* Typography reset wrapper */}
@@ -829,14 +855,6 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
             <BarChart3 className="w-4 h-4" />
             <span>{chapter.word_count?.toLocaleString() || 0} words</span>
           </div>
-          
-          {/* Hero Image Indicator */}
-          {heroUrl && (
-            <div className="flex items-center space-x-2">
-              <ImageIcon className="w-4 h-4 text-purple-500" />
-              <span className="text-purple-500">Chapter Art</span>
-            </div>
-          )}
           
           {/* Chapter Navigation */}
           {showNavigation && onChapterChange && (
@@ -1013,23 +1031,21 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
                 </select>
               </div>
               
-              {/* NEW: Hero Image Toggle */}
-              {heroUrl && (
-                <div>
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.showHeroImage}
-                      onChange={(e) => setSettings({ ...settings, showHeroImage: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div>
-                      <div className="text-sm font-semibold">Show Chapter Hero Image</div>
-                      <div className="text-xs opacity-60">Display artwork at the beginning of the chapter</div>
-                    </div>
-                  </label>
-                </div>
-              )}
+              {/* FIXED: Hero Image Toggle */}
+              <div>
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={settings.showHeroImage}
+                    onChange={(e) => setSettings({ ...settings, showHeroImage: e.target.checked })}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <div>
+                    <div className="text-sm font-semibold">Show Chapter Hero Image</div>
+                    <div className="text-xs opacity-60">Display artwork at the beginning of the chapter</div>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -1076,12 +1092,11 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
           display: block;
           width: 100%;
           height: auto;
-          max-height: 52vh;
+          max-height: 55vh;
           object-fit: cover;
           border-radius: 12px;
           box-shadow: 0 8px 30px rgba(0,0,0,0.2);
           transition: transform 0.3s ease;
-          margin-bottom: 16px;
         }
         
         .hero-image:hover {
@@ -1090,8 +1105,8 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
         
         .chapter-hero {
           width: 100%;
-          margin: 0 0 16px 0;
-          border-radius: 12px;
+          margin: 0 0 32px 0;
+          border-radius: 16px;
           overflow: hidden;
           background: #f3f4f6;
           border: 1px solid rgba(0,0,0,0.06);

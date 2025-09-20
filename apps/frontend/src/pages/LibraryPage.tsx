@@ -31,6 +31,7 @@ import {
   STATUS_COLORS,
   LibraryCardData
 } from '../types/content';
+import { useFileUrl } from '../utils/fileUrls';
 
 interface LibraryCardProps {
   data: LibraryCardData;
@@ -42,6 +43,19 @@ interface LibraryCardProps {
 function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: LibraryCardProps) {
   const { item, overallProgress, inUserLibrary } = data;
   const [isHovered, setIsHovered] = useState(false);
+  
+  // FIXED: Use the file URL utility to resolve cover images
+  const coverUrlFromFile = useFileUrl(item.cover_file_id);
+  const coverUrl = coverUrlFromFile || item.cover_image_url || null;
+  
+  console.log('🎨 LIBRARY CARD COVER DEBUG:', {
+    id: item.id,
+    title: item.title,
+    cover_file_id: item.cover_file_id,
+    cover_image_url: item.cover_image_url,
+    resolved_from_file: coverUrlFromFile,
+    final_cover_url: coverUrl
+  });
   
   const getTypeColor = (type: ContentItemType) => {
     const colors = {
@@ -75,14 +89,21 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         <div className="flex items-center space-x-6">
           {/* Cover Image */}
           <div className="w-16 h-20 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
-            {item.cover_image_url ? (
+            {coverUrl ? (
               <img 
-                src={item.cover_image_url} 
+                src={coverUrl} 
                 alt={item.title}
                 className="w-full h-full object-cover"
+                loading="lazy"
+                onLoad={() => console.log('✅ List view cover loaded:', coverUrl)}
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+                  console.error('❌ List view cover failed to load:', coverUrl);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const container = target.parentElement;
+                  if (container) {
+                    container.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+                  }
                 }}
               />
             ) : (
@@ -183,14 +204,21 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
     >
       {/* Cover Image */}
       <div className="relative h-48 bg-gray-200 overflow-hidden">
-        {item.cover_image_url ? (
+        {coverUrl ? (
           <img 
-            src={item.cover_image_url} 
+            src={coverUrl} 
             alt={item.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+            loading="lazy"
+            onLoad={() => console.log('✅ Grid view cover loaded:', coverUrl)}
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+              console.error('❌ Grid view cover failed to load:', coverUrl);
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              const container = target.parentElement;
+              if (container) {
+                container.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+              }
             }}
           />
         ) : (
@@ -477,10 +505,26 @@ export default function LibraryPage() {
       
       console.log('🔍 Loading library data from Supabase...');
       
-      // Use the new library_content_view for better performance and consistent data
+      // FIXED: Query content_items directly with proper cover_file_id selection
       let query = supabase
-        .from('library_content_view')
-        .select('*');
+        .from('content_items')
+        .select(`
+          id,
+          title,
+          slug,
+          type,
+          description,
+          cover_file_id,
+          cover_image_url,
+          average_rating,
+          rating_count,
+          completion_percentage,
+          status,
+          created_at,
+          updated_at,
+          metadata
+        `)
+        .eq('status', 'published');
       
       // Apply filters
       if (selectedType !== 'all') {
@@ -519,8 +563,18 @@ export default function LibraryPage() {
       console.log('✅ Received content items:', contentItems?.length || 0, 'items');
       console.log('📋 Content items data:', contentItems);
       
+      // Debug: Log cover image info for first few items
+      if (contentItems && contentItems.length > 0) {
+        console.log('🎨 COVER DEBUG - First 3 items:');
+        contentItems.slice(0, 3).forEach((item, index) => {
+          console.log(`   ${index + 1}. "${item.title}"`);
+          console.log(`      cover_file_id: ${item.cover_file_id || 'NONE'}`);
+          console.log(`      cover_image_url: ${item.cover_image_url || 'NONE'}`);
+        });
+      }
+      
       if (!contentItems || contentItems.length === 0) {
-        console.log('📭 No content items found - setting empty array');
+        console.log('📷 No content items found - setting empty array');
         setLibraryData([]);
         return;
       }
@@ -529,16 +583,20 @@ export default function LibraryPage() {
       let userLibraryItemIds: string[] = [];
       if (user) {
         console.log('👤 User authenticated, checking user library...');
-        const { data: libraryItems, error: libraryError } = await supabase
-          .from('user_library')
-          .select('content_item_id')
-          .eq('user_id', user.id);
-        
-        if (libraryError) {
-          console.error('❌ Library error:', libraryError);
-        } else {
-          userLibraryItemIds = libraryItems?.map(item => item.content_item_id) || [];
-          console.log('📚 User has', userLibraryItemIds.length, 'items in library');
+        try {
+          const { data: libraryItems, error: libraryError } = await supabase
+            .from('user_library')
+            .select('content_item_id')
+            .eq('user_id', user.id);
+          
+          if (libraryError) {
+            console.error('❌ Library error:', libraryError);
+          } else {
+            userLibraryItemIds = libraryItems?.map(item => item.content_item_id) || [];
+            console.log('📚 User has', userLibraryItemIds.length, 'items in library');
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to load user library:', err);
         }
       }
       
@@ -546,12 +604,9 @@ export default function LibraryPage() {
       const transformedData: LibraryCardData[] = contentItems.map(item => ({
         item: {
           ...item,
-          // Map the view fields to match the ContentItem interface
-          metadata: {
-            ...item.metadata,
-            total_chapters: item.total_chapters,
-            estimated_read_time: item.estimated_read_time
-          }
+          // Extract metadata fields for easier access
+          total_chapters: item.metadata?.total_chapters,
+          estimated_read_time: item.metadata?.estimated_read_time
         } as ContentItem,
         overallProgress: 0, // TODO: Calculate actual progress from reading_progress table
         inUserLibrary: userLibraryItemIds.includes(item.id)

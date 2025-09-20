@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { CartIcon } from './CartIcon';
-import ThemeToggle from './components/ui/ThemeToggle';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import styles from './Navbar.module.css';
 
@@ -212,8 +211,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <Search size={20} />
         </button>
 
-        {/* Theme Toggle */}
-        <ThemeToggle />
+        {/* REMOVED: Extra Theme Toggle - keeping only the existing one in header */}
 
         {/* Mobile Menu Toggle - ENHANCED */}
         <button 

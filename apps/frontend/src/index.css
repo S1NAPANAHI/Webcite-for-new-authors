@@ -4,287 +4,75 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Persian Sci-Fi Background System */
+/* Persian Sci-Fi Background System - Clean Implementation */
 :root {
-  --bg-light-pattern: url('/patterns/persian-light.svg');
-  --bg-dark-pattern: url('/patterns/persian-dark.svg');
-  --bg-light-color: #faf8ff;
-  --bg-dark-color: #0b0612;
+  --pattern-light: url('/patterns/persian-light.svg');
+  --pattern-dark: url('/patterns/persian-dark.svg');
+  --bg-light: #faf8ff;
+  --bg-dark: #0b0612;
 }
 
-/* Remove all star backgrounds and replace with Persian patterns */
+/* Clean body background without overlays */
 body {
   margin: 0;
   padding: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   
-  /* Persian Light Mode Background */
-  background-color: var(--bg-light-color);
+  /* Light mode Persian background */
+  color: #1b1230;
+  background-color: var(--bg-light);
   background-image: 
-    linear-gradient(120deg, rgba(212, 175, 55, 0.08), rgba(32, 178, 170, 0.06), rgba(205, 133, 63, 0.05), rgba(70, 130, 180, 0.04), rgba(212, 175, 55, 0.08)),
-    var(--bg-light-pattern);
-  background-repeat: repeat;
-  background-size: 400% 400%, 350px 350px;
+    linear-gradient(120deg, rgba(254, 250, 224, 0.4), rgba(233, 236, 239, 0.3), rgba(212, 163, 119, 0.2)),
+    var(--pattern-light);
+  background-repeat: no-repeat, repeat;
+  background-size: 400% 400%, 300px 300px;
   background-attachment: fixed;
-  animation: cosmicShift 45s ease-in-out infinite;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  animation: cosmicShift 45s ease infinite;
 }
 
-/* Dark Mode Persian Background */
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: var(--bg-dark-color);
+    color: #eae6f5;
+    background-color: var(--bg-dark);
     background-image: 
-      linear-gradient(120deg, rgba(255, 215, 0, 0.12), rgba(0, 201, 255, 0.10), rgba(106, 17, 203, 0.08), rgba(255, 110, 199, 0.06), rgba(255, 215, 0, 0.12)),
-      var(--bg-dark-pattern);
+      linear-gradient(120deg, rgba(255, 215, 0, 0.15), rgba(0, 201, 255, 0.12), rgba(106, 17, 203, 0.18)),
+      var(--pattern-dark);
   }
 }
 
 /* Manual theme overrides */
 :root[data-theme="light"] body {
-  background-color: var(--bg-light-color);
+  color: #1b1230;
+  background-color: var(--bg-light);
   background-image: 
-    linear-gradient(120deg, rgba(212, 175, 55, 0.08), rgba(32, 178, 170, 0.06), rgba(205, 133, 63, 0.05), rgba(70, 130, 180, 0.04), rgba(212, 175, 55, 0.08)),
-    var(--bg-light-pattern);
+    linear-gradient(120deg, rgba(254, 250, 224, 0.4), rgba(233, 236, 239, 0.3), rgba(212, 163, 119, 0.2)),
+    var(--pattern-light);
 }
 
 :root[data-theme="dark"] body {
-  background-color: var(--bg-dark-color);
+  color: #eae6f5;
+  background-color: var(--bg-dark);
   background-image: 
-    linear-gradient(120deg, rgba(255, 215, 0, 0.12), rgba(0, 201, 255, 0.10), rgba(106, 17, 203, 0.08), rgba(255, 110, 199, 0.06), rgba(255, 215, 0, 0.12)),
-    var(--bg-dark-pattern);
+    linear-gradient(120deg, rgba(255, 215, 0, 0.15), rgba(0, 201, 255, 0.12), rgba(106, 17, 203, 0.18)),
+    var(--pattern-dark);
 }
 
-/* Cosmic gradient animation */
 @keyframes cosmicShift {
-  0% { background-position: 0% 20%, 0 0; }
-  25% { background-position: 100% 40%, 0 0; }
-  50% { background-position: 50% 80%, 0 0; }
-  75% { background-position: 150% 60%, 0 0; }
-  100% { background-position: 0% 20%, 0 0; }
+  0% { background-position: 0% 30%, 0 0; }
+  50% { background-position: 100% 70%, 0 0; }
+  100% { background-position: 0% 30%, 0 0; }
 }
 
-/* Content overlay for readability */
-.main-content {
-  background: rgba(250, 248, 255, 0.92);
-  backdrop-filter: blur(1px);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-  .main-content {
-    background: rgba(11, 6, 18, 0.92);
-  }
-}
-
-:root[data-theme="light"] .main-content {
-  background: rgba(250, 248, 255, 0.92);
-}
-
-:root[data-theme="dark"] .main-content {
-  background: rgba(11, 6, 18, 0.92);
-}
-
-/* 
-* THEME USAGE GUIDE
-* 
-* For consistent theming across all components, use these Tailwind classes:
-* 
-* BACKGROUNDS:
-* - bg-background (main page background)
-* - bg-card (cards, panels, surfaces)
-* - bg-muted (subtle accents, hover states)
-* 
-* TEXT:
-* - text-foreground (primary text)
-* - text-muted-foreground (secondary/dimmed text)
-* 
-* BORDERS:
-* - border-border (consistent border color)
-* 
-* INTERACTIVE ELEMENTS:
-* - Use bg-primary and text-primary-foreground for main actions
-* - Use bg-secondary and text-secondary-foreground for secondary actions
-* 
-* ALWAYS prefer theme tokens over direct color classes!
-* Avoid: bg-white, bg-gray-50, text-black, text-gray-600
-* Use: bg-background, bg-card, text-foreground, text-muted-foreground
-*/
-
-/* Keep existing custom styles */
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4,
-.prose h5,
-.prose h6 {
-  font-family: 'Cinzel', serif;
-  color: hsl(var(--primary));
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.prose blockquote {
-  background: hsl(var(--muted));
-  border-left: 4px solid hsl(var(--primary));
-  padding: 1.5rem;
-  margin: 2rem 0;
-  border-radius: 0 10px 10px 0;
-  font-style: italic;
-  color: hsl(var(--muted-foreground));
-}
-
-.prose a {
-  color: hsl(var(--primary));
-  text-decoration: underline;
-}
-
-.slider {
-  -webkit-appearance: none;
-  appearance: none;
-  background: linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--muted)) 50%, hsl(var(--muted)) 100%);
-  outline: none;
-  border-radius: 8px;
-  height: 8px;
-}
-
-.slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: hsl(var(--primary));
-  cursor: pointer;
-  border: 2px solid hsl(var(--background));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: hsl(var(--primary));
-  cursor: pointer;
-  border: 2px solid hsl(var(--background));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-  border-radius: 4px;
-}
-
-input:focus,
-select:focus,
-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px hsl(var(--ring));
-}
-
-.transition-all {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.glass-effect {
-  background: hsl(var(--card) / 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid hsl(var(--border));
-}
-
-.bg-gradient-authors-journey {
-  background: linear-gradient(to right, #4a0e0e, #8b0000);
-}
-
-.bg-gradient-educational-resources {
-  background: linear-gradient(to right, #0e4a0e, #008b00);
-}
-
-.bg-gradient-professional-services {
-  background: linear-gradient(to right, #0e0e4a, #00008b);
-}
-
-.glass-effect-silver {
-  background: hsl(var(--muted) / 0.7);
-  backdrop-filter: blur(16px);
-  border: 1px solid hsl(var(--border));
-}
-
-.product-card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px hsl(var(--foreground) / 0.1);
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.fade-in-up { animation: fadeInUp 0.6s ease-out; }
-
-@keyframes shimmer {
-  0% { background-position: -200px 0; }
-  100% { background-position: calc(200px + 100%) 0; }
-}
-
-.skeleton {
-  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--card)) 50%, hsl(var(--muted)) 75%);
-  background-size: 200px 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-.spoiler {
-  background-color: hsl(var(--foreground));
-  color: hsl(var(--foreground));
-  transition: all 0.3s ease;
-}
-
-.spoiler:hover {
-  background-color: transparent;
-  color: hsl(var(--foreground));
-}
-
-.line-clamp-2, .line-clamp-3, .line-clamp-4 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.line-clamp-2 { -webkit-line-clamp: 2; }
-.line-clamp-3 { -webkit-line-clamp: 3; }
-.line-clamp-4 { -webkit-line-clamp: 4; }
-
-/* Performance optimizations */
-@media (max-width: 768px) {
-  body {
-    background-size: 300% 300%, 250px 250px;
-    animation-duration: 60s;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body {
-    animation: none;
-  }
-}
-
+/* Tailwind theme variables */
 @layer base {
   :root {
-    /* Light Theme Colors */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
+    --background: 250 248 255; /* #faf8ff converted to HSL */
+    --foreground: 27 18 48; /* #1b1230 */
+    --card: 255 255 255;
+    --card-foreground: 27 18 48;
+    --popover: 255 255 255;
+    --popover-foreground: 27 18 48;
     --primary: 29 55% 35%;
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 96.1%;
@@ -302,13 +90,12 @@ button:focus {
   }
 
   .dark {
-    /* Dark Theme Colors */
-    --background: 0 0% 7%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 11%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 98%;
+    --background: 11 6 18; /* #0b0612 */
+    --foreground: 234 230 245; /* #eae6f5 */
+    --card: 17 10 35; /* #110a23 */
+    --card-foreground: 234 230 245;
+    --popover: 17 10 35;
+    --popover-foreground: 234 230 245;
     --primary: 45 89% 72%;
     --primary-foreground: 0 0% 9%;
     --secondary: 0 0% 14.9%;
@@ -335,54 +122,16 @@ html, body, #root {
   }
 }
 
-/* Content overlay for readability */
-.main-content, .app-container, #root > div {
-  background: rgba(250, 248, 255, 0.88);
-  backdrop-filter: blur(1px);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-  .main-content, .app-container, #root > div {
-    background: rgba(11, 6, 18, 0.88);
-  }
-}
-
-:root[data-theme="light"] .main-content,
-:root[data-theme="light"] .app-container,
-:root[data-theme="light"] #root > div {
-  background: rgba(250, 248, 255, 0.88);
-}
-
-:root[data-theme="dark"] .main-content,
-:root[data-theme="dark"] .app-container,
-:root[data-theme="dark"] #root > div {
-  background: rgba(11, 6, 18, 0.88);
-}
-
-/* Enhanced glass effects for cards */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  .glass-effect {
-    background: rgba(17, 10, 35, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  }
-}
-
-/* Keep all your existing styles */
-.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+/* Typography styles */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
   font-family: 'Cinzel', serif;
   color: hsl(var(--primary));
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .prose blockquote {
@@ -400,6 +149,7 @@ html, body, #root {
   text-decoration: underline;
 }
 
+/* UI Components */
 .slider {
   -webkit-appearance: none;
   appearance: none;
@@ -418,7 +168,7 @@ html, body, #root {
   background: hsl(var(--primary));
   cursor: pointer;
   border: 2px solid hsl(var(--background));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .slider::-moz-range-thumb {
@@ -428,9 +178,10 @@ html, body, #root {
   background: hsl(var(--primary));
   cursor: pointer;
   border: 2px solid hsl(var(--background));
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -444,26 +195,39 @@ html, body, #root {
   border-radius: 4px;
 }
 
-input:focus, select:focus, button:focus {
+/* Focus styles */
+input:focus,
+select:focus,
+button:focus {
   outline: none;
-  box-shadow: 0 0 0 3px hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.3);
 }
 
+/* Utility classes */
 .transition-all {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.glass-effect {
+  background: hsl(var(--card) / 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
 .glass-effect-silver {
-  background: hsl(var(--muted) / 0.7);
+  background: hsl(var(--muted) / 0.8);
   backdrop-filter: blur(16px);
   border: 1px solid hsl(var(--border));
 }
 
+/* Product card effects */
 .product-card-hover:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 40px hsl(var(--foreground) / 0.1);
 }
 
+/* Gradient backgrounds for sections */
 .bg-gradient-authors-journey {
   background: linear-gradient(to right, #4a0e0e, #8b0000);
 }
@@ -476,12 +240,15 @@ input:focus, select:focus, button:focus {
   background: linear-gradient(to right, #0e0e4a, #00008b);
 }
 
+/* Animation keyframes */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.fade-in-up { animation: fadeInUp 0.6s ease-out; }
+.fade-in-up { 
+  animation: fadeInUp 0.6s ease-out; 
+}
 
 @keyframes shimmer {
   0% { background-position: -200px 0; }
@@ -494,6 +261,7 @@ input:focus, select:focus, button:focus {
   animation: shimmer 1.5s infinite;
 }
 
+/* Spoiler text */
 .spoiler {
   background-color: hsl(var(--foreground));
   color: hsl(var(--foreground));
@@ -505,6 +273,7 @@ input:focus, select:focus, button:focus {
   color: hsl(var(--foreground));
 }
 
+/* Text clamp utilities */
 .line-clamp-2, .line-clamp-3, .line-clamp-4 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -513,3 +282,23 @@ input:focus, select:focus, button:focus {
 .line-clamp-2 { -webkit-line-clamp: 2; }
 .line-clamp-3 { -webkit-line-clamp: 3; }
 .line-clamp-4 { -webkit-line-clamp: 4; }
+
+/* Performance optimizations */
+@media (max-width: 768px) {
+  body {
+    background-size: 300% 300%, 250px 250px;
+    animation-duration: 60s; /* Slower animation on mobile */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+  
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

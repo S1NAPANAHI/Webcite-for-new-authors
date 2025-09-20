@@ -1,298 +1,242 @@
-/* Persian Background Component Styles */
+/* Persian Background Component - Clean and Elegant */
 
-/* Body class when Persian background is active */
-body.persian-background {
-  background-color: var(--bg-base);
-  background-image: 
-    var(--cosmic-overlay),
-    var(--gradient), 
-    var(--bg-pattern);
-  background-repeat: repeat;
-  background-size: 
-    100% 100%,
-    800% 800%, 
-    420px 420px;
-  background-attachment: fixed;
-  transition: background-color 0.4s ease, background-image 0.4s ease;
+.elegant-background-wrapper {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
 }
 
-body.persian-background.persian-animated {
-  animation: cosmicShift 50s ease-in-out infinite;
+/* Main content area with subtle backdrop effects */
+.main-content {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  /* Remove heavy backdrop blur for better performance */
+  background: transparent;
+  z-index: 1;
 }
 
-/* Cosmic particles */
-.cosmic-particles {
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  background: radial-gradient(
-    circle,
-    rgba(212, 175, 55, 0.6) 0%,
-    rgba(212, 175, 55, 0.2) 50%,
-    transparent 100%
-  );
-  border-radius: 50%;
-  animation: floatParticle 20s ease-in-out infinite;
-}
-
-@media (prefers-color-scheme: dark) {
-  .particle {
-    background: radial-gradient(
-      circle,
-      rgba(255, 215, 0, 0.7) 0%,
-      rgba(0, 230, 255, 0.3) 50%,
-      transparent 100%
-    );
-  }
-}
-
-:root[data-theme="dark"] .particle {
-  background: radial-gradient(
-    circle,
-    rgba(255, 215, 0, 0.7) 0%,
-    rgba(0, 230, 255, 0.3) 50%,
-    transparent 100%
-  );
-}
-
-.particle-1 {
-  width: 4px;
-  height: 4px;
-  top: 20%;
-  left: 10%;
-  animation-delay: 0s;
-  animation-duration: 25s;
-}
-
-.particle-2 {
-  width: 2px;
-  height: 2px;
-  top: 60%;
-  left: 80%;
-  animation-delay: -8s;
-  animation-duration: 30s;
-}
-
-.particle-3 {
-  width: 3px;
-  height: 3px;
-  top: 80%;
-  left: 30%;
-  animation-delay: -15s;
-  animation-duration: 22s;
-}
-
-.particle-4 {
-  width: 2px;
-  height: 2px;
-  top: 40%;
-  left: 70%;
-  animation-delay: -5s;
-  animation-duration: 28s;
-}
-
-.particle-5 {
-  width: 1px;
-  height: 1px;
-  top: 15%;
-  left: 60%;
-  animation-delay: -12s;
-  animation-duration: 35s;
-}
-
-/* Floating particle animation */
-@keyframes floatParticle {
-  0%, 100% {
-    transform: translateY(0px) translateX(0px) scale(1);
-    opacity: 0.4;
-  }
-  25% {
-    transform: translateY(-20px) translateX(10px) scale(1.2);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translateY(-10px) translateX(-15px) scale(0.8);
-    opacity: 0.6;
-  }
-  75% {
-    transform: translateY(-25px) translateX(8px) scale(1.1);
-    opacity: 0.7;
-  }
-}
-
-/* Cosmic gradient shift animation */
-.animate-cosmic-shift {
-  animation: cosmicGradientShift 45s ease-in-out infinite;
-}
-
-@keyframes cosmicGradientShift {
-  0% {
-    transform: translateX(0%) translateY(0%);
-    opacity: 0.8;
-  }
-  25% {
-    transform: translateX(5%) translateY(-3%);
-    opacity: 1;
-  }
-  50% {
-    transform: translateX(-2%) translateY(4%);
-    opacity: 0.9;
-  }
-  75% {
-    transform: translateX(3%) translateY(-2%);
-    opacity: 0.95;
-  }
-  100% {
-    transform: translateX(0%) translateY(0%);
-    opacity: 0.8;
-  }
-}
-
-/* Pattern overlay specific styles */
-.persian-pattern-overlay {
-  will-change: transform;
+/* Subtle overlay effects */
+.atmospheric-overlay {
+  will-change: opacity;
   backface-visibility: hidden;
 }
 
-/* Performance optimizations */
+/* Enhanced theme toggle styling */
+.theme-toggle {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 1000;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid;
+  border-radius: 2rem;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Dark mode theme toggle */
+:root[data-theme="dark"] .theme-toggle,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle {
+    background: rgba(0, 0, 0, 0.7);
+    color: #C0A062;
+    border-color: #C0A062;
+  }
+}
+
+:root[data-theme="dark"] .theme-toggle:hover,
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle:hover {
+    background: rgba(192, 160, 98, 0.2);
+    box-shadow: 0 0 20px rgba(192, 160, 98, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+/* Light mode theme toggle */
+:root[data-theme="light"] .theme-toggle {
+  background: rgba(255, 255, 255, 0.8);
+  color: #8B7355;
+  border-color: #B8860B;
+}
+
+:root[data-theme="light"] .theme-toggle:hover {
+  background: rgba(184, 134, 11, 0.1);
+  box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
+  transform: translateY(-2px);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .theme-toggle {
+    background: rgba(255, 255, 255, 0.8);
+    color: #8B7355;
+    border-color: #B8860B;
+  }
+  
+  :root:not([data-theme="dark"]) .theme-toggle:hover {
+    background: rgba(184, 134, 11, 0.1);
+    box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
+    transform: translateY(-2px);
+  }
+}
+
+/* Container improvements */
+.container-elegant {
+  backdrop-filter: blur(15px);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(192, 160, 98, 0.2);
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+:root[data-theme="light"] .container-elegant {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(184, 134, 11, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(184, 134, 11, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .container-elegant {
+    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(184, 134, 11, 0.3);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.06),
+      0 0 0 1px rgba(184, 134, 11, 0.1);
+  }
+}
+
+/* Enhanced card styling */
+.card-sci-fi {
+  backdrop-filter: blur(15px);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(192, 160, 98, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.card-sci-fi:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(192, 160, 98, 0.4),
+    0 0 32px rgba(192, 160, 98, 0.15);
+}
+
+:root[data-theme="light"] .card-sci-fi {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(184, 134, 11, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(184, 134, 11, 0.1);
+}
+
+:root[data-theme="light"] .card-sci-fi:hover {
+  box-shadow: 
+    0 16px 48px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(184, 134, 11, 0.4),
+    0 0 32px rgba(184, 134, 11, 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .card-sci-fi {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(184, 134, 11, 0.3);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.08),
+      0 0 0 1px rgba(184, 134, 11, 0.1);
+  }
+  
+  :root:not([data-theme="dark"]) .card-sci-fi:hover {
+    box-shadow: 
+      0 16px 48px rgba(0, 0, 0, 0.12),
+      0 0 0 1px rgba(184, 134, 11, 0.4),
+      0 0 32px rgba(184, 134, 11, 0.1);
+  }
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
-  body.persian-background {
-    background-size: 
-      100% 100%,
-      600% 600%, 
-      280px 280px;
+  .theme-toggle {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
   }
   
-  body.persian-background.persian-animated {
-    animation-duration: 65s;
-  }
-  
-  .particle {
-    animation-duration: 40s !important;
-  }
-  
-  .animate-cosmic-shift {
-    animation-duration: 60s;
+  .card-sci-fi {
+    padding: 1rem;
+    margin: 0.5rem 0;
   }
 }
 
 @media (max-width: 480px) {
-  body.persian-background {
-    background-size: 
-      100% 100%,
-      400% 400%, 
-      220px 220px;
-  }
-  
-  .particle {
-    width: 2px !important;
-    height: 2px !important;
+  .theme-toggle {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8rem;
   }
 }
 
-/* Reduced motion preferences */
+/* Performance optimizations */
 @media (prefers-reduced-motion: reduce) {
-  body.persian-background.persian-animated {
-    animation: none;
+  .theme-toggle,
+  .card-sci-fi,
+  .container-elegant,
+  .atmospheric-overlay {
+    transition: none;
   }
   
-  .particle {
-    animation: none;
-    opacity: 0.3;
-  }
-  
-  .animate-cosmic-shift {
-    animation: none;
-  }
-  
-  .persian-pattern-overlay {
-    transform: none !important;
+  .theme-toggle:hover,
+  .card-sci-fi:hover {
+    transform: none;
   }
 }
 
 /* High contrast mode */
 @media (prefers-contrast: high) {
-  .particle {
-    display: none;
+  .theme-toggle,
+  .card-sci-fi,
+  .container-elegant {
+    border-width: 2px;
+    backdrop-filter: none;
   }
   
-  .cosmic-gradient-overlay {
+  .atmospheric-overlay {
     display: none;
-  }
-  
-  body.persian-background {
-    background-image: var(--bg-pattern);
   }
 }
 
 /* Print styles */
 @media print {
-  body.persian-background {
-    background: white !important;
-    background-image: none !important;
-    animation: none !important;
+  .theme-toggle {
+    display: none;
   }
   
-  .cosmic-particles,
-  .persian-pattern-overlay,
-  .cosmic-gradient-overlay {
-    display: none !important;
+  .card-sci-fi,
+  .container-elegant {
+    background: white;
+    border: 1px solid #ccc;
+    backdrop-filter: none;
+    box-shadow: none;
   }
-}
-
-/* Loading state */
-.persian-background-loading {
-  opacity: 0;
-  transition: opacity 0.5s ease-in-out;
-}
-
-.persian-background-loaded {
-  opacity: 1;
-}
-
-/* Enhanced visual effects for premium feel */
-.persian-background-premium::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 0%,
-    rgba(212, 175, 55, 0.02) 25%,
-    transparent 50%,
-    rgba(32, 178, 170, 0.02) 75%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 2;
-  animation: premiumShimmer 8s ease-in-out infinite;
-}
-
-@media (prefers-color-scheme: dark) {
-  .persian-background-premium::before {
-    background: linear-gradient(
-      45deg,
-      transparent 0%,
-      rgba(255, 215, 0, 0.03) 25%,
-      transparent 50%,
-      rgba(0, 230, 255, 0.02) 75%,
-      transparent 100%
-    );
-  }
-}
-
-@keyframes premiumShimmer {
-  0%, 100% {
-    transform: translateX(-100%) skewX(-15deg);
-    opacity: 0;
-  }
-  50% {
-    transform: translateX(100%) skewX(-15deg);
-    opacity: 1;
+  
+  .atmospheric-overlay {
+    display: none;
   }
 }

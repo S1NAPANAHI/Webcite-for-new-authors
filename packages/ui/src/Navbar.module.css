@@ -64,6 +64,28 @@ html[data-theme="light"] .zoroHeader {
   display: flex;
 }
 
+/* TOUCH-FRIENDLY CLASSES - NEW */
+.touchFriendly {
+  min-height: 44px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  touch-action: manipulation;
+}
+
+.touchFriendlyButton {
+  min-height: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
 /* Mobile Search Toggle - IMPROVED VISIBILITY */
 .mobileSearchToggle {
   display: none;
@@ -158,8 +180,8 @@ html[data-theme="light"] .zoroHeader {
   border-radius: 0.5rem;
   transition: all 0.2s ease;
   z-index: 1001;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 48px;
+  min-height: 48px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -219,7 +241,6 @@ html[data-theme="light"] .zoroHeader {
 }
 
 .dropdownArrow {
-  font-size: 1rem;
   transition: transform 0.3s ease;
   font-weight: bold;
   margin-left: 0.5rem;
@@ -481,6 +502,21 @@ html[data-theme="dark"] .iconMoon {
     color: white !important;
   }
 
+  /* ENHANCED TOUCH-FRIENDLY MOBILE STYLES */
+  .touchFriendly {
+    min-height: 60px;
+    padding: 1.25rem 1.5rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .touchFriendlyButton {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
   /* MOBILE DROPDOWN STYLES - FIXED FUNCTIONALITY */
   .dropdownMenu {
     position: static;
@@ -536,6 +572,13 @@ html[data-theme="dark"] .iconMoon {
     border-bottom: none;
   }
 
+  /* MOBILE DROPDOWN TOUCH-FRIENDLY */
+  .dropdownMenuItem.touchFriendly {
+    min-height: 50px;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+  }
+
   /* MOBILE SEARCH - IMPROVED */
   .mobileSearchContainer {
     background: var(--card) !important;
@@ -581,9 +624,21 @@ html[data-theme="dark"] .iconMoon {
     font-size: 1.1rem;
   }
 
+  .touchFriendly {
+    min-height: 50px;
+    padding: 1rem;
+    font-size: 1.1rem;
+  }
+
   .dropdownMenuItem {
     padding: 0.875rem 2rem;
     font-size: 1rem;
+  }
+
+  .dropdownMenuItem.touchFriendly {
+    padding: 0.875rem 2rem;
+    font-size: 1rem;
+    min-height: 44px;
   }
 
   .mobileMenuToggle,
@@ -640,7 +695,9 @@ html[data-theme="dark"] .iconMoon {
 .navLink:focus-visible,
 .dropdownMenuItem:focus-visible,
 .mobileMenuToggle:focus-visible,
-.mobileSearchToggle:focus-visible {
+.mobileSearchToggle:focus-visible,
+.touchFriendly:focus-visible,
+.touchFriendlyButton:focus-visible {
   outline: 3px solid var(--primary);
   outline-offset: 2px;
   background: var(--primary) !important;

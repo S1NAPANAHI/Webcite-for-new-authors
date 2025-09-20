@@ -1,29 +1,41 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
-// import 'bulma/css/bulma.css'
 import './index.css'
-// import '@zoroaster/ui/styles.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-import { BrowserRouter } from 'react-router-dom' // Added import
+import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider, supabase } from '@zoroaster/shared';
 
-import './lib/axios'; // <--- Add this line
+import './lib/axios';
 
-console.log("VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
-console.log("VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
+// Remove console logging of sensitive environment variables
+// Only log in development mode if needed for debugging
+if (import.meta.env.DEV) {
+  console.log('Environment check:', {
+    supabaseConfigured: !!import.meta.env.VITE_SUPABASE_URL,
+    mode: import.meta.env.MODE
+  });
+}
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter> {/* Added BrowserRouter */}
+    <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider supabaseClient={supabase}>
           <App />
         </AuthProvider>
       </QueryClientProvider>
-    </BrowserRouter> {/* Added BrowserRouter */}
+    </BrowserRouter>
   </React.StrictMode>,
 )

@@ -4,6 +4,89 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Persian Sci-Fi Background System */
+:root {
+  --bg-light-pattern: url('/patterns/persian-light.svg');
+  --bg-dark-pattern: url('/patterns/persian-dark.svg');
+  --bg-light-color: #faf8ff;
+  --bg-dark-color: #0b0612;
+}
+
+/* Remove all star backgrounds and replace with Persian patterns */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  
+  /* Persian Light Mode Background */
+  background-color: var(--bg-light-color);
+  background-image: 
+    linear-gradient(120deg, rgba(212, 175, 55, 0.08), rgba(32, 178, 170, 0.06), rgba(205, 133, 63, 0.05), rgba(70, 130, 180, 0.04), rgba(212, 175, 55, 0.08)),
+    var(--bg-light-pattern);
+  background-repeat: repeat;
+  background-size: 400% 400%, 350px 350px;
+  background-attachment: fixed;
+  animation: cosmicShift 45s ease-in-out infinite;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark Mode Persian Background */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: var(--bg-dark-color);
+    background-image: 
+      linear-gradient(120deg, rgba(255, 215, 0, 0.12), rgba(0, 201, 255, 0.10), rgba(106, 17, 203, 0.08), rgba(255, 110, 199, 0.06), rgba(255, 215, 0, 0.12)),
+      var(--bg-dark-pattern);
+  }
+}
+
+/* Manual theme overrides */
+:root[data-theme="light"] body {
+  background-color: var(--bg-light-color);
+  background-image: 
+    linear-gradient(120deg, rgba(212, 175, 55, 0.08), rgba(32, 178, 170, 0.06), rgba(205, 133, 63, 0.05), rgba(70, 130, 180, 0.04), rgba(212, 175, 55, 0.08)),
+    var(--bg-light-pattern);
+}
+
+:root[data-theme="dark"] body {
+  background-color: var(--bg-dark-color);
+  background-image: 
+    linear-gradient(120deg, rgba(255, 215, 0, 0.12), rgba(0, 201, 255, 0.10), rgba(106, 17, 203, 0.08), rgba(255, 110, 199, 0.06), rgba(255, 215, 0, 0.12)),
+    var(--bg-dark-pattern);
+}
+
+/* Cosmic gradient animation */
+@keyframes cosmicShift {
+  0% { background-position: 0% 20%, 0 0; }
+  25% { background-position: 100% 40%, 0 0; }
+  50% { background-position: 50% 80%, 0 0; }
+  75% { background-position: 150% 60%, 0 0; }
+  100% { background-position: 0% 20%, 0 0; }
+}
+
+/* Content overlay for readability */
+.main-content {
+  background: rgba(250, 248, 255, 0.92);
+  backdrop-filter: blur(1px);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .main-content {
+    background: rgba(11, 6, 18, 0.92);
+  }
+}
+
+:root[data-theme="light"] .main-content {
+  background: rgba(250, 248, 255, 0.92);
+}
+
+:root[data-theme="dark"] .main-content {
+  background: rgba(11, 6, 18, 0.92);
+}
+
 /* 
 * THEME USAGE GUIDE
 * 
@@ -30,7 +113,7 @@
 * Use: bg-background, bg-card, text-foreground, text-muted-foreground
 */
 
-/* Keep existing custom styles for now, can be refactored later */
+/* Keep existing custom styles */
 .prose h1,
 .prose h2,
 .prose h3,
@@ -55,11 +138,6 @@
 .prose a {
   color: hsl(var(--primary));
   text-decoration: underline;
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 1; }
 }
 
 .slider {
@@ -117,27 +195,24 @@ button:focus {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Updated glass effect to be theme-aware */
 .glass-effect {
   background: hsl(var(--card) / 0.7);
   backdrop-filter: blur(16px);
   border: 1px solid hsl(var(--border));
 }
 
-/* New gradient background classes for LearnAdmin */
 .bg-gradient-authors-journey {
-  background: linear-gradient(to right, #4a0e0e, #8b0000); /* Dark red to red */
+  background: linear-gradient(to right, #4a0e0e, #8b0000);
 }
 
 .bg-gradient-educational-resources {
-  background: linear-gradient(to right, #0e4a0e, #008b00); /* Dark green to green */
+  background: linear-gradient(to right, #0e4a0e, #008b00);
 }
 
 .bg-gradient-professional-services {
-  background: linear-gradient(to right, #0e0e4a, #00008b); /* Dark blue to blue */
+  background: linear-gradient(to right, #0e0e4a, #00008b);
 }
 
-/* Updated glass effect with theme-aware silver background */
 .glass-effect-silver {
   background: hsl(var(--muted) / 0.7);
   backdrop-filter: blur(16px);
@@ -167,7 +242,6 @@ button:focus {
   animation: shimmer 1.5s infinite;
 }
 
-/* Spoiler text styling */
 .spoiler {
   background-color: hsl(var(--foreground));
   color: hsl(var(--foreground));
@@ -188,74 +262,66 @@ button:focus {
 .line-clamp-3 { -webkit-line-clamp: 3; }
 .line-clamp-4 { -webkit-line-clamp: 4; }
 
+/* Performance optimizations */
+@media (max-width: 768px) {
+  body {
+    background-size: 300% 300%, 250px 250px;
+    animation-duration: 60s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    animation: none;
+  }
+}
+
 @layer base {
   :root {
     /* Light Theme Colors */
-    --background: 0 0% 100%; /* White */
-    --foreground: 0 0% 3.9%; /* Near black */
-    --card: 0 0% 100%; /* White for cards/surfaces */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
-    --primary: 29 55% 35%; /* Warm brown */
+    --primary: 29 55% 35%;
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%; /* Light gray */
+    --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%; /* Very light gray */
-    --muted-foreground: 0 0% 45.1%; /* Medium gray text */
-    --accent: 35 50% 62%; /* Gold accent */
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 35 50% 62%;
     --accent-foreground: 0 0% 9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%; /* Light border */
+    --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 29 55% 35%; /* Same as primary */
+    --ring: 29 55% 35%;
     --radius: 0.5rem;
-    
-    /* Legacy CSS variables for backward compatibility */
-    --bg: #ffffff;
-    --bg-accent: #ffffff;
-    --gold-1: #8b5a2b;
-    --gold-2: #6b4e3c;
-    --gold-3: #d4a76a;
-    --ink: #000000;
-    --ink-dim: #737373;
-    --line: rgba(0, 0, 0, 0.12);
-    --focus: #d4a76a;
   }
 
   .dark {
-    /* Enhanced Dark Theme Colors */
-    --background: 0 0% 7%; /* Very dark gray #121212 */
-    --foreground: 0 0% 98%; /* Near white */
-    --card: 0 0% 11%; /* Dark gray for cards #1c1c1c */
+    /* Dark Theme Colors */
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 11%;
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
-    --primary: 45 89% 72%; /* Bright gold */
+    --primary: 45 89% 72%;
     --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%; /* Darker gray */
+    --secondary: 0 0% 14.9%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%; /* Dark muted */
-    --muted-foreground: 0 0% 63.9%; /* Light gray text */
-    --accent: 45 89% 72%; /* Gold accent */
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 45 89% 72%;
     --accent-foreground: 0 0% 9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%; /* Dark border */
+    --border: 0 0% 18%;
     --input: 0 0% 18%;
     --ring: 45 89% 72%;
-    
-    /* Legacy CSS variables for backward compatibility */
-    --bg: #121212;
-    --bg-accent: #1e1e1e;
-    --gold-1: #f5d07a;
-    --gold-2: #d4a64a;
-    --gold-3: #b8852a;
-    --ink: #ffffff;
-    --ink-dim: #a3a3a3;
-    --line: rgba(255, 255, 255, 0.12);
-    --focus: #ffd36b;
   }
 }
 
@@ -267,13 +333,183 @@ html, body, #root {
   * {
     @apply border-border;
   }
-  
-  body {
-    @apply bg-background text-foreground;
-    margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue",
-      Arial, "Noto Sans", "Liberation Sans", sans-serif;
-    background-attachment: fixed;
-    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Content overlay for readability */
+.main-content, .app-container, #root > div {
+  background: rgba(250, 248, 255, 0.88);
+  backdrop-filter: blur(1px);
+  min-height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .main-content, .app-container, #root > div {
+    background: rgba(11, 6, 18, 0.88);
   }
 }
+
+:root[data-theme="light"] .main-content,
+:root[data-theme="light"] .app-container,
+:root[data-theme="light"] #root > div {
+  background: rgba(250, 248, 255, 0.88);
+}
+
+:root[data-theme="dark"] .main-content,
+:root[data-theme="dark"] .app-container,
+:root[data-theme="dark"] #root > div {
+  background: rgba(11, 6, 18, 0.88);
+}
+
+/* Enhanced glass effects for cards */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-effect {
+    background: rgba(17, 10, 35, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Keep all your existing styles */
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  font-family: 'Cinzel', serif;
+  color: hsl(var(--primary));
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.prose blockquote {
+  background: hsl(var(--muted));
+  border-left: 4px solid hsl(var(--primary));
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0 10px 10px 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.prose a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) 50%, hsl(var(--muted)) 50%, hsl(var(--muted)) 100%);
+  outline: none;
+  border-radius: 8px;
+  height: 8px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  cursor: pointer;
+  border: 2px solid hsl(var(--background));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+  border-radius: 4px;
+}
+
+input:focus, select:focus, button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring));
+}
+
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-effect-silver {
+  background: hsl(var(--muted) / 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid hsl(var(--border));
+}
+
+.product-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px hsl(var(--foreground) / 0.1);
+}
+
+.bg-gradient-authors-journey {
+  background: linear-gradient(to right, #4a0e0e, #8b0000);
+}
+
+.bg-gradient-educational-resources {
+  background: linear-gradient(to right, #0e4a0e, #008b00);
+}
+
+.bg-gradient-professional-services {
+  background: linear-gradient(to right, #0e0e4a, #00008b);
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-up { animation: fadeInUp 0.6s ease-out; }
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--card)) 50%, hsl(var(--muted)) 75%);
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.spoiler {
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--foreground));
+  transition: all 0.3s ease;
+}
+
+.spoiler:hover {
+  background-color: transparent;
+  color: hsl(var(--foreground));
+}
+
+.line-clamp-2, .line-clamp-3, .line-clamp-4 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-2 { -webkit-line-clamp: 2; }
+.line-clamp-3 { -webkit-line-clamp: 3; }
+.line-clamp-4 { -webkit-line-clamp: 4; }

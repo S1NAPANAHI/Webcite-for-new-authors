@@ -11,7 +11,7 @@ interface LibraryCardProps {
   onClick?: () => void;
 }
 
-const LibraryCard: React.FC<LibraryCardProps> = ({ issue, onClick }) => {
+export const LibraryCard: React.FC<LibraryCardProps> = ({ issue, onClick }) => {
   const formatDate = (dateString: string) => {
     return formatDistanceToNow(new Date(dateString), { addSuffix: true });
   };
@@ -133,5 +133,3 @@ const LibraryCard: React.FC<LibraryCardProps> = ({ issue, onClick }) => {
     </Link>
   );
 };
-
-export default LibraryCard;

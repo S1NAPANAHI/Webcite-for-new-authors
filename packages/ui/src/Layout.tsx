@@ -15,7 +15,7 @@ export const Layout: React.FC<LayoutProps> = ({
   onLogout 
 }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
       <Navbar 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={betaApplicationStatus}

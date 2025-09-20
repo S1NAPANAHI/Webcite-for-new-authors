@@ -1,4 +1,5 @@
 /* Enhanced Persian Sci-Fi Background System for Zoroasterverse */
+/* Updated to work with PersianBackground component */
 
 :root {
   /* Light Mode Variables */
@@ -86,8 +87,8 @@
   --cosmic-overlay: var(--cosmic-overlay-dark);
 }
 
-/* Main body background with enhanced cosmic animation */
-body {
+/* UPDATED: Main body background when Persian background is active */
+body.persian-background {
   margin: 0;
   padding: 0;
   background-color: var(--bg-base);
@@ -101,8 +102,11 @@ body {
     800% 800%, 
     420px 420px;
   background-attachment: fixed;
-  animation: cosmicShift 50s ease-in-out infinite;
   transition: background-color 0.4s ease, background-image 0.4s ease;
+}
+
+body.persian-background.persian-animated {
+  animation: cosmicShift 50s ease-in-out infinite;
 }
 
 /* Enhanced cosmic gradient animation */
@@ -296,28 +300,34 @@ body {
 
 /* Performance optimizations */
 @media (max-width: 768px) {
-  body {
+  body.persian-background {
     background-size: 
       100% 100%,
       600% 600%, 
       280px 280px;
+  }
+  
+  body.persian-background.persian-animated {
     animation-duration: 65s; /* Slower on mobile for better performance */
   }
 }
 
 @media (max-width: 480px) {
-  body {
+  body.persian-background {
     background-size: 
       100% 100%,
       400% 400%, 
       220px 220px;
+  }
+  
+  body.persian-background.persian-animated {
     animation-duration: 75s;
   }
 }
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  body {
+  body.persian-background.persian-animated {
     animation: none;
     background-image: var(--bg-pattern);
     background-size: 350px 350px;
@@ -332,7 +342,7 @@ body {
 
 /* Print styles */
 @media print {
-  body {
+  body.persian-background {
     background: white !important;
     background-image: none !important;
     animation: none !important;
@@ -346,7 +356,7 @@ body {
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  body {
+  body.persian-background {
     background-image: none;
     animation: none;
   }

@@ -51,6 +51,7 @@ export * from './use-toast';
 export * from './alert-dialog';
 export * from './skeleton';
 export * from './tabs';
+export * from './tooltip';
 
 // Utils (safe)
 export * from './lib/utils';

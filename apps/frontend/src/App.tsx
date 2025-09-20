@@ -53,10 +53,13 @@ import FileManagerPage from './pages/FileManagerPage';
 // UPDATED: Global Theme System
 import ThemeProvider from './components/ThemeProvider';
 
+// CRITICAL: Import new theme system CSS
+import './styles/theme.css';
+
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
-    <h1 className="text-4xl font-bold mb-4">{title}</h1>
-    <p className="text-muted">This page is under construction.</p>
+    <h1 className="text-4xl font-bold mb-4" style={{ color: 'var(--text)' }}>{title}</h1>
+    <p style={{ color: 'var(--text-muted)' }}>This page is under construction.</p>
   </div>
 );
 
@@ -67,13 +70,23 @@ const PublicLayout: React.FC = () => {
   console.log('PublicLayout', { isAuthenticated });
 
   return (
-    <Layout 
-      isAuthenticated={isAuthenticated}
-      betaApplicationStatus={"none"}
-      onLogout={() => supabase.auth.signOut()}
-    >
-      <Outlet />
-    </Layout>
+    <div style={{
+      background: 'var(--bg)',
+      backgroundImage: 'var(--bg-gradient)',
+      backgroundAttachment: 'fixed',
+      backgroundSize: 'cover',
+      minHeight: '100vh',
+      color: 'var(--text)',
+      transition: 'color var(--transition), background-color var(--transition), background-image var(--transition)'
+    }}>
+      <Layout 
+        isAuthenticated={isAuthenticated}
+        betaApplicationStatus={"none"}
+        onLogout={() => supabase.auth.signOut()}
+      >
+        <Outlet />
+      </Layout>
+    </div>
   );
 };
 
@@ -93,13 +106,23 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <Layout 
-      isAuthenticated={isAuthenticated}
-      betaApplicationStatus={"none"}
-      onLogout={() => supabase.auth.signOut()}
-    >
-      <Outlet />
-    </Layout>
+    <div style={{
+      background: 'var(--bg)',
+      backgroundImage: 'var(--bg-gradient)',
+      backgroundAttachment: 'fixed',
+      backgroundSize: 'cover',
+      minHeight: '100vh',
+      color: 'var(--text)',
+      transition: 'color var(--transition), background-color var(--transition), background-image var(--transition)'
+    }}>
+      <Layout 
+        isAuthenticated={isAuthenticated}
+        betaApplicationStatus={"none"}
+        onLogout={() => supabase.auth.signOut()}
+      >
+        <Outlet />
+      </Layout>
+    </div>
   );
 };
 
@@ -123,7 +146,14 @@ const AppContent: React.FC = () => {
   }, [params.pageSlug]);
 
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{
+        background: 'var(--bg)',
+        color: 'var(--text)'
+      }}>
+        <LoadingSkeleton />
+      </div>
+    );
   }
 
   return (

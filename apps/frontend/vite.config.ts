@@ -9,7 +9,11 @@ import path from 'path';
 export default defineConfig(({ mode }) => {
   return {
     define: {
-      global: '{}'
+      global: 'globalThis',
+      // Fix Node.js globals for browser environment
+      'process.env': {},
+      'process.platform': JSON.stringify('browser'),
+      'process.version': JSON.stringify('v16.0.0')
     },
     plugins: [react(), tsconfigPaths()],
     resolve: {
@@ -28,23 +32,17 @@ export default defineConfig(({ mode }) => {
         'react',
         'react-dom',
         'react-router-dom',
-        'react-quill',
-        'quill',
-        '@tiptap/extension-table',
-        '@tiptap/extension-text-style',
-        '@tiptap/extension-color',
-        '@tiptap/react',
-        '@tiptap/starter-kit',
-        '@tiptap/extension-image',
-        '@tiptap/extension-link',
-        '@tiptap/extension-text-align',
-        '@tiptap/extension-table-row',
-        '@tiptap/extension-table-cell',
-        '@tiptap/extension-table-header',
+        '@supabase/supabase-js',
+        '@tanstack/react-query',
+        'framer-motion',
+        'lucide-react'
       ],
       exclude: ['@zoroaster/shared'],
       esbuildOptions: {
         target: 'es2020',
+        define: {
+          global: 'globalThis'
+        }
       },
     },
     css: {
@@ -58,20 +56,67 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: true,
-      // Removed backend proxy since we're now using serverless functions
-      // API calls will go directly to /api/* endpoints on the same domain
     },
     build: {
       outDir: 'dist',
       emptyOutDir: true,
       sourcemap: mode === 'development',
+      target: 'es2020',
+      // Critical: Optimize chunk sizes to prevent massive bundles
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         external: [],
         output: {
+          // Critical: Manual chunking to optimize bundle sizes
           manualChunks: {
-            react: ['react', 'react-dom'],
-            quill: ['react-quill', 'quill'],
+            // Core React
+            'react-vendor': ['react', 'react-dom'],
+            
+            // Supabase (separate chunk to avoid conflicts)
+            'supabase': ['@supabase/supabase-js'],
+            
+            // React Query
+            'query': ['@tanstack/react-query'],
+            
+            // UI Libraries (largest components)
+            'ui-heavy': [
+              '@nextui-org/react',
+              'framer-motion'
+            ],
+            
+            // Editor (massive bundle - separate it)
+            'editor': [
+              'react-quill', 
+              'quill',
+              '@tiptap/react',
+              '@tiptap/starter-kit',
+              '@tiptap/extension-table',
+              '@tiptap/extension-text-style',
+              '@tiptap/extension-color',
+              '@tiptap/extension-image',
+              '@tiptap/extension-link',
+              '@tiptap/extension-text-align'
+            ],
+            
+            // Icons
+            'icons': ['lucide-react'],
+            
+            // Utilities
+            'utils': [
+              'clsx',
+              'tailwind-merge',
+              'class-variance-authority'
+            ]
           },
+          // Ensure proper chunk naming
+          chunkFileNames: (chunkInfo) => {
+            const facadeModuleId = chunkInfo.facadeModuleId 
+              ? chunkInfo.facadeModuleId.split('/').pop() 
+              : 'unknown';
+            return `js/[name]-[hash].js`;
+          },
+          entryFileNames: 'js/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]'
         },
       },
     },

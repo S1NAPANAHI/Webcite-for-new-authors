@@ -6,6 +6,9 @@ import { supabase } from '../lib/supabase';
 import { ImmersiveEbookReader } from '../components/ImmersiveEbookReader';
 import { redirectLegacyChapterUrl } from '../utils/chapterUtils';
 
+// Import the immersive ebook reader styles
+import '../styles/immersive-ebook.css';
+
 interface Chapter {
   id: string;
   issue_id: string;
@@ -384,6 +387,8 @@ export default function ChapterReaderPage() {
         
         // Auto-start immersive reader if user has access
         if (chapterInfo.has_access) {
+          // Add class to body to prevent scrolling
+          document.body.classList.add('reader-active');
           setShowImmersiveReader(true);
         }
         
@@ -403,6 +408,13 @@ export default function ChapterReaderPage() {
       setLoading(false);
     }
   }, [issueSlug, chapterSlug, user?.id, navigate]);
+  
+  // Cleanup body class on unmount
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('reader-active');
+    };
+  }, []);
   
   // Handle chapter navigation
   const handleChapterChange = (direction: 'prev' | 'next') => {
@@ -430,6 +442,8 @@ export default function ChapterReaderPage() {
   };
   
   const handleExitReader = () => {
+    // Remove body class
+    document.body.classList.remove('reader-active');
     setShowImmersiveReader(false);
     navigate('/library');
   };
@@ -542,24 +556,53 @@ export default function ChapterReaderPage() {
     );
   }
 
-  // Fallback - show regular page with option to enter immersive reader
+  // Fallback - show loading page to enter immersive reader
   if (chapter.has_access && !showImmersiveReader) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center px-4">
-        <div className="text-center max-w-md w-full">
-          <BookOpen className="w-16 h-16 text-blue-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            {chapter.title}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Chapter {chapter.chapter_number} • {chapter.word_count?.toLocaleString() || 0} words
-          </p>
-          <button
-            onClick={() => setShowImmersiveReader(true)}
-            className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-lg font-medium"
-          >
-            Start Reading
-          </button>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
+        <div className="text-center max-w-lg w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-12">
+            <BookOpen className="w-20 h-20 text-blue-500 mx-auto mb-6" />
+            
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+              {chapter.title}
+            </h2>
+            
+            <div className="text-gray-600 dark:text-gray-400 mb-8">
+              <p className="mb-4">
+                Chapter {chapter.chapter_number} • {chapter.word_count?.toLocaleString() || 0} words • {chapter.estimated_read_time || 0} min read
+              </p>
+              
+              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  📚 <strong>Immersive Reading Experience</strong><br/>
+                  • Distraction-free fullscreen mode<br/>
+                  • Word-based page turning<br/>
+                  • Table of contents navigation<br/>
+                  • Customizable reading settings
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => {
+                document.body.classList.add('reader-active');
+                setShowImmersiveReader(true);
+              }}
+              className="px-12 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              📖 Enter Immersive Reader
+            </button>
+            
+            <div className="mt-8 flex justify-center space-x-4">
+              <button
+                onClick={() => navigate('/library')}
+                className="px-6 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                ← Back to Library
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

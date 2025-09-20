@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@zoroaster/shared';
 import { supabase } from '../lib/supabase';
 import { useFileUrl } from '../utils/fileUrls';
+import './ebook-reader.css';
 import {
   Settings,
   Sun,

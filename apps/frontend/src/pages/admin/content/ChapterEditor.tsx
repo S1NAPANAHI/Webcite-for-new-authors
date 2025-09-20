@@ -127,7 +127,7 @@ const ChapterEditor: React.FC = () => {
     }
   }, [user, authLoading, navigate, id, issueId]);
 
-  // Load existing chapter if editing
+  // FIXED: Load existing chapter with proper file queries
   useEffect(() => {
     const loadChapter = async () => {
       if (!id) return; // Skip if creating new chapter
@@ -136,16 +136,16 @@ const ChapterEditor: React.FC = () => {
         setError(null);
         setLoading(true);
 
-        // Load chapter with related files
+        console.log('Loading chapter with ID:', id);
+
+        // FIXED: Load chapter with proper file joins
         const { data: chapterData, error: chapterError } = await supabase
           .from('chapters')
-          .select(`
-            *,
-            hero_file:files!hero_file_id(*),
-            banner_file:files!banner_file_id(*)
-          `)
+          .select('*')
           .eq('id', id)
           .single();
+
+        console.log('Chapter query result:', { chapterData, chapterError });
 
         if (chapterError) {
           console.error('Error loading chapter:', chapterError);
@@ -156,13 +156,38 @@ const ChapterEditor: React.FC = () => {
         if (chapterData) {
           console.log('Loaded chapter data:', chapterData);
           
-          // Set file records
-          if (chapterData.hero_file && Array.isArray(chapterData.hero_file) && chapterData.hero_file[0]) {
-            setHeroFile(chapterData.hero_file[0]);
+          // FIXED: Load hero file if hero_file_id exists
+          if (chapterData.hero_file_id) {
+            console.log('Loading hero file with ID:', chapterData.hero_file_id);
+            const { data: heroFileData, error: heroError } = await supabase
+              .from('files')
+              .select('*')
+              .eq('id', chapterData.hero_file_id)
+              .single();
+              
+            if (!heroError && heroFileData) {
+              console.log('Hero file loaded:', heroFileData);
+              setHeroFile(heroFileData);
+            } else {
+              console.warn('Could not load hero file:', heroError);
+            }
           }
           
-          if (chapterData.banner_file && Array.isArray(chapterData.banner_file) && chapterData.banner_file[0]) {
-            setBannerFile(chapterData.banner_file[0]);
+          // FIXED: Load banner file if banner_file_id exists
+          if (chapterData.banner_file_id) {
+            console.log('Loading banner file with ID:', chapterData.banner_file_id);
+            const { data: bannerFileData, error: bannerError } = await supabase
+              .from('files')
+              .select('*')
+              .eq('id', chapterData.banner_file_id)
+              .single();
+              
+            if (!bannerError && bannerFileData) {
+              console.log('Banner file loaded:', bannerFileData);
+              setBannerFile(bannerFileData);
+            } else {
+              console.warn('Could not load banner file:', bannerError);
+            }
           }
           
           // Extract HTML content for editor
@@ -299,22 +324,26 @@ const ChapterEditor: React.FC = () => {
     }));
   };
 
-  // NEW: Handle hero image change
+  // FIXED: Handle hero image change with enhanced logging
   const handleHeroChange = (fileRecord: FileRecord | null, url: string | null) => {
+    console.log('Hero image changed:', { fileRecord, url });
     setHeroFile(fileRecord);
     setFormData(prev => ({
       ...prev,
       hero_file_id: fileRecord?.id || null
     }));
+    console.log('Hero file state updated');
   };
 
-  // NEW: Handle banner image change
+  // FIXED: Handle banner image change with enhanced logging
   const handleBannerChange = (fileRecord: FileRecord | null, url: string | null) => {
+    console.log('Banner image changed:', { fileRecord, url });
     setBannerFile(fileRecord);
     setFormData(prev => ({
       ...prev,
       banner_file_id: fileRecord?.id || null
     }));
+    console.log('Banner file state updated');
   };
 
   const handlePreview = () => {
@@ -354,7 +383,7 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      // Prepare chapter data with subscription fields and visual assets
+      // FIXED: Prepare chapter data with enhanced file logging
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
@@ -367,7 +396,7 @@ const ChapterEditor: React.FC = () => {
         is_free: formData.is_free,
         subscription_tier_required: formData.subscription_tier_required,
         free_chapter_order: formData.is_free ? formData.free_chapter_order : null,
-        // NEW: Add visual assets
+        // FIXED: Add visual assets with detailed logging
         hero_file_id: formData.hero_file_id,
         banner_file_id: formData.banner_file_id,
         word_count: wordCount,
@@ -375,21 +404,32 @@ const ChapterEditor: React.FC = () => {
         metadata: { created_by: user.id }
       };
 
+      console.log('=== CHAPTER SAVE DEBUG ===');
+      console.log('Current hero file state:', heroFile);
+      console.log('Current banner file state:', bannerFile);
+      console.log('Form data hero_file_id:', formData.hero_file_id);
+      console.log('Form data banner_file_id:', formData.banner_file_id);
       console.log('Submitting chapter data:', chapterData);
 
       let result;
       if (id) {
         // Update existing chapter
+        console.log('Updating existing chapter with ID:', id);
         result = await supabase
           .from('chapters')
           .update(chapterData)
-          .eq('id', id);
+          .eq('id', id)
+          .select(); // Add select to see what was saved
       } else {
         // Create new chapter
+        console.log('Creating new chapter');
         result = await supabase
           .from('chapters')
-          .insert([chapterData]);
+          .insert([chapterData])
+          .select(); // Add select to see what was created
       }
+
+      console.log('Database operation result:', result);
 
       if (result.error) {
         console.error('Error saving chapter:', result.error);
@@ -397,13 +437,13 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      console.log('Chapter saved successfully:', result);
-      setSuccess(`Chapter ${id ? 'updated' : 'created'} successfully!`);
+      console.log('Chapter saved successfully:', result.data);
+      setSuccess(`Chapter ${id ? 'updated' : 'created'} successfully! File associations: Hero=${formData.hero_file_id ? '✓' : '✗'}, Banner=${formData.banner_file_id ? '✓' : '✗'}`);
       
-      // Navigate back to chapters list after success
+      // Don't navigate immediately - let user see the success message
       setTimeout(() => {
         navigate('/admin/content/chapters');
-      }, 1500);
+      }, 3000);
       
     } catch (err) {
       console.error('Unexpected error saving chapter:', err);
@@ -490,6 +530,9 @@ const ChapterEditor: React.FC = () => {
                 <span>🕰 ~{estimatedReadTime} min read</span>
                 {formData.is_free && <span>• 🎁 FREE</span>}
                 {!formData.is_free && <span>• 👑 {formData.subscription_tier_required.toUpperCase()}</span>}
+                {/* NEW: Visual asset indicators */}
+                {heroFile && <span>• 🎨 Hero</span>}
+                {bannerFile && <span>• 🏞️ Banner</span>}
               </div>
             )}
           </div>
@@ -671,26 +714,42 @@ const ChapterEditor: React.FC = () => {
                 </h3>
                 
                 <div className="space-y-6">
-                  <ImageInput
-                    label="Hero Image"
-                    value={heroFile}
-                    onChange={handleHeroChange}
-                    placeholder="Chapter opening artwork"
-                    allowedTypes={['images']}
-                  />
-                  <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
-                    🎨 <strong>Hero Image:</strong> Displayed at the very beginning of the chapter when reading. Creates an immersive opening experience.
+                  <div>
+                    <ImageInput
+                      label="Hero Image"
+                      value={heroFile}
+                      onChange={handleHeroChange}
+                      placeholder="Chapter opening artwork"
+                      allowedTypes={['images']}
+                    />
+                    <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md mt-2">
+                      🎨 <strong>Hero Image:</strong> Displayed at the very beginning of the chapter when reading. Creates an immersive opening experience.
+                    </div>
+                    {/* DEBUG: Show current hero file ID */}
+                    {formData.hero_file_id && (
+                      <div className="text-xs text-green-600 mt-1">
+                        ✓ Hero ID: {formData.hero_file_id.substring(0, 8)}...
+                      </div>
+                    )}
                   </div>
 
-                  <ImageInput
-                    label="Banner Image"
-                    value={bannerFile}
-                    onChange={handleBannerChange}
-                    placeholder="Library card background"
-                    allowedTypes={['images']}
-                  />
-                  <div className="text-xs text-purple-600 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-md">
-                    🇿 <strong>Banner Image:</strong> Used as the background for chapter cards in the library. Should be landscape orientation (16:9 or similar).
+                  <div>
+                    <ImageInput
+                      label="Banner Image"
+                      value={bannerFile}
+                      onChange={handleBannerChange}
+                      placeholder="Library card background"
+                      allowedTypes={['images']}
+                    />
+                    <div className="text-xs text-purple-600 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-md mt-2">
+                      🏞️ <strong>Banner Image:</strong> Used as the background for chapter cards in the library. Should be landscape orientation (16:9 or similar).
+                    </div>
+                    {/* DEBUG: Show current banner file ID */}
+                    {formData.banner_file_id && (
+                      <div className="text-xs text-green-600 mt-1">
+                        ✓ Banner ID: {formData.banner_file_id.substring(0, 8)}...
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -868,19 +927,23 @@ const ChapterEditor: React.FC = () => {
                     </span>
                   </div>
                   
-                  {heroFile && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Hero Image:</span>
-                      <span className="font-medium text-purple-600">🎨 Set</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Hero Image:</span>
+                    <span className={`font-medium ${
+                      heroFile ? 'text-purple-600' : 'text-gray-400'
+                    }`}>
+                      {heroFile ? '🎨 Set' : '❌ None'}
+                    </span>
+                  </div>
                   
-                  {bannerFile && (
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">Banner Image:</span>
-                      <span className="font-medium text-indigo-600">🇿 Set</span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Banner Image:</span>
+                    <span className={`font-medium ${
+                      bannerFile ? 'text-indigo-600' : 'text-gray-400'
+                    }`}>
+                      {bannerFile ? '🏞️ Set' : '❌ None'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -899,6 +962,10 @@ const ChapterEditor: React.FC = () => {
                     👑 This chapter requires a <strong>{formData.subscription_tier_required}</strong> subscription
                   </span>
                 )}
+                {/* Debug info */}
+                <div className="mt-1 text-xs text-blue-500">
+                  Hero: {formData.hero_file_id ? '✓' : '✗'} | Banner: {formData.banner_file_id ? '✓' : '✗'}
+                </div>
               </div>
               
               <div className="flex gap-3">

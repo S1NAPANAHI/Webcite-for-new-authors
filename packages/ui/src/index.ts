@@ -35,7 +35,7 @@ export { BlogPage } from './BlogPage';
 export { TimelinesPage } from './TimelinesPage';
 export { WikiViewer } from './WikiViewer';
 
-// Basic UI Components
+// Basic UI Components (verified to exist)
 export * from './button';
 export * from './card';
 export * from './input';
@@ -47,8 +47,10 @@ export * from './dialog';
 export * from './switch';
 export * from './table';
 export * from './alert';
-export * from './tooltip';
 export * from './use-toast';
+export * from './alert-dialog';
+export * from './skeleton';
+export * from './tabs';
 
 // Utils (safe)
 export * from './lib/utils';

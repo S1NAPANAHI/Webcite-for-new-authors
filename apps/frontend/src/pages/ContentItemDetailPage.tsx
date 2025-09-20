@@ -30,6 +30,8 @@ import {
   ReadingProgress
 } from '../types/content';
 import { getChapterReadingUrl, getStartReadingUrl } from '../utils/chapterUtils';
+import ChapterCard from '../components/ChapterCard';
+import { useFileUrl } from '../utils/fileUrls';
 
 interface ChapterCardProps {
   chapter: Chapter;
@@ -41,118 +43,30 @@ interface ChapterCardProps {
   isFree: boolean;
 }
 
-function ChapterCard({ chapter, progress, onStartReading, canRead, issueSlug, isAccessible, isFree }: ChapterCardProps) {
+function ChapterCardLocal({ chapter, progress, onStartReading, canRead, issueSlug, isAccessible, isFree }: ChapterCardProps) {
   const isCompleted = progress?.completed || false;
   const progressPercentage = progress?.progress_percentage || 0;
   const canReadChapter = canRead && chapter.status === 'published' && isAccessible;
   
+  // DEBUG: Use our updated ChapterCard component instead of this local one
+  console.log('\n🎯 RENDERING CHAPTER CARD (ContentItemDetailPage):', {
+    id: chapter.id,
+    title: chapter.title,
+    banner_file_id: chapter.banner_file_id,
+    canRead: canReadChapter,
+    issueSlug
+  });
+  
+  // Use the global ChapterCard component that has all the debug logging
   return (
-    <div className={`border border-gray-200 rounded-lg p-4 transition-all duration-200 ${
-      canReadChapter ? 'hover:shadow-md hover:border-indigo-200' : 'opacity-60'
-    }`}>
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-sm font-medium text-gray-500">Chapter {chapter.chapter_number}</span>
-            {isCompleted && (
-              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                <Check className="w-3 h-3 text-white" />
-              </div>
-            )}
-            {chapter.status === 'draft' && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                Coming Soon
-              </span>
-            )}
-            {isFree && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                FREE
-              </span>
-            )}
-            {!isFree && chapter.status === 'published' && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 space-x-1">
-                <Crown className="w-3 h-3" />
-                <span>PREMIUM</span>
-              </span>
-            )}
-          </div>
-          
-          <h4 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-            {chapter.title}
-          </h4>
-          
-          <p className="text-gray-600 text-sm line-clamp-2 mb-3">
-            {chapter.plain_content}
-          </p>
-          
-          <div className="flex items-center space-x-4 text-sm text-gray-500">
-            <div className="flex items-center space-x-1">
-              <FileText className="w-4 h-4" />
-              <span>{chapter.word_count.toLocaleString()} words</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Clock className="w-4 h-4" />
-              <span>{chapter.estimated_read_time} min read</span>
-            </div>
-            {progress?.last_read_at && (
-              <div className="flex items-center space-x-1">
-                <Calendar className="w-4 h-4" />
-                <span>Read {new Date(progress.last_read_at).toLocaleDateString()}</span>
-              </div>
-            )}
-          </div>
-          
-          {/* Progress Bar */}
-          {progressPercentage > 0 && (
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-gray-600">Progress</span>
-                <span className="text-gray-900 font-medium">{progressPercentage}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                <div 
-                  className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" 
-                  style={{ width: `${progressPercentage}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        {/* Action Button */}
-        <div className="ml-4">
-          {canReadChapter ? (
-            <button
-              onClick={() => onStartReading(chapter.slug)}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
-                progressPercentage > 0
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {progressPercentage > 0 ? (
-                <><Play className="w-4 h-4" />Continue</>
-              ) : (
-                <><BookOpen className="w-4 h-4" />Start Reading</>
-              )}
-            </button>
-          ) : (
-            <div className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm flex items-center space-x-2">
-              {chapter.status === 'draft' ? (
-                <span>Coming Soon</span>
-              ) : !isAccessible ? (
-                <>
-                  <Lock className="w-4 h-4" />
-                  <span>Locked</span>
-                </>
-              ) : (
-                <span>Unavailable</span>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <ChapterCard
+      chapter={{
+        ...chapter,
+        has_access: isAccessible
+      }}
+      issueSlug={issueSlug}
+      className="content-detail-chapter-card"
+    />
   );
 }
 
@@ -330,7 +244,7 @@ export default function ContentItemDetailPage() {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Loading item details for:', type, slug);
+      console.log('\n🔍 CONTENT ITEM DETAIL - Loading item:', { type, slug });
       
       // Fetch the main content item with chapters
       const { data: itemData, error: itemError } = await supabase
@@ -351,6 +265,8 @@ export default function ContentItemDetailPage() {
             published_at,
             is_free,
             subscription_tier_required,
+            banner_file_id,
+            hero_file_id,
             metadata,
             created_at,
             updated_at
@@ -362,7 +278,7 @@ export default function ContentItemDetailPage() {
         .single();
       
       if (itemError) {
-        console.error('❌ Error fetching item:', itemError);
+        console.error('❌ CONTENT ITEM DETAIL - Error fetching item:', itemError);
         if (itemError.code === 'PGRST116') {
           setError('Content not found');
         } else {
@@ -372,12 +288,30 @@ export default function ContentItemDetailPage() {
       }
       
       if (!itemData) {
-        console.log('❌ No item found for:', type, slug);
+        console.log('❌ CONTENT ITEM DETAIL - No item found');
         setError('Content not found');
         return;
       }
       
-      console.log('✅ Item loaded:', itemData);
+      console.log('✅ CONTENT ITEM DETAIL - Item loaded:', {
+        id: itemData.id,
+        title: itemData.title,
+        chaptersCount: itemData.chapters?.length || 0
+      });
+      
+      // DEBUG: Log all chapters with their banner info
+      if (itemData.chapters && itemData.chapters.length > 0) {
+        console.log('📚 CONTENT ITEM DETAIL - Chapters loaded:');
+        itemData.chapters.forEach((ch, index) => {
+          console.log(`   Chapter ${index + 1}: "${ch.title}"`);
+          console.log(`     ID: ${ch.id}`);
+          console.log(`     Banner file ID: ${ch.banner_file_id || 'NONE'}`);
+          console.log(`     Hero file ID: ${ch.hero_file_id || 'NONE'}`);
+          console.log(`     Status: ${ch.status}`);
+          console.log(`     Free: ${ch.is_free}`);
+        });
+      }
+      
       const loadedItem = itemData as ContentItemWithChildren;
       setItem(loadedItem);
       
@@ -495,7 +429,7 @@ export default function ContentItemDetailPage() {
         }
       }
     } catch (error) {
-      console.error('💥 Error loading item details:', error);
+      console.error('💥 CONTENT ITEM DETAIL - Error loading:', error);
       setError('Failed to load content');
     } finally {
       setLoading(false);
@@ -556,6 +490,7 @@ export default function ContentItemDetailPage() {
   
   const handleStartReading = (chapterSlug: string) => {
     if (!item) return;
+    console.log('🚀 Starting reading:', { itemSlug: item.slug, chapterSlug });
     // Use the clean URL structure
     navigate(getChapterReadingUrl(item.slug, chapterSlug));
   };
@@ -661,6 +596,13 @@ export default function ContentItemDetailPage() {
   const totalChapters = item.chapters?.length || 0;
   const completedChapters = Object.values(userProgress).filter(p => p.completed).length;
   const overallProgress = totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+  
+  console.log('\n📊 CONTENT ITEM DETAIL - Render stats:', {
+    publishedChapters: publishedChapters.length,
+    totalChapters,
+    completedChapters,
+    overallProgress
+  });
   
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -854,21 +796,30 @@ export default function ContentItemDetailPage() {
                 </div>
                 
                 <div className="p-6 space-y-4">
-                  {item.chapters.map((chapter) => {
-                    const accessInfo = chapterAccessInfo[chapter.id] || { hasAccess: false, isFree: true };
-                    return (
-                      <ChapterCard
-                        key={chapter.id}
-                        chapter={chapter}
-                        progress={userProgress[chapter.id]}
-                        onStartReading={handleStartReading}
-                        canRead={inUserLibrary || !user} // Can read if in library or not logged in (preview)
-                        issueSlug={item.slug}
-                        isAccessible={accessInfo.hasAccess}
-                        isFree={accessInfo.isFree}
-                      />
-                    );
-                  })}
+                  {item.chapters
+                    .sort((a, b) => a.chapter_number - b.chapter_number)
+                    .map((chapter) => {
+                      const accessInfo = chapterAccessInfo[chapter.id] || { hasAccess: false, isFree: true };
+                      
+                      console.log(`\n🎯 RENDERING CHAPTER CARD IN DETAIL PAGE: "${chapter.title}"`);
+                      console.log('   Chapter ID:', chapter.id);
+                      console.log('   Banner file ID:', chapter.banner_file_id || 'NONE');
+                      console.log('   Access info:', accessInfo);
+                      
+                      return (
+                        <ChapterCardLocal
+                          key={chapter.id}
+                          chapter={chapter}
+                          progress={userProgress[chapter.id]}
+                          onStartReading={handleStartReading}
+                          canRead={inUserLibrary || !user} // Can read if in library or not logged in (preview)
+                          issueSlug={item.slug}
+                          isAccessible={accessInfo.hasAccess}
+                          isFree={accessInfo.isFree}
+                        />
+                      );
+                    })
+                  }
                 </div>
               </div>
             )}

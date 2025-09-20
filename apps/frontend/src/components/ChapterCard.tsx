@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Clock, BookOpen, Crown, Star, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFileUrl } from '../utils/fileUrls';
@@ -40,36 +40,164 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
   const isPremium = !chapter.is_free;
   
   // Get banner URL using the utility hook
-  const bannerUrlFromFile = useFileUrl(chapter.banner_file_id);
+  const { url: bannerUrlFromFile, loading, error } = useFileUrl(chapter.banner_file_id);
   const bannerUrl = bannerUrlFromFile || chapter.banner_file_url || null;
   
+  // DEBUG LOGGING - REMOVE AFTER TESTING
+  useEffect(() => {
+    console.log('\n=== CHAPTER CARD DEBUG ===');
+    console.log('Chapter:', chapter.title);
+    console.log('Banner file ID:', chapter.banner_file_id);
+    console.log('Banner URL from file:', bannerUrlFromFile);
+    console.log('Banner URL direct:', chapter.banner_file_url);
+    console.log('Final banner URL:', bannerUrl);
+    console.log('Hook loading:', loading);
+    console.log('Hook error:', error);
+    console.log('========================\n');
+  }, [chapter, bannerUrlFromFile, bannerUrl, loading, error]);
+  
   return (
-    <div className={`chapter-card ${className} ${!hasAccess ? 'locked' : ''}`}>
+    <div 
+      className={`chapter-card ${className} ${!hasAccess ? 'locked' : ''}`}
+      style={{
+        position: 'relative',
+        background: 'white',
+        borderRadius: '16px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        height: '300px',
+        display: 'flex',
+        flexDirection: 'column'
+      }}
+    >
+      {/* DEBUG BANNER INFO */}
+      {bannerUrl && (
+        <div style={{
+          position: 'absolute',
+          top: '4px',
+          right: '4px',
+          background: 'rgba(0,0,0,0.7)',
+          color: 'white',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          fontSize: '10px',
+          zIndex: 20
+        }}>
+          📷 BANNER
+        </div>
+      )}
+      
       {/* Banner Background */}
       <div
         className="chapter-card-banner"
         style={{
-          backgroundImage: bannerUrl ? `url(${bannerUrl})` : 'linear-gradient(135deg, #eef2ff, #f5f3ff)'
+          height: '120px',
+          backgroundImage: bannerUrl 
+            ? `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${bannerUrl})`
+            : 'linear-gradient(135deg, #eef2ff, #f5f3ff)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          // DEBUG: Add a border to see the banner area
+          border: bannerUrl ? '2px solid #22c55e' : '2px solid #ef4444'
         }}
-      />
+      >
+        {/* Debug overlay showing URL */}
+        {bannerUrl && (
+          <div style={{
+            position: 'absolute',
+            bottom: '2px',
+            left: '2px',
+            right: '2px',
+            background: 'rgba(0,0,0,0.8)',
+            color: 'white',
+            padding: '2px',
+            fontSize: '8px',
+            wordBreak: 'break-all',
+            maxHeight: '20px',
+            overflow: 'hidden'
+          }}>
+            URL: {bannerUrl}
+          </div>
+        )}
+      </div>
       
       {/* Content */}
-      <div className="chapter-card-body">
+      <div 
+        className="chapter-card-body"
+        style={{
+          padding: '12px 14px',
+          height: 'calc(100% - 120px)',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         {/* Header */}
-        <div className="chapter-header">
-          <div className="chapter-number">Chapter {chapter.chapter_number}</div>
-          <div className="chapter-badges">
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '12px'
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em'
+          }}>
+            Chapter {chapter.chapter_number}
+          </div>
+          
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {chapter.is_free ? (
-              <span className="badge free">FREE</span>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.025em',
+                background: '#dcfce7',
+                color: '#16a34a'
+              }}>FREE</span>
             ) : (
-              <span className="badge premium">
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.025em',
+                background: '#fef3c7',
+                color: '#d97706'
+              }}>
                 <Crown size={12} />
                 PREMIUM
               </span>
             )}
             
             {!hasAccess && (
-              <span className="badge locked">
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                padding: '4px 8px',
+                borderRadius: '12px',
+                fontSize: '10px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.025em',
+                background: '#f3f4f6',
+                color: '#6b7280'
+              }}>
                 <Lock size={12} />
                 LOCKED
               </span>
@@ -78,26 +206,62 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
         </div>
         
         {/* Title */}
-        <h3 className="chapter-title">{chapter.title}</h3>
+        <h3 style={{
+          fontSize: '18px',
+          fontWeight: 700,
+          color: '#111827',
+          margin: '0 0 12px 0',
+          lineHeight: 1.3,
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden'
+        }}>
+          {chapter.title}
+        </h3>
         
         {/* Stats */}
-        <div className="chapter-stats">
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginBottom: 'auto',
+          padding: '12px 0'
+        }}>
           {chapter.word_count && (
-            <div className="stat">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: '#6b7280',
+              fontSize: '13px'
+            }}>
               <BookOpen size={14} />
               <span>{chapter.word_count.toLocaleString()} words</span>
             </div>
           )}
           
           {chapter.estimated_read_time && (
-            <div className="stat">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: '#6b7280',
+              fontSize: '13px'
+            }}>
               <Clock size={14} />
               <span>{chapter.estimated_read_time} min read</span>
             </div>
           )}
           
           {chapter.rating && chapter.rating_count && chapter.rating_count > 0 && (
-            <div className="stat">
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              color: '#6b7280',
+              fontSize: '13px'
+            }}>
               <Star size={14} />
               <span>{chapter.rating.toFixed(1)} ({chapter.rating_count})</span>
             </div>
@@ -105,14 +269,51 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
         </div>
         
         {/* Action */}
-        <div className="chapter-action">
+        <div style={{ marginTop: 'auto' }}>
           {hasAccess ? (
-            <Link to={readUrl} className="read-button primary">
+            <Link 
+              to={readUrl} 
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontWeight: 600,
+                fontSize: '14px',
+                textDecoration: 'none',
+                transition: 'all 0.2s',
+                width: '100%',
+                textAlign: 'center',
+                background: '#4f46e5',
+                color: 'white'
+              }}
+            >
               <BookOpen size={16} />
               Start Reading
             </Link>
           ) : (
-            <Link to={readUrl} className="read-button locked">
+            <Link 
+              to={readUrl}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '12px 20px',
+                borderRadius: '12px',
+                fontWeight: 600,
+                fontSize: '14px',
+                textDecoration: 'none',
+                transition: 'all 0.2s',
+                width: '100%',
+                textAlign: 'center',
+                background: '#f3f4f6',
+                color: '#6b7280',
+                border: '2px solid #e5e7eb'
+              }}
+            >
               <Lock size={16} />
               {isPremium ? 'Upgrade to Read' : 'Login to Read'}
             </Link>
@@ -122,10 +323,32 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
       
       {/* Hover overlay for locked chapters */}
       {!hasAccess && (
-        <div className="locked-overlay">
-          <div className="locked-message">
-            <Lock size={24} />
-            <p>{isPremium ? 'Premium subscribers only' : 'Login required'}</p>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(255, 255, 255, 0.9)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10,
+          opacity: 0,
+          transition: 'opacity 0.2s'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            color: '#6b7280'
+          }}>
+            <Lock size={24} style={{ marginBottom: '8px' }} />
+            <p style={{
+              margin: 0,
+              fontSize: '14px',
+              fontWeight: 500
+            }}>
+              {isPremium ? 'Premium subscribers only' : 'Login required'}
+            </p>
           </div>
         </div>
       )}
@@ -134,229 +357,3 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
 };
 
 export default ChapterCard;
-
-// CSS styles for ChapterCard
-export const ChapterCardStyles = `
-.chapter-card {
-  position: relative;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-}
-
-.chapter-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-}
-
-.chapter-card.locked {
-  opacity: 0.85;
-}
-
-.chapter-card-banner {
-  height: 120px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.chapter-card-body {
-  padding: 12px 14px;
-  height: calc(100% - 120px);
-  display: flex;
-  flex-direction: column;
-}
-
-.chapter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.chapter-number {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.chapter-badges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.badge.free {
-  background: #dcfce7;
-  color: #16a34a;
-}
-
-.badge.premium {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.badge.locked {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.chapter-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 12px 0;
-  line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.chapter-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: auto;
-  padding: 12px 0;
-}
-
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-.stat svg {
-  flex-shrink: 0;
-}
-
-.chapter-action {
-  margin-top: auto;
-}
-
-.read-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 14px;
-  text-decoration: none;
-  transition: all 0.2s;
-  width: 100%;
-  text-align: center;
-}
-
-.read-button.primary {
-  background: #4f46e5;
-  color: white;
-}
-
-.read-button.primary:hover {
-  background: #4338ca;
-  transform: translateY(-1px);
-}
-
-.read-button.locked {
-  background: #f3f4f6;
-  color: #6b7280;
-  border: 2px solid #e5e7eb;
-}
-
-.read-button.locked:hover {
-  background: #e5e7eb;
-  color: #374151;
-}
-
-.locked-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.chapter-card.locked:hover .locked-overlay {
-  opacity: 1;
-}
-
-.locked-message {
-  text-align: center;
-  color: #6b7280;
-}
-
-.locked-message svg {
-  margin-bottom: 8px;
-}
-
-.locked-message p {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .chapter-card {
-    height: 280px;
-  }
-  
-  .chapter-card-banner {
-    height: 100px;
-  }
-  
-  .chapter-card-body {
-    height: calc(100% - 100px);
-  }
-  
-  .chapter-title {
-    font-size: 16px;
-  }
-  
-  .chapter-stats {
-    gap: 8px;
-  }
-  
-  .stat {
-    font-size: 12px;
-  }
-}
-`;
-
-// Inject styles into document
-if (typeof document !== 'undefined') {
-  const styleElement = document.createElement('style');
-  styleElement.textContent = ChapterCardStyles;
-  document.head.appendChild(styleElement);
-}

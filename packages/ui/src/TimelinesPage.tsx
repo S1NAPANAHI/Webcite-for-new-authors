@@ -24,9 +24,8 @@ import { Badge } from './badge';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import './styles/fantasy-timeline.css';
 
-// Import supabase client - you'll need to make sure this path is correct for your setup
-// If using different import path, adjust accordingly
-const { supabase } = require('../../lib/supabase');
+// Import supabase using ES6 import syntax
+import { supabase } from '@zoroaster/shared/lib/supabase';
 
 // Enhanced Types with Nested Structure
 interface NestedEvent {
@@ -75,7 +74,16 @@ const fetchPublicTimelineEvents = async (): Promise<{ data: Era[] }> => {
       .order('era', { ascending: true })
       .order('order_index', { ascending: true });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      // Return fallback data if database fails
+      return { data: getFallbackData() };
+    }
+
+    if (!data || data.length === 0) {
+      // Return sample data if no events exist yet
+      return { data: getFallbackData() };
+    }
 
     // Group events by era and build hierarchy
     const eventsByEra = new Map<string, TimelineEvent[]>();
@@ -93,7 +101,7 @@ const fetchPublicTimelineEvents = async (): Promise<{ data: Era[] }> => {
         category: event.category || 'Other',
         background_image: event.background_image,
         is_published: event.is_published,
-        order_index: event.order_index,
+        order_index: event.order_index || 0,
         parent_event_id: event.parent_event_id,
         depth: event.depth || 0,
         children: [],
@@ -132,15 +140,59 @@ const fetchPublicTimelineEvents = async (): Promise<{ data: Era[] }> => {
       start: events.length > 0 ? events[0].date : 'Unknown',
       end: events.length > 0 ? events[events.length - 1].date : 'Unknown',
       description: getEraDescription(eraName),
-      events
+      events: events.sort((a, b) => a.order_index - b.order_index)
     }));
 
     return { data: eras };
   } catch (error) {
     console.error('Error fetching timeline events:', error);
-    throw error;
+    // Return fallback data on any error
+    return { data: getFallbackData() };
   }
 };
+
+// Fallback data for when database is unavailable or empty
+const getFallbackData = (): Era[] => [
+  {
+    id: "age-of-flame",
+    title: "Age of Flame",
+    start: "Dawn of Time",
+    end: "Year 1247",
+    description: "When Ahura Mazda first kindled the Sacred Fires and light pierced the primordial darkness. The first temples rose, and prophets walked among mortals.",
+    events: [
+      {
+        id: "af-1",
+        title: "The First Sacred Fire",
+        date: "Dawn of Time",
+        description: "Ahura Mazda kindles the eternal flame that shall never be extinguished.",
+        era: "Age of Flame",
+        category: "Magical",
+        is_published: true,
+        order_index: 0,
+        depth: 0,
+        children: [
+          {
+            id: "af-1-1",
+            title: "Gathering of the Magi",
+            date: "First Dawn + 7 Days",
+            description: "Seven wise men witness the divine flame and become its first guardians.",
+            era: "Age of Flame",
+            category: "Religious",
+            is_published: true,
+            order_index: 1,
+            parent_event_id: "af-1",
+            depth: 1,
+            children: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+        ],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    ]
+  }
+];
 
 const getEraDescription = (eraName: string): string => {
   const descriptions: Record<string, string> = {
@@ -166,12 +218,6 @@ const CATEGORY_ICONS = {
   Other: Sparkles
 };
 
-const IMPORTANCE_GLOW = {
-  minor: 'shadow-sm',
-  major: 'shadow-lg shadow-purple-500/20',
-  legendary: 'shadow-xl shadow-yellow-500/30'
-};
-
 // Fantasy Event Component
 const FantasyEvent: React.FC<{ 
   event: TimelineEvent; 
@@ -179,7 +225,7 @@ const FantasyEvent: React.FC<{
 }> = ({ event, depth }) => {
   const [isOpen, setIsOpen] = useState(depth < 1);
   const hasChildren = event.children && event.children.length > 0;
-  const Icon = CATEGORY_ICONS[event.category] || Sparkles;
+  const Icon = CATEGORY_ICONS[event.category as keyof typeof CATEGORY_ICONS] || Sparkles;
 
   return (
     <div className="event" style={{ '--depth': depth } as React.CSSProperties}>
@@ -333,12 +379,14 @@ export const TimelinesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
-  // Real database query
+  // Real database query with error handling
   const { data: timelineData, isLoading, error } = useQuery({
     queryKey: ['publicTimelineEvents'],
     queryFn: fetchPublicTimelineEvents,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2, // Retry failed requests
+    retryDelay: 1000, // 1 second delay between retries
   });
 
   const filteredEras = useMemo(() => {
@@ -368,8 +416,11 @@ export const TimelinesPage: React.FC = () => {
     return (
       <div className="page">
         <header className="page-header">
-          <LoadingSkeleton className="h-12 w-64 mx-auto mb-4" />
-          <LoadingSkeleton className="h-6 w-96 mx-auto" />
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            <h1 className="text-4xl">Loading Chronicles...</h1>
+          </div>
+          <p className="subtitle">The ancient scrolls are being prepared for thy viewing...</p>
         </header>
         <main>
           <div className="timeline">
@@ -396,17 +447,19 @@ export const TimelinesPage: React.FC = () => {
       <div className="page min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-red-500/30">
-            <X className="w-10 h-10 text-white" />
+            <AlertCircle className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-red-400 mb-4">The Chronicles Are Lost</h1>
+          <h1 className="text-3xl font-bold text-red-400 mb-4">The Chronicles Are Sealed</h1>
           <p className="text-gray-400 mb-6 max-w-md">
-            The ancient scrolls cannot be read at this time. Perhaps the Sacred Fires need tending...
+            The ancient scrolls are temporarily sealed by mystical forces. 
+            Fear not - the fallback chronicles shall appear shortly...
           </p>
           <Button 
             onClick={() => window.location.reload()}
             className="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 border border-red-400/30"
           >
-            Rekindle the Flames
+            <Flame className="w-4 h-4 mr-2" />
+            Rekindle the Sacred Fires
           </Button>
         </div>
       </div>

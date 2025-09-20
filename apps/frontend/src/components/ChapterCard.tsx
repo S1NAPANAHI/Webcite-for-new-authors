@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, BookOpen, Crown, Star, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useFileUrl } from '../utils/fileUrls';
 
 interface Chapter {
   id: string;
@@ -12,6 +13,7 @@ interface Chapter {
   is_free: boolean;
   subscription_tier_required?: string;
   has_access?: boolean;
+  banner_file_id?: string | null;
   banner_file_url?: string;
   banner_file_alt_text?: string;
   status: string;
@@ -37,22 +39,22 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
   const hasAccess = chapter.has_access !== false;
   const isPremium = !chapter.is_free;
   
+  // Get banner URL using the utility hook
+  const bannerUrlFromFile = useFileUrl(chapter.banner_file_id);
+  const bannerUrl = bannerUrlFromFile || chapter.banner_file_url || null;
+  
   return (
     <div className={`chapter-card ${className} ${!hasAccess ? 'locked' : ''}`}>
       {/* Banner Background */}
-      {showBanner && chapter.banner_file_url && (
-        <div 
-          className="chapter-banner"
-          style={{
-            backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url(${chapter.banner_file_url})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        />
-      )}
+      <div
+        className="chapter-card-banner"
+        style={{
+          backgroundImage: bannerUrl ? `url(${bannerUrl})` : 'linear-gradient(135deg, #eef2ff, #f5f3ff)'
+        }}
+      />
       
       {/* Content */}
-      <div className="chapter-content">
+      <div className="chapter-card-body">
         {/* Header */}
         <div className="chapter-header">
           <div className="chapter-number">Chapter {chapter.chapter_number}</div>
@@ -156,24 +158,18 @@ export const ChapterCardStyles = `
   opacity: 0.85;
 }
 
-.chapter-banner {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.chapter-card-banner {
   height: 120px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  z-index: 1;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.chapter-content {
-  position: relative;
-  z-index: 2;
-  padding: 16px;
-  height: 100%;
+.chapter-card-body {
+  padding: 12px 14px;
+  height: calc(100% - 120px);
   display: flex;
   flex-direction: column;
-  background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.95) 40%, white 100%);
 }
 
 .chapter-header {
@@ -181,7 +177,6 @@ export const ChapterCardStyles = `
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 12px;
-  margin-top: 60px;
 }
 
 .chapter-number {
@@ -337,12 +332,12 @@ export const ChapterCardStyles = `
     height: 280px;
   }
   
-  .chapter-banner {
+  .chapter-card-banner {
     height: 100px;
   }
   
-  .chapter-header {
-    margin-top: 40px;
+  .chapter-card-body {
+    height: calc(100% - 100px);
   }
   
   .chapter-title {

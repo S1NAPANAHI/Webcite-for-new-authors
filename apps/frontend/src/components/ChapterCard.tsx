@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Clock, BookOpen, Crown, Star, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useFileUrl } from '../utils/fileUrls';
@@ -43,19 +43,6 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
   const { url: bannerUrlFromFile, loading, error } = useFileUrl(chapter.banner_file_id);
   const bannerUrl = bannerUrlFromFile || chapter.banner_file_url || null;
   
-  // DEBUG LOGGING - REMOVE AFTER TESTING
-  useEffect(() => {
-    console.log('\n=== CHAPTER CARD DEBUG ===');
-    console.log('Chapter:', chapter.title);
-    console.log('Banner file ID:', chapter.banner_file_id);
-    console.log('Banner URL from file:', bannerUrlFromFile);
-    console.log('Banner URL direct:', chapter.banner_file_url);
-    console.log('Final banner URL:', bannerUrl);
-    console.log('Hook loading:', loading);
-    console.log('Hook error:', error);
-    console.log('========================\n');
-  }, [chapter, bannerUrlFromFile, bannerUrl, loading, error]);
-  
   return (
     <div 
       className={`chapter-card ${className} ${!hasAccess ? 'locked' : ''}`}
@@ -66,167 +53,143 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
         overflow: 'hidden',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        height: '300px',
+        height: '400px', // Increased height for better banner-to-content ratio
         display: 'flex',
         flexDirection: 'column'
       }}
     >
-      {/* DEBUG BANNER INFO */}
-      {bannerUrl && (
-        <div style={{
-          position: 'absolute',
-          top: '4px',
-          right: '4px',
-          background: 'rgba(0,0,0,0.7)',
-          color: 'white',
-          padding: '2px 6px',
-          borderRadius: '4px',
-          fontSize: '10px',
-          zIndex: 20
-        }}>
-          📷 BANNER
-        </div>
-      )}
-      
-      {/* Banner Background */}
+      {/* Banner Background - LARGER and covers more of the card */}
       <div
         className="chapter-card-banner"
         style={{
-          height: '120px',
+          height: '200px', // Increased from 120px to 200px for better coverage
           backgroundImage: bannerUrl 
-            ? `linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.2)), url(${bannerUrl})`
+            ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.1)), url(${bannerUrl})`
             : 'linear-gradient(135deg, #eef2ff, #f5f3ff)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          // DEBUG: Add a border to see the banner area
-          border: bannerUrl ? '2px solid #22c55e' : '2px solid #ef4444'
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          padding: '16px'
         }}
       >
-        {/* Debug overlay showing URL */}
-        {bannerUrl && (
-          <div style={{
-            position: 'absolute',
-            bottom: '2px',
-            left: '2px',
-            right: '2px',
-            background: 'rgba(0,0,0,0.8)',
-            color: 'white',
-            padding: '2px',
-            fontSize: '8px',
-            wordBreak: 'break-all',
-            maxHeight: '20px',
-            overflow: 'hidden'
+        {/* Chapter number badge - positioned on banner */}
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          left: '12px',
+          fontSize: '12px',
+          fontWeight: 600,
+          color: 'white',
+          textShadow: '0 1px 2px rgba(0,0,0,0.8)',
+          background: 'rgba(0,0,0,0.4)',
+          padding: '4px 8px',
+          borderRadius: '8px',
+          backdropFilter: 'blur(4px)'
+        }}>
+          Chapter {chapter.chapter_number}
+        </div>
+        
+        {/* Badges - positioned on banner */}
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px',
+          display: 'flex',
+          gap: '6px',
+          flexWrap: 'wrap'
+        }}>
+          {chapter.is_free ? (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '10px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.025em',
+              background: 'rgba(220, 252, 231, 0.9)',
+              color: '#16a34a',
+              backdropFilter: 'blur(4px)'
+            }}>FREE</span>
+          ) : (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '10px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.025em',
+              background: 'rgba(254, 243, 199, 0.9)',
+              color: '#d97706',
+              backdropFilter: 'blur(4px)'
+            }}>
+              <Crown size={12} />
+              PREMIUM
+            </span>
+          )}
+          
+          {!hasAccess && (
+            <span style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '10px',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.025em',
+              background: 'rgba(243, 244, 246, 0.9)',
+              color: '#6b7280',
+              backdropFilter: 'blur(4px)'
+            }}>
+              <Lock size={12} />
+              LOCKED
+            </span>
+          )}
+        </div>
+        
+        {/* Title overlay - positioned at bottom of banner */}
+        <div style={{
+          color: 'white',
+          textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+        }}>
+          <h3 style={{
+            fontSize: '20px',
+            fontWeight: 700,
+            margin: '0 0 8px 0',
+            lineHeight: 1.2
           }}>
-            URL: {bannerUrl}
-          </div>
-        )}
+            {chapter.title}
+          </h3>
+        </div>
       </div>
       
-      {/* Content */}
+      {/* Content - SMALLER content area */}
       <div 
         className="chapter-card-body"
         style={{
-          padding: '12px 14px',
-          height: 'calc(100% - 120px)',
+          padding: '16px',
+          height: 'calc(100% - 200px)', // Adjusted for larger banner
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          justifyContent: 'space-between'
         }}
       >
-        {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '12px'
-        }}>
-          <div style={{
-            fontSize: '12px',
-            fontWeight: 600,
-            color: '#6b7280',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em'
-          }}>
-            Chapter {chapter.chapter_number}
-          </div>
-          
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {chapter.is_free ? (
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '10px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.025em',
-                background: '#dcfce7',
-                color: '#16a34a'
-              }}>FREE</span>
-            ) : (
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '10px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.025em',
-                background: '#fef3c7',
-                color: '#d97706'
-              }}>
-                <Crown size={12} />
-                PREMIUM
-              </span>
-            )}
-            
-            {!hasAccess && (
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                padding: '4px 8px',
-                borderRadius: '12px',
-                fontSize: '10px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.025em',
-                background: '#f3f4f6',
-                color: '#6b7280'
-              }}>
-                <Lock size={12} />
-                LOCKED
-              </span>
-            )}
-          </div>
-        </div>
-        
-        {/* Title */}
-        <h3 style={{
-          fontSize: '18px',
-          fontWeight: 700,
-          color: '#111827',
-          margin: '0 0 12px 0',
-          lineHeight: 1.3,
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden'
-        }}>
-          {chapter.title}
-        </h3>
-        
         {/* Stats */}
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
           gap: '12px',
-          marginBottom: 'auto',
-          padding: '12px 0'
+          marginBottom: '16px'
         }}>
           {chapter.word_count && (
             <div style={{
@@ -268,8 +231,8 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
           )}
         </div>
         
-        {/* Action */}
-        <div style={{ marginTop: 'auto' }}>
+        {/* Action Button */}
+        <div>
           {hasAccess ? (
             <Link 
               to={readUrl} 

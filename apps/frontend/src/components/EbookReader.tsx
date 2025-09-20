@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@zoroaster/shared';
 import { supabase } from '../lib/supabase';
+import { useFileUrl } from '../utils/fileUrls';
 import {
   Settings,
   Sun,
@@ -36,6 +37,8 @@ interface Chapter {
   is_free?: boolean;
   subscription_tier_required?: string;
   has_access?: boolean;
+  hero_file_id?: string | null;
+  banner_file_id?: string | null;
 }
 
 interface NavigationInfo {
@@ -184,6 +187,9 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
   const [readingProgress, setReadingProgress] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  
+  // Get hero image URL using the hook
+  const heroUrl = useFileUrl(chapter?.hero_file_id);
   
   const [settings, setSettings] = useState<ReadingSettings>(() => {
     // Load settings from localStorage or use defaults
@@ -522,6 +528,13 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
       <main className="py-8">
         <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${getFontClasses()}`}>
           <article ref={contentRef}>
+            {/* Hero Image - Render at top of first page */}
+            {heroUrl && (
+              <div className="chapter-hero">
+                <img src={heroUrl} alt={`${chapter?.title || 'Chapter'} hero`} />
+              </div>
+            )}
+            
             {/* Chapter Header */}
             <header className="mb-8 text-center">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
@@ -545,7 +558,7 @@ export const EbookReader: React.FC<EbookReaderProps> = ({
             </header>
             
             {/* Chapter Content */}
-            <div className="prose prose-lg prose-gray dark:prose-invert max-w-none mb-12">
+            <div className="prose prose-lg prose-gray dark:prose-invert max-w-none mb-12 reader-content">
               {renderContent(chapter.content)}
             </div>
           </article>

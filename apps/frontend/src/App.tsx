@@ -49,6 +49,8 @@ import LibraryPageNew from './pages/LibraryPage';
 import ContentItemDetailPage from './pages/ContentItemDetailPage';
 import MyLibraryPage from './pages/account/MyLibraryPage';
 import ChapterReaderPage from './pages/ChapterReaderPage';
+// NEW: File Manager Import
+import FileManagerPage from './pages/FileManagerPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -190,7 +192,10 @@ const AppContent: React.FC = () => {
         <Route path="content/blog" element={<BlogManager />} />
         <Route path="content/blog/new" element={<BlogPostEditor />} />
         <Route path="content/blog/:id/edit" element={<BlogPostEditor />} />
-        <Route path="content/files" element={<MediaUploadPage />} />
+        
+        {/* UPDATED: File Manager Route - replaces old MediaUploadPage */}
+        <Route path="content/files" element={<FileManagerPage />} />
+        
         <Route path="content/chapters" element={<ChaptersManager />} />
         <Route path="content/chapters/new" element={<ChapterEditor />} />
         <Route path="content/chapters/:id/edit" element={<ChapterEditor />} />

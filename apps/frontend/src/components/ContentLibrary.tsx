@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Calendar, Clock, User, Star, ChevronRight, Eye, Lock, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getFileUrl } from '../utils/fileUpload';
 
 interface FileRecord {
   id: string;
@@ -11,6 +10,20 @@ interface FileRecord {
   storage_path?: string;
   alt_text?: string;
 }
+
+// FIXED: Direct file URL generation
+const getFileUrl = (file: FileRecord): string => {
+  if (file.url) {
+    return file.url;
+  }
+  
+  if (file.storage_path) {
+    const { data } = supabase.storage.from('media').getPublicUrl(file.storage_path);
+    return data.publicUrl;
+  }
+  
+  return '';
+};
 
 interface Author {
   id: string;
@@ -31,7 +44,6 @@ interface Chapter {
   subscription_tier_required: string;
   status: string;
   created_at: string;
-  // NEW: Visual assets
   hero_file_id?: string | null;
   banner_file_id?: string | null;
   banner_file?: FileRecord;
@@ -82,6 +94,7 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
     loadContent();
   }, [searchQuery, selectedTags, filterType, sortBy]);
 
+  // FIXED: Enhanced content loading with proper file relationships
   const loadContent = async () => {
     try {
       setLoading(true);
@@ -89,16 +102,12 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
       
       console.log('Loading content library...');
       
-      // Build query for content items
+      // FIXED: Load content items first
       let query = supabase
         .from('content_items')
-        .select(`
-          *,
-          cover_file:files!cover_file_id(*)
-        `)
+        .select('*')
         .eq('status', 'published');
       
-      // Apply filters
       if (filterType !== 'all') {
         query = query.eq('type', filterType);
       }
@@ -109,7 +118,6 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
         );
       }
       
-      // Apply sorting
       switch (sortBy) {
         case 'oldest':
           query = query.order('published_at', { ascending: true });
@@ -131,62 +139,104 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
       
       console.log('Loaded content items:', contentData);
       
-      // Load chapters with banner files for each content item
-      const contentWithChapters = await Promise.all(
-        (contentData || []).map(async (item) => {
-          const { data: chaptersData } = await supabase
-            .from('chapters')
-            .select(`
-              *,
-              banner_file:files!banner_file_id(*)
-            `)
-            .eq('issue_id', item.id)
-            .eq('status', 'published')
-            .order('chapter_number');
-          
-          // Process chapters with banner files
-          const processedChapters = (chaptersData || []).map(chapter => ({
-            ...chapter,
-            banner_file: chapter.banner_file?.[0] || null
-          }));
-          
-          // Calculate reading stats
-          const totalWords = processedChapters.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
-          const totalReadTime = processedChapters.reduce((sum, ch) => sum + (ch.estimated_read_time || 0), 0);
-          const freeChapters = processedChapters.filter(ch => ch.is_free).length;
-          
-          // Load authors
-          const { data: authorsData } = await supabase
-            .from('content_authors')
-            .select(`
-              profiles!inner(*)
-            `)
-            .eq('content_item_id', item.id);
-          
-          const authors = (authorsData || []).map(ca => ca.profiles).filter(Boolean);
-          
-          return {
-            ...item,
-            cover_file: item.cover_file?.[0] || null,
-            chapters: processedChapters,
-            authors: authors.map(author => ({
-              id: author.id,
-              display_name: author.display_name || author.username || 'Anonymous',
-              bio: author.bio,
-              avatar_url: author.avatar_url
-            })),
-            reading_stats: {
-              total_chapters: processedChapters.length,
-              total_words: totalWords,
-              estimated_read_time: totalReadTime,
-              free_chapters: freeChapters
-            }
-          };
-        })
-      );
+      // FIXED: Load everything separately for better debugging
+      const contentWithDetails = [];
       
-      console.log('Final content with chapters:', contentWithChapters);
-      setContent(contentWithChapters);
+      for (const item of contentData || []) {
+        console.log(`Processing content item: ${item.title}`);
+        
+        // Load cover file if exists
+        let coverFile = null;
+        if (item.cover_file_id) {
+          console.log(`Loading cover file: ${item.cover_file_id}`);
+          const { data: coverData, error: coverError } = await supabase
+            .from('files')
+            .select('*')
+            .eq('id', item.cover_file_id)
+            .single();
+          
+          if (coverError) {
+            console.warn(`Failed to load cover file ${item.cover_file_id}:`, coverError);
+          } else {
+            console.log(`Cover file loaded:`, coverData);
+            coverFile = coverData;
+          }
+        }
+        
+        // Load chapters
+        const { data: chaptersData, error: chaptersError } = await supabase
+          .from('chapters')
+          .select('*')
+          .eq('issue_id', item.id)
+          .eq('status', 'published')
+          .order('chapter_number');
+        
+        console.log(`Chapters for ${item.title}:`, chaptersData);
+        
+        // Load banner files for chapters
+        const chaptersWithBanners = [];
+        
+        for (const chapter of chaptersData || []) {
+          let bannerFile = null;
+          
+          if (chapter.banner_file_id) {
+            console.log(`Loading banner file for chapter ${chapter.title}: ${chapter.banner_file_id}`);
+            const { data: bannerData, error: bannerError } = await supabase
+              .from('files')
+              .select('*')
+              .eq('id', chapter.banner_file_id)
+              .single();
+            
+            if (bannerError) {
+              console.warn(`Failed to load banner file ${chapter.banner_file_id}:`, bannerError);
+            } else {
+              console.log(`Banner file loaded for chapter ${chapter.title}:`, bannerData);
+              bannerFile = bannerData;
+            }
+          }
+          
+          chaptersWithBanners.push({
+            ...chapter,
+            banner_file: bannerFile
+          });
+        }
+        
+        // Load authors (simplified)
+        const { data: authorsData } = await supabase
+          .from('content_authors')
+          .select(`
+            profiles!inner(*)
+          `)
+          .eq('content_item_id', item.id);
+        
+        const authors = (authorsData || []).map(ca => ca.profiles).filter(Boolean);
+        
+        // Calculate stats
+        const totalWords = chaptersWithBanners.reduce((sum, ch) => sum + (ch.word_count || 0), 0);
+        const totalReadTime = chaptersWithBanners.reduce((sum, ch) => sum + (ch.estimated_read_time || 0), 0);
+        const freeChapters = chaptersWithBanners.filter(ch => ch.is_free).length;
+        
+        contentWithDetails.push({
+          ...item,
+          cover_file: coverFile,
+          chapters: chaptersWithBanners,
+          authors: authors.map(author => ({
+            id: author.id,
+            display_name: author.display_name || author.username || 'Anonymous',
+            bio: author.bio,
+            avatar_url: author.avatar_url
+          })),
+          reading_stats: {
+            total_chapters: chaptersWithBanners.length,
+            total_words: totalWords,
+            estimated_read_time: totalReadTime,
+            free_chapters: freeChapters
+          }
+        });
+      }
+      
+      console.log('Final content with all details:', contentWithDetails);
+      setContent(contentWithDetails);
       
     } catch (err) {
       console.error('Error loading content:', err);
@@ -263,13 +313,21 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
         const firstChapterBanner = item.chapters[0]?.banner_file ? getFileUrl(item.chapters[0].banner_file) : null;
         const backgroundImage = coverUrl || firstChapterBanner;
         
+        console.log(`Rendering card for ${item.title}:`, {
+          coverUrl,
+          firstChapterBanner,
+          backgroundImage,
+          firstChapter: item.chapters[0],
+          bannerFile: item.chapters[0]?.banner_file
+        });
+        
         return (
           <article
             key={item.id}
             className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group cursor-pointer"
             onClick={() => handleReadContent(item)}
           >
-            {/* FIXED: Cover/Banner Image Display */}
+            {/* FIXED: Cover/Banner Image Display with Enhanced Debugging */}
             <div className="relative h-48 overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600">
               {backgroundImage ? (
                 <>
@@ -277,10 +335,17 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
                     src={backgroundImage}
                     alt={item.cover_file?.alt_text || `Cover for ${item.title}`}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onLoad={() => console.log(`Cover/banner loaded for ${item.title}`)}
+                    onLoad={() => {
+                      console.log(`✅ Cover/banner loaded successfully for ${item.title}:`, backgroundImage);
+                    }}
                     onError={(e) => {
-                      console.error(`Cover/banner failed to load for ${item.title}`);
-                      // Hide the image and show gradient background
+                      console.error(`❌ Cover/banner failed to load for ${item.title}:`, {
+                        url: backgroundImage,
+                        coverFile: item.cover_file,
+                        bannerFile: item.chapters[0]?.banner_file,
+                        error: e
+                      });
+                      // Hide the broken image
                       (e.target as HTMLImageElement).style.display = 'none';
                     }}
                   />
@@ -288,8 +353,16 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 </>
               ) : (
-                // Fallback gradient when no image
                 <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"></div>
+              )}
+              
+              {/* DEBUG: Show image status */}
+              {backgroundImage && (
+                <div className="absolute top-2 right-2">
+                  <div className="bg-green-500 text-white text-xs px-2 py-1 rounded">
+                    🐛 IMG
+                  </div>
+                </div>
               )}
               
               {/* Content type badge */}
@@ -317,6 +390,12 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
               <p className="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
                 {item.description}
               </p>
+              
+              {/* DEBUG: Show file info */}
+              <div className="text-xs text-blue-600 mb-2 bg-blue-50 p-2 rounded">
+                🐛 Cover: {item.cover_file?.name || 'None'} | 
+                Banner: {item.chapters[0]?.banner_file?.name || 'None'}
+              </div>
               
               {/* Stats and Actions */}
               <div className="space-y-3">
@@ -346,68 +425,88 @@ const ContentLibrary: React.FC<ContentLibraryProps> = ({
                       Chapters ({item.chapters.length})
                     </h4>
                     <div className="max-h-32 overflow-y-auto space-y-1">
-                      {item.chapters.slice(0, 5).map((chapter) => (
-                        <div 
-                          key={chapter.id} 
-                          className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/read/${item.slug}/${chapter.slug}`);
-                          }}
-                        >
-                          <div className="flex items-center gap-3 flex-1">
-                            {/* FIXED: Chapter thumbnail with banner */}
-                            <div className="w-8 h-8 rounded overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0">
-                              {chapter.banner_file ? (
-                                <img
-                                  src={getFileUrl(chapter.banner_file)}
-                                  alt={chapter.banner_file.alt_text || chapter.title}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    // Hide broken image and show gradient fallback
-                                    (e.target as HTMLImageElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
-                                  {chapter.chapter_number}
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  Ch. {chapter.chapter_number}
-                                </span>
-                                <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                  {chapter.title}
-                                </span>
-                              </div>
-                              
-                              <div className="flex items-center gap-3 mt-1">
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {chapter.estimated_read_time || 1} min
-                                </span>
-                                
-                                {chapter.is_free ? (
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    <Gift className="w-3 h-3" />
-                                    FREE
-                                  </span>
+                      {item.chapters.slice(0, 5).map((chapter, index) => {
+                        const chapterBannerUrl = chapter.banner_file ? getFileUrl(chapter.banner_file) : null;
+                        
+                        console.log(`Chapter ${chapter.chapter_number} banner:`, {
+                          bannerFile: chapter.banner_file,
+                          bannerUrl: chapterBannerUrl
+                        });
+                        
+                        return (
+                          <div 
+                            key={chapter.id} 
+                            className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/read/${item.slug}/${chapter.slug}`);
+                            }}
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              {/* FIXED: Chapter thumbnail with banner */}
+                              <div className="w-8 h-8 rounded overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex-shrink-0 relative">
+                                {chapterBannerUrl ? (
+                                  <>
+                                    <img
+                                      src={chapterBannerUrl}
+                                      alt={chapter.banner_file?.alt_text || chapter.title}
+                                      className="w-full h-full object-cover"
+                                      onLoad={() => {
+                                        console.log(`✅ Chapter ${chapter.chapter_number} thumbnail loaded`);
+                                      }}
+                                      onError={(e) => {
+                                        console.error(`❌ Chapter ${chapter.chapter_number} thumbnail failed:`, chapterBannerUrl);
+                                        (e.target as HTMLImageElement).style.display = 'none';
+                                      }}
+                                    />
+                                    {/* Success indicator */}
+                                    <div className="absolute top-0 right-0 w-2 h-2 bg-green-400 rounded-full"></div>
+                                  </>
                                 ) : (
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                    <Lock className="w-3 h-3" />
-                                    {chapter.subscription_tier_required.toUpperCase()}
-                                  </span>
+                                  <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+                                    {chapter.chapter_number}
+                                  </div>
                                 )}
                               </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    Ch. {chapter.chapter_number}
+                                  </span>
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {chapter.title}
+                                  </span>
+                                  {/* DEBUG: Show banner status */}
+                                  {chapter.banner_file && (
+                                    <span className="text-xs text-green-600">🖼️</span>
+                                  )}
+                                </div>
+                                
+                                <div className="flex items-center gap-3 mt-1">
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    {chapter.estimated_read_time || 1} min
+                                  </span>
+                                  
+                                  {chapter.is_free ? (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                      <Gift className="w-3 h-3" />
+                                      FREE
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                                      <Lock className="w-3 h-3" />
+                                      {chapter.subscription_tier_required.toUpperCase()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
+                            
+                            <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                           </div>
-                          
-                          <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
-                        </div>
-                      ))}
+                        );
+                      })}
                       
                       {item.chapters.length > 5 && (
                         <div className="text-center py-2">

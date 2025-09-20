@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Settings, Home, Maximize2, Minimize2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { getFileUrl } from '../utils/fileUpload';
 
 interface FileRecord {
   id: string;
@@ -10,6 +9,20 @@ interface FileRecord {
   storage_path?: string;
   alt_text?: string;
 }
+
+// FIXED: Direct file URL generation using Supabase storage
+const getFileUrl = (file: FileRecord): string => {
+  if (file.url) {
+    return file.url;
+  }
+  
+  if (file.storage_path) {
+    const { data } = supabase.storage.from('media').getPublicUrl(file.storage_path);
+    return data.publicUrl;
+  }
+  
+  return '';
+};
 
 interface Chapter {
   id: string;
@@ -32,7 +45,7 @@ interface ReaderSettings {
   fontFamily: 'serif' | 'sans' | 'mono';
   theme: 'light' | 'dark' | 'sepia';
   lineHeight: 'tight' | 'normal' | 'relaxed';
-  showHeroImages: boolean; // NEW: Toggle for hero images
+  showHeroImages: boolean;
 }
 
 interface ProfessionalEbookReaderProps {
@@ -46,27 +59,22 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
   chapterSlug,
   onChapterChange
 }) => {
-  // Core state
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [currentChapter, setCurrentChapter] = useState<Chapter | null>(null);
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // UI state
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
-  // Reader settings with hero image toggle
   const [settings, setSettings] = useState<ReaderSettings>({
     fontSize: 'medium',
     fontFamily: 'serif',
     theme: 'light',
     lineHeight: 'normal',
-    showHeroImages: true // NEW: Default to showing hero images
+    showHeroImages: true
   });
 
-  // Load user preferences from localStorage
   useEffect(() => {
     const savedSettings = localStorage.getItem('ebook-reader-settings');
     if (savedSettings) {
@@ -79,12 +87,11 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
     }
   }, []);
 
-  // Save settings to localStorage when they change
   useEffect(() => {
     localStorage.setItem('ebook-reader-settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Load chapters with file relationships
+  // FIXED: Load chapters with proper file loading
   useEffect(() => {
     const loadChaptersWithFiles = async () => {
       try {
@@ -101,17 +108,21 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
           .eq('type', 'issue')
           .single();
         
+        console.log('Issue query result:', { issueData, issueError });
+        
         if (issueError) {
           throw new Error(`Issue not found: ${issueError.message}`);
         }
         
-        // FIXED: Load chapters with file relationships
+        // FIXED: Load chapters first, then files separately
         const { data: chaptersData, error: chaptersError } = await supabase
           .from('chapters')
           .select('*')
           .eq('issue_id', issueData.id)
           .eq('status', 'published')
           .order('chapter_number');
+        
+        console.log('Chapters query result:', { chaptersData, chaptersError });
         
         if (chaptersError) {
           throw new Error(`Chapters not found: ${chaptersError.message}`);
@@ -121,58 +132,78 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
           throw new Error('No published chapters found for this issue.');
         }
         
-        // FIXED: Load hero and banner files for each chapter
-        const chaptersWithFiles = await Promise.all(
-          chaptersData.map(async (chapter) => {
-            let heroFile = null;
-            let bannerFile = null;
+        // FIXED: Load files for each chapter individually
+        const chaptersWithFiles = [];
+        
+        for (const chapter of chaptersData) {
+          console.log(`Processing chapter ${chapter.chapter_number} (${chapter.title})`);
+          console.log(`Hero file ID: ${chapter.hero_file_id}`);
+          console.log(`Banner file ID: ${chapter.banner_file_id}`);
+          
+          let heroFile = null;
+          let bannerFile = null;
+          
+          // Load hero file
+          if (chapter.hero_file_id) {
+            console.log(`Loading hero file: ${chapter.hero_file_id}`);
+            const { data: heroData, error: heroError } = await supabase
+              .from('files')
+              .select('*')
+              .eq('id', chapter.hero_file_id)
+              .single();
             
-            // Load hero file if exists
-            if (chapter.hero_file_id) {
-              const { data: heroData } = await supabase
-                .from('files')
-                .select('*')
-                .eq('id', chapter.hero_file_id)
-                .single();
+            if (heroError) {
+              console.warn(`Failed to load hero file ${chapter.hero_file_id}:`, heroError);
+            } else {
+              console.log(`Hero file loaded:`, heroData);
               heroFile = heroData;
             }
+          }
+          
+          // Load banner file
+          if (chapter.banner_file_id) {
+            console.log(`Loading banner file: ${chapter.banner_file_id}`);
+            const { data: bannerData, error: bannerError } = await supabase
+              .from('files')
+              .select('*')
+              .eq('id', chapter.banner_file_id)
+              .single();
             
-            // Load banner file if exists
-            if (chapter.banner_file_id) {
-              const { data: bannerData } = await supabase
-                .from('files')
-                .select('*')
-                .eq('id', chapter.banner_file_id)
-                .single();
+            if (bannerError) {
+              console.warn(`Failed to load banner file ${chapter.banner_file_id}:`, bannerError);
+            } else {
+              console.log(`Banner file loaded:`, bannerData);
               bannerFile = bannerData;
             }
-            
-            return {
-              ...chapter,
-              hero_file: heroFile,
-              banner_file: bannerFile
-            };
-          })
-        );
+          }
+          
+          chaptersWithFiles.push({
+            ...chapter,
+            hero_file: heroFile,
+            banner_file: bannerFile
+          });
+        }
         
-        console.log('Loaded chapters with files:', chaptersWithFiles);
+        console.log('Final chapters with files:', chaptersWithFiles);
         setChapters(chaptersWithFiles);
         
         // Set initial chapter
+        let targetChapter = chaptersWithFiles[0];
+        let targetIndex = 0;
+        
         if (chapterSlug) {
-          const targetChapter = chaptersWithFiles.find(ch => ch.slug === chapterSlug);
-          if (targetChapter) {
-            const index = chaptersWithFiles.indexOf(targetChapter);
-            setCurrentChapterIndex(index);
-            setCurrentChapter(targetChapter);
-          } else {
-            setCurrentChapter(chaptersWithFiles[0]);
-            setCurrentChapterIndex(0);
+          const found = chaptersWithFiles.find(ch => ch.slug === chapterSlug);
+          if (found) {
+            targetChapter = found;
+            targetIndex = chaptersWithFiles.indexOf(found);
           }
-        } else {
-          setCurrentChapter(chaptersWithFiles[0]);
-          setCurrentChapterIndex(0);
         }
+        
+        console.log('Setting current chapter:', targetChapter);
+        console.log('Hero file for current chapter:', targetChapter.hero_file);
+        
+        setCurrentChapter(targetChapter);
+        setCurrentChapterIndex(targetIndex);
         
       } catch (err) {
         console.error('Error loading chapters:', err);
@@ -185,22 +216,25 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
     loadChaptersWithFiles();
   }, [issueSlug, chapterSlug]);
 
-  // Navigation functions
   const goToNextChapter = useCallback(() => {
     if (currentChapterIndex < chapters.length - 1) {
       const nextIndex = currentChapterIndex + 1;
+      const nextChapter = chapters[nextIndex];
       setCurrentChapterIndex(nextIndex);
-      setCurrentChapter(chapters[nextIndex]);
-      onChapterChange?.(chapters[nextIndex]);
+      setCurrentChapter(nextChapter);
+      console.log('Moving to next chapter:', nextChapter.title, 'Hero file:', nextChapter.hero_file);
+      onChapterChange?.(nextChapter);
     }
   }, [currentChapterIndex, chapters, onChapterChange]);
 
   const goToPreviousChapter = useCallback(() => {
     if (currentChapterIndex > 0) {
       const prevIndex = currentChapterIndex - 1;
+      const prevChapter = chapters[prevIndex];
       setCurrentChapterIndex(prevIndex);
-      setCurrentChapter(chapters[prevIndex]);
-      onChapterChange?.(chapters[prevIndex]);
+      setCurrentChapter(prevChapter);
+      console.log('Moving to previous chapter:', prevChapter.title, 'Hero file:', prevChapter.hero_file);
+      onChapterChange?.(prevChapter);
     }
   }, [currentChapterIndex, chapters, onChapterChange]);
 
@@ -225,7 +259,6 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [goToNextChapter, goToPreviousChapter]);
 
-  // Theme CSS classes
   const getThemeClasses = () => {
     switch (settings.theme) {
       case 'dark':
@@ -260,7 +293,6 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
     return `${fontSizes[settings.fontSize]} ${fontFamilies[settings.fontFamily]} ${lineHeights[settings.lineHeight]}`;
   };
 
-  // Fullscreen handling
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -305,7 +337,18 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
   }
 
   const progress = chapters.length > 0 ? ((currentChapterIndex + 1) / chapters.length) * 100 : 0;
-  const heroImageUrl = settings.showHeroImages && currentChapter.hero_file ? getFileUrl(currentChapter.hero_file) : null;
+  
+  // FIXED: Hero image URL generation with enhanced debugging
+  const heroImageUrl = useMemo(() => {
+    if (!settings.showHeroImages || !currentChapter.hero_file) {
+      console.log('No hero image:', { showHeroImages: settings.showHeroImages, heroFile: currentChapter.hero_file });
+      return null;
+    }
+    
+    const url = getFileUrl(currentChapter.hero_file);
+    console.log('Generated hero image URL:', url);
+    return url;
+  }, [settings.showHeroImages, currentChapter.hero_file]);
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${getThemeClasses()}`}>
@@ -330,6 +373,10 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
                   Chapter {currentChapter.chapter_number} of {chapters.length}
                   {currentChapter.estimated_read_time && (
                     <span className="ml-2">• {currentChapter.estimated_read_time} min read</span>
+                  )}
+                  {/* DEBUG: Show hero file status */}
+                  {currentChapter.hero_file && (
+                    <span className="ml-2 text-purple-600">• 🎨 Hero</span>
                   )}
                 </p>
               </div>
@@ -392,46 +439,6 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
               </div>
             </div>
             
-            {/* Font Family */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Font Family</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['serif', 'sans', 'mono'] as const).map((family) => (
-                  <button
-                    key={family}
-                    onClick={() => setSettings(prev => ({ ...prev, fontFamily: family }))}
-                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                      settings.fontFamily === family
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    {family === 'serif' ? 'Serif' : family === 'sans' ? 'Sans' : 'Mono'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
-            {/* Theme */}
-            <div>
-              <label className="block text-sm font-medium mb-2">Theme</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['light', 'dark', 'sepia'] as const).map((theme) => (
-                  <button
-                    key={theme}
-                    onClick={() => setSettings(prev => ({ ...prev, theme }))}
-                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                      settings.theme === theme
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    {theme.charAt(0).toUpperCase() + theme.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-            
             {/* NEW: Hero Images Toggle */}
             <div>
               <label className="block text-sm font-medium mb-2">Visual Features</label>
@@ -459,17 +466,22 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <article className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden">
-          {/* FIXED: Hero Image Display */}
+          {/* FIXED: Hero Image Display with Enhanced Debugging */}
           {heroImageUrl && settings.showHeroImages && (
             <div className="relative w-full h-64 md:h-80 lg:h-96 overflow-hidden">
               <img
                 src={heroImageUrl}
                 alt={currentChapter.hero_file?.alt_text || `Hero image for ${currentChapter.title}`}
                 className="w-full h-full object-cover"
-                onLoad={() => console.log('Hero image loaded successfully')}
+                onLoad={() => {
+                  console.log('✅ Hero image loaded successfully in reader:', heroImageUrl);
+                }}
                 onError={(e) => {
-                  console.error('Hero image failed to load:', e);
-                  (e.target as HTMLImageElement).style.display = 'none';
+                  console.error('❌ Hero image failed to load:', {
+                    url: heroImageUrl,
+                    heroFile: currentChapter.hero_file,
+                    error: e
+                  });
                 }}
               />
               
@@ -483,6 +495,17 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
                     Chapter {currentChapter.chapter_number}
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+          
+          {/* DEBUG: Show hero image status */}
+          {currentChapter.hero_file && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700">
+              <div className="text-sm text-blue-800 dark:text-blue-200">
+                🐛 DEBUG: Hero file detected - {currentChapter.hero_file.name}
+                <br />URL: {heroImageUrl}
+                <br />Show setting: {settings.showHeroImages ? '✅' : '❌'}
               </div>
             </div>
           )}
@@ -517,8 +540,8 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
             <div 
               className={`prose prose-lg max-w-none ${getFontClasses()}`}
               style={{
-                maxHeight: 'none', // Remove height restrictions
-                overflow: 'visible'  // Allow natural scrolling
+                maxHeight: 'none',
+                overflow: 'visible'
               }}
             >
               <div 
@@ -529,8 +552,8 @@ const ProfessionalEbookReader: React.FC<ProfessionalEbookReaderProps> = ({
                 style={{
                   lineHeight: settings.lineHeight === 'tight' ? 1.4 : 
                              settings.lineHeight === 'relaxed' ? 1.8 : 1.6,
-                  maxWidth: '65ch', // Optimal reading width
-                  margin: '0 auto'   // Center the text
+                  maxWidth: '65ch',
+                  margin: '0 auto'
                 }}
               />
             </div>

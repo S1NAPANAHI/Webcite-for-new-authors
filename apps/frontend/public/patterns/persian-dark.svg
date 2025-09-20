@@ -1,100 +1,172 @@
-<svg width="350" height="350" viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg">
+<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- Dark Mode Persian Gradients -->
-    <linearGradient id="darkGold" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffd700" stop-opacity="0.18"/>
-      <stop offset="25%" stop-color="#00c9ff" stop-opacity="0.15"/>
-      <stop offset="50%" stop-color="#6a11cb" stop-opacity="0.12"/>
-      <stop offset="75%" stop-color="#ff6ec7" stop-opacity="0.08"/>
-      <stop offset="100%" stop-color="#ffd700" stop-opacity="0.18"/>
+    <!-- Enhanced gradient definitions for sci-fi Persian motifs -->
+    <linearGradient id="goldToCyanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700" stop-opacity="0.8"/>
+      <stop offset="30%" stop-color="#00E6FF" stop-opacity="0.6"/>
+      <stop offset="60%" stop-color="#6A11CB" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#FF6EC7" stop-opacity="0.5"/>
     </linearGradient>
     
-    <linearGradient id="circuitGlow" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#00c9ff" stop-opacity="0.2"/>
-      <stop offset="50%" stop-color="#ffd700" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#00c9ff" stop-opacity="0.2"/>
+    <radialGradient id="cosmicGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#4FC3F7" stop-opacity="0.6"/>
+      <stop offset="50%" stop-color="#AB47BC" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#FFB74D" stop-opacity="0.3"/>
+    </radialGradient>
+    
+    <linearGradient id="techLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00E6FF" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#00E6FF" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#00E6FF" stop-opacity="0"/>
     </linearGradient>
     
-    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
-      <stop offset="40%" stop-color="#00c9ff" stop-opacity="0.3"/>
-      <stop offset="100%" stop-color="#6a11cb" stop-opacity="0.0"/>
-    </radialGradient>
+    <!-- Persian ornament pattern with sci-fi enhancement -->
+    <g id="persianMotif">
+      <!-- Central Persian medallion with cosmic elements -->
+      <path d="M200,80 Q240,60 280,80 Q300,120 280,160 Q240,180 200,160 Q180,120 200,80 Z" 
+            fill="url(#goldToCyanGradient)" 
+            stroke="url(#cosmicGlow)" 
+            stroke-width="1" 
+            opacity="0.4"/>
+      
+      <!-- Inner ornamental core -->
+      <circle cx="240" cy="120" r="20" fill="url(#cosmicGlow)" opacity="0.3"/>
+      <circle cx="240" cy="120" r="8" fill="url(#goldToCyanGradient)" opacity="0.6"/>
+      
+      <!-- Flowing Persian curves with tech elements -->
+      <path d="M210,100 Q230,90 250,100 Q270,120 250,140 Q230,150 210,140 Q190,120 210,100" 
+            fill="none" 
+            stroke="url(#goldToCyanGradient)" 
+            stroke-width="1.5" 
+            opacity="0.5"/>
+      
+      <!-- Decorative Persian flourishes -->
+      <path d="M220,105 Q240,100 260,105 M220,120 Q240,115 260,120 M220,135 Q240,130 260,135" 
+            fill="none" 
+            stroke="url(#cosmicGlow)" 
+            stroke-width="0.8" 
+            opacity="0.4"/>
+      
+      <!-- Sci-fi geometric accents -->
+      <polygon points="230,110 250,110 245,125 235,125" 
+               fill="url(#goldToCyanGradient)" 
+               opacity="0.3"/>
+      
+      <!-- Tech circuit lines -->
+      <path d="M180,120 L200,120 M280,120 L300,120" 
+            stroke="url(#techLine)" 
+            stroke-width="1" 
+            opacity="0.5"/>
+      
+      <!-- Corner ornaments with cosmic touch -->
+      <g transform="translate(180,100)">
+        <path d="M0,0 Q15,-8 30,0 Q22,15 15,30 Q0,22 -15,15 Q-8,0 0,0" 
+              fill="url(#cosmicGlow)" 
+              opacity="0.25"/>
+        <circle cx="15" cy="15" r="2" fill="url(#goldToCyanGradient)" opacity="0.6"/>
+      </g>
+      
+      <g transform="translate(300,100)">
+        <path d="M0,0 Q-15,-8 -30,0 Q-22,15 -15,30 Q0,22 15,15 Q8,0 0,0" 
+              fill="url(#cosmicGlow)" 
+              opacity="0.25"/>
+        <circle cx="-15" cy="15" r="2" fill="url(#goldToCyanGradient)" opacity="0.6"/>
+      </g>
+      
+      <g transform="translate(180,140)">
+        <path d="M0,0 Q15,8 30,0 Q22,-15 15,-30 Q0,-22 -15,-15 Q-8,0 0,0" 
+              fill="url(#cosmicGlow)" 
+              opacity="0.25"/>
+        <circle cx="15" cy="-15" r="2" fill="url(#goldToCyanGradient)" opacity="0.6"/>
+      </g>
+      
+      <g transform="translate(300,140)">
+        <path d="M0,0 Q-15,8 -30,0 Q-22,-15 -15,-30 Q0,-22 15,-15 Q8,0 0,0" 
+              fill="url(#cosmicGlow)" 
+              opacity="0.25"/>
+        <circle cx="-15" cy="-15" r="2" fill="url(#goldToCyanGradient)" opacity="0.6"/>
+      </g>
+    </g>
     
-    <radialGradient id="cosmicGlow" cx="50%" cy="30%" r="70%">
-      <stop offset="0%" stop-color="#1a0f2e" stop-opacity="0.4"/>
-      <stop offset="60%" stop-color="#2d1b69" stop-opacity="0.2"/>
-      <stop offset="100%" stop-color="#0b0612" stop-opacity="0.1"/>
-    </radialGradient>
+    <!-- Smaller connecting motifs -->
+    <g id="connector">
+      <path d="M50,40 Q100,30 150,40 Q140,60 100,70 Q80,60 50,40" 
+            fill="url(#goldToCyanGradient)" 
+            opacity="0.3"/>
+      <circle cx="100" cy="50" r="4" fill="url(#cosmicGlow)" opacity="0.5"/>
+      <!-- Tech hexagon -->
+      <polygon points="90,45 95,42 105,42 110,45 105,48 95,48" 
+               fill="url(#techLine)" 
+               opacity="0.4"/>
+    </g>
+    
+    <!-- Cosmic star field -->
+    <g id="stars">
+      <circle cx="80" cy="160" r="1.5" fill="#FFD700" opacity="0.8"/>
+      <circle cx="350" cy="180" r="1" fill="#00E6FF" opacity="0.7"/>
+      <circle cx="280" cy="50" r="1" fill="#FF6EC7" opacity="0.6"/>
+      <circle cx="320" cy="350" r="1.5" fill="#6A11CB" opacity="0.7"/>
+      <circle cx="120" cy="320" r="1" fill="#4FC3F7" opacity="0.8"/>
+      <circle cx="60" cy="250" r="1" fill="#AB47BC" opacity="0.6"/>
+      <circle cx="380" cy="80" r="1" fill="#FFB74D" opacity="0.7"/>
+    </g>
+    
+    <!-- Nebula effect -->
+    <g id="nebula">
+      <ellipse cx="150" cy="300" rx="40" ry="20" 
+               fill="url(#cosmicGlow)" 
+               opacity="0.15" 
+               transform="rotate(25 150 300)"/>
+      <ellipse cx="320" cy="100" rx="30" ry="15" 
+               fill="url(#goldToCyanGradient)" 
+               opacity="0.1" 
+               transform="rotate(-15 320 100)"/>
+    </g>
   </defs>
   
-  <!-- Background with cosmic overlay -->
-  <rect width="350" height="350" fill="url(#cosmicGlow)"/>
+  <!-- Transparent background -->
+  <rect width="400" height="400" fill="transparent"/>
   
-  <!-- Main Persian ornamental motifs -->
-  <g fill="url(#darkGold)">
-    <!-- Central elaborate medallion -->
-    <path d="M175,75 Q140,75 115,100 Q90,125 90,160 Q90,195 115,220 Q140,245 175,245 Q210,245 235,220 Q260,195 260,160 Q260,125 235,100 Q210,75 175,75 Z"/>
-    
-    <!-- Ornate corner medallions -->
-    <path d="M75,175 Q40,175 15,150 Q-10,125 -10,90 Q-10,55 15,30 Q40,5 75,5 Q110,5 135,30 Q160,55 160,90 Q160,125 135,150 Q110,175 75,175 Z"/>
-    
-    <path d="M275,175 Q310,175 335,150 Q360,125 360,90 Q360,55 335,30 Q310,5 275,5 Q240,5 215,30 Q190,55 190,90 Q190,125 215,150 Q240,175 275,175 Z"/>
-    
-    <path d="M175,275 Q140,275 115,250 Q90,225 90,190 Q90,155 115,130 Q140,105 175,105 Q210,105 235,130 Q260,155 260,190 Q260,225 235,250 Q210,275 175,275 Z"/>
-    
-    <path d="M75,75 Q40,75 15,50 Q-10,25 -10,-10 Q-10,-45 15,-70 Q40,-95 75,-95 Q110,-95 135,-70 Q160,-45 160,-10 Q160,25 135,50 Q110,75 75,75 Z"/>
-    
-    <path d="M275,75 Q310,75 335,50 Q360,25 360,-10 Q360,-45 335,-70 Q310,-95 275,-95 Q240,-95 215,-70 Q190,-45 190,-10 Q190,25 215,50 Q240,75 275,75 Z"/>
-    
-    <path d="M75,275 Q40,275 15,250 Q-10,225 -10,190 Q-10,155 15,130 Q40,105 75,105 Q110,105 135,130 Q160,155 160,190 Q160,225 135,250 Q110,275 75,275 Z"/>
-    
-    <path d="M275,275 Q310,275 335,250 Q360,225 360,190 Q360,155 335,130 Q310,105 275,105 Q240,105 215,130 Q190,155 190,190 Q190,225 215,250 Q240,275 275,275 Z"/>
+  <!-- Nebula background layer -->
+  <use href="#nebula"/>
+  
+  <!-- Main pattern repetition -->
+  <use href="#persianMotif" transform="translate(-40,-40)"/>
+  <use href="#persianMotif" transform="translate(160,-40)"/>
+  <use href="#persianMotif" transform="translate(-40,160)"/>
+  <use href="#persianMotif" transform="translate(160,160)"/>
+  
+  <!-- Connecting elements -->
+  <use href="#connector" transform="translate(100,-10)"/>
+  <use href="#connector" transform="translate(100,190)"/>
+  <use href="#connector" transform="translate(-50,100) rotate(90 100 50)"/>
+  <use href="#connector" transform="translate(150,100) rotate(90 100 50)"/>
+  
+  <!-- Cosmic elements -->
+  <use href="#stars"/>
+  
+  <!-- Tech grid overlay -->
+  <g opacity="0.15">
+    <path d="M200,0 L200,400" stroke="url(#techLine)" stroke-width="0.5" stroke-dasharray="4,12"/>
+    <path d="M0,200 L400,200" stroke="url(#techLine)" stroke-width="0.5" stroke-dasharray="4,12"/>
   </g>
   
-  <!-- Sci-fi circuit connecting lines -->
-  <g stroke="url(#circuitGlow)" stroke-width="0.8" fill="none">
-    <path d="M160,160 Q180,140 200,160 Q220,140 240,160" opacity="0.7"/>
-    <path d="M160,190 Q180,210 200,190 Q220,210 240,190" opacity="0.7"/>
-    <path d="M160,160 Q140,180 160,200 Q140,220 160,240" opacity="0.7"/>
-    <path d="M190,160 Q210,180 190,200 Q210,220 190,240" opacity="0.7"/>
-    
-    <!-- Diagonal tech lines -->
-    <line x1="120" y1="120" x2="140" y2="140" opacity="0.5"/>
-    <line x1="230" y1="120" x2="210" y2="140" opacity="0.5"/>
-    <line x1="120" y1="230" x2="140" y2="210" opacity="0.5"/>
-    <line x1="230" y1="230" x2="210" y2="210" opacity="0.5"/>
+  <!-- Additional hexagonal tech elements -->
+  <g opacity="0.2">
+    <polygon points="320,140 330,125 340,140 330,155" fill="url(#goldToCyanGradient)"/>
+    <polygon points="80,340 90,325 100,340 90,355" fill="url(#cosmicGlow)"/>
+    <polygon points="360,280 370,265 380,280 370,295" fill="url(#techLine)"/>
   </g>
   
-  <!-- Cosmic stars and particles -->
-  <g fill="url(#starGlow)">
-    <circle cx="50" cy="80" r="1.5"/>
-    <circle cx="300" cy="60" r="1.2"/>
-    <circle cx="80" cy="270" r="1.8"/>
-    <circle cx="270" cy="290" r="1.1"/>
-    <circle cx="175" cy="40" r="0.8"/>
-    <circle cx="175" cy="310" r="1.4"/>
-    <circle cx="40" cy="175" r="1.0"/>
-    <circle cx="310" cy="175" r="1.3"/>
-    <circle cx="120" cy="100" r="0.6"/>
-    <circle cx="250" cy="120" r="0.9"/>
-    <circle cx="100" cy="250" r="1.1"/>
-    <circle cx="270" cy="220" r="0.7"/>
-  </g>
-  
-  <!-- Tech hexagonal accents -->
-  <g fill="url(#circuitGlow)" opacity="0.4">
-    <polygon points="90,90 95,85 105,85 110,90 105,95 95,95"/>
-    <polygon points="245,90 250,85 260,85 265,90 260,95 250,95"/>
-    <polygon points="90,260 95,255 105,255 110,260 105,265 95,265"/>
-    <polygon points="245,260 250,255 260,255 265,260 260,265 250,265"/>
-  </g>
-  
-  <!-- Energy pulse lines -->
-  <g stroke="url(#circuitGlow)" stroke-width="0.3" fill="none" opacity="0.3">
-    <path d="M50,50 Q175,100 300,50"/>
-    <path d="M50,300 Q175,250 300,300"/>
-    <path d="M50,50 Q100,175 50,300"/>
-    <path d="M300,50 Q250,175 300,300"/>
+  <!-- Subtle energy streams -->
+  <g opacity="0.1">
+    <path d="M0,100 Q100,80 200,100 Q300,120 400,100" 
+          stroke="url(#goldToCyanGradient)" 
+          stroke-width="2" 
+          fill="none"/>
+    <path d="M0,300 Q100,280 200,300 Q300,320 400,300" 
+          stroke="url(#cosmicGlow)" 
+          stroke-width="2" 
+          fill="none"/>
   </g>
 </svg>

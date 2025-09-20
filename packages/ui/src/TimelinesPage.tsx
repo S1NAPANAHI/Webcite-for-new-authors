@@ -15,7 +15,8 @@ import {
   Clock,
   Star,
   Globe2,
-  Flame
+  Flame,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from './button';
 import { Input } from './input';
@@ -23,12 +24,16 @@ import { Badge } from './badge';
 import { LoadingSkeleton } from './LoadingSkeleton';
 import './styles/fantasy-timeline.css';
 
+// Import supabase client - you'll need to make sure this path is correct for your setup
+// If using different import path, adjust accordingly
+const { supabase } = require('../../lib/supabase');
+
 // Enhanced Types with Nested Structure
 interface NestedEvent {
   id: string;
   title: string;
   date: string;
-  blurb: string;
+  description: string;
   children?: NestedEvent[];
 }
 
@@ -36,10 +41,18 @@ interface TimelineEvent {
   id: string;
   title: string;
   date: string;
-  blurb: string;
-  category?: 'political' | 'religious' | 'military' | 'cultural' | 'mystical';
-  importance?: 'minor' | 'major' | 'legendary';
-  children?: NestedEvent[];
+  description: string;
+  details?: string;
+  era: string;
+  category: string;
+  background_image?: string;
+  is_published: boolean;
+  order_index: number;
+  parent_event_id?: string;
+  depth: number;
+  children?: TimelineEvent[];
+  created_at: string;
+  updated_at: string;
 }
 
 interface Era {
@@ -51,198 +64,162 @@ interface Era {
   events: TimelineEvent[];
 }
 
-// Mock Fantasy Timeline Data
-const mockTimelineData: Era[] = [
-  {
-    id: "era-1",
-    title: "Age of Flame",
-    start: "Dawn of Time",
-    end: "Year 1247",
-    description: "When Ahura Mazda first kindled the Sacred Fires and light pierced the primordial darkness. The first temples rose, and prophets walked among mortals.",
-    events: [
-      {
-        id: "af-1",
-        title: "The First Sacred Fire",
-        date: "Dawn of Time",
-        blurb: "Ahura Mazda kindles the eternal flame that shall never be extinguished.",
-        category: "mystical",
-        importance: "legendary",
-        children: [
-          {
-            id: "af-1-1",
-            title: "Gathering of the Magi",
-            date: "First Dawn + 7 Days",
-            blurb: "Seven wise men witness the divine flame and become its first guardians.",
-            children: [
-              {
-                id: "af-1-1-1",
-                title: "The Oath of Eternal Watch",
-                date: "First Dawn + 14 Days",
-                blurb: "The Magi swear to protect the flame until the end of days."
-              }
-            ]
-          },
-          {
-            id: "af-1-2",
-            title: "First Temple Foundations",
-            date: "Year 1",
-            blurb: "Stones carved with sacred geometry begin the first fire temple."
-          }
-        ]
-      },
-      {
-        id: "af-2",
-        title: "The Prophet's Revelation",
-        date: "Year 628",
-        blurb: "Zarathustra receives the divine vision that reshapes understanding of good and evil.",
-        category: "religious",
-        importance: "legendary",
-        children: [
-          {
-            id: "af-2-1",
-            title: "Vision of the Twin Spirits",
-            date: "Year 628, Third Moon",
-            blurb: "The cosmic battle between Ahura Mazda and Angra Mainyu is revealed."
-          },
-          {
-            id: "af-2-2",
-            title: "The Threefold Path",
-            date: "Year 629",
-            blurb: "Good Thoughts, Good Words, Good Deeds become the foundation of faith."
-          }
-        ]
+// Real Supabase API Functions (Public - Only Published Events)
+const fetchPublicTimelineEvents = async (): Promise<{ data: Era[] }> => {
+  try {
+    // Only fetch published events for public view
+    const { data, error } = await supabase
+      .from('timeline_events')
+      .select('*')
+      .eq('is_published', true)
+      .order('era', { ascending: true })
+      .order('order_index', { ascending: true });
+
+    if (error) throw error;
+
+    // Group events by era and build hierarchy
+    const eventsByEra = new Map<string, TimelineEvent[]>();
+    const eventMap = new Map<string, TimelineEvent>();
+
+    // First pass: create all event objects
+    data.forEach(event => {
+      const timelineEvent: TimelineEvent = {
+        id: event.id,
+        title: event.title,
+        date: event.date,
+        description: event.description || '',
+        details: event.details,
+        era: event.era,
+        category: event.category || 'Other',
+        background_image: event.background_image,
+        is_published: event.is_published,
+        order_index: event.order_index,
+        parent_event_id: event.parent_event_id,
+        depth: event.depth || 0,
+        children: [],
+        created_at: event.created_at,
+        updated_at: event.updated_at
+      };
+      eventMap.set(event.id, timelineEvent);
+    });
+
+    // Second pass: build parent-child relationships
+    const rootEvents: TimelineEvent[] = [];
+    eventMap.forEach(event => {
+      if (event.parent_event_id) {
+        const parent = eventMap.get(event.parent_event_id);
+        if (parent) {
+          parent.children = parent.children || [];
+          parent.children.push(event);
+        }
+      } else {
+        rootEvents.push(event);
       }
-    ]
-  },
-  {
-    id: "era-2", 
-    title: "The Shadow Wars",
-    start: "Year 1248",
-    end: "Year 2156",
-    description: "When darkness crept across the lands and the Sacred Fires flickered. Demons walked openly, and heroes rose to meet them in battle.",
-    events: [
-      {
-        id: "sw-1",
-        title: "The Demon King's Rise",
-        date: "Year 1248",
-        blurb: "Angra Mainyu's greatest servant breaks free from ancient bindings.",
-        category: "military",
-        importance: "legendary",
-        children: [
-          {
-            id: "sw-1-1",
-            title: "The Seven Seals Break",
-            date: "Year 1248, Eclipse Night",
-            blurb: "One by one, the ancient wards fail as darkness spreads."
-          },
-          {
-            id: "sw-1-2", 
-            title: "First Demon Sighting",
-            date: "Year 1249",
-            blurb: "A farmer's report of shadow-beasts sparks kingdom-wide panic."
-          }
-        ]
-      },
-      {
-        id: "sw-2",
-        title: "The Hero's Awakening",
-        date: "Year 1456",
-        blurb: "A humble fire-tender discovers they bear the mark of the ancient warriors.",
-        category: "mystical",
-        importance: "major",
-        children: [
-          {
-            id: "sw-2-1",
-            title: "The Burning Sword",
-            date: "Year 1456, Solstice",
-            blurb: "The legendary blade chooses its wielder after seven centuries."
-          }
-        ]
+    });
+
+    // Group root events by era
+    rootEvents.forEach(event => {
+      if (!eventsByEra.has(event.era)) {
+        eventsByEra.set(event.era, []);
       }
-    ]
-  },
-  {
-    id: "era-3",
-    title: "Dawn of the Second Sun", 
-    start: "Year 2157",
-    end: "Present Day",
-    description: "The age of renewal, when the Sacred Fires burn brighter than ever and new prophecies unfold across the realm.",
-    events: [
-      {
-        id: "ds-1",
-        title: "The Great Rekindling",
-        date: "Year 2157",
-        blurb: "All Sacred Fires across the realm ignite simultaneously in a display of divine power.",
-        category: "mystical", 
-        importance: "legendary",
-        children: [
-          {
-            id: "ds-1-1",
-            title: "The Phoenix Rises",
-            date: "Year 2157, Dawn",
-            blurb: "A great phoenix emerges from the central fire temple, herald of the new age."
-          }
-        ]
-      }
-    ]
+      eventsByEra.get(event.era)!.push(event);
+    });
+
+    // Convert to Era format with descriptions
+    const eras: Era[] = Array.from(eventsByEra.entries()).map(([eraName, events]) => ({
+      id: eraName.toLowerCase().replace(/\s+/g, '-'),
+      title: eraName,
+      start: events.length > 0 ? events[0].date : 'Unknown',
+      end: events.length > 0 ? events[events.length - 1].date : 'Unknown',
+      description: getEraDescription(eraName),
+      events
+    }));
+
+    return { data: eras };
+  } catch (error) {
+    console.error('Error fetching timeline events:', error);
+    throw error;
   }
-];
+};
+
+const getEraDescription = (eraName: string): string => {
+  const descriptions: Record<string, string> = {
+    'The First Age': 'The age of creation and the first civilizations in the Zoroasterverse.',
+    'Golden Age': 'An era of prosperity, peace, and magical advancement.',
+    'The Dark Times': 'A period of chaos, war, and the falling of the ancient ways.',
+    'Second Dawn': 'The age of rebuilding and new hope.',
+    'Age of Flame': 'When Ahura Mazda first kindled the Sacred Fires and light pierced the primordial darkness.',
+    'The Shadow Wars': 'When darkness crept across the lands and the Sacred Fires flickered.',
+    'Dawn of the Second Sun': 'The age of renewal, when the Sacred Fires burn brighter than ever.'
+  };
+  return descriptions[eraName] || 'A significant period in the history of the Zoroasterverse.';
+};
 
 const CATEGORY_ICONS = {
-  political: Crown,
-  religious: Scroll,
-  military: Sword,
-  cultural: BookOpen,
-  mystical: Flame
+  Political: Crown,
+  Religious: Scroll,
+  Military: Sword,
+  Cultural: BookOpen,
+  Magical: Flame,
+  Technological: Star,
+  Natural: Globe2,
+  Other: Sparkles
+};
+
+const IMPORTANCE_GLOW = {
+  minor: 'shadow-sm',
+  major: 'shadow-lg shadow-purple-500/20',
+  legendary: 'shadow-xl shadow-yellow-500/30'
 };
 
 // Fantasy Event Component
 const FantasyEvent: React.FC<{ 
-  event: TimelineEvent | NestedEvent; 
+  event: TimelineEvent; 
   depth: number;
 }> = ({ event, depth }) => {
   const [isOpen, setIsOpen] = useState(depth < 1);
   const hasChildren = event.children && event.children.length > 0;
-  const Icon = CATEGORY_ICONS[(event as TimelineEvent).category || 'mystical'];
-  const importance = (event as TimelineEvent).importance || 'minor';
+  const Icon = CATEGORY_ICONS[event.category] || Sparkles;
 
   return (
     <div className="event" style={{ '--depth': depth } as React.CSSProperties}>
       <div className="event-row">
         <span className="event-connector" aria-hidden="true" />
         
-        <div className={`event-node ${importance === 'legendary' ? 'legendary-glow' : ''}`}>
+        <div className="event-node">
           <div className="relative">
-            {importance === 'legendary' && (
-              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full blur opacity-75 animate-pulse" />
-            )}
             <div className="relative w-3 h-3 bg-gradient-to-br from-purple-400 to-yellow-500 rounded-full border border-white/30">
-              {importance === 'legendary' && (
-                <div className="absolute inset-0.5 bg-white rounded-full animate-pulse" />
-              )}
+              <div className="absolute inset-0.5 bg-white/20 rounded-full animate-pulse" />
             </div>
           </div>
         </div>
         
-        <div className={`event-content ${importance === 'legendary' ? 'legendary-glow' : ''}`}>
+        <div className="event-content">
           <div className="event-head">
             <div className="flex items-center gap-2">
               <Icon className="w-4 h-4 text-yellow-400" />
               <h3 className="event-title">{event.title}</h3>
             </div>
             {event.date && (
-              <span className="event-date">{event.date}</span>
+              <Badge variant="outline" className="event-date bg-black/20 border-white/10 text-gray-300">
+                {event.date}
+              </Badge>
             )}
           </div>
           
-          <p className="event-blurb">{event.blurb}</p>
+          <p className="event-blurb">{event.description}</p>
           
-          {(event as TimelineEvent).importance === 'legendary' && (
-            <Badge className="mt-2 bg-gradient-to-r from-yellow-600 to-orange-500 text-yellow-100 border-none text-xs">
-              <Star className="w-3 h-3 mr-1" />
-              Legendary Chronicle
-            </Badge>
+          {event.details && (
+            <div className="mt-3 text-sm text-purple-200 bg-black/10 rounded p-3 border-l-2 border-purple-500/30">
+              {event.details}
+            </div>
           )}
+          
+          <div className="flex items-center gap-2 mt-3">
+            <Badge variant="outline" className="bg-purple-500/20 border-purple-500/30 text-purple-300 text-xs">
+              {event.category}
+            </Badge>
+          </div>
           
           {hasChildren && (
             <button
@@ -356,26 +333,28 @@ export const TimelinesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   
-  // Mock API call - replace with actual implementation
+  // Real database query
   const { data: timelineData, isLoading, error } = useQuery({
-    queryKey: ['timelineEvents'],
-    queryFn: () => Promise.resolve(mockTimelineData),
+    queryKey: ['publicTimelineEvents'],
+    queryFn: fetchPublicTimelineEvents,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const filteredEras = useMemo(() => {
-    if (!timelineData) return [];
+    if (!timelineData?.data) return [];
     
-    if (!searchTerm && selectedCategory === 'all') return timelineData;
+    if (!searchTerm && selectedCategory === 'all') return timelineData.data;
     
-    return timelineData.map(era => ({
+    return timelineData.data.map(era => ({
       ...era,
       events: era.events.filter(event => {
         const matchesSearch = searchTerm === '' || 
           event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.blurb.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (event.children && event.children.some(child => 
             child.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            child.blurb.toLowerCase().includes(searchTerm.toLowerCase())
+            child.description.toLowerCase().includes(searchTerm.toLowerCase())
           ));
         
         const matchesCategory = selectedCategory === 'all' || event.category === selectedCategory;
@@ -496,11 +475,14 @@ export const TimelinesPage: React.FC = () => {
             className="px-4 py-2 bg-black/40 border border-purple-500/30 rounded-lg text-white focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-400/50"
           >
             <option value="all">All Chronicles</option>
-            <option value="mystical">🔥 Mystical</option>
-            <option value="religious">📜 Religious</option>
-            <option value="political">👑 Political</option>
-            <option value="military">⚔️ Military</option>
-            <option value="cultural">📚 Cultural</option>
+            <option value="Magical">🔥 Magical</option>
+            <option value="Religious">📜 Religious</option>
+            <option value="Political">👑 Political</option>
+            <option value="Military">⚔️ Military</option>
+            <option value="Cultural">📚 Cultural</option>
+            <option value="Technological">⭐ Technological</option>
+            <option value="Natural">🌍 Natural</option>
+            <option value="Other">✨ Other</option>
           </select>
         </div>
       </div>

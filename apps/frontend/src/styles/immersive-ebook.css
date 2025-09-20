@@ -18,6 +18,19 @@ body.reader-active {
   overflow: hidden !important;
 }
 
+/* CRITICAL SCROLLING FIX - Enable vertical scrolling in reader content */
+#zoro-reader-portal-root .ebook-content-scroll {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: 100% !important;
+}
+
+/* Ensure content can scroll */
+#zoro-reader-portal-root [class*="content"] {
+  overflow-y: auto !important;
+  max-height: 100% !important;
+}
+
 /* Typography reset - force inheritance and override prose styles */
 .typography-reset,
 .typography-reset *,

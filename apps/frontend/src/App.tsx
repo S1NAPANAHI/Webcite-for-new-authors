@@ -50,8 +50,10 @@ import MyLibraryPage from './pages/account/MyLibraryPage';
 import ChapterReaderPage from './pages/ChapterReaderPage';
 // NEW: File Manager Import
 import FileManagerPage from './pages/FileManagerPage';
-// UPDATED: Replace StarsBackground with PersianBackground
+// UPDATED: Persian Background System
 import PersianBackground from './components/PersianBackground';
+// Import the global background styles
+import './styles/persian-background.css';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -67,8 +69,7 @@ const PublicLayout: React.FC = () => {
   console.log('PublicLayout', { isAuthenticated });
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <PersianBackground animated={true} premium={false} />
+    <PersianBackground>
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -76,7 +77,7 @@ const PublicLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
-    </div>
+    </PersianBackground>
   );
 };
 
@@ -96,8 +97,7 @@ const ProtectedLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <PersianBackground animated={true} premium={true} />
+    <PersianBackground>
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
@@ -105,7 +105,7 @@ const ProtectedLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
-    </div>
+    </PersianBackground>
   );
 };
 
@@ -129,12 +129,20 @@ const AppContent: React.FC = () => {
   }, [params.pageSlug]);
 
   if (isLoading) {
-    return <LoadingSkeleton />;
+    return (
+      <PersianBackground>
+        <LoadingSkeleton />
+      </PersianBackground>
+    );
   }
 
   return (
     <Routes>
-      <Route path="/login" element={<div className="min-h-screen bg-background text-foreground transition-colors duration-300"><PersianBackground animated={true} /><LoginPage /></div>} />
+      <Route path="/login" element={
+        <PersianBackground>
+          <LoginPage />
+        </PersianBackground>
+      } />
       <Route path="/auth/callback" element={<HomePage />} />
 
       {/* Public Routes */}
@@ -185,7 +193,14 @@ const AppContent: React.FC = () => {
       </Route>
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><div className="min-h-screen bg-background text-foreground transition-colors duration-300"><PersianBackground animated={true} premium={true} /><AdminLayout /></div></ProtectedRoute>}>        <Route index element={<AdminDashboard />} />
+      <Route path="/admin" element={
+        <ProtectedRoute requiredRole="admin">
+          <PersianBackground>
+            <AdminLayout />
+          </PersianBackground>
+        </ProtectedRoute>
+      }>
+        <Route index element={<AdminDashboard />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         
         <Route path="content/pages" element={<PagesManager />} />

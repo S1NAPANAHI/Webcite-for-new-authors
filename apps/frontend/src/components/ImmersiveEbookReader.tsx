@@ -1,43 +1,56 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '@zoroaster/shared';
-import { supabase } from '../lib/supabase';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+} from 'react';
+import { createPortal } from 'react-dom';
 import {
-  Settings,
-  Sun,
-  Moon,
-  Palette,
   ChevronLeft,
   ChevronRight,
-  Lock,
-  Crown,
-  X,
-  Eye,
-  Shield,
+  Settings,
   BookOpen,
-  Clock,
-  BarChart3,
-  List,
+  X,
+  Maximize2,
+  Minimize2,
   Home,
-  ChevronDown,
-  Check
+  Menu,
+  Crown,
+  Shield,
+  Eye,
+  Clock,
+  BarChart3
 } from 'lucide-react';
+import { useAuth } from '@zoroaster/shared';
+import { supabase } from '../lib/supabase';
 
-interface Chapter {
+type Tier = 'free' | 'premium' | 'patron';
+
+export interface ChapterLite {
   id: string;
-  issue_id: string;
+  slug?: string | null;
   title: string;
-  slug: string;
   chapter_number: number;
-  content: any;
-  plain_content: string;
-  word_count: number;
-  estimated_read_time: number;
-  status: string;
-  published_at: string | null;
-  is_free?: boolean;
-  subscription_tier_required?: string;
+  is_free?: boolean | null;
+  subscription_tier_required?: Tier | null;
   has_access?: boolean;
-  metadata: any;
+  word_count?: number;
+  estimated_read_time?: number;
+  completed?: boolean;
+}
+
+interface Chapter extends ChapterLite {
+  content?: any;
+  plain_content?: string;
+  issue_id?: string;
+  metadata?: any;
+}
+
+interface User {
+  id: string;
+  subscription_tier?: Tier | null;
+  metadata?: any;
 }
 
 interface NavigationInfo {
@@ -49,31 +62,6 @@ interface NavigationInfo {
   nextHasAccess: boolean;
 }
 
-interface ReadingSettings {
-  theme: 'light' | 'dark' | 'sepia' | 'night';
-  fontSize: number;
-  fontFamily: 'serif' | 'sans' | 'mono' | 'dyslexic';
-  lineHeight: number;
-  textAlign: 'left' | 'justify' | 'center';
-  pageWidth: number;
-  backgroundColor: string;
-  textColor: string;
-  pageMargin: number;
-  wordsPerPage: number;
-}
-
-interface IssueChapter {
-  id: string;
-  title: string;
-  slug: string;
-  chapter_number: number;
-  is_free: boolean;
-  has_access: boolean;
-  word_count: number;
-  estimated_read_time: number;
-  completed?: boolean;
-}
-
 interface ImmersiveEbookReaderProps {
   chapter: Chapter;
   onChapterChange?: (direction: 'prev' | 'next') => void;
@@ -82,8 +70,50 @@ interface ImmersiveEbookReaderProps {
   onExit?: () => void;
 }
 
+interface ReadingSettings {
+  fontSize: number;       // px
+  fontFamily: string;
+  theme: 'light' | 'dark' | 'sepia' | 'night';
+  lineHeight: number;     // unitless
+  textAlign: 'justify' | 'left' | 'center';
+  wordsPerPage: number;   // used for pagination
+}
+
+const READER_PORTAL_ID = 'zoro-reader-portal-root';
+
+function ensurePortalRoot(): HTMLElement {
+  let root = document.getElementById(READER_PORTAL_ID);
+  if (!root) {
+    root = document.createElement('div');
+    root.id = READER_PORTAL_ID;
+    // Add CSS to ensure portal is above everything
+    root.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 2147483647;
+      pointer-events: none;
+    `;
+    document.body.appendChild(root);
+  }
+  return root;
+}
+
+const tierRank: Record<Tier, number> = { free: 0, premium: 1, patron: 2 };
+
+function hasAccess(ch: Chapter, user: User | null) {
+  if (ch.is_free) return true;
+  if (!user) return false;
+  const need = (ch.subscription_tier_required || 'premium') as Tier;
+  const have = (user.subscription_tier || 'free') as Tier;
+  return tierRank[have] >= tierRank[need];
+}
+
 // Word-based pagination function
 const paginateByWordCount = (content: string, wordsPerPage: number): string[] => {
+  if (!content) return [''];
   const words = content.split(/\s+/).filter(word => word.length > 0);
   const pages: string[] = [];
   
@@ -140,246 +170,6 @@ const useContentProtection = (enabled: boolean = true) => {
   }, [enabled]);
 };
 
-// Table of Contents Component
-interface TableOfContentsProps {
-  isOpen: boolean;
-  onClose: () => void;
-  chapters: IssueChapter[];
-  currentChapterId: string;
-  onChapterSelect: (chapterSlug: string) => void;
-  issueTitle?: string;
-}
-
-function TableOfContents({ isOpen, onClose, chapters, currentChapterId, onChapterSelect, issueTitle }: TableOfContentsProps) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 z-[110] flex items-start justify-start pt-20 pl-8">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Table of Contents</h3>
-            {issueTitle && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{issueTitle}</p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* Chapters List */}
-        <div className="max-h-96 overflow-y-auto">
-          {chapters.map((chapter) => (
-            <button
-              key={chapter.id}
-              onClick={() => {
-                onChapterSelect(chapter.slug);
-                onClose();
-              }}
-              className={`w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-100 dark:border-gray-700 ${
-                chapter.id === currentChapterId ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
-                      {chapter.chapter_number.toString().padStart(2, '0')}
-                    </span>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        {chapter.title}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {chapter.word_count.toLocaleString()} words • {chapter.estimated_read_time} min
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  {chapter.completed && (
-                    <Check className="w-4 h-4 text-green-500" />
-                  )}
-                  {chapter.is_free ? (
-                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">FREE</span>
-                  ) : (
-                    <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded flex items-center space-x-1">
-                      <Crown className="w-3 h-3" />
-                      <span>PREMIUM</span>
-                    </span>
-                  )}
-                  {!chapter.has_access && (
-                    <Lock className="w-4 h-4 text-gray-400" />
-                  )}
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-        
-        {/* Footer */}
-        <div className="p-6 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            {chapters.filter(c => c.completed).length} of {chapters.length} chapters completed
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Settings Modal Component
-interface SettingsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  settings: ReadingSettings;
-  onSettingsChange: (settings: ReadingSettings) => void;
-}
-
-function SettingsModal({ isOpen, onClose, settings, onSettingsChange }: SettingsModalProps) {
-  if (!isOpen) return null;
-
-  const themes = [
-    { value: 'light', label: 'Light', bg: '#ffffff', text: '#1f2937', icon: Sun },
-    { value: 'sepia', label: 'Sepia', bg: '#fef7ed', text: '#92400e', icon: Palette },
-    { value: 'dark', label: 'Dark', bg: '#1f2937', text: '#f9fafb', icon: Moon },
-    { value: 'night', label: 'Night', bg: '#0f1419', text: '#e5e7eb', icon: Moon }
-  ];
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 z-[110] flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Reading Settings</h3>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <div className="p-6 space-y-6">
-          {/* Theme Selection */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              Reading Theme
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {themes.map(({ value, label, bg, text, icon: Icon }) => (
-                <button
-                  key={value}
-                  onClick={() => onSettingsChange({
-                    ...settings,
-                    theme: value as any,
-                    backgroundColor: bg,
-                    textColor: text
-                  })}
-                  className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
-                    settings.theme === value
-                      ? 'border-blue-500 shadow-lg scale-105'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 hover:shadow-md'
-                  }`}
-                  style={{ backgroundColor: bg, color: text }}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Font Size */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Font Size: {settings.fontSize}px
-            </label>
-            <input
-              type="range"
-              min="14"
-              max="32"
-              value={settings.fontSize}
-              onChange={(e) => onSettingsChange({ ...settings, fontSize: parseInt(e.target.value) })}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>14px</span>
-              <span>32px</span>
-            </div>
-          </div>
-
-          {/* Line Height */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Line Spacing: {Number(settings.lineHeight).toFixed(1)}
-            </label>
-            <input
-              type="range"
-              min="1.2"
-              max="2.5"
-              step="0.1"
-              value={settings.lineHeight}
-              onChange={(e) => onSettingsChange({ ...settings, lineHeight: parseFloat(e.target.value) })}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Tight</span>
-              <span>Loose</span>
-            </div>
-          </div>
-
-          {/* Words Per Page */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Words Per Page: {settings.wordsPerPage}
-            </label>
-            <input
-              type="range"
-              min="200"
-              max="600"
-              step="50"
-              value={settings.wordsPerPage}
-              onChange={(e) => onSettingsChange({ ...settings, wordsPerPage: parseInt(e.target.value) })}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>200</span>
-              <span>400</span>
-              <span>600</span>
-            </div>
-          </div>
-
-          {/* Page Width */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-              Page Width: {settings.pageWidth}px
-            </label>
-            <input
-              type="range"
-              min="500"
-              max="900"
-              value={settings.pageWidth}
-              onChange={(e) => onSettingsChange({ ...settings, pageWidth: parseInt(e.target.value) })}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Narrow</span>
-              <span>Wide</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({ 
   chapter, 
   onChapterChange,
@@ -389,15 +179,18 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
 }) => {
   const { user } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
-  const [showTOC, setShowTOC] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isFullscreen, setFullscreen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pages, setPages] = useState<string[]>([]);
   const [readingProgress, setReadingProgress] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [protectionEnabled, setProtectionEnabled] = useState(true);
-  const [allChapters, setAllChapters] = useState<IssueChapter[]>([]);
+  const [allChapters, setAllChapters] = useState<ChapterLite[]>([]);
+  
   const contentRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
   
   const [settings, setSettings] = useState<ReadingSettings>(() => {
     const saved = localStorage.getItem('immersiveEbookSettings');
@@ -417,15 +210,11 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
       }
     }
     return {
-      theme: 'light',
+      theme: 'sepia',
       fontSize: 18,
-      fontFamily: 'serif',
+      fontFamily: 'Georgia, serif',
       lineHeight: 1.6,
       textAlign: 'justify',
-      pageWidth: 700,
-      backgroundColor: '#ffffff',
-      textColor: '#1f2937',
-      pageMargin: 60,
       wordsPerPage: 350
     };
   });
@@ -463,12 +252,28 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
     localStorage.setItem('immersiveEbookSettings', JSON.stringify(settings));
   }, [settings]);
 
-  // Prevent body scroll when reader is open
+  // Body scroll lock and footer height tracking for mobile
   useEffect(() => {
+    const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('reader-active');
     return () => {
-      document.body.style.overflow = 'auto';
+      document.body.style.overflow = prev;
+      document.body.classList.remove('reader-active');
     };
+  }, []);
+
+  // Footer height for mobile safe area
+  useLayoutEffect(() => {
+    if (!footerRef.current) return;
+    const ro = new ResizeObserver((entries) => {
+      if (entries[0]) {
+        const h = Math.ceil(entries[0].contentRect.height);
+        document.documentElement.style.setProperty('--reader-footer-height', `${h}px`);
+      }
+    });
+    ro.observe(footerRef.current);
+    return () => ro.disconnect();
   }, []);
 
   // Paginate content by word count
@@ -482,7 +287,7 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
     if (currentPage > newPages.length && newPages.length > 0) {
       setCurrentPage(1);
     }
-  }, [chapter, settings.wordsPerPage, currentPage]);
+  }, [chapter, settings.wordsPerPage, settings.fontSize, settings.lineHeight, currentPage]);
 
   // Handle page navigation
   const goToPage = useCallback((page: number) => {
@@ -492,10 +297,26 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
     setReadingProgress(progress);
   }, [totalPages]);
 
+  // Fullscreen toggle
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen?.();
+        setFullscreen(true);
+      } else {
+        await document.exitFullscreen?.();
+        setFullscreen(false);
+      }
+    } catch {
+      // fallback: simulated fullscreen via CSS
+      setFullscreen((f) => !f);
+    }
+  };
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (showSettings || showTOC) return;
+      if (showSettings || isSidebarOpen) return;
       
       switch (e.key) {
         case 'ArrowLeft':
@@ -527,19 +348,28 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
           break;
         case 'Escape':
           e.preventDefault();
-          onExit?.();
+          if (isFullscreen) {
+            toggleFullscreen();
+          } else {
+            onExit?.();
+          }
           break;
         case 't':
         case 'T':
           e.preventDefault();
-          setShowTOC(true);
+          setSidebarOpen(true);
+          break;
+        case 'f':
+        case 'F':
+          e.preventDefault();
+          toggleFullscreen();
           break;
       }
     };
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [currentPage, totalPages, showSettings, showTOC, onChapterChange, navigationInfo, goToPage, onExit]);
+  }, [currentPage, totalPages, showSettings, isSidebarOpen, onChapterChange, navigationInfo, goToPage, onExit, isFullscreen]);
 
   // Track reading time
   useEffect(() => {
@@ -608,9 +438,9 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
 
   if (!chapter) {
     return (
-      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-[99]">
+      <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-[2147483647]">
         <div className="text-center text-white">
-          <Lock className="w-16 h-16 mx-auto mb-4 text-red-400" />
+          <div className="w-16 h-16 mx-auto mb-4 text-red-400">🔒</div>
           <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
           <p className="text-gray-300">Chapter not found or access denied</p>
         </div>
@@ -620,61 +450,161 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
 
   const currentContent = pages[currentPage - 1] || '';
   const getFontFamily = () => {
-    switch (settings.fontFamily) {
-      case 'serif': return 'Georgia, serif';
-      case 'sans': return 'Inter, sans-serif';
-      case 'mono': return 'Monaco, monospace';
-      case 'dyslexic': return 'OpenDyslexic, sans-serif';
-      default: return 'Georgia, serif';
+    return settings.fontFamily;
+  };
+
+  // Theme colors
+  const getThemeColors = () => {
+    switch (settings.theme) {
+      case 'light':
+        return { bg: '#ffffff', text: '#1f2937', accent: 'rgba(31, 41, 55, 0.1)' };
+      case 'dark':
+        return { bg: '#1f2937', text: '#f9fafb', accent: 'rgba(249, 250, 251, 0.1)' };
+      case 'sepia':
+        return { bg: '#fef7ed', text: '#92400e', accent: 'rgba(146, 64, 14, 0.1)' };
+      case 'night':
+        return { bg: '#0f1419', text: '#e5e7eb', accent: 'rgba(229, 231, 235, 0.1)' };
+      default:
+        return { bg: '#fef7ed', text: '#92400e', accent: 'rgba(146, 64, 14, 0.1)' };
     }
   };
 
-  return (
+  const themeColors = getThemeColors();
+
+  const overlay = (
     <div 
-      className="fixed inset-0 z-[99] overflow-hidden"
+      className={`fixed inset-0 overflow-hidden ${isFullscreen ? 'z-[2147483647]' : 'z-[2147483647]'}`}
       style={{
-        backgroundColor: settings.backgroundColor,
-        color: settings.textColor
+        backgroundColor: themeColors.bg,
+        color: themeColors.text,
+        pointerEvents: 'auto'
       }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Content Protection Overlay */}
       {protectionEnabled && (
-        <div className="absolute inset-0 pointer-events-none select-none z-5">
-          <div className="absolute top-6 right-20 opacity-5 text-gray-400">
+        <div className="absolute inset-0 pointer-events-none select-none z-5" style={{ opacity: 0.02 }}>
+          <div className="absolute top-6 right-20" style={{ color: themeColors.text }}>
             <Shield className="w-8 h-8" />
           </div>
         </div>
       )}
 
-      {/* Top Navigation Bar - UNOBSTRUCTED */}
-      <div className="absolute top-0 left-0 right-0 h-20 z-30 flex items-center justify-between px-8" style={{ backgroundColor: `${settings.backgroundColor}F0` }}>
-        <div className="flex items-center space-x-6">
-          <button
-            onClick={onExit}
-            className="p-3 rounded-lg hover:bg-black hover:bg-opacity-10 transition-colors"
-            title="Exit Reader"
+      {/* Sidebar backdrop */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar TOC */}
+      <div 
+        className={`fixed top-0 left-0 h-full w-80 transition-transform duration-300 z-50 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        style={{
+          backgroundColor: themeColors.bg,
+          borderRight: `1px solid ${themeColors.accent}`,
+          boxShadow: '2px 0 10px rgba(0,0,0,0.1)'
+        }}
+      >
+        {/* Sidebar Header */}
+        <div 
+          className="flex items-center justify-between p-4"
+          style={{ borderBottom: `1px solid ${themeColors.accent}` }}
+        >
+          <div className="flex items-center space-x-2">
+            <BookOpen className="w-5 h-5" />
+            <span className="font-semibold">Table of Contents</span>
+          </div>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.accent }}
           >
-            <X className="w-6 h-6" />
+            <X className="w-4 h-4" />
           </button>
-          
-          <button
-            onClick={() => setShowTOC(true)}
-            className="flex items-center space-x-2 p-3 rounded-lg hover:bg-black hover:bg-opacity-10 transition-colors"
-            title="Table of Contents"
+        </div>
+
+        {/* Chapters List */}
+        <div className="flex-1 overflow-y-auto p-2">
+          {allChapters.length > 0 ? allChapters.map((ch) => {
+            const active = ch.chapter_number === chapter.chapter_number;
+            const accessible = ch.has_access !== false;
+            return (
+              <button
+                key={ch.id}
+                className={`w-full text-left p-3 rounded-lg mb-2 transition-colors ${
+                  active ? 'font-semibold' : ''
+                } ${!accessible ? 'opacity-50' : ''}`}
+                style={{
+                  backgroundColor: active ? themeColors.accent : 'transparent',
+                  borderLeft: active ? `4px solid ${themeColors.text}` : 'none'
+                }}
+                onClick={() => accessible && handleChapterSelect(ch.slug || ch.chapter_number.toString())}
+                disabled={!accessible}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-sm font-mono opacity-70">
+                        {ch.chapter_number.toString().padStart(2, '0')}
+                      </span>
+                      {!ch.is_free && <Crown className="w-3 h-3 text-yellow-500" />}
+                      {!accessible && <span className="text-xs">🔒</span>}
+                    </div>
+                    <div className="font-medium text-sm mb-1">{ch.title}</div>
+                    {ch.word_count && ch.estimated_read_time && (
+                      <div className="text-xs opacity-60">
+                        {ch.word_count.toLocaleString()} words • {ch.estimated_read_time} min
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          }) : (
+            <div className="p-4 text-center opacity-60">
+              <p>No chapters available</p>
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-4" style={{ borderTop: `1px solid ${themeColors.accent}` }}>
+          <button 
+            className="w-full flex items-center justify-center space-x-2 p-3 rounded-lg transition-colors"
+            style={{ backgroundColor: themeColors.accent }}
+            onClick={() => {
+              setSidebarOpen(false);
+              onExit?.();
+            }}
           >
-            <List className="w-5 h-5" />
-            <span className="text-sm font-medium">Chapters</span>
+            <Home className="w-4 h-4" />
+            <span>Back to Library</span>
           </button>
-          
+        </div>
+      </div>
+
+      {/* Top Navigation Bar */}
+      <div 
+        className="absolute top-0 left-0 right-0 h-16 z-30 flex items-center justify-between px-6"
+        style={{ 
+          backgroundColor: `${themeColors.bg}f0`,
+          backdropFilter: 'blur(10px)',
+          borderBottom: `1px solid ${themeColors.accent}`
+        }}
+      >
+        <div className="flex items-center space-x-4">
           <button
-            onClick={() => window.location.href = '/library'}
-            className="flex items-center space-x-2 p-3 rounded-lg hover:bg-black hover:bg-opacity-10 transition-colors"
-            title="Back to Library"
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.accent }}
+            title="Table of Contents (T)"
           >
-            <Home className="w-5 h-5" />
-            <span className="text-sm font-medium">Library</span>
+            <Menu className="w-5 h-5" />
           </button>
         </div>
         
@@ -683,167 +613,166 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
           <div className="text-sm opacity-75">Chapter {chapter.chapter_number}</div>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <div className="text-sm opacity-75">
+        <div className="flex items-center space-x-2">
+          <div className="text-sm opacity-75 mr-2">
             {currentPage} / {totalPages}
           </div>
           
           <button
             onClick={() => setProtectionEnabled(!protectionEnabled)}
-            className="p-3 rounded-lg hover:bg-black hover:bg-opacity-10 transition-colors"
+            className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.accent }}
             title={protectionEnabled ? 'Protection On' : 'Protection Off'}
           >
-            {protectionEnabled ? <Shield className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {protectionEnabled ? <Shield className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
           
           <button
             onClick={() => setShowSettings(true)}
-            className="p-3 rounded-lg hover:bg-black hover:bg-opacity-10 transition-colors"
+            className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.accent }}
             title="Reading Settings"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={toggleFullscreen}
+            className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.accent }}
+            title={isFullscreen || document.fullscreenElement ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'}
+          >
+            {isFullscreen || document.fullscreenElement ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          </button>
+          
+          <button
+            onClick={onExit}
+            className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+            style={{ backgroundColor: themeColors.accent }}
+            title="Exit Reader (ESC)"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Main Reading Area - SPACIOUS AND SCROLLABLE */}
-      <div className="pt-24 pb-24 px-12 h-full flex items-start justify-center overflow-hidden">
-        <div 
-          className="w-full max-h-full flex flex-col"
-          style={{ maxWidth: `${settings.pageWidth}px` }}
-        >
+      {/* Main Reading Area with mobile-safe padding */}
+      <div 
+        className="pt-20 h-full flex items-start justify-center overflow-hidden"
+        style={{
+          paddingBottom: 'calc(100px + var(--reader-footer-height, 0px) + env(safe-area-inset-bottom, 0px))'
+        }}
+      >
+        <div className="w-full max-w-4xl px-8">
           {/* Page Content with Scrolling */}
           <div
             ref={contentRef}
-            className="flex-1 overflow-y-auto overflow-x-hidden relative select-none px-8 py-12 rounded-2xl shadow-lg"
+            className="h-full overflow-y-auto overflow-x-hidden relative select-none p-8 rounded-2xl"
             style={{
               fontFamily: getFontFamily(),
               fontSize: `${settings.fontSize}px`,
               lineHeight: Number(settings.lineHeight),
               textAlign: settings.textAlign as any,
-              backgroundColor: `${settings.backgroundColor}80`,
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${settings.textColor}20`,
-              minHeight: 'calc(100vh - 200px)'
+              backgroundColor: themeColors.accent,
+              border: `1px solid ${themeColors.accent}`,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+              // Override any global styles
+              fontSizeAdjust: 'none'
             }}
           >
-            {/* Anti-screenshot overlay */}
+            {/* Typography reset wrapper */}
             <div 
-              className="absolute inset-0 pointer-events-none select-none opacity-[0.02] z-10"
+              className="typography-reset"
               style={{
-                backgroundImage: `repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 20px,
-                  currentColor 20px,
-                  currentColor 21px
-                )`,
-              }}
-            />
-            
-            {/* Content */}
-            <div 
-              className="relative z-0 select-none leading-relaxed prose prose-lg max-w-none"
-              style={{ 
-                userSelect: 'none', 
-                WebkitUserSelect: 'none', 
-                MozUserSelect: 'none',
-                color: settings.textColor
+                fontFamily: `${getFontFamily()} !important`,
+                fontSize: `${settings.fontSize}px !important`,
+                lineHeight: `${Number(settings.lineHeight)} !important`,
+                color: `${themeColors.text} !important`
               }}
             >
               {currentContent}
             </div>
             
-            {/* Word count indicator */}
-            <div className="mt-12 pt-6 border-t border-current border-opacity-20 text-center text-sm opacity-50">
+            {/* Page indicator */}
+            <div className="mt-8 pt-4 text-center text-sm opacity-50" style={{ borderTop: `1px solid ${themeColors.accent}` }}>
               Page {currentPage} • ~{currentContent.split(' ').length} words
             </div>
-
-            {/* Custom scrollbar styles */}
-            <style jsx>{`
-              div::-webkit-scrollbar {
-                width: 8px;
-              }
-              div::-webkit-scrollbar-track {
-                background: rgba(128, 128, 128, 0.1);
-                border-radius: 4px;
-              }
-              div::-webkit-scrollbar-thumb {
-                background: rgba(128, 128, 128, 0.3);
-                border-radius: 4px;
-              }
-              div::-webkit-scrollbar-thumb:hover {
-                background: rgba(128, 128, 128, 0.5);
-              }
-            `}</style>
           </div>
         </div>
       </div>
 
-      {/* Navigation Arrows - BETTER POSITIONED */}
-      <button
-        onClick={() => {
-          if (currentPage > 1) {
-            goToPage(currentPage - 1);
-          } else if (onChapterChange && navigationInfo?.hasPrev) {
-            onChapterChange('prev');
-          }
-        }}
-        className="absolute left-8 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-200 z-30 bg-white bg-opacity-80 hover:bg-opacity-100 shadow-lg hover:shadow-xl"
-        disabled={currentPage === 1 && !navigationInfo?.hasPrev}
-        style={{ 
-          color: settings.textColor,
-          display: (currentPage > 1) || navigationInfo?.hasPrev ? 'flex' : 'none'
-        }}
-      >
-        <ChevronLeft className="w-6 h-6" />
-      </button>
+      {/* Navigation Arrows */}
+      {(currentPage > 1 || navigationInfo?.hasPrev) && (
+        <button
+          onClick={() => {
+            if (currentPage > 1) {
+              goToPage(currentPage - 1);
+            } else if (onChapterChange && navigationInfo?.hasPrev) {
+              onChapterChange('prev');
+            }
+          }}
+          className="absolute left-6 top-1/2 -translate-y-1/2 p-3 rounded-full transition-all duration-200 z-30 shadow-lg hover:shadow-xl"
+          style={{
+            backgroundColor: `${themeColors.bg}e0`,
+            color: themeColors.text,
+            border: `1px solid ${themeColors.accent}`
+          }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
 
-      <button
-        onClick={() => {
-          if (currentPage < totalPages) {
-            goToPage(currentPage + 1);
-          } else if (onChapterChange && navigationInfo?.hasNext) {
-            onChapterChange('next');
-          }
-        }}
-        className="absolute right-8 top-1/2 -translate-y-1/2 p-4 rounded-full transition-all duration-200 z-30 bg-white bg-opacity-80 hover:bg-opacity-100 shadow-lg hover:shadow-xl"
-        disabled={currentPage === totalPages && !navigationInfo?.hasNext}
-        style={{ 
-          color: settings.textColor,
-          display: (currentPage < totalPages) || navigationInfo?.hasNext ? 'flex' : 'none'
-        }}
-      >
-        <ChevronRight className="w-6 h-6" />
-      </button>
+      {(currentPage < totalPages || navigationInfo?.hasNext) && (
+        <button
+          onClick={() => {
+            if (currentPage < totalPages) {
+              goToPage(currentPage + 1);
+            } else if (onChapterChange && navigationInfo?.hasNext) {
+              onChapterChange('next');
+            }
+          }}
+          className="absolute right-6 top-1/2 -translate-y-1/2 p-3 rounded-full transition-all duration-200 z-30 shadow-lg hover:shadow-xl"
+          style={{
+            backgroundColor: `${themeColors.bg}e0`,
+            color: themeColors.text,
+            border: `1px solid ${themeColors.accent}`
+          }}
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
 
-      {/* Click Zones for Page Navigation - NON-INTRUSIVE */}
-      <div className="absolute inset-0 grid grid-cols-5 z-20 pointer-events-none">
+      {/* Click Zones for Page Navigation */}
+      <div className="absolute inset-0 grid grid-cols-3 z-20 pointer-events-none" style={{ top: '64px', bottom: '100px' }}>
         <div 
           className="cursor-pointer pointer-events-auto"
           onClick={() => currentPage > 1 && goToPage(currentPage - 1)}
         />
-        <div className="pointer-events-none" />
         <div 
           className="cursor-pointer pointer-events-auto"
           onClick={() => setShowSettings(true)}
         />
-        <div className="pointer-events-none" />
         <div 
           className="cursor-pointer pointer-events-auto"
           onClick={() => currentPage < totalPages && goToPage(currentPage + 1)}
         />
       </div>
 
-      {/* Bottom Status Bar - CLEAN AND SPACIOUS */}
+      {/* Bottom Status Bar */}
       <div 
-        className="absolute bottom-0 left-0 right-0 h-24 flex items-center justify-center z-30"
-        style={{ backgroundColor: `${settings.backgroundColor}F0` }}
+        ref={footerRef}
+        className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-center py-6"
+        style={{ 
+          backgroundColor: `${themeColors.bg}f0`,
+          backdropFilter: 'blur(10px)',
+          borderTop: `1px solid ${themeColors.accent}`,
+          paddingBottom: 'calc(24px + env(safe-area-inset-bottom, 0px))'
+        }}
       >
         <div className="flex items-center space-x-8 text-sm">
           <div className="flex items-center space-x-2">
             <BookOpen className="w-4 h-4" />
-            <span>{readingProgress}% complete</span>
+            <span>{Math.round(readingProgress)}% complete</span>
           </div>
           
           <div className="flex items-center space-x-2">
@@ -862,7 +791,8 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
               {navigationInfo?.hasPrev && (
                 <button
                   onClick={() => onChapterChange('prev')}
-                  className="text-blue-500 hover:text-blue-600 transition-colors"
+                  className="px-3 py-1 rounded transition-colors"
+                  style={{ backgroundColor: navigationInfo.prevHasAccess ? themeColors.accent : 'transparent' }}
                   disabled={!navigationInfo.prevHasAccess}
                 >
                   ← Previous
@@ -872,7 +802,8 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
               {navigationInfo?.hasNext && (
                 <button
                   onClick={() => onChapterChange('next')}
-                  className="text-blue-500 hover:text-blue-600 transition-colors"
+                  className="px-3 py-1 rounded transition-colors"
+                  style={{ backgroundColor: navigationInfo.nextHasAccess ? themeColors.accent : 'transparent' }}
                   disabled={!navigationInfo.nextHasAccess}
                 >
                   Next →
@@ -883,35 +814,196 @@ export const ImmersiveEbookReader: React.FC<ImmersiveEbookReaderProps> = ({
         </div>
       </div>
 
-      {/* Table of Contents */}
-      <TableOfContents
-        isOpen={showTOC}
-        onClose={() => setShowTOC(false)}
-        chapters={allChapters}
-        currentChapterId={chapter.id}
-        onChapterSelect={handleChapterSelect}
-        issueTitle={chapter.metadata?.issue_title}
-      />
+      {/* Settings Modal - High z-index to prevent header overlap */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-[2147483647] flex items-center justify-center p-4">
+          <div 
+            className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl shadow-2xl p-6"
+            style={{ backgroundColor: themeColors.bg, border: `1px solid ${themeColors.accent}` }}
+          >
+            {/* Settings Header */}
+            <div className="flex items-center justify-between mb-6" style={{ borderBottom: `1px solid ${themeColors.accent}`, paddingBottom: '1rem' }}>
+              <h3 className="text-xl font-bold">Reading Settings</h3>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="p-2 rounded-lg hover:opacity-80 transition-opacity"
+                style={{ backgroundColor: themeColors.accent }}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Theme Selection */}
+              <div>
+                <label className="block text-sm font-semibold mb-4">Reading Theme</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'light', label: 'Light', bg: '#ffffff', text: '#1f2937' },
+                    { value: 'sepia', label: 'Sepia', bg: '#fef7ed', text: '#92400e' },
+                    { value: 'dark', label: 'Dark', bg: '#1f2937', text: '#f9fafb' },
+                    { value: 'night', label: 'Night', bg: '#0f1419', text: '#e5e7eb' }
+                  ].map(({ value, label, bg, text }) => (
+                    <button
+                      key={value}
+                      onClick={() => setSettings({ ...settings, theme: value as any })}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+                        settings.theme === value ? 'border-blue-500 shadow-lg' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: bg, color: text, border: settings.theme === value ? '2px solid #3b82f6' : `2px solid ${themeColors.accent}` }}
+                    >
+                      <span className="font-medium text-sm">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        settings={settings}
-        onSettingsChange={setSettings}
-      />
+              {/* Font Family */}
+              <div>
+                <label className="block text-sm font-semibold mb-3">Font Family</label>
+                <select
+                  value={settings.fontFamily}
+                  onChange={(e) => setSettings({ ...settings, fontFamily: e.target.value })}
+                  className="w-full p-3 rounded-lg border"
+                  style={{ 
+                    backgroundColor: themeColors.accent, 
+                    color: themeColors.text,
+                    border: `1px solid ${themeColors.accent}`
+                  }}
+                >
+                  <option value="Georgia, serif">Georgia (Serif)</option>
+                  <option value="'Segoe UI', Arial, sans-serif">Segoe UI (Sans-serif)</option>
+                  <option value="'Courier New', monospace">Courier New (Monospace)</option>
+                  <option value="'Comic Sans MS', cursive">Comic Sans (Dyslexic-friendly)</option>
+                </select>
+              </div>
 
-      {/* Help Instructions - BOTTOM */}
+              {/* Font Size */}
+              <div>
+                <label className="block text-sm font-semibold mb-3">
+                  Font Size: {settings.fontSize}px
+                </label>
+                <input
+                  type="range"
+                  min="14"
+                  max="32"
+                  value={settings.fontSize}
+                  onChange={(e) => setSettings({ ...settings, fontSize: parseInt(e.target.value) })}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                  style={{ backgroundColor: themeColors.accent }}
+                />
+                <div className="flex justify-between text-xs opacity-60 mt-1">
+                  <span>14px</span>
+                  <span>32px</span>
+                </div>
+              </div>
+
+              {/* Line Height */}
+              <div>
+                <label className="block text-sm font-semibold mb-3">
+                  Line Spacing: {Number(settings.lineHeight).toFixed(1)}
+                </label>
+                <input
+                  type="range"
+                  min="1.2"
+                  max="2.5"
+                  step="0.1"
+                  value={settings.lineHeight}
+                  onChange={(e) => setSettings({ ...settings, lineHeight: parseFloat(e.target.value) })}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                  style={{ backgroundColor: themeColors.accent }}
+                />
+                <div className="flex justify-between text-xs opacity-60 mt-1">
+                  <span>Tight</span>
+                  <span>Loose</span>
+                </div>
+              </div>
+
+              {/* Words Per Page */}
+              <div>
+                <label className="block text-sm font-semibold mb-3">
+                  Words Per Page: {settings.wordsPerPage}
+                </label>
+                <input
+                  type="range"
+                  min="200"
+                  max="600"
+                  step="25"
+                  value={settings.wordsPerPage}
+                  onChange={(e) => setSettings({ ...settings, wordsPerPage: parseInt(e.target.value) })}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                  style={{ backgroundColor: themeColors.accent }}
+                />
+                <div className="flex justify-between text-xs opacity-60 mt-1">
+                  <span>200</span>
+                  <span>400</span>
+                  <span>600</span>
+                </div>
+              </div>
+
+              {/* Text Alignment */}
+              <div>
+                <label className="block text-sm font-semibold mb-3">Text Alignment</label>
+                <select
+                  value={settings.textAlign}
+                  onChange={(e) => setSettings({ ...settings, textAlign: e.target.value as any })}
+                  className="w-full p-3 rounded-lg border"
+                  style={{ 
+                    backgroundColor: themeColors.accent, 
+                    color: themeColors.text,
+                    border: `1px solid ${themeColors.accent}`
+                  }}
+                >
+                  <option value="justify">Justified</option>
+                  <option value="left">Left Aligned</option>
+                  <option value="center">Centered</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help Instructions */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
-        <div className="bg-black bg-opacity-30 text-white text-xs rounded-lg px-4 py-2 opacity-0 hover:opacity-100 transition-opacity backdrop-blur">
+        <div 
+          className="text-xs rounded-lg px-4 py-2 opacity-0 hover:opacity-100 transition-opacity backdrop-blur"
+          style={{ backgroundColor: 'rgba(0,0,0,0.7)', color: 'white' }}
+        >
           <div className="flex items-center space-x-4">
-            <span>← → Pages</span>
-            <span>T = TOC</span>
+            <span>T = Sidebar</span>
+            <span>•</span>
+            <span>F = Fullscreen</span>
+            <span>•</span>
+            <span>← → = Pages</span>
+            <span>•</span>
             <span>ESC = Exit</span>
-            <span>Space = Next</span>
           </div>
         </div>
       </div>
+
+      {/* Add typography reset styles */}
+      <style jsx>{`
+        .typography-reset,
+        .typography-reset *,
+        .typography-reset p,
+        .typography-reset h1,
+        .typography-reset h2,
+        .typography-reset h3,
+        .typography-reset h4,
+        .typography-reset h5,
+        .typography-reset h6,
+        .typography-reset span,
+        .typography-reset div {
+          font-family: ${getFontFamily()} !important;
+          font-size: ${settings.fontSize}px !important;
+          line-height: ${Number(settings.lineHeight)} !important;
+          color: ${themeColors.text} !important;
+        }
+      `}</style>
     </div>
   );
+
+  // Portal so header can't overlap; extreme z-index in CSS guarantees it's on top
+  return createPortal(overlay, ensurePortalRoot());
 };

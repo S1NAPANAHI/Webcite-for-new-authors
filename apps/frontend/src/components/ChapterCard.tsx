@@ -39,9 +39,20 @@ const ChapterCard: React.FC<ChapterCardProps> = ({
   const hasAccess = chapter.has_access !== false;
   const isPremium = !chapter.is_free;
   
-  // Get banner URL using the utility hook
-  const { url: bannerUrlFromFile, loading, error } = useFileUrl(chapter.banner_file_id);
+  // FIXED: Get banner URL using the utility hook (now returns string directly)
+  const bannerUrlFromFile = useFileUrl(chapter.banner_file_id);
   const bannerUrl = bannerUrlFromFile || chapter.banner_file_url || null;
+  
+  console.log('\n🎯 RENDERING CHAPTER CARD (ChapterCard):', {
+    id: chapter.id,
+    title: chapter.title,
+    banner_file_id: chapter.banner_file_id,
+    banner_file_url: chapter.banner_file_url,
+    bannerUrlFromFile,
+    finalBannerUrl: bannerUrl,
+    canRead: hasAccess,
+    issueSlug
+  });
   
   return (
     <div 

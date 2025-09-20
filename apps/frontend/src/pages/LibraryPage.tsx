@@ -77,7 +77,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
             ? 'text-yellow-400 fill-current' 
             : i < rating 
             ? 'text-yellow-400 fill-current opacity-50'
-            : 'text-gray-300'
+            : 'text-muted-foreground'
         }`}
       />
     ));
@@ -85,10 +85,10 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
   
   if (viewType === 'list') {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+      <div className="bg-card text-card-foreground rounded-lg border border-border p-6 hover:shadow-md transition-all duration-200">
         <div className="flex items-center space-x-6">
           {/* Cover Image */}
-          <div className="w-16 h-20 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+          <div className="w-16 h-20 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
             {coverUrl ? (
               <img 
                 src={coverUrl} 
@@ -102,13 +102,13 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
                   target.style.display = 'none';
                   const container = target.parentElement;
                   if (container) {
-                    container.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+                    container.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-6 h-6 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
                   }
                 }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-gray-400" />
+                <BookOpen className="w-6 h-6 text-muted-foreground" />
               </div>
             )}
           </div>
@@ -118,7 +118,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-1">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">{item.title}</h3>
+                  <h3 className="text-lg font-semibold text-foreground truncate">{item.title}</h3>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                     getTypeColor(item.type)
                   } text-white`}>
@@ -126,9 +126,9 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
                   </span>
                 </div>
                 
-                <p className="text-gray-600 text-sm line-clamp-2 mb-2">{item.description || 'No description'}</p>
+                <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{item.description || 'No description'}</p>
                 
-                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-1">
                     {renderStars(item.average_rating)}
                     <span className="ml-1">{item.average_rating.toFixed(1)} ({item.rating_count})</span>
@@ -178,10 +178,10 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
             {overallProgress > 0 && (
               <div className="mt-4">
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-gray-600">Your Progress</span>
-                  <span className="text-gray-900 font-medium">{overallProgress}%</span>
+                  <span className="text-muted-foreground">Your Progress</span>
+                  <span className="text-foreground font-medium">{overallProgress}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <div 
                     className="bg-indigo-600 h-2 rounded-full transition-all duration-300" 
                     style={{ width: `${overallProgress}%` }}
@@ -198,12 +198,12 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
   // Grid view
   return (
     <div 
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-200 group"
+      className="bg-card text-card-foreground rounded-lg shadow-sm border border-border overflow-hidden hover:shadow-lg transition-all duration-200 group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Cover Image */}
-      <div className="relative h-48 bg-gray-200 overflow-hidden">
+      <div className="relative h-48 bg-muted overflow-hidden">
         {coverUrl ? (
           <img 
             src={coverUrl} 
@@ -217,13 +217,13 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
               target.style.display = 'none';
               const container = target.parentElement;
               if (container) {
-                container.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
+                container.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="w-12 h-12 text-muted-foreground" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>';
               }
             }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <BookOpen className="w-12 h-12 text-gray-400" />
+            <BookOpen className="w-12 h-12 text-muted-foreground" />
           </div>
         )}
         
@@ -238,8 +238,8 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         
         {/* Completion Badge */}
         <div className="absolute top-3 right-3">
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-full px-2 py-1">
-            <span className="text-xs font-medium text-gray-900">{item.completion_percentage}%</span>
+          <div className="bg-background/90 backdrop-blur-sm rounded-full px-2 py-1">
+            <span className="text-xs font-medium text-foreground">{item.completion_percentage}%</span>
           </div>
         </div>
         
@@ -249,7 +249,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         }`}>
           <Link
             to={`/library/${item.type}/${item.slug}`}
-            className="px-4 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors duration-200 flex items-center space-x-2"
+            className="px-4 py-2 bg-background text-foreground rounded-lg hover:bg-muted transition-colors duration-200 flex items-center space-x-2"
           >
             <Eye className="w-4 h-4" />
             <span>View</span>
@@ -270,10 +270,10 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
       {/* Content */}
       <div className="p-4">
         <div className="mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1 mb-1">
+          <h3 className="text-lg font-semibold text-foreground line-clamp-1 mb-1">
             {item.title}
           </h3>
-          <p className="text-gray-600 text-sm line-clamp-2">
+          <p className="text-muted-foreground text-sm line-clamp-2">
             {item.description || 'No description available'}
           </p>
         </div>
@@ -281,7 +281,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         {/* Rating */}
         <div className="flex items-center space-x-1 mb-3">
           {renderStars(item.average_rating)}
-          <span className="text-sm text-gray-600 ml-2">
+          <span className="text-sm text-muted-foreground ml-2">
             {item.average_rating.toFixed(1)} ({item.rating_count} reviews)
           </span>
         </div>
@@ -290,10 +290,10 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         {overallProgress > 0 && (
           <div className="mb-3">
             <div className="flex items-center justify-between text-sm mb-1">
-              <span className="text-gray-600">Your Progress</span>
-              <span className="text-gray-900 font-medium">{overallProgress}%</span>
+              <span className="text-muted-foreground">Your Progress</span>
+              <span className="text-foreground font-medium">{overallProgress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-muted rounded-full h-2">
               <div 
                 className="bg-indigo-600 h-2 rounded-full transition-all duration-300" 
                 style={{ width: `${overallProgress}%` }}
@@ -303,7 +303,7 @@ function LibraryCard({ data, onAddToLibrary, onRemoveFromLibrary, viewType }: Li
         )}
         
         {/* Metadata */}
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+        <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
           <div className="flex items-center space-x-3">
             {item.total_chapters && (
               <div className="flex items-center space-x-1">
@@ -367,18 +367,18 @@ function FilterSidebar({
   onCompletionFilterChange
 }: FilterSidebarProps) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 h-fit">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Filters</h3>
+    <div className="bg-card text-card-foreground rounded-lg border border-border p-6 h-fit transition-colors duration-300">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Filters</h3>
       
       {/* Content Type */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Content Type
         </label>
         <select
           value={selectedType}
           onChange={(e) => onTypeChange(e.target.value as any)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-background text-foreground transition-colors duration-200"
         >
           <option value="all">All Types</option>
           <option value="book">Books</option>
@@ -391,7 +391,7 @@ function FilterSidebar({
       
       {/* Minimum Rating */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Minimum Rating
         </label>
         <div className="flex items-center space-x-2">
@@ -400,7 +400,7 @@ function FilterSidebar({
               key={i}
               onClick={() => onMinRatingChange(i + 1)}
               className={`p-1 rounded transition-colors duration-200 ${
-                (i + 1) <= minRating ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400'
+                (i + 1) <= minRating ? 'text-yellow-400' : 'text-muted-foreground hover:text-yellow-400'
               }`}
             >
               <Star className={`w-5 h-5 ${(i + 1) <= minRating ? 'fill-current' : ''}`} />
@@ -408,7 +408,7 @@ function FilterSidebar({
           ))}
           <button
             onClick={() => onMinRatingChange(0)}
-            className="text-xs text-gray-500 hover:text-gray-700"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             Clear
           </button>
@@ -417,13 +417,13 @@ function FilterSidebar({
       
       {/* Completion Status */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Completion Status
         </label>
         <select
           value={completionFilter}
           onChange={(e) => onCompletionFilterChange(e.target.value as any)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-background text-foreground transition-colors duration-200"
         >
           <option value="all">All</option>
           <option value="completed">Completed (100%)</option>
@@ -434,13 +434,13 @@ function FilterSidebar({
       
       {/* Sort Options */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-foreground mb-2">
           Sort By
         </label>
         <select
           value={sortBy}
           onChange={(e) => onSortChange(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2"
+          className="w-full border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent mb-2 bg-background text-foreground transition-colors duration-200"
         >
           <option value="created_at">Date Added</option>
           <option value="title">Title</option>
@@ -455,7 +455,7 @@ function FilterSidebar({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors duration-200 flex items-center justify-center space-x-1 ${
               sortDirection === 'asc'
                 ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                : 'bg-background border-border text-foreground hover:bg-muted'
             }`}
           >
             <SortAsc className="w-4 h-4" />
@@ -466,7 +466,7 @@ function FilterSidebar({
             className={`flex-1 px-3 py-2 text-sm rounded-lg border transition-colors duration-200 flex items-center justify-center space-x-1 ${
               sortDirection === 'desc'
                 ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                : 'bg-background border-border text-foreground hover:bg-muted'
             }`}
           >
             <SortDesc className="w-4 h-4" />
@@ -706,13 +706,13 @@ export default function LibraryPage() {
   });
   
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Zoroasterverse Library</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-foreground">Zoroasterverse Library</h1>
+            <p className="text-muted-foreground mt-1">
               Discover and read epic tales from the world of ancient Persia
             </p>
           </div>
@@ -722,7 +722,7 @@ export default function LibraryPage() {
             <button
               onClick={loadLibraryData}
               disabled={loading}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50"
+              className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors duration-200 flex items-center space-x-2 disabled:opacity-50"
               title="Refresh library data"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -731,24 +731,24 @@ export default function LibraryPage() {
             
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <input
                 type="search"
                 placeholder="Search library..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64"
+                className="pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64 bg-background text-foreground transition-colors duration-200"
               />
             </div>
             
             {/* View Toggle */}
-            <div className="flex border border-gray-300 rounded-lg">
+            <div className="flex border border-border rounded-lg">
               <button
                 onClick={() => setViewType('grid')}
                 className={`px-3 py-2 text-sm rounded-l-lg transition-colors duration-200 ${
                   viewType === 'grid'
                     ? 'bg-indigo-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    : 'bg-background text-foreground hover:bg-muted'
                 }`}
               >
                 <Grid className="w-4 h-4" />
@@ -758,7 +758,7 @@ export default function LibraryPage() {
                 className={`px-3 py-2 text-sm rounded-r-lg border-l transition-colors duration-200 ${
                   viewType === 'list'
                     ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                    : 'bg-background text-foreground hover:bg-muted border-border'
                 }`}
               >
                 <List className="w-4 h-4" />
@@ -791,16 +791,16 @@ export default function LibraryPage() {
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <Loader className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Loading library...</h3>
-                  <p className="text-gray-600">Fetching your content from the database</p>
+                  <h3 className="text-lg font-medium text-foreground mb-2">Loading library...</h3>
+                  <p className="text-muted-foreground">Fetching your content from the database</p>
                 </div>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Error Loading Library</h3>
-                  <p className="text-gray-600 mb-4">{error}</p>
+                  <h3 className="text-lg font-medium text-foreground mb-2">Error Loading Library</h3>
+                  <p className="text-muted-foreground mb-4">{error}</p>
                   <div className="space-y-2">
                     <button
                       onClick={loadLibraryData}
@@ -808,17 +808,17 @@ export default function LibraryPage() {
                     >
                       Try Again
                     </button>
-                    <p className="text-sm text-gray-500">Check browser console for detailed error info</p>
+                    <p className="text-sm text-muted-foreground">Check browser console for detailed error info</p>
                   </div>
                 </div>
               </div>
             ) : filteredData.length === 0 ? (
               <div className="text-center py-12">
-                <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   {libraryData.length === 0 ? 'No content found in database' : 'No content matches your filters'}
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   {libraryData.length === 0 
                     ? 'Create and publish content in the admin area to see it here'
                     : 'Try adjusting your search or filters'
@@ -835,7 +835,7 @@ export default function LibraryPage() {
             ) : (
               <>
                 {/* Results Count */}
-                <div className="mb-4 text-sm text-gray-600">
+                <div className="mb-4 text-sm text-muted-foreground">
                   Showing {filteredData.length} of {libraryData.length} items
                 </div>
                 

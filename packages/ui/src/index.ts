@@ -41,6 +41,14 @@ export * from './card';
 export * from './input';
 export * from './label';
 export * from './badge';
+export * from './textarea';
+export * from './select';
+export * from './dialog';
+export * from './switch';
+export * from './table';
+export * from './alert';
+export * from './tooltip';
+export * from './use-toast';
 
 // Utils (safe)
 export * from './lib/utils';

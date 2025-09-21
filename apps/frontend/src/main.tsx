@@ -8,11 +8,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { BrowserRouter } from 'react-router-dom' // Added import
 import { AuthProvider, supabase } from '@zoroaster/shared';
+import { supabase as uiSupabase } from '@zoroasterverse/ui/lib/supabaseClient';
 
 import './lib/axios'; // <--- Add this line
 
 console.log("VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
 console.log("VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
+
+// Attach client to window for UI package auto-detection
+if (typeof window !== 'undefined') {
+  (window as any).supabase = uiSupabase;
+}
 
 const queryClient = new QueryClient();
 

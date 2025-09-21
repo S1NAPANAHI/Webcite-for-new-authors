@@ -27,6 +27,7 @@ interface BlogPost {
   comments_count?: number;
   tags?: string[];
   reading_time?: number;
+  slug: string;
 }
 
 export default function BlogPostPage() {
@@ -307,7 +308,8 @@ function getMockPosts(): BlogPost[] {
     {
       id: '1',
       title: 'The Ancient Wisdom of Zoroaster: A Journey Through Time',
-      excerpt: 'Explore the profound teachings of Zoroaster and their relevance in modern times.',
+      slug: 'ancient-wisdom-of-zoroaster',
+      excerpt: 'Explore the profound teachings of Zoroaster and their relevance in modern times. Discover how ancient wisdom shapes our understanding of good versus evil.',
       content: 'The teachings of Zoroaster have shaped civilizations for over 3,000 years. In this comprehensive exploration, we delve into the core principles of Zoroastrianism and examine how these ancient beliefs continue to influence modern thought and spirituality.\n\nFrom the concept of free will to the eternal struggle between light and darkness, Zoroastrian philosophy offers profound insights into the human condition and our relationship with the divine. The prophet Zoroaster, also known as Zarathustra, lived sometime between 628-551 BCE in ancient Persia, and his teachings formed the foundation of one of the world\'s oldest monotheistic religions.\n\nThe core principle of "Good Thoughts, Good Words, Good Deeds" (Humata, Hukhta, Hvarshta) remains as relevant today as it was over three millennia ago. This ethical framework provides a simple yet profound guide for living a righteous life, emphasizing the power of individual choice in the cosmic battle between good and evil.',
       featured_image: '/api/placeholder/1200/600',
       author: 'Dr. Sarah Mirza',
@@ -321,7 +323,8 @@ function getMockPosts(): BlogPost[] {
     {
       id: '2',
       title: 'Fire Temples: Sacred Architecture of the Zoroastrian Faith',
-      excerpt: 'An architectural journey through the sacred fire temples that have served as centers of worship.',
+      slug: 'fire-temples-sacred-architecture',
+      excerpt: 'An architectural journey through the sacred fire temples that have served as centers of worship for thousands of years.',
       content: 'Fire temples represent the heart of Zoroastrian worship. These sacred structures, with their eternal flames, tell stories of devotion, community, and architectural brilliance spanning millennia.\n\nFrom the great fire of Yazd to the Atash Bahrams of Mumbai, each temple carries unique historical significance. The eternal flames housed within these sacred spaces have burned continuously for centuries, some for over a thousand years, representing the eternal light of Ahura Mazda.\n\nThe architecture of fire temples reflects both practical needs and spiritual symbolism. The inner sanctum, where the sacred fire burns, is carefully designed to maintain purity while allowing the faithful to offer prayers and make offerings.',
       featured_image: '/api/placeholder/1200/600',
       author: 'Prof. Jamshid Rostami',
@@ -331,8 +334,52 @@ function getMockPosts(): BlogPost[] {
       comments_count: 67,
       tags: ['Architecture', 'Sacred Sites', 'Culture'],
       reading_time: 12
+    },
+    {
+      id: '3',
+      title: 'The Gathas: Poetry of Divine Inspiration',
+      slug: 'gathas-poetry-divine-inspiration',
+      excerpt: 'Dive into the beautiful hymns composed by Zoroaster himself, exploring their poetic structure and spiritual significance.',
+      content: 'The Gathas represent the oldest part of the Avesta and contain the direct words of Zoroaster. These seventeen hymns offer profound insights into the prophet\'s teachings and relationship with Ahura Mazda.\n\nTheir poetic beauty and theological depth continue to inspire scholars and believers alike. Each Gatha reveals different aspects of Zoroastrian thought, from the nature of the divine to humanity\'s role in the cosmic order.\n\nThe language of the Gathas is both archaic and profound, requiring careful study to unlock their full meaning. Modern scholars have worked tirelessly to preserve and interpret these ancient texts for contemporary readers.',
+      featured_image: '/api/placeholder/1200/600',
+      author: 'Dr. Farah Kermani',
+      published_at: new Date(Date.now() - 259200000).toISOString(),
+      views: 892,
+      likes_count: 67,
+      comments_count: 31,
+      tags: ['Scripture', 'Poetry', 'Theology'],
+      reading_time: 15
+    },
+    {
+      id: '4',
+      title: 'Modern Zoroastrian Communities Around the World',
+      slug: 'modern-zoroastrian-communities',
+      excerpt: 'Meet the vibrant Zoroastrian communities that keep ancient traditions alive in our modern world.',
+      content: 'From Mumbai to Toronto, London to Tehran, Zoroastrian communities continue to thrive while preserving their ancient heritage. This article explores how modern Zoroastrians navigate tradition and contemporary life.\n\nDespite their small numbers, Zoroastrian communities have made significant contributions to their adopted countries while maintaining their unique identity. The Parsi community in India, descendants of Persian Zoroastrians, exemplifies this balance between tradition and modernity.\n\nIn North America and Europe, younger generations of Zoroastrians face the challenge of preserving their faith while fully participating in multicultural societies.',
+      featured_image: '/api/placeholder/1200/600',
+      author: 'Reza Dalal',
+      published_at: new Date(Date.now() - 345600000).toISOString(),
+      views: 1683,
+      likes_count: 203,
+      comments_count: 89,
+      tags: ['Community', 'Modern Life', 'Global'],
+      reading_time: 10
+    },
+    {
+      id: '5',
+      title: 'The Symbolism of Light and Darkness in Zoroastrian Thought',
+      slug: 'symbolism-light-darkness',
+      excerpt: 'Understanding the fundamental dualism that forms the core of Zoroastrian theology and its impact on world religions.',
+      content: 'The eternal struggle between light and darkness, good and evil, forms the foundation of Zoroastrian thought. This exploration examines how this dualistic worldview has influenced major world religions and philosophical systems.\n\nIn Zoroastrian cosmology, Ahura Mazda represents absolute goodness and light, while Angra Mainyu embodies evil and darkness. This cosmic battle is not just theological but deeply practical, calling each person to choose their side through thoughts, words, and deeds.\n\nThis dualistic framework has profoundly influenced Christianity, Islam, and other monotheistic traditions, making Zoroastrianism one of history\'s most influential religions despite its relatively small following today.',
+      featured_image: '/api/placeholder/1200/600',
+      author: 'Prof. Cyrus Bahram',
+      published_at: new Date(Date.now() - 432000000).toISOString(),
+      views: 756,
+      likes_count: 45,
+      comments_count: 18,
+      tags: ['Theology', 'Symbolism', 'Philosophy'],
+      reading_time: 7
     }
-    // Add more mock posts as needed
   ];
 }
 

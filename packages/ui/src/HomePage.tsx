@@ -2,6 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './HomePage.module.css';
 
+// Import supabase from shared package
+try {
+  // This will work when the shared package is properly built and available
+  var { supabase } = await import('@zoroaster/shared');
+} catch (e) {
+  console.log('UI Package: Could not import supabase from @zoroaster/shared');
+}
+
 // --- TYPE DEFINITIONS ---
 export type HomepageContentItem = {
   id: number;
@@ -44,7 +52,7 @@ interface BlogPost {
 const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, onSpin?: (spinCount: number) => Promise<void> }> = ({ spinsLeft, setSpinsLeft, onSpin }) => {
     const englishReelRef = useRef<HTMLDivElement>(null);
     const [isSpinning, setIsSpinning] = useState(false);
-    const itemHeight = 150; // Must match .prophecyItem height in CSS
+    const itemHeight = 150;
 
     const fortunes = [
         { english: "Your heart is a compass that always points toward love—trust it, follow it, honor it." },
@@ -59,7 +67,6 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
         { english: "The sacred fire burns brightest in the heart that chooses truth over comfort. Let your conscience be the altar where right intention dwells." }
     ];
 
-    // Create a long, seamless loop for the reel
     const numRepeats = 5;
     const prePendCount = fortunes.length;
 
@@ -226,11 +233,26 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
             try {
                 console.log('🔥 UI LatestPosts: Starting blog posts fetch...');
                 
-                // Try to get supabase from props, window, or import
+                // Try multiple ways to get supabase client
                 let client = supabaseClient;
+                
+                // Try to import from shared package
+                if (!client) {
+                    try {
+                        const sharedModule = await import('@zoroaster/shared');
+                        client = sharedModule.supabase;
+                        console.log('✅ UI LatestPosts: Successfully imported supabase from @zoroaster/shared');
+                    } catch (importError) {
+                        console.log('⚠️ UI LatestPosts: Could not import from @zoroaster/shared:', importError);
+                    }
+                }
+                
+                // Try global window as fallback
                 if (!client && typeof window !== 'undefined') {
-                    // Try to get from window if available (set by main app)
                     client = (window as any).__supabase || (window as any).supabase;
+                    if (client) {
+                        console.log('✅ UI LatestPosts: Found supabase on window object');
+                    }
                 }
                 
                 if (!client) {
@@ -241,7 +263,7 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                     return;
                 }
 
-                console.log('📋 UI LatestPosts: Querying blog_posts table...');
+                console.log('📋 UI LatestPosts: Querying blog_posts table with client...');
                 const { data, error } = await client
                     .from('blog_posts')
                     .select(`
@@ -262,18 +284,19 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                     .order('published_at', { ascending: false })
                     .limit(3);
 
-                console.log('📥 UI LatestPosts: Database response:', { data, error });
+                console.log('📥 UI LatestPosts: Database response:', { data, error, dataLength: data?.length });
 
                 if (error) {
                     console.error('❌ UI LatestPosts: Database error:', error);
                     setBlogPosts(fallbackPosts);
                     setUsingSampleData(true);
                 } else if (data && data.length > 0) {
-                    console.log(`✅ UI LatestPosts: Found ${data.length} real blog posts`);
+                    console.log(`✅ UI LatestPosts: Found ${data.length} real blog posts!`);
+                    console.log('📋 UI LatestPosts: First post:', { title: data[0]?.title, status: data[0]?.status });
                     setBlogPosts(data as BlogPost[]);
                     setUsingSampleData(false);
                 } else {
-                    console.log('📝 UI LatestPosts: No published posts, using fallback');
+                    console.log('📝 UI LatestPosts: No published posts found, using fallback');
                     setBlogPosts(fallbackPosts);
                     setUsingSampleData(true);
                 }
@@ -283,6 +306,7 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                 setUsingSampleData(true);
             } finally {
                 setLoading(false);
+                console.log('🏁 UI LatestPosts: Fetch completed');
             }
         };
 
@@ -307,7 +331,7 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
         return Math.max(Math.ceil(words / 200), 1);
     };
 
-    console.log(`🎨 UI LatestPosts: Rendering ${blogPosts.length} posts (sample: ${usingSampleData})`);
+    console.log(`🎨 UI LatestPosts: Rendering ${blogPosts.length} posts (sample: ${usingSampleData}, loading: ${loading})`);
 
     if (loading) {
         return (
@@ -386,20 +410,23 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                             <p className="text-gray-600 mb-4 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: excerpt }}></p>
                             
                             {/* Meta info */}
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-3">
                                 <span>By {post.author || 'Zoroasterverse Team'}</span>
+                                <span>•</span>
                                 <span>{formatDate(post.published_at)}</span>
                                 {post.reading_time && (
-                                    <span>{post.reading_time}m read</span>
+                                    <>
+                                        <span>•</span>
+                                        <span>{post.reading_time}m read</span>
+                                    </>
+                                )}
+                                {post.views && (
+                                    <>
+                                        <span>•</span>
+                                        <span>👁️ {post.views} views</span>
+                                    </>
                                 )}
                             </div>
-                            
-                            {/* Views */}
-                            {post.views && (
-                                <div className="text-xs text-gray-400 mb-3">
-                                    👁️ {post.views} views
-                                </div>
-                            )}
                             
                             <Link 
                                 to={usingSampleData ? `/blog` : `/blog/${post.slug}`} 
@@ -474,7 +501,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const contentMap = new Map(homepageData?.map(item => [item.section, item]));
 
-  console.log('🏠 UI Package HomePage: Rendering, passing supabase client to LatestPosts');
+  console.log('🏠 UI Package HomePage: Rendering, supabase client available:', !!supabaseClient);
 
   return (
     <div>

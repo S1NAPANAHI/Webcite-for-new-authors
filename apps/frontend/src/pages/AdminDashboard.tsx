@@ -14,7 +14,9 @@ import {
   Eye,
   Edit,
   BarChart3,
-  PieChart
+  PieChart,
+  Palette,
+  Globe
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -85,7 +87,7 @@ function KPICard({ title, value, trend, icon: Icon, color, format = 'number' }: 
   };
 
   const getTrendColor = (trend?: number) => {
-    if (!trend) return 'text-gray-500';
+    if (!trend) return 'text-muted-foreground';
     return trend > 0 ? 'text-green-500' : 'text-red-500';
   };
 
@@ -103,7 +105,7 @@ function KPICard({ title, value, trend, icon: Icon, color, format = 'number' }: 
             <div className={`flex items-center space-x-1 text-sm ${getTrendColor(trend)}`}>
               <TrendIcon className="w-4 h-4" />
               <span>{Math.abs(trend)}%</span>
-              <span className="text-gray-500">vs last month</span>
+              <span className="text-muted-foreground">vs last month</span>
             </div>
           )}
         </div>
@@ -170,7 +172,7 @@ export default function AdminDashboard() {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -188,49 +190,50 @@ export default function AdminDashboard() {
       </div>
     );
   }
+  
   const quickActions = [
     {
       title: "New Content",
       description: "Create new books, chapters",
       icon: Plus,
       href: "/admin/content/works/new",
-      color: "from-blue-500 to-blue-600",
+      color: "from-blue-500 to-blue-600"
     },
     {
       title: "Media Library",
       description: "Manage files & images",
       icon: Palette,
       href: "/admin/content/files",
-      color: "from-green-500 to-green-600",
+      color: "from-green-500 to-green-600"
     },
     {
       title: "User Management",
       description: "View and manage users",
       icon: Users,
       href: "/admin/settings/users",
-      color: "from-purple-500 to-purple-600",
+      color: "from-purple-500 to-purple-600"
     },
     {
       title: "Analytics",
       description: "View detailed stats",
       icon: BarChart3,
       href: "/admin/analytics",
-      color: "from-orange-500 to-orange-600",
+      color: "from-orange-500 to-orange-600"
     },
     {
       title: "Blog Posts",
       description: "Create & edit blogs",
       icon: FileText,
       href: "/admin/content/blog",
-      color: "from-pink-500 to-pink-600",
+      color: "from-pink-500 to-pink-600"
     },
     {
       title: "World Building",
       description: "Wiki, timelines, characters",
       icon: Globe,
       href: "/admin/world/wiki",
-      color: "from-teal-500 to-teal-600",
-    },
+      color: "from-teal-500 to-teal-600"
+    }
   ];
 
   return (
@@ -254,8 +257,8 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-  
-      {/* KPI Cards - with updated styling */}
+
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Total Books"
@@ -287,8 +290,8 @@ export default function AdminDashboard() {
           format="currency"
         />
       </div>
-  
-      {/* Quick Actions - Enhanced */}
+
+      {/* Quick Actions */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -297,7 +300,7 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
-  
+
       {/* Media Gallery Section */}
       <div className="glass-card-strong rounded-xl">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
@@ -315,7 +318,6 @@ export default function AdminDashboard() {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-4">
-            {/* Mock media items - replace with real data */}
             {Array.from({ length: 8 }, (_, i) => (
               <div key={i} className="group relative aspect-square bg-muted rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 border border-border">
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
@@ -325,14 +327,14 @@ export default function AdminDashboard() {
                   <Eye className="w-5 h-5 text-white" />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
-                  media_file_${i + 1}.jpg
+                  image_{i + 1}.jpg
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
-  
+
       {/* Two-column layout for content overview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Content */}
@@ -353,7 +355,7 @@ export default function AdminDashboard() {
                       book.state === 'published' 
                         ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
                         : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
-                    }\`}>
+                    }`}>
                       {book.state}
                     </span>
                     <div className="flex items-center space-x-1 text-muted-foreground text-xs">
@@ -369,7 +371,7 @@ export default function AdminDashboard() {
             ))}
           </div>
         </div>
-  
+
         {/* Performance Metrics */}
         <div className="glass-card-strong rounded-xl">
           <div className="px-6 py-4 border-b border-border">
@@ -396,4 +398,5 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
-  );}
+  );
+}

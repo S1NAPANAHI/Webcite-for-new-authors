@@ -15,10 +15,14 @@ interface BlogPost {
   views?: number;
   likes_count?: number;
   category?: string;
-  tags?: string[];
+  category_name?: string;
+  category_color?: string;
+  tag_names?: string[];
+  reading_time?: number;
+  is_featured?: boolean;
 }
 
-// Sample posts that will always display
+// Sample posts that match your existing blog schema
 const SAMPLE_POSTS: BlogPost[] = [
   {
     id: 'sample-1',
@@ -31,7 +35,12 @@ const SAMPLE_POSTS: BlogPost[] = [
     published_at: new Date().toISOString(),
     views: 1247,
     likes_count: 89,
-    category: 'Philosophy'
+    category: 'Philosophy',
+    category_name: 'Philosophy',
+    category_color: '#8b5cf6',
+    tag_names: ['Philosophy', 'Religion', 'History'],
+    reading_time: 8,
+    is_featured: true
   },
   {
     id: 'sample-2',
@@ -44,7 +53,12 @@ const SAMPLE_POSTS: BlogPost[] = [
     published_at: new Date(Date.now() - 86400000).toISOString(),
     views: 2156,
     likes_count: 134,
-    category: 'Architecture'
+    category: 'Architecture',
+    category_name: 'Architecture',
+    category_color: '#f97316',
+    tag_names: ['Architecture', 'Sacred Sites', 'Culture'],
+    reading_time: 6,
+    is_featured: false
   },
   {
     id: 'sample-3',
@@ -57,7 +71,12 @@ const SAMPLE_POSTS: BlogPost[] = [
     published_at: new Date(Date.now() - 172800000).toISOString(),
     views: 892,
     likes_count: 67,
-    category: 'Scripture'
+    category: 'Scripture',
+    category_name: 'Scripture',
+    category_color: '#84cc16',
+    tag_names: ['Scripture', 'Poetry', 'Theology'],
+    reading_time: 5,
+    is_featured: false
   }
 ];
 
@@ -74,10 +93,11 @@ export default function NewsGrid() {
     try {
       setLoading(true);
       
-      console.log('🔄 NewsGrid: Fetching latest blog posts...');
+      console.log('🔄 NewsGrid: Fetching latest blog posts using existing schema...');
       
+      // Use your existing blog schema with the comprehensive view
       const { data, error } = await supabase
-        .from('blog_posts')
+        .from('blog_posts_with_stats') // This view includes category and tag data
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false })
@@ -88,12 +108,8 @@ export default function NewsGrid() {
         setPosts(SAMPLE_POSTS);
         setIsUsingSampleData(true);
       } else {
-        setPosts(data.map(post => ({
-          ...post,
-          author: post.author || 'Zoroasterverse Team',
-          featured_image: post.featured_image || post.cover_url,
-          excerpt: post.excerpt || (post.content ? post.content.substring(0, 150) + '...' : '')
-        })));
+        console.log(`✅ Found ${data.length} real blog posts`);
+        setPosts(data as BlogPost[]);
         setIsUsingSampleData(false);
       }
       
@@ -118,7 +134,8 @@ export default function NewsGrid() {
     }
   };
 
-  const calculateReadTime = (content: string) => {
+  const calculateReadTime = (content?: string, reading_time?: number) => {
+    if (reading_time) return reading_time;
     if (!content) return 3;
     const words = content.split(/\s+/).length;
     return Math.max(Math.ceil(words / 200), 1);
@@ -154,10 +171,16 @@ export default function NewsGrid() {
       {/* Featured Latest Post */}
       {posts[0] && (
         <div className="relative">
-          <div className="absolute top-6 left-6 z-10">
+          <div className="absolute top-6 left-6 z-10 flex gap-2">
             <span className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-amber-600 to-orange-600 rounded-full shadow-lg">
               ✨ LATEST
             </span>
+            {posts[0].is_featured && (
+              <span className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg">
+                <Star className="w-3 h-3 inline mr-1 fill-current" />
+                FEATURED
+              </span>
+            )}
           </div>
           
           <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-700">
@@ -181,8 +204,13 @@ export default function NewsGrid() {
               
               <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
                 <div className="mb-4">
-                  <span className="px-3 py-1 text-sm font-semibold text-amber-300 bg-amber-900/30 rounded-full">
-                    📁 {posts[0].category || 'News'}
+                  <span 
+                    className="px-3 py-1 text-sm font-semibold text-white rounded-full"
+                    style={{ 
+                      backgroundColor: posts[0].category_color || '#f59e0b'
+                    }}
+                  >
+                    📁 {posts[0].category_name || posts[0].category || 'News'}
                   </span>
                 </div>
                 
@@ -193,6 +221,17 @@ export default function NewsGrid() {
                 <p className="text-gray-300 mb-6 text-lg leading-relaxed">
                   {posts[0].excerpt}
                 </p>
+                
+                {/* Tags */}
+                {posts[0].tag_names && posts[0].tag_names.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-6">
+                    {posts[0].tag_names.slice(0, 3).map((tag) => (
+                      <span key={tag} className="px-2 py-1 text-xs font-medium text-amber-200 bg-amber-900/30 rounded-full">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 
                 <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-8">
                   <span className="flex items-center gap-2">
@@ -205,7 +244,7 @@ export default function NewsGrid() {
                   </span>
                   <span className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
-                    {calculateReadTime(posts[0].content)}m read
+                    {calculateReadTime(posts[0].content, posts[0].reading_time)}m read
                   </span>
                   <span className="flex items-center gap-2">
                     <Eye className="w-4 h-4" />
@@ -248,12 +287,27 @@ export default function NewsGrid() {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 
-                {/* Category badge */}
+                {/* Category badge with your existing colors */}
                 <div className="absolute top-4 left-4">
-                  <span className="px-2 py-1 text-xs font-semibold text-white bg-black/60 rounded-full">
-                    {post.category || 'News'}
+                  <span 
+                    className="px-2 py-1 text-xs font-semibold text-white rounded-full"
+                    style={{ 
+                      backgroundColor: post.category_color || '#f59e0b'
+                    }}
+                  >
+                    {post.category_name || post.category || 'News'}
                   </span>
                 </div>
+                
+                {/* Featured badge */}
+                {post.is_featured && (
+                  <div className="absolute top-4 right-4">
+                    <span className="px-2 py-1 text-xs font-bold text-white bg-blue-600 rounded-full">
+                      <Star className="w-3 h-3 inline mr-1 fill-current" />
+                      FEATURED
+                    </span>
+                  </div>
+                )}
               </div>
               
               <div className="p-6">
@@ -264,6 +318,17 @@ export default function NewsGrid() {
                 <p className="text-gray-300 mb-4 text-sm leading-relaxed line-clamp-2">
                   {post.excerpt}
                 </p>
+                
+                {/* Tags */}
+                {post.tag_names && post.tag_names.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {post.tag_names.slice(0, 2).map((tag) => (
+                      <span key={tag} className="px-2 py-0.5 text-xs text-amber-200 bg-amber-900/20 rounded">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 
                 <div className="flex items-center justify-between text-xs text-gray-400 mb-4">
                   <span className="flex items-center gap-1">
@@ -306,7 +371,7 @@ export default function NewsGrid() {
         
         <div className="mt-4">
           <p className="text-gray-400 text-sm">
-            Latest {posts.length} articles from Zoroasterverse
+            Latest {posts.length} articles from your blog
             {isUsingSampleData && (
               <span className="block mt-2 text-blue-400">
                 💡 <Link to="/admin/content/blog/new" className="underline hover:text-blue-300 font-medium">

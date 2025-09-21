@@ -60,8 +60,8 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
     ];
 
     // Create a long, seamless loop for the reel
-    const numRepeats = 5; // Number of times to repeat the fortunes array
-    const prePendCount = fortunes.length; // Number of items to prepend for smooth loop
+    const numRepeats = 5;
+    const prePendCount = fortunes.length;
 
     const baseReelItems = [];
     for (let i = 0; i < numRepeats; i++) {
@@ -71,16 +71,14 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
     const reelItems = [
         ...baseReelItems.slice(baseReelItems.length - prePendCount),
         ...baseReelItems,
-        ...baseReelItems.slice(0, prePendCount) // Append for smooth loop
+        ...baseReelItems.slice(0, prePendCount)
     ];
 
     const handleSpin = async () => {
         if (isSpinning || !englishReelRef.current || spinsLeft <= 0) {
-            console.log('No spins left or already spinning.');
             return;
         }
 
-        console.log('handleSpin called'); // Debugging line
         try {
             const sound = new Audio('/gear-click-351962.mp3');
             sound.play().catch(e => console.error("Error playing sound:", e));
@@ -88,9 +86,8 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
             console.error("Error creating Audio object:", e);
         }
         setIsSpinning(true);
-        setSpinsLeft(prev => prev - 1); // Decrement spins left
+        setSpinsLeft(prev => prev - 1);
 
-        // Call external spin handler if provided
         if (onSpin) {
             try {
                 await onSpin(3 - spinsLeft + 1);
@@ -100,37 +97,29 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
         }
 
         const finalIndexInFortunes = Math.floor(Math.random() * fortunes.length);
-        // Calculate target index within the *middle* section of baseReelItems
         const targetIndexInReelItems = prePendCount + finalIndexInFortunes + (fortunes.length * Math.floor(numRepeats / 2));
         
-        // English reel scrolls up (negative transform)
         const englishTargetY = targetIndexInReelItems * itemHeight;
-            englishReelRef.current.classList.add('prophecy-reel-spinning');
+        englishReelRef.current.classList.add('prophecy-reel-spinning');
         englishReelRef.current.style.transform = `translateY(-${englishTargetY}px)`;
-
-        
 
         setTimeout(() => {
             if (!englishReelRef.current) return;
             englishReelRef.current.classList.remove('prophecy-reel-spinning');
             
-            // Reset English reel to the equivalent position in the *first* repetition
             englishReelRef.current.style.transition = 'none';
             const englishResetY = finalIndexInFortunes * itemHeight;
             englishReelRef.current.style.transform = `translateY(-${englishResetY}px)`;
             
-            
-            
-            void englishReelRef.current.offsetHeight; // Force reflow
+            void englishReelRef.current.offsetHeight;
 
             englishReelRef.current.style.transition = 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)';
             setIsSpinning(false);
-        }, 1600); // Slightly longer than 1.5s transition in CSS for smoother reset
+        }, 1600);
     };
 
     return (
         <>
-            {/* English Reel (Top Left) */}
             <div className={styles.prophecyMask} onClick={handleSpin}>
                 <div ref={englishReelRef} className={styles.prophecyReel}>
                     {reelItems.map((item, index) => (
@@ -183,20 +172,20 @@ const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spin
     );
 };
 
-// 🔥 FIXED: Dynamic Latest Posts component that fetches real blog posts
-const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
+// 🔥 FIXED: Latest Posts component that shows your blog posts
+const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts, supabaseClient }) => {
     const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [usingSampleData, setUsingSampleData] = useState(false);
 
-    // Fallback posts for when no real posts exist
+    // Professional fallback posts
     const fallbackPosts: BlogPost[] = [
         {
             id: 'fallback-1',
             title: 'Welcome to Zoroasterverse',
             slug: 'welcome-to-zoroasterverse',
-            excerpt: 'Discover the ancient wisdom of Zoroastrianism and its profound impact on modern spirituality.',
-            content: 'Welcome to Zoroasterverse, your gateway to understanding one of the world\'s oldest monotheistic religions.',
+            excerpt: 'Discover the ancient wisdom of Zoroastrianism and its profound impact on modern spirituality and philosophy.',
+            content: 'Welcome to Zoroasterverse, your gateway to understanding one of the world\'s oldest monotheistic religions. Here, we explore the rich history, profound philosophy, and enduring wisdom of Zoroastrianism.',
             featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=400&fit=crop',
             author: 'Zoroasterverse Team',
             published_at: new Date().toISOString(),
@@ -208,8 +197,8 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
             id: 'fallback-2',
             title: 'The Sacred Fire: Symbol of Divine Light',
             slug: 'sacred-fire-divine-light',
-            excerpt: 'Fire holds a central place in Zoroastrian worship, representing the light of Ahura Mazda.',
-            content: 'In Zoroastrian tradition, fire serves as a symbol of purity and divine presence.',
+            excerpt: 'Fire holds a central place in Zoroastrian worship, representing the light of Ahura Mazda and the path to truth.',
+            content: 'In Zoroastrian tradition, fire is not worshipped itself but serves as a symbol of Ahura Mazda\'s light and purity. Fire temples around the world maintain this sacred flame as a focal point for prayer and meditation.',
             featured_image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&h=400&fit=crop',
             author: 'Zoroasterverse Team',
             published_at: new Date(Date.now() - 86400000).toISOString(),
@@ -221,8 +210,8 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
             id: 'fallback-3',
             title: 'Good Thoughts, Good Words, Good Deeds',
             slug: 'good-thoughts-words-deeds',
-            excerpt: 'The threefold path of righteousness that guides Zoroastrians in ethical living.',
-            content: 'Humata, Hukhta, Hvarshta - the foundation of Zoroastrian ethics and spiritual practice.',
+            excerpt: 'The threefold path of righteousness that guides Zoroastrians in living a life aligned with truth and goodness.',
+            content: 'Humata, Hukhta, Hvarshta - the foundation of Zoroastrian ethics. This principle emphasizes the importance of righteousness in thought, speech, and action as the path to spiritual fulfillment.',
             featured_image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=400&fit=crop',
             author: 'Zoroasterverse Team',
             published_at: new Date(Date.now() - 172800000).toISOString(),
@@ -235,20 +224,25 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
     useEffect(() => {
         const fetchBlogPosts = async () => {
             try {
-                console.log('🔥 UI Package LatestPosts: Fetching blog posts...');
+                console.log('🔥 UI LatestPosts: Starting blog posts fetch...');
                 
-                // We need to import supabase here, but since this is a UI package,
-                // we'll try to use the global window object or check if supabase is available
-                const supabaseClient = (window as any).supabase || null;
+                // Try to get supabase from props, window, or import
+                let client = supabaseClient;
+                if (!client && typeof window !== 'undefined') {
+                    // Try to get from window if available (set by main app)
+                    client = (window as any).__supabase || (window as any).supabase;
+                }
                 
-                if (!supabaseClient) {
-                    console.log('📦 UI Package: No supabase client available, using fallback posts');
+                if (!client) {
+                    console.log('📦 UI LatestPosts: No supabase client available, using fallback posts');
                     setBlogPosts(fallbackPosts);
+                    setUsingSampleData(true);
                     setLoading(false);
                     return;
                 }
 
-                const { data, error } = await supabaseClient
+                console.log('📋 UI LatestPosts: Querying blog_posts table...');
+                const { data, error } = await client
                     .from('blog_posts')
                     .select(`
                         id,
@@ -268,29 +262,32 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
                     .order('published_at', { ascending: false })
                     .limit(3);
 
-                console.log('🔥 UI Package LatestPosts: Database response:', { data, error });
+                console.log('📥 UI LatestPosts: Database response:', { data, error });
 
                 if (error) {
-                    console.error('❌ UI Package LatestPosts: Database error:', error);
+                    console.error('❌ UI LatestPosts: Database error:', error);
                     setBlogPosts(fallbackPosts);
+                    setUsingSampleData(true);
                 } else if (data && data.length > 0) {
-                    console.log(`✅ UI Package LatestPosts: Found ${data.length} real blog posts`);
+                    console.log(`✅ UI LatestPosts: Found ${data.length} real blog posts`);
                     setBlogPosts(data as BlogPost[]);
+                    setUsingSampleData(false);
                 } else {
-                    console.log('📝 UI Package LatestPosts: No published posts, using fallback');
+                    console.log('📝 UI LatestPosts: No published posts, using fallback');
                     setBlogPosts(fallbackPosts);
+                    setUsingSampleData(true);
                 }
             } catch (err) {
-                console.error('💥 UI Package LatestPosts: Critical error:', err);
+                console.error('💥 UI LatestPosts: Critical error:', err);
                 setBlogPosts(fallbackPosts);
-                setError('Using fallback content due to error');
+                setUsingSampleData(true);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchBlogPosts();
-    }, []);
+    }, [supabaseClient]);
 
     const formatDate = (dateString: string) => {
         try {
@@ -310,12 +307,15 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
         return Math.max(Math.ceil(words / 200), 1);
     };
 
+    console.log(`🎨 UI LatestPosts: Rendering ${blogPosts.length} posts (sample: ${usingSampleData})`);
+
     if (loading) {
         return (
             <section className={styles.zrSection}>
                 <h2 className={styles.zrH2}>Latest News & Updates</h2>
                 <div className="flex justify-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                    <span className="ml-3 text-gray-600">Loading latest articles...</span>
                 </div>
             </section>
         );
@@ -324,6 +324,27 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
     return (
         <section className={styles.zrSection}>
             <h2 className={styles.zrH2}>Latest News & Updates</h2>
+            
+            {/* Debug info for development */}
+            {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-3 bg-gray-100 border rounded text-sm text-gray-700">
+                    <strong>UI Package Debug:</strong> {blogPosts.length} posts loaded, 
+                    Using sample data: {usingSampleData ? 'Yes' : 'No'}
+                </div>
+            )}
+            
+            {usingSampleData && (
+                <div className="mb-6 text-center">
+                    <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-blue-700 text-sm">
+                        💡 Sample content shown - 
+                        <Link to="/admin/content/blog/new" className="text-blue-600 hover:text-blue-800 underline font-medium">
+                            Create your first blog post
+                        </Link>
+                        to see your real content here!
+                    </div>
+                </div>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {blogPosts.map((post, index) => {
                     const excerpt = post.excerpt || (post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content);
@@ -345,35 +366,46 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
                             
                             {/* Latest Badge for first post */}
                             {index === 0 && (
-                                <div className="absolute top-2 right-2 bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                <div className="absolute top-2 right-2 bg-orange-600 text-white px-2 py-1 rounded-full text-xs font-bold z-10">
                                     ✨ LATEST
                                 </div>
                             )}
                             
                             {/* Category */}
                             {post.category && (
-                                <div className="mb-2">
-                                    <span className="inline-block px-2 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded-full">
+                                <div className="mb-3">
+                                    <span className="inline-block px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded-full">
                                         {post.category}
                                     </span>
                                 </div>
                             )}
                             
-                            <h3 className="text-xl font-bold mb-2 group-hover:text-orange-600 transition-colors">{post.title}</h3>
+                            <h3 className="text-xl font-bold mb-3 group-hover:text-orange-600 transition-colors leading-tight">
+                                {post.title}
+                            </h3>
                             <p className="text-gray-600 mb-4 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: excerpt }}></p>
                             
                             {/* Meta info */}
                             <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                                 <span>By {post.author || 'Zoroasterverse Team'}</span>
                                 <span>{formatDate(post.published_at)}</span>
-                                <span>{calculateReadTime(post.content, post.reading_time)}m read</span>
+                                {post.reading_time && (
+                                    <span>{post.reading_time}m read</span>
+                                )}
                             </div>
                             
+                            {/* Views */}
+                            {post.views && (
+                                <div className="text-xs text-gray-400 mb-3">
+                                    👁️ {post.views} views
+                                </div>
+                            )}
+                            
                             <Link 
-                                to={`/blog/${post.slug}`} 
-                                className="inline-flex items-center text-orange-600 hover:text-orange-700 font-semibold text-sm group-hover:underline"
+                                to={usingSampleData ? `/blog` : `/blog/${post.slug}`} 
+                                className="inline-flex items-center text-orange-600 hover:text-orange-700 font-semibold text-sm group-hover:underline transition-colors"
                             >
-                                Read More 
+                                {usingSampleData ? 'Explore Blog' : 'Read More'}
                                 <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
                             </Link>
                         </div>
@@ -381,12 +413,16 @@ const LatestPosts: React.FC<{ posts: Post[] }> = ({ posts }) => {
                 })}
             </div>
             
-            {/* Show debug info in development */}
-            {process.env.NODE_ENV === 'development' && error && (
-                <div className="mt-4 p-3 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded text-sm">
-                    <strong>Debug:</strong> {error}
-                </div>
-            )}
+            {/* CTA to blog */}
+            <div className="text-center mt-8">
+                <Link 
+                    to="/blog" 
+                    className="inline-flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors font-semibold"
+                >
+                    Explore All Articles
+                    <span>→</span>
+                </Link>
+            </div>
         </section>
     );
 };
@@ -417,6 +453,7 @@ interface HomePageProps {
   isLoading?: boolean;
   isError?: boolean;
   onSpin?: (spinCount: number) => Promise<void>;
+  supabaseClient?: any; // Add supabase client as prop
 }
 
 // --- MAIN HOME PAGE COMPONENT ---
@@ -427,7 +464,8 @@ export const HomePage: React.FC<HomePageProps> = ({
   spinsLeft = 0,
   isLoading = false,
   isError = false,
-  onSpin
+  onSpin,
+  supabaseClient
 }) => {
   const [currentSpinsLeft, setCurrentSpinsLeft] = useState(spinsLeft);
 
@@ -436,7 +474,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const contentMap = new Map(homepageData?.map(item => [item.section, item]));
 
-  console.log('🏠 UI Package HomePage: Rendering with posts:', latestPosts.length);
+  console.log('🏠 UI Package HomePage: Rendering, passing supabase client to LatestPosts');
 
   return (
     <div>
@@ -473,8 +511,8 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
       </section>
       
-      {/* 🔥 This is the ACTUAL "Latest News & Updates" section that shows on your homepage */}
-      <LatestPosts posts={latestPosts || []} />
+      {/* 🔥 This is the ACTUAL "Latest News & Updates" section - now fixed! */}
+      <LatestPosts posts={latestPosts || []} supabaseClient={supabaseClient} />
       
       <LatestReleases releases={releaseData || []} />
 

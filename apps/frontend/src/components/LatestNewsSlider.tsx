@@ -23,17 +23,14 @@ interface BlogPost {
   comments_count?: number;
   is_featured?: boolean;
   category?: string;
-  category_name?: string;
-  category_color?: string;
-  tag_names?: string[];
   reading_time?: number;
   word_count?: number;
 }
 
-// Sample posts that match your existing schema structure
-const SAMPLE_POSTS: BlogPost[] = [
+// Fallback posts for when database is empty or has issues
+const FALLBACK_POSTS: BlogPost[] = [
   {
-    id: 'sample-1',
+    id: 'fallback-1',
     title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
     slug: 'welcome-to-zoroasterverse',
     excerpt: 'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
@@ -44,16 +41,13 @@ const SAMPLE_POSTS: BlogPost[] = [
     views: 856,
     likes_count: 42,
     comments_count: 18,
-    tag_names: ['Philosophy', 'Religion', 'Introduction'],
     is_featured: true,
     category: 'Philosophy',
-    category_name: 'Philosophy',
-    category_color: '#8b5cf6',
     reading_time: 8,
     word_count: 1520
   },
   {
-    id: 'sample-2',
+    id: 'fallback-2',
     title: 'The Sacred Fire: Symbol of Divine Light and Purity',
     slug: 'sacred-fire-symbol',
     excerpt: 'Fire holds a central place in Zoroastrian worship as a symbol of Ahura Mazda\'s light and the path to truth.',
@@ -64,16 +58,13 @@ const SAMPLE_POSTS: BlogPost[] = [
     views: 1234,
     likes_count: 89,
     comments_count: 34,
-    tag_names: ['Fire', 'Symbols', 'Worship'],
     is_featured: false,
     category: 'Religion',
-    category_name: 'Religion',
-    category_color: '#10b981',
     reading_time: 6,
     word_count: 1200
   },
   {
-    id: 'sample-3',
+    id: 'fallback-3',
     title: 'Good Thoughts, Good Words, Good Deeds: The Zoroastrian Way',
     slug: 'good-thoughts-words-deeds',
     excerpt: 'The threefold path of righteousness in Zoroastrianism emphasizes the importance of aligning our thoughts, words, and actions with truth and goodness.',
@@ -84,11 +75,8 @@ const SAMPLE_POSTS: BlogPost[] = [
     views: 967,
     likes_count: 76,
     comments_count: 29,
-    tag_names: ['Ethics', 'Philosophy', 'Practice'],
     is_featured: false,
     category: 'Philosophy',
-    category_name: 'Philosophy',
-    category_color: '#8b5cf6',
     reading_time: 5,
     word_count: 980
   }
@@ -105,47 +93,72 @@ export default function LatestNewsSlider() {
   }, []);
 
   const fetchLatestPosts = async () => {
+    console.log('🚀 LatestNewsSlider: Starting fetch...');
+    
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔄 Fetching latest blog posts using existing schema...');
+      console.log('📊 LatestNewsSlider: Querying blog_posts table directly...');
       
-      // Query using your EXISTING blog schema with the comprehensive view
+      // Query your EXISTING blog_posts table directly (not the view)
       const { data, error } = await supabase
-        .from('blog_posts_with_stats') // Use the view that includes category and tag data
-        .select('*')
+        .from('blog_posts')
+        .select(`
+          id,
+          title,
+          slug,
+          excerpt,
+          content,
+          featured_image,
+          author,
+          status,
+          published_at,
+          views,
+          likes_count,
+          comments_count,
+          is_featured,
+          category,
+          reading_time,
+          word_count
+        `)
         .eq('status', 'published')
+        .not('published_at', 'is', null)
         .order('published_at', { ascending: false })
         .limit(5);
 
+      console.log('📥 LatestNewsSlider: Database response:', { data, error });
+
       if (error) {
-        console.warn('⚠️ Database query failed, using sample data:', error.message);
-        setPosts(SAMPLE_POSTS);
+        console.error('❌ LatestNewsSlider: Database error:', error);
+        console.log('🔄 LatestNewsSlider: Using fallback content due to database error');
+        setPosts(FALLBACK_POSTS);
         setIsUsingSampleData(true);
+        setError(`Database error: ${error.message}`);
         return;
       }
 
-      // If we have real published posts, use them
+      // Check if we got real published posts
       if (data && data.length > 0) {
-        console.log(`✅ Found ${data.length} real published blog posts`);
+        console.log(`✅ LatestNewsSlider: Found ${data.length} real published blog posts!`);
+        console.log('📋 LatestNewsSlider: Posts data:', data.map(p => ({ id: p.id, title: p.title, status: p.status, published_at: p.published_at })));
         setPosts(data as BlogPost[]);
         setIsUsingSampleData(false);
       } else {
-        // No published posts found, use sample data
-        console.log('📝 No published posts found, displaying sample content');
-        setPosts(SAMPLE_POSTS);
+        console.log('📝 LatestNewsSlider: No published posts found in database, using fallback content');
+        setPosts(FALLBACK_POSTS);
         setIsUsingSampleData(true);
       }
       
     } catch (err) {
-      console.error('❌ Critical error in fetchLatestPosts:', err);
-      // Always fallback to sample data to ensure content shows
-      setPosts(SAMPLE_POSTS);
+      console.error('💥 LatestNewsSlider: Critical error:', err);
+      // Always ensure we show content, never leave empty
+      setPosts(FALLBACK_POSTS);
       setIsUsingSampleData(true);
-      setError('Using sample content - database connection issue');
+      setError('Connection error - showing fallback content');
     } finally {
       setLoading(false);
+      console.log('🏁 LatestNewsSlider: Fetch completed');
     }
   };
 
@@ -170,6 +183,7 @@ export default function LatestNewsSlider() {
 
   // Loading state
   if (loading) {
+    console.log('⏳ LatestNewsSlider: Showing loading state');
     return (
       <div className="flex justify-center py-16 min-h-[400px] items-center">
         <div className="text-center">
@@ -181,15 +195,26 @@ export default function LatestNewsSlider() {
     );
   }
 
-  // At this point, we ALWAYS have content (either real or sample)
+  console.log(`🎨 LatestNewsSlider: Rendering with ${posts.length} posts (sample: ${isUsingSampleData})`);
+
+  // At this point, we ALWAYS have content (either real or fallback)
   return (
     <div className="relative">
+      {/* Debug info in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mb-4 p-3 bg-gray-800 rounded text-sm text-gray-300">
+          <strong>Debug Info:</strong> {posts.length} posts loaded, 
+          Sample data: {isUsingSampleData ? 'Yes' : 'No'}
+          {error && <span className="text-red-400"> | Error: {error}</span>}
+        </div>
+      )}
+
       {/* Info message for sample content */}
       {isUsingSampleData && (
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-2 bg-blue-900/30 border border-blue-600/30 rounded-lg px-4 py-2 text-blue-300 text-sm font-medium">
             <Plus className="w-4 h-4" />
-            Sample content - 
+            {error ? 'Showing fallback content due to error' : 'Sample content shown'} - 
             <Link to="/admin/content/blog/new" className="text-blue-200 hover:text-white underline">
               Create your first post
             </Link>
@@ -198,7 +223,7 @@ export default function LatestNewsSlider() {
         </div>
       )}
 
-      {/* Always show the Swiper - no conditional rendering */}
+      {/* Always show the Swiper - guaranteed content */}
       <Swiper
         modules={[Pagination, Autoplay, Navigation]}
         pagination={{ 
@@ -265,16 +290,10 @@ export default function LatestNewsSlider() {
                   
                   {/* Content Section */}
                   <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-                    {/* Category with color from your existing schema */}
+                    {/* Category */}
                     <div className="mb-4">
-                      <span 
-                        className="inline-flex items-center px-3 py-1 text-sm font-semibold text-white rounded-full border border-white/20"
-                        style={{ 
-                          backgroundColor: post.category_color || '#f59e0b',
-                          boxShadow: `0 0 20px ${post.category_color || '#f59e0b'}40`
-                        }}
-                      >
-                        📁 {post.category_name || post.category || 'News'}
+                      <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-white bg-amber-600 rounded-full border border-amber-400/20">
+                        📁 {post.category || 'News'}
                       </span>
                     </div>
                     
@@ -287,20 +306,6 @@ export default function LatestNewsSlider() {
                     <p className="text-gray-300 mb-6 text-lg leading-relaxed">
                       {post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Discover more about this fascinating topic...')}
                     </p>
-                    
-                    {/* Tags from your existing schema */}
-                    {post.tag_names && post.tag_names.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-6">
-                        {post.tag_names.slice(0, 3).map((tag) => (
-                          <span 
-                            key={tag}
-                            className="px-2 py-1 text-xs font-medium text-amber-200 bg-amber-900/30 border border-amber-600/30 rounded-full"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
                     
                     {/* Metadata */}
                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-8">
@@ -359,12 +364,12 @@ export default function LatestNewsSlider() {
         
         <div className="mt-6">
           <p className="text-gray-400 text-sm">
-            Showing latest {posts.length} articles from your blog
+            {isUsingSampleData ? 'Showing fallback content' : `Latest ${posts.length} articles`} from your blog
             {isUsingSampleData && (
               <span className="block mt-2 text-blue-400">
                 💡 <Link to="/admin/content/blog/new" className="underline hover:text-blue-300 font-medium">
                   Create your first blog post
-                </Link> to replace sample content with your own articles
+                </Link> to show your real content here
               </span>
             )}
           </p>

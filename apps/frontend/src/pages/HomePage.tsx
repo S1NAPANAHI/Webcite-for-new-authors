@@ -39,6 +39,8 @@ const HomePage: React.FC = () => {
 
   // Fetch user's spin count
   useEffect(() => {
+    console.log('🏠 HomePage: Component mounted');
+    
     const fetchSpins = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -96,6 +98,8 @@ const HomePage: React.FC = () => {
   const isLoading = isLoadingHomepage || postsLoading || isLoadingReleases;
   const isError = isErrorHomepage || false || isErrorReleases;
 
+  console.log('🏠 HomePage: Rendering homepage with LATEST NEWS & UPDATES section');
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -129,7 +133,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 🔥 LATEST NEWS & UPDATES - Dynamic Blog Posts Display */}
+      {/* 🔥 LATEST NEWS & UPDATES - This is the main section! */}
       <section className="py-20 bg-black dark:bg-black relative overflow-hidden">
         {/* Starry background effect */}
         <div className="absolute inset-0 bg-[url('/starry-bg.svg')] opacity-5"></div>
@@ -144,21 +148,14 @@ const HomePage: React.FC = () => {
             </p>
           </div>
 
-          {/* 🎠 Dynamic Blog Posts - Using both components for maximum compatibility */}
+          {/* 🎠 The LatestNewsSlider Component - This will show your blog posts */}
           <div className="max-w-6xl mx-auto">
-            {/* Try LatestNewsSlider first, fallback to NewsGrid */}
-            <React.Suspense fallback={<NewsGrid />}>
-              <LatestNewsSlider />
-            </React.Suspense>
-            
-            {/* Backup: Simple NewsGrid that always works */}
-            {/* Uncomment the line below and comment out LatestNewsSlider above if slider has issues */}
-            {/* <NewsGrid /> */}
+            <LatestNewsSlider />
           </div>
         </div>
       </section>
 
-      {/* Your existing sections - Keep the UIHomePage component if needed */}
+      {/* Your existing sections */}
       {!isLoading && !isError && (
         <UIHomePage 
           posts={latestPosts} 

@@ -116,36 +116,37 @@ export const SubscriptionPage: React.FC = () => {
               >
                 
                 
-                                <div className={`
-                                  bg-card dark:bg-card backdrop-blur-sm
-                                  border rounded-3xl p-8 h-full
-                                  transition-all duration-500 group-hover:-translate-y-2
-                                  ${
-                                    plan.popular
-                                      ? 'border-yellow-400 shadow-2xl shadow-yellow-500/25 bg-gradient-to-b from-yellow-50/90 to-white/90 dark:from-yellow-900/30 dark:to-gray-800/95'
-                                      : 'border-border shadow-xl hover:shadow-2xl hover:border-blue-400 dark:hover:border-blue-500'
-                                  }
-                                `}>                  {/* Plan Header */}
+                <div className={`
+                  bg-card dark:bg-card backdrop-blur-sm
+                  border-2 rounded-3xl p-8 h-full
+                  transition-all duration-500 group-hover:-translate-y-2
+                  ${
+                    plan.popular 
+                      ? 'border-primary shadow-2xl shadow-primary/25 ring-1 ring-primary/20' 
+                      : 'border-border shadow-xl hover:shadow-2xl hover:border-primary/50'
+                  }
+                `}>                  {/* Plan Header */}
                   <div className="text-center mb-8">
                     <h3 className="text-2xl font-bold text-foreground mb-4">
                       {plan.name}
                     </h3>
                     
-                    {plan.highlight && (
-                      <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 ${
-                                              plan.popular 
-                                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
-                                                : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'                      }`}>
-                        {plan.highlight}
-                      </div>
-                    )}
+                  {plan.highlight && (
+                    <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 ${
+                      plan.popular 
+                        ? 'bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary-foreground border border-primary/30'
+                        : 'bg-blue-500/15 text-blue-700 dark:bg-blue-500/25 dark:text-blue-300 border border-blue-500/30'
+                    }`}>
+                      {plan.highlight}
+                    </div>
+                  )}
                     
                     <div className="mb-6">
                       <div className="flex items-baseline justify-center gap-2">
-                        <span className="text-6xl font-black text-gray-900 dark:text-white">
+                        <span className="text-6xl font-black text-foreground">
                           ${plan.price}
                         </span>
-                        <span className="text-2xl text-gray-600 dark:text-gray-300 font-medium">
+                        <span className="text-2xl text-muted-foreground font-medium">
                           /{plan.interval}
                         </span>
                       </div>
@@ -175,7 +176,7 @@ export const SubscriptionPage: React.FC = () => {
                             size={16} 
                           />
                         </div>
-                        <span className="text-muted-foreground font-medium leading-relaxed">{feature}</span>
+                        <span className="text-foreground font-medium leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>

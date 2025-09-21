@@ -27,9 +27,62 @@ interface BlogPost {
   category?: string;
 }
 
+// GUARANTEED sample posts that will always display if no real posts exist
+const SAMPLE_POSTS: BlogPost[] = [
+  {
+    id: 'sample-1',
+    title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
+    slug: 'welcome-to-zoroasterverse',
+    excerpt: 'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
+    content: 'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world\'s oldest monotheistic religions, offers profound insights into the nature of good and evil, the importance of free will, and the cosmic struggle between light and darkness.',
+    featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=600&fit=crop&crop=center',
+    author: 'Zoroasterverse Team',
+    published_at: new Date().toISOString(),
+    views: 856,
+    likes_count: 42,
+    comments_count: 18,
+    tags: ['Welcome', 'Introduction', 'Philosophy'],
+    is_featured: true,
+    category: 'Introduction'
+  },
+  {
+    id: 'sample-2',
+    title: 'The Sacred Fire: Symbol of Divine Light and Purity',
+    slug: 'sacred-fire-symbol',
+    excerpt: 'Fire holds a central place in Zoroastrian worship as a symbol of Ahura Mazda\'s light and purity. Learn about its significance and role in prayer.',
+    content: 'In Zoroastrianism, fire represents the light of Ahura Mazda and serves as a focal point for prayer and meditation. The sacred fire in temples burns continuously, symbolizing the eternal presence of the divine and the devotee\'s connection to truth and righteousness.',
+    featured_image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=600&fit=crop&crop=center',
+    author: 'Zoroasterverse Team',
+    published_at: new Date(Date.now() - 86400000).toISOString(),
+    views: 1234,
+    likes_count: 89,
+    comments_count: 34,
+    tags: ['Fire', 'Symbols', 'Worship'],
+    is_featured: false,
+    category: 'Religion'
+  },
+  {
+    id: 'sample-3',
+    title: 'Good Thoughts, Good Words, Good Deeds: The Zoroastrian Way',
+    slug: 'good-thoughts-words-deeds',
+    excerpt: 'The threefold path of righteousness in Zoroastrianism emphasizes the importance of aligning our thoughts, words, and actions with truth and goodness.',
+    content: 'Humata, Hukhta, Hvarshta - Good Thoughts, Good Words, Good Deeds. This fundamental principle of Zoroastrianism guides believers in living a righteous life. It emphasizes personal responsibility and the power of individual choice in the cosmic battle between good and evil.',
+    featured_image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&crop=center',
+    author: 'Zoroasterverse Team',
+    published_at: new Date(Date.now() - 172800000).toISOString(),
+    views: 967,
+    likes_count: 76,
+    comments_count: 29,
+    tags: ['Ethics', 'Philosophy', 'Practice'],
+    is_featured: false,
+    category: 'Philosophy'
+  }
+];
+
 export default function LatestNewsSlider() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isUsingSampleData, setIsUsingSampleData] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,176 +96,118 @@ export default function LatestNewsSlider() {
       
       console.log('🔄 Fetching latest blog posts for homepage slider...');
       
+      // First, try to fetch real blog posts from Supabase
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false })
-        .limit(5); // Show latest 5 posts in slider
+        .limit(5);
 
       if (error) {
-        console.error('❌ Error fetching blog posts:', error);
-        // Don't throw immediately, try to use fallback data
-        console.log('⚠️ Using fallback mock data...');
-        setPosts(getMockPosts());
+        console.warn('⚠️ Supabase error, using sample data:', error.message);
+        setPosts(SAMPLE_POSTS);
+        setIsUsingSampleData(true);
         return;
       }
 
-      console.log('📊 Raw data from Supabase:', data);
-
-      // If no published posts, use mock data for demonstration
-      if (!data || data.length === 0) {
-        console.log('📝 No published posts found, using sample data...');
-        setPosts(getMockPosts());
-        return;
-      }
-
-      // Process posts
-      const processedPosts = data.map((post, index) => {
-        let tags = [];
-        try {
-          if (typeof post.tags === 'string' && post.tags.startsWith('[')) {
-            tags = JSON.parse(post.tags);
-          } else if (Array.isArray(post.tags)) {
-            tags = post.tags;
-          } else if (typeof post.tags === 'string' && post.tags) {
-            tags = [post.tags];
+      // If we have real published posts, use them
+      if (data && data.length > 0) {
+        console.log(`✅ Found ${data.length} published blog posts`);
+        
+        const processedPosts = data.map((post, index) => {
+          let tags = [];
+          try {
+            if (typeof post.tags === 'string' && post.tags.startsWith('[')) {
+              tags = JSON.parse(post.tags);
+            } else if (Array.isArray(post.tags)) {
+              tags = post.tags;
+            } else if (typeof post.tags === 'string' && post.tags) {
+              tags = [post.tags];
+            }
+          } catch {
+            tags = ['News'];
           }
-        } catch {
-          tags = [];
-        }
 
-        return {
-          ...post,
-          tags,
-          category: post.category || (tags.length > 0 ? tags[0] : 'News'),
-          author: post.author || 'Zoroasterverse Team',
-          featured_image: post.featured_image || post.cover_url,
-          excerpt: post.excerpt || (post.content ? post.content.substring(0, 150) + '...' : 'Read more about this article...')
-        };
-      });
-      
-      setPosts(processedPosts);
-      console.log(`✅ Loaded ${processedPosts.length} posts for homepage slider`);
+          return {
+            ...post,
+            tags,
+            category: post.category || (tags.length > 0 ? tags[0] : 'News'),
+            author: post.author || 'Zoroasterverse Team',
+            featured_image: post.featured_image || post.cover_url,
+            excerpt: post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Read more...')
+          };
+        });
+        
+        setPosts(processedPosts);
+        setIsUsingSampleData(false);
+      } else {
+        // No published posts found, use sample data
+        console.log('📝 No published posts found, displaying sample content');
+        setPosts(SAMPLE_POSTS);
+        setIsUsingSampleData(true);
+      }
       
     } catch (err) {
-      console.error('❌ Error in fetchLatestPosts:', err);
-      setError('Failed to load latest posts');
-      // Use mock data as ultimate fallback
-      setPosts(getMockPosts());
+      console.error('❌ Critical error in fetchLatestPosts:', err);
+      // Always fallback to sample data to ensure content shows
+      setPosts(SAMPLE_POSTS);
+      setIsUsingSampleData(true);
+      setError('Using sample content - database connection issue');
     } finally {
       setLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Recent';
+    }
   };
 
   const calculateReadTime = (content: string) => {
-    if (!content) return 1;
+    if (!content) return 3;
     const words = content.split(/\s+/).length;
-    return Math.ceil(words / 200);
+    return Math.max(Math.ceil(words / 200), 1);
   };
 
-  // Enhanced mock data that will always show content
-  const getMockPosts = (): BlogPost[] => {
-    return [
-      {
-        id: 'mock-1',
-        title: 'The Ancient Wisdom of Zoroaster: A Journey Through Time',
-        slug: 'ancient-wisdom-of-zoroaster',
-        excerpt: 'Explore the profound teachings of Zoroaster and their relevance in modern times. Discover how ancient wisdom shapes our understanding of good versus evil.',
-        content: 'The teachings of Zoroaster have shaped civilizations for over 3,000 years. In this comprehensive exploration, we delve into the core principles of Zoroastrianism and examine how these ancient beliefs continue to influence modern thought and spirituality.',
-        featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=600&fit=crop',
-        author: 'Dr. Sarah Mirza',
-        published_at: new Date(Date.now() - 86400000).toISOString(),
-        views: 1247,
-        likes_count: 89,
-        comments_count: 23,
-        tags: ['History', 'Philosophy', 'Religion'],
-        is_featured: true,
-        category: 'Philosophy'
-      },
-      {
-        id: 'mock-2',
-        title: 'Fire Temples: Sacred Architecture of the Zoroastrian Faith',
-        slug: 'fire-temples-sacred-architecture',
-        excerpt: 'An architectural journey through the sacred fire temples that have served as centers of worship for thousands of years.',
-        content: 'Fire temples represent the heart of Zoroastrian worship. These sacred structures, with their eternal flames, tell stories of devotion, community, and architectural brilliance spanning millennia.',
-        featured_image: 'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=1200&h=600&fit=crop',
-        author: 'Prof. Jamshid Rostami',
-        published_at: new Date(Date.now() - 172800000).toISOString(),
-        views: 2156,
-        likes_count: 134,
-        comments_count: 67,
-        tags: ['Architecture', 'Sacred Sites', 'Culture'],
-        is_featured: false,
-        category: 'Architecture'
-      },
-      {
-        id: 'mock-3',
-        title: 'The Gathas: Poetry of Divine Inspiration',
-        slug: 'gathas-poetry-divine-inspiration',
-        excerpt: 'Dive into the beautiful hymns composed by Zoroaster himself, exploring their poetic structure and spiritual significance.',
-        content: 'The Gathas represent the oldest part of the Avesta and contain the direct words of Zoroaster. These seventeen hymns offer profound insights into the prophet\'s teachings and relationship with Ahura Mazda.',
-        featured_image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=600&fit=crop',
-        author: 'Dr. Farah Kermani',
-        published_at: new Date(Date.now() - 259200000).toISOString(),
-        views: 892,
-        likes_count: 67,
-        comments_count: 31,
-        tags: ['Scripture', 'Poetry', 'Theology'],
-        is_featured: false,
-        category: 'Scripture'
-      }
-    ];
-  };
-
+  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center py-16 min-h-[400px] items-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600 mx-auto mb-6"></div>
-          <p className="text-gray-300 text-lg">Loading latest news...</p>
+          <p className="text-gray-300 text-lg font-medium">Loading latest news...</p>
           <p className="text-gray-500 text-sm mt-2">Fetching the most recent articles</p>
         </div>
       </div>
     );
   }
 
-  if (error && posts.length === 0) {
-    return (
-      <div className="text-center py-16">
-        <div className="bg-red-900/20 border border-red-800 rounded-xl p-8 max-w-md mx-auto">
-          <p className="text-red-400 mb-6 text-lg">{error}</p>
-          <button 
-            onClick={fetchLatestPosts}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // At this point, we ALWAYS have content (either real or sample)
   return (
     <div className="relative">
-      {/* Success/Info Message */}
-      {posts.length > 0 && posts[0].id.includes('mock') && (
+      {/* Info message for sample content */}
+      {isUsingSampleData && (
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-900/20 border border-blue-700 rounded-lg px-4 py-2 text-blue-300 text-sm">
+          <div className="inline-flex items-center gap-2 bg-blue-900/30 border border-blue-600/30 rounded-lg px-4 py-2 text-blue-300 text-sm font-medium">
             <Plus className="w-4 h-4" />
-            Sample content shown - Create your first post to see real content here!
+            Sample content - 
+            <Link to="/admin/content/blog/new" className="text-blue-200 hover:text-white underline">
+              Create your first post
+            </Link>
+            to see real content here!
           </div>
         </div>
       )}
 
+      {/* Always show the Swiper - no conditional rendering */}
       <Swiper
         modules={[Pagination, Autoplay, Navigation]}
         pagination={{ 
@@ -221,117 +216,110 @@ export default function LatestNewsSlider() {
           bulletClass: 'swiper-pagination-bullet !bg-gray-400 !opacity-70'
         }}
         navigation={{
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev'
+          nextEl: '.news-slider-next',
+          prevEl: '.news-slider-prev'
         }}
         loop={posts.length > 1}
         autoplay={{ 
-          delay: 6000, 
+          delay: 5000, 
           disableOnInteraction: false,
           pauseOnMouseEnter: true 
         }}
         slidesPerView={1}
         spaceBetween={0}
-        className="news-slider"
-        style={{
-          '--swiper-navigation-color': '#d97706',
-          '--swiper-pagination-color': '#d97706',
-        } as React.CSSProperties}
+        className="news-slider max-w-6xl mx-auto"
       >
         {posts.map((post, index) => (
           <SwiperSlide key={post.id}>
             <div className="relative">
-              {/* Featured/Latest badges */}
-              <div className="absolute top-6 left-6 z-10 flex gap-2">
+              {/* Badges */}
+              <div className="absolute top-6 left-6 z-20 flex gap-2">
                 {index === 0 && (
-                  <span className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-amber-600 to-orange-600 rounded-full shadow-lg">
+                  <span className="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-full shadow-lg border border-amber-400/20">
                     ✨ LATEST
                   </span>
                 )}
                 {post.is_featured && (
-                  <span className="px-3 py-1 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-purple-600 rounded-full shadow-lg">
+                  <span className="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg border border-blue-400/20">
                     <Star className="w-3 h-3 inline mr-1 fill-current" />
                     FEATURED
                   </span>
                 )}
               </div>
 
-              <div className="flex flex-col lg:flex-row gap-0 bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800">
-                {/* Cover Image */}
-                <div className="lg:w-1/2 relative">
-                  {post.featured_image ? (
-                    <img
-                      src={post.featured_image}
-                      alt={post.title}
-                      className="w-full h-80 lg:h-96 object-cover"
-                      onError={(e) => {
-                        // Fallback to a gradient background if image fails
-                        const target = e.currentTarget;
-                        target.style.display = 'none';
-                        const parent = target.parentElement;
-                        if (parent) {
-                          parent.innerHTML = `
-                            <div class="w-full h-80 lg:h-96 flex items-center justify-center bg-gradient-to-br from-amber-500 via-orange-500 to-red-500">
-                              <svg class="w-20 h-20 text-white opacity-80" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                              </svg>
-                            </div>
-                          `;
-                        }
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-80 lg:h-96 flex items-center justify-center bg-gradient-to-br from-amber-500 via-orange-500 to-red-500">
-                      <BookOpen className="w-20 h-20 text-white opacity-80" />
+              {/* Main card */}
+              <div className="bg-gray-900 rounded-2xl overflow-hidden shadow-2xl border border-gray-700/50">
+                <div className="flex flex-col lg:flex-row">
+                  {/* Image Section */}
+                  <div className="lg:w-1/2 relative">
+                    <div className="aspect-video lg:aspect-square">
+                      {post.featured_image ? (
+                        <img
+                          src={post.featured_image}
+                          alt={post.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            img.src = 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=600&fit=crop&crop=center';
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500 via-orange-500 to-red-500">
+                          <BookOpen className="w-24 h-24 text-white/80" />
+                        </div>
+                      )}
                     </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                </div>
-                
-                {/* Content */}
-                <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-                  {/* Category Tag */}
-                  <div className="mb-4">
-                    <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-amber-300 bg-amber-900/30 border border-amber-700 rounded-full">
-                      📁 {post.category || 'News'}
-                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/30"></div>
                   </div>
                   
-                  <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4 leading-tight line-clamp-2">
-                    {post.title}
-                  </h3>
-                  
-                  <p className="text-gray-300 mb-6 text-lg leading-relaxed line-clamp-3">
-                    {post.excerpt || (post.content ? post.content.substring(0, 150) + '...' : 'Read more about this fascinating topic...')}
-                  </p>
-                  
-                  {/* Metadata with better spacing */}
-                  <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-6">
-                    <span className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      {post.author || 'Zoroasterverse Team'}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      {formatDate(post.published_at)}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      {calculateReadTime(post.content)}m read
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      {post.views || 0} views
-                    </span>
+                  {/* Content Section */}
+                  <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
+                    {/* Category */}
+                    <div className="mb-4">
+                      <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-amber-200 bg-amber-900/40 border border-amber-600/30 rounded-full">
+                        📁 {post.category || 'News'}
+                      </span>
+                    </div>
+                    
+                    {/* Title */}
+                    <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4 leading-tight">
+                      {post.title}
+                    </h3>
+                    
+                    {/* Excerpt */}
+                    <p className="text-gray-300 mb-6 text-lg leading-relaxed">
+                      {post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Discover more about this fascinating topic...')}
+                    </p>
+                    
+                    {/* Metadata */}
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-8">
+                      <span className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        {post.author || 'Zoroasterverse Team'}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        {formatDate(post.published_at)}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        {calculateReadTime(post.content)}m read
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        {post.views || 0} views
+                      </span>
+                    </div>
+                    
+                    {/* CTA Button */}
+                    <Link
+                      to={isUsingSampleData ? `/blog` : `/blog/${post.slug}`}
+                      className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 group text-lg"
+                    >
+                      {isUsingSampleData ? 'Explore Blog' : 'Read Full Article'}
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
                   </div>
-                  
-                  <Link
-                    to={`/blog/${post.slug}`}
-                    className="inline-flex items-center gap-3 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl group"
-                  >
-                    Read Full Article
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
                 </div>
               </div>
             </div>
@@ -339,39 +327,56 @@ export default function LatestNewsSlider() {
         ))}
       </Swiper>
 
-      {/* Custom Navigation Buttons */}
-      <div className="swiper-button-prev !text-amber-600 !text-2xl !font-bold after:!font-black"></div>
-      <div className="swiper-button-next !text-amber-600 !text-2xl !font-bold after:!font-black"></div>
+      {/* Navigation Buttons */}
+      <div className="news-slider-prev absolute left-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-black/60 hover:bg-black/80 border border-amber-600/30 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:border-amber-500">
+        <ArrowRight className="w-6 h-6 text-amber-400 rotate-180" />
+      </div>
+      <div className="news-slider-next absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-black/60 hover:bg-black/80 border border-amber-600/30 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:border-amber-500">
+        <ArrowRight className="w-6 h-6 text-amber-400" />
+      </div>
 
-      {/* View All Button */}
-      <div className="text-center mt-8">
+      {/* Bottom CTA Section */}
+      <div className="text-center mt-12">
         <Link
           to="/blog"
-          className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-8 py-4 rounded-lg hover:from-amber-700 hover:to-orange-700 transition-all duration-300 font-bold shadow-lg hover:shadow-xl text-lg"
+          className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-10 py-4 rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 font-bold shadow-lg hover:shadow-xl text-lg group"
         >
-          <TrendingUp className="w-5 h-5" />
+          <TrendingUp className="w-6 h-6" />
           Explore All Articles
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
         </Link>
         
-        {posts.length > 0 && (
-          <div className="mt-4">
-            <p className="text-gray-400 text-sm">
-              Showing {posts.length} latest articles • 
-              <Link to="/blog" className="text-amber-400 hover:text-amber-300 hover:underline ml-1">
-                View all posts
-              </Link>
-            </p>
-            {posts[0].id.includes('mock') && (
-              <p className="text-blue-400 text-xs mt-2">
-                💡 <Link to="/admin/content/blog/new" className="underline hover:text-blue-300">
+        <div className="mt-6">
+          <p className="text-gray-400 text-sm">
+            Showing latest {posts.length} articles
+            {isUsingSampleData && (
+              <span className="block mt-2 text-blue-400">
+                💡 <Link to="/admin/content/blog/new" className="underline hover:text-blue-300 font-medium">
                   Create your first blog post
-                </Link> to replace this sample content
-              </p>
+                </Link> to replace sample content with your own articles
+              </span>
             )}
-          </div>
-        )}
+          </p>
+        </div>
       </div>
+
+      {/* Custom CSS for Swiper */}
+      <style jsx global>{`
+        .news-slider .swiper-pagination {
+          bottom: -50px !important;
+        }
+        
+        .news-slider .swiper-pagination-bullet {
+          width: 12px !important;
+          height: 12px !important;
+          margin: 0 6px !important;
+        }
+        
+        .news-slider .swiper-pagination-bullet-active {
+          background: #d97706 !important;
+          transform: scale(1.2);
+        }
+      `}</style>
     </div>
   );
 }

@@ -117,12 +117,12 @@ export const SubscriptionPage: React.FC = () => {
                 
                 
                 <div className={`
-                  bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm
+                  bg-white/90 dark:bg-gray-800/95 backdrop-blur-sm
                   border-2 rounded-3xl p-8 h-full
                   transition-all duration-500 group-hover:-translate-y-2
                   ${
                     plan.popular 
-                      ? 'border-yellow-400 shadow-2xl shadow-yellow-500/25 bg-gradient-to-b from-yellow-50/80 to-white/80 dark:from-yellow-900/20 dark:to-gray-800/80' 
+                      ? 'border-yellow-400 shadow-2xl shadow-yellow-500/25 bg-gradient-to-b from-yellow-50/90 to-white/90 dark:from-yellow-900/30 dark:to-gray-800/95' 
                       : 'border-gray-200 dark:border-gray-600 shadow-xl hover:shadow-2xl hover:border-blue-400 dark:hover:border-blue-500'
                   }
                 `}>
@@ -135,8 +135,8 @@ export const SubscriptionPage: React.FC = () => {
                     {plan.highlight && (
                       <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 ${
                         plan.popular 
-                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
+                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
                       }`}>
                         {plan.highlight}
                       </div>
@@ -147,7 +147,7 @@ export const SubscriptionPage: React.FC = () => {
                         <span className="text-6xl font-black text-gray-900 dark:text-white">
                           ${plan.price}
                         </span>
-                        <span className="text-2xl text-gray-500 dark:text-gray-400 font-medium">
+                        <span className="text-2xl text-gray-600 dark:text-gray-300 font-medium">
                           /{plan.interval}
                         </span>
                       </div>
@@ -165,19 +165,19 @@ export const SubscriptionPage: React.FC = () => {
                       <li key={idx} className="flex items-start gap-3">
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
                           plan.popular 
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30' 
-                            : 'bg-blue-100 dark:bg-blue-900/30'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/50' 
+                            : 'bg-blue-100 dark:bg-blue-900/50'
                         }`}>
                           <CheckCircle 
                             className={`${
                               plan.popular 
-                                ? 'text-yellow-600 dark:text-yellow-400' 
-                                : 'text-blue-600 dark:text-blue-400'
+                                ? 'text-yellow-600 dark:text-yellow-300' 
+                                : 'text-blue-600 dark:text-blue-300'
                             }`} 
                             size={16} 
                           />
                         </div>
-                        <span className="text-gray-700 dark:text-gray-300 font-medium">{feature}</span>
+                        <span className="text-gray-800 dark:text-gray-100 font-medium leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>

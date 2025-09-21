@@ -8,11 +8,13 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { AuthProvider, useAuth, supabase } from '@zoroaster/shared';
-import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, BlogPage, TimelinesPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, TimelinesPage } from '@zoroaster/ui';
 import AdminLayout from './components/admin/AdminLayout';
 import LearnPage from './pages/LearnPage';
 import AuthorJourneyPostPage from './pages/learn/AuthorJourneyPostPage';
 import WritingGuidePage from './pages/learn/WritingGuidePage';
+import BlogPage from './pages/BlogPage';
+import BlogPostPage from './pages/BlogPostPage';
 import type { WikiPage, WikiPageWithSections } from '@zoroaster/shared';
 import { fetchWikiPage } from '@zoroaster/shared';
 import { WikiViewer } from '@zoroaster/ui';
@@ -146,7 +148,7 @@ const AppContent: React.FC = () => {
         <Route path="/timelines" element={<TimelinesPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<PlaceholderPage title="Blog Post" />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />
         <Route path="/learn" element={<LearnPage />} />
         <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />

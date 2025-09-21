@@ -254,45 +254,84 @@ html[data-theme="light"] .zoroHeader {
   position: absolute;
   top: 100%;
   left: 0;
-  background: var(--card);
+  background: hsl(var(--card)) !important; /* Add !important to ensure it applies */
   min-width: 12rem;
   overflow: hidden;
   max-height: 0;
   opacity: 0;
   transition: all 0.4s ease;
   border-radius: 0.5rem;
-  border: 2px solid var(--border);
+  border: 2px solid hsl(var(--border));
   z-index: 999;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   list-style: none;
   margin: 0;
   padding: 0;
+  /* Add backdrop for better visibility */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .dropdownMenu.expanded {
   max-height: 20rem;
   opacity: 1;
   padding: 0.5rem 0;
+  background: hsl(var(--card)) !important; /* Ensure expanded state has background */
 }
 
 .dropdown:hover .dropdownMenu {
   max-height: 20rem;
   opacity: 1;
   padding: 0.5rem 0;
+  background: hsl(var(--card)) !important; /* Ensure hover state has background */
+}
+
+/* Add specific theme-based fallbacks for dropdowns */
+html[data-theme="dark"] .dropdownMenu {
+  background: #1c1c1c !important; /* Dark card color */
+  border-color: #2d2d2d !important; /* Dark border */
+}
+
+html[data-theme="light"] .dropdownMenu,
+html:not([data-theme]) .dropdownMenu { /* Fallback for no theme */
+  background: #ffffff !important; /* White background */
+  border-color: #e5e5e5 !important; /* Light border */
 }
 
 .dropdownMenuItem {
   display: block;
   padding: 0.75rem 1rem;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
   text-decoration: none;
   transition: background-color 0.2s ease;
   white-space: nowrap;
+  background: transparent; /* Ensure transparent item background */
 }
 
 .dropdownMenuItem:hover {
-  background: var(--muted);
-  color: var(--primary);
+  background: hsl(var(--muted)) !important;
+  color: hsl(var(--primary));
+}
+
+/* Theme-specific dropdown item styles */
+html[data-theme="dark"] .dropdownMenuItem {
+  color: #ffffff !important;
+}
+
+html[data-theme="dark"] .dropdownMenuItem:hover {
+  background: #2d2d2d !important;
+  color: #f5d07a !important; /* Gold color from your theme */
+}
+
+html[data-theme="light"] .dropdownMenuItem,
+html:not([data-theme]) .dropdownMenuItem {
+  color: #000000 !important;
+}
+
+html[data-theme="light"] .dropdownMenuItem:hover,
+html:not([data-theme]) .dropdownMenuItem:hover {
+  background: #f5f5f5 !important;
+  color: #8b5a2b !important; /* Brown color from your theme */
 }
 
 /* Mobile Menu Overlay */

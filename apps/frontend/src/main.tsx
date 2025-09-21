@@ -8,7 +8,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import { BrowserRouter } from 'react-router-dom' // Added import
 import { AuthProvider, supabase } from '@zoroaster/shared';
-import { supabase as uiSupabase } from '@zoroasterverse/ui/lib/supabaseClient';
+import { supabase as uiSupabase } from '@zoroaster/ui';
 
 import './lib/axios'; // <--- Add this line
 

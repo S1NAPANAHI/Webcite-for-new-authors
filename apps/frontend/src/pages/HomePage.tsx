@@ -1,5 +1,6 @@
 import NewsCarousel from '../components/NewsCarousel';
 import LatestNewsSlider from '../components/LatestNewsSlider';
+import NewsGrid from '../components/NewsGrid';
 import { useLatestPosts } from '../hooks/useLatestPosts';
 import React, { useState, useEffect } from 'react';
 import { HomePage as UIHomePage, type HomepageContentItem, type Post, type ReleaseItem } from '@zoroaster/ui';
@@ -128,23 +129,32 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 🔥 CRITICAL: Latest News & Updates - Dynamic Blog Posts Slider */}
+      {/* 🔥 LATEST NEWS & UPDATES - Dynamic Blog Posts Display */}
       <section className="py-20 bg-black dark:bg-black relative overflow-hidden">
         {/* Starry background effect */}
         <div className="absolute inset-0 bg-[url('/starry-bg.svg')] opacity-5"></div>
         
         <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 tracking-wider">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-wider">
               LATEST NEWS & UPDATES
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Stay informed with our latest insights, discoveries, and thoughts from the Zoroasterverse
             </p>
           </div>
 
-          {/* 🎠 Dynamic Blog Posts Slider */}
-          <LatestNewsSlider />
+          {/* 🎠 Dynamic Blog Posts - Using both components for maximum compatibility */}
+          <div className="max-w-6xl mx-auto">
+            {/* Try LatestNewsSlider first, fallback to NewsGrid */}
+            <React.Suspense fallback={<NewsGrid />}>
+              <LatestNewsSlider />
+            </React.Suspense>
+            
+            {/* Backup: Simple NewsGrid that always works */}
+            {/* Uncomment the line below and comment out LatestNewsSlider above if slider has issues */}
+            {/* <NewsGrid /> */}
+          </div>
         </div>
       </section>
 

@@ -341,3 +341,58 @@ html:not([data-theme]) .glass-card-strong {
   border: 1px solid rgba(0, 0, 0, 0.12);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
+
+/* News Carousel Enhancements */
+.news-carousel-slide {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.news-carousel-fade {
+  transition: opacity 0.5s ease-in-out;
+}
+
+/* Smooth hover animations */
+.news-carousel img {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.news-carousel:hover img {
+  transform: scale(1.05);
+}
+
+/* Progress bar animation */
+ @keyframes newsProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.news-progress {
+  animation: newsProgress 6s linear infinite;
+}
+
+/* Backdrop blur support */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Mobile optimizations */
+ @media (max-width: 768px) {
+  .news-carousel-content {
+    padding: 1.5rem;
+  }
+  
+  .news-carousel-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  
+  .news-carousel-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

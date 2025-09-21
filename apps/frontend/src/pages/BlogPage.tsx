@@ -1,116 +1,186 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { supabase } from '@zoroaster/shared';
 import { 
-  Search, 
   Calendar, 
   User, 
-  Eye, 
-  Heart, 
-  MessageCircle, 
+  ArrowRight, 
+  Search, 
   Tag, 
-  ChevronRight,
-  Clock,
-  TrendingUp,
-  RefreshCw
+  TrendingUp, 
+  BookOpen, 
+  Clock, 
+  Eye, 
+  Heart,
+  MessageCircle,
+  RefreshCw,
+  Star
 } from 'lucide-react';
-import { supabase } from '@zoroaster/shared';
 
 interface BlogPost {
   id: string;
   title: string;
+  slug: string;
   excerpt?: string;
   content: string;
-  featured_image?: string;
   cover_url?: string;
+  featured_image?: string;
   author?: string;
+  status?: string;
   published_at: string;
+  created_at: string;
   views?: number;
   likes_count?: number;
   comments_count?: number;
-  slug: string;
   tags?: string[];
-  reading_time?: number;
   is_featured?: boolean;
-  status?: string;
+  category?: string;
+}
+
+interface Category {
+  name: string;
+  count: number;
+  slug: string;
 }
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All Posts');
   const [refreshing, setRefreshing] = useState(false);
 
+  // Fetch posts from database
   useEffect(() => {
-    fetchBlogData();
+    fetchPosts();
   }, []);
 
-  const fetchBlogData = async () => {
+  useEffect(() => {
+    filterAndCategorize();
+  }, [posts, searchTerm, selectedCategory]);
+
+  const fetchPosts = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('🔄 Fetching blog posts from database...');
+      console.log('🔄 Fetching published blog posts...');
       
-      // Fetch all published posts
-      const { data, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
-        .eq('status', 'published')
+        .eq('status', 'published') // Only show published posts
         .order('published_at', { ascending: false });
 
-      if (fetchError) {
-        console.error('❌ Supabase error:', fetchError);
-        throw new Error(`Database error: ${fetchError.message}`);
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
       }
 
       console.log('✅ Fetched posts:', data);
       
-      if (!data || data.length === 0) {
-        console.warn('⚠️ No published posts found');
-        setPosts([]);
-        setFeaturedPosts([]);
-        return;
-      }
+      // Process posts
+      const processedPosts = (data || []).map(post => {
+        // Parse tags if they're JSON strings
+        let tags = [];
+        try {
+          if (typeof post.tags === 'string') {
+            tags = JSON.parse(post.tags);
+          } else if (Array.isArray(post.tags)) {
+            tags = post.tags;
+          }
+        } catch {
+          tags = [];
+        }
 
-      // Process posts to ensure all fields are available
-      const processedPosts = data.map(post => ({
-        ...post,
-        // Handle image fields (either cover_url or featured_image)
-        featured_image: post.featured_image || post.cover_url,
-        // Ensure numeric fields are numbers
-        views: post.views || 0,
-        likes_count: post.likes_count || 0,
-        comments_count: post.comments_count || 0,
-        // Handle content parsing if needed
-        content: typeof post.content === 'string' 
-          ? post.content.startsWith('{') || post.content.startsWith('"')
-            ? JSON.parse(post.content)
-            : post.content
-          : post.content || '',
-        // Ensure author is available
-        author: post.author || 'Zoroastervers Team'
-      }));
+        return {
+          ...post,
+          // Ensure fields are properly typed
+          views: post.views || 0,
+          likes_count: post.likes_count || 0,
+          comments_count: post.comments_count || 0,
+          author: post.author || 'Zoroastervers Team',
+          featured_image: post.featured_image || post.cover_url,
+          tags: tags,
+          category: tags.length > 0 ? tags[0] : 'Uncategorized',
+          // Handle content parsing
+          content: typeof post.content === 'string' 
+            ? post.content.startsWith('{') || post.content.startsWith('"')
+              ? JSON.parse(post.content)
+              : post.content
+            : post.content || ''
+        };
+      });
       
       setPosts(processedPosts);
-      
-      // Set featured posts (posts marked as featured, or top 3 if none featured)
-      const featured = processedPosts.filter(post => post.is_featured);
-      setFeaturedPosts(featured.length > 0 ? featured.slice(0, 3) : processedPosts.slice(0, 3));
-      
     } catch (err) {
-      console.error('❌ Error fetching blog data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load blog posts');
+      console.error('❌ Error fetching posts:', err);
+      setError('Failed to load blog posts. Please check your database connection.');
     } finally {
       setLoading(false);
     }
   };
 
+  const filterAndCategorize = () => {
+    // Generate categories from posts
+    const categoryMap = new Map<string, number>();
+    
+    posts.forEach(post => {
+      const category = post.category || 'Uncategorized';
+      categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+    });
+
+    const categoriesArray: Category[] = Array.from(categoryMap.entries()).map(([name, count]) => ({
+      name,
+      count,
+      slug: name.toLowerCase().replace(/\s+/g, '-')
+    }));
+
+    // Sort by count descending
+    categoriesArray.sort((a, b) => b.count - a.count);
+    setCategories(categoriesArray);
+
+    // Filter posts
+    let filtered = posts;
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(post =>
+        post.title.toLowerCase().includes(searchLower) ||
+        post.excerpt?.toLowerCase().includes(searchLower) ||
+        (typeof post.content === 'string' && post.content.toLowerCase().includes(searchLower)) ||
+        post.author?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory !== 'All Posts') {
+      filtered = filtered.filter(post => post.category === selectedCategory);
+    }
+
+    setFilteredPosts(filtered);
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchBlogData();
+    await fetchPosts();
     setRefreshing(false);
+  };
+
+  const handlePostClick = async (postId: string) => {
+    // Increment view count
+    try {
+      await supabase
+        .from('blog_posts')
+        .update({ views: supabase.sql`views + 1` })
+        .eq('id', postId);
+    } catch (error) {
+      console.error('Error updating view count:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -122,342 +192,455 @@ export default function BlogPage() {
     });
   };
 
-  const estimateReadingTime = (content: string | any) => {
+  const calculateReadTime = (content: string | any) => {
     if (!content) return 1;
     const wordsPerMinute = 200;
     const textContent = typeof content === 'string' ? content : JSON.stringify(content);
-    const wordCount = textContent.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+    const words = textContent.split(/\s+/).length;
+    return Math.ceil(words / wordsPerMinute);
   };
 
-  const handlePostClick = async (postId: string) => {
-    // Increment view count when clicking a post
-    try {
-      await supabase
-        .from('blog_posts')
-        .update({ views: supabase.sql`views + 1` })
-        .eq('id', postId);
-    } catch (error) {
-      console.error('Error updating view count:', error);
-    }
-  };
-
-  // Filter posts based on search
-  const filteredPosts = posts.filter(post => {
-    if (!searchQuery.trim()) return true;
-    const searchLower = searchQuery.toLowerCase();
+  if (loading) {
     return (
-      post.title.toLowerCase().includes(searchLower) ||
-      post.excerpt?.toLowerCase().includes(searchLower) ||
-      (typeof post.content === 'string' && post.content.toLowerCase().includes(searchLower)) ||
-      post.author?.toLowerCase().includes(searchLower)
-    );
-  });
-
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="py-16 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-muted/20 to-background">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6">
-              Zoroasterverse Blog
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-              Dive deep into the rich mythology, characters, and stories that make up the Zoroasterverse. 
-              Discover insights, updates, and behind-the-scenes content from our authors.
-            </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto relative mb-4">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search articles..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-4 bg-card border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary text-foreground placeholder-muted-foreground"
-                />
-              </div>
-            </div>
-            
-            {/* Refresh Button */}
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              {refreshing ? 'Refreshing...' : 'Refresh Posts'}
-            </button>
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading blog posts...</p>
           </div>
         </div>
-      </section>
+      </div>
+    );
+  }
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {/* Loading State */}
-        {loading && (
-          <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading blog posts...</p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {error && (
-          <div className="text-center py-16">
-            <div className="bg-red-50 border border-red-200 rounded-xl p-8 max-w-2xl mx-auto">
-              <div className="text-red-600 text-xl mb-4">❌ {error}</div>
-              <p className="text-red-600 mb-6">This usually means:</p>
-              <ul className="text-left text-red-600 mb-6 space-y-2">
-                <li>• Your blog_posts table needs the database fix</li>
-                <li>• No posts have been published yet</li>
-                <li>• There's a connection issue</li>
-              </ul>
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center max-w-md mx-auto">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-8">
+              <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
+              <p className="text-red-600 mb-6">This usually means your database needs to be set up or posts need to be published.</p>
               <div className="space-y-3">
                 <button 
-                  onClick={fetchBlogData}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors mr-4"
+                  onClick={fetchPosts}
+                  className="block w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
                   Try Again
                 </button>
                 <a 
                   href="/admin/content/blog" 
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="block w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center"
                 >
                   Go to Admin Panel
                 </a>
               </div>
             </div>
           </div>
-        )}
+        </div>
+      </div>
+    );
+  }
 
-        {/* No Posts State */}
-        {!loading && !error && filteredPosts.length === 0 && (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
-              <MessageCircle className="w-12 h-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-2xl font-bold text-foreground mb-4">
-              {searchQuery ? `No posts found for "${searchQuery}"` : 'No blog posts yet'}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {searchQuery 
-                ? 'Try adjusting your search terms or clear the search to see all posts.' 
-                : 'Create and publish your first blog post in the admin panel to get started!'}
-              </p>
-            <div className="space-x-4">
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="px-4 py-2 text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
-                >
-                  Clear Search
-                </button>
-              )}
-              <a
-                href="/admin/content/blog/new"
-                className="inline-flex items-center px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="container mx-auto px-4 py-16">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Zoroasterverse Blog
+            </h1>
+            <p className="text-xl text-gray-600 mb-8">
+              Dive deep into ancient wisdom, modern insights, and the rich tapestry of Zoroastrian thought
+            </p>
+            
+            {/* Search and Refresh */}
+            <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search articles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
-                Create First Post
-              </a>
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                {refreshing ? 'Refreshing...' : 'Refresh'}
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Featured Posts Section */}
-        {!loading && !error && featuredPosts.length > 0 && !searchQuery && (
-          <section className="mb-16">
-            <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-2">
-              ⭐ Featured Stories
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {featuredPosts.map((post) => (
-                <FeaturedPostCard key={post.id} post={post} onPostClick={handlePostClick} />
-              ))}
-            </div>
-          </section>
-        )}
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* ✅ CATEGORIES SIDEBAR FOR PUBLIC BLOG */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-sm border p-6 sticky top-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <Tag className="w-5 h-5" />
+                Categories
+              </h3>
+              
+              <div className="space-y-2">
+                <button
+                  onClick={() => setSelectedCategory('All Posts')}
+                  className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                    selectedCategory === 'All Posts'
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4" />
+                      All Posts
+                    </span>
+                    <span className={`text-sm px-2 py-1 rounded-full ${
+                      selectedCategory === 'All Posts' 
+                        ? 'bg-blue-500 text-blue-100' 
+                        : 'bg-gray-200 text-gray-700'
+                    }`}>
+                      {posts.length}
+                    </span>
+                  </div>
+                </button>
 
-        {/* All Posts Section */}
-        {!loading && !error && filteredPosts.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-bold text-foreground">
-                {searchQuery ? `Search Results (${filteredPosts.length})` : 'Latest Articles'}
-              </h2>
-              <p className="text-muted-foreground">
-                {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''} found
-              </p>
+                {categories.map((category) => (
+                  <button
+                    key={category.slug}
+                    onClick={() => setSelectedCategory(category.name)}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                      selectedCategory === category.name
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-400"></div>
+                        {category.name}
+                      </span>
+                      <span className={`text-sm px-2 py-1 rounded-full ${
+                        selectedCategory === category.name 
+                          ? 'bg-blue-500 text-blue-100' 
+                          : 'bg-gray-200 text-gray-700'
+                      }`}>
+                        {category.count}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPosts.map((post) => (
-                <BlogPostCard key={post.id} post={post} onPostClick={handlePostClick} />
-              ))}
+
+            {/* Popular Posts */}
+            <div className="bg-white rounded-xl shadow-sm border p-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Popular Posts
+              </h3>
+              
+              <div className="space-y-4">
+                {posts
+                  .sort((a, b) => (b.views || 0) - (a.views || 0))
+                  .slice(0, 5)
+                  .map((post, index) => (
+                    <Link
+                      key={post.id}
+                      to={`/blog/${post.slug}`}
+                      onClick={() => handlePostClick(post.id)}
+                      className="block group"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-1">
+                            {post.title}
+                          </h4>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span className="flex items-center gap-1">
+                              <Eye className="w-3 h-3" />
+                              {post.views || 0}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {calculateReadTime(post.content)}m
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
             </div>
-          </section>
-        )}
+
+            {/* Blog Stats */}
+            <div className="bg-white rounded-xl shadow-sm border p-6 mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Blog Stats</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total Articles</span>
+                  <span className="font-semibold text-gray-900">{posts.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Categories</span>
+                  <span className="font-semibold text-gray-900">{categories.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Total Views</span>
+                  <span className="font-semibold text-gray-900">
+                    {posts.reduce((sum, p) => sum + (p.views || 0), 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {/* Active Filter */}
+            {(selectedCategory !== 'All Posts' || searchTerm) && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-blue-800 font-medium">Showing:</span>
+                    {selectedCategory !== 'All Posts' && (
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        📁 {selectedCategory}
+                      </span>
+                    )}
+                    {searchTerm && (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        🔍 "{searchTerm}"
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedCategory('All Posts');
+                      setSearchTerm('');
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Clear filters
+                  </button>
+                </div>
+                <p className="text-xs text-blue-700 mt-2">
+                  {filteredPosts.length} of {posts.length} posts match your criteria
+                </p>
+              </div>
+            )}
+
+            {filteredPosts.length === 0 ? (
+              <div className="text-center py-16">
+                <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                  {searchTerm || selectedCategory !== 'All Posts' ? 'No posts found' : 'No blog posts yet'}
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  {searchTerm || selectedCategory !== 'All Posts' 
+                    ? 'Try adjusting your search criteria or browse other categories.' 
+                    : 'Check back soon for new content!'}
+                </p>
+                {(searchTerm || selectedCategory !== 'All Posts') && (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCategory('All Posts');
+                    }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View All Posts
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {/* Featured Posts */}
+                {selectedCategory === 'All Posts' && !searchTerm && (
+                  <>
+                    {filteredPosts.filter(post => post.is_featured).slice(0, 1).map((post) => (
+                      <article 
+                        key={`featured-${post.id}`}
+                        className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+                      >
+                        <div className="grid md:grid-cols-2 gap-0">
+                          {post.featured_image && (
+                            <div className="aspect-[4/3] md:aspect-auto overflow-hidden">
+                              <img
+                                src={post.featured_image}
+                                alt={post.title}
+                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  e.currentTarget.src = '/api/placeholder/600/400';
+                                }}
+                              />
+                            </div>
+                          )}
+                          
+                          <div className="p-8">
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="inline-flex items-center px-3 py-1 text-xs font-semibold text-yellow-600 bg-yellow-100 rounded-full">
+                                <Star className="w-3 h-3 mr-1 fill-current" />
+                                Featured
+                              </span>
+                              {post.category && (
+                                <span className="px-2 py-1 text-xs text-blue-600 bg-blue-100 rounded-full">
+                                  {post.category}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                              <Link 
+                                to={`/blog/${post.slug}`}
+                                onClick={() => handlePostClick(post.id)}
+                                className="hover:text-blue-600 transition-colors"
+                              >
+                                {post.title}
+                              </Link>
+                            </h2>
+                            
+                            <p className="text-gray-600 mb-6 line-clamp-3">
+                              {post.excerpt || (typeof post.content === 'string' ? post.content.substring(0, 200) + '...' : '')}
+                            </p>
+                            
+                            <div className="flex items-center justify-between text-sm text-gray-500 mb-6">
+                              <div className="flex items-center gap-4">
+                                <span className="flex items-center gap-1">
+                                  <User className="w-4 h-4" />
+                                  {post.author}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-4 h-4" />
+                                  {formatDate(post.published_at)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-4 h-4" />
+                                  {calculateReadTime(post.content)} min read
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center gap-1">
+                                  <Eye className="w-4 h-4" />
+                                  {post.views || 0}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Heart className="w-4 h-4" />
+                                  {post.likes_count || 0}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <Link
+                              to={`/blog/${post.slug}`}
+                              onClick={() => handlePostClick(post.id)}
+                              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                            >
+                              Read Full Article
+                              <ArrowRight className="w-4 h-4" />
+                            </Link>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </>
+                )}
+
+                {/* Regular Posts Grid */}
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredPosts
+                    .filter(post => selectedCategory === 'All Posts' && !searchTerm ? !post.is_featured : true)
+                    .map((post) => (
+                      <article 
+                        key={post.id}
+                        className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
+                      >
+                        {post.featured_image && (
+                          <div className="aspect-video overflow-hidden">
+                            <img
+                              src={post.featured_image}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                              onError={(e) => {
+                                e.currentTarget.src = '/api/placeholder/400/250';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="p-6">
+                          {post.category && (
+                            <span className="inline-block px-2 py-1 text-xs font-medium text-blue-600 bg-blue-100 rounded-full mb-3">
+                              {post.category}
+                            </span>
+                          )}
+                          
+                          <h2 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            <Link 
+                              to={`/blog/${post.slug}`}
+                              onClick={() => handlePostClick(post.id)}
+                            >
+                              {post.title}
+                            </Link>
+                          </h2>
+                          
+                          <p className="text-gray-600 mb-4 line-clamp-3 text-sm">
+                            {post.excerpt || (typeof post.content === 'string' ? post.content.substring(0, 120) + '...' : 'No preview available')}
+                          </p>
+                          
+                          <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
+                            <div className="flex items-center gap-3">
+                              <span className="flex items-center gap-1">
+                                <User className="w-3 h-3" />
+                                {post.author}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {calculateReadTime(post.content)} min
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1">
+                                <Eye className="w-3 h-3" />
+                                {post.views || 0}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Heart className="w-3 h-3" />
+                                {post.likes_count || 0}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <Link
+                            to={`/blog/${post.slug}`}
+                            onClick={() => handlePostClick(post.id)}
+                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors text-sm group-hover:gap-3"
+                          >
+                            Read More
+                            <ArrowRight className="w-3 h-3" />
+                          </Link>
+                        </div>
+                      </article>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-// Featured Post Card Component
-function FeaturedPostCard({ post, onPostClick }: { post: BlogPost; onPostClick: (id: string) => void }) {
-  const getImageUrl = (post: BlogPost) => {
-    return post.featured_image || post.cover_url || '/api/placeholder/600/400';
-  };
-
-  return (
-    <Link 
-      to={`/blog/${post.slug}`} 
-      className="group" 
-      onClick={() => onPostClick(post.id)}
-    >
-      <article className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
-        <div className="aspect-video bg-muted overflow-hidden">
-          <img
-            src={getImageUrl(post)}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              e.currentTarget.src = '/api/placeholder/600/400';
-            }}
-          />
-        </div>
-        <div className="p-6">
-          {post.is_featured && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full mb-3">
-              ⭐ Featured
-            </div>
-          )}
-          
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-4 h-4" />
-              {formatDate(post.published_at)}
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="w-4 h-4" />
-              {post.reading_time || estimateReadingTime(post.content)} min read
-            </div>
-          </div>
-          
-          <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
-            {post.title}
-          </h3>
-          
-          <p className="text-muted-foreground mb-4 line-clamp-3">
-            {post.excerpt || (typeof post.content === 'string' ? post.content.substring(0, 150) + '...' : 'No preview available')}
-          </p>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                {post.views || 0}
-              </div>
-              <div className="flex items-center gap-1">
-                <Heart className="w-4 h-4" />
-                {post.likes_count || 0}
-              </div>
-            </div>
-            <span className="text-primary font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
-              Read More 
-              <ChevronRight className="w-4 h-4" />
-            </span>
-          </div>
-        </div>
-      </article>
-    </Link>
-  );
-}
-
-// Regular Blog Post Card Component
-function BlogPostCard({ post, onPostClick }: { post: BlogPost; onPostClick: (id: string) => void }) {
-  const getImageUrl = (post: BlogPost) => {
-    return post.featured_image || post.cover_url || '/api/placeholder/400/250';
-  };
-
-  return (
-    <Link 
-      to={`/blog/${post.slug}`} 
-      className="group"
-      onClick={() => onPostClick(post.id)}
-    >
-      <article className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
-        <div className="aspect-video bg-muted overflow-hidden">
-          <img
-            src={getImageUrl(post)}
-            alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              e.currentTarget.src = '/api/placeholder/400/250';
-            }}
-          />
-        </div>
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <User className="w-4 h-4" />
-              {post.author}
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
-              {formatDate(post.published_at)}
-            </div>
-          </div>
-
-          <h3 className="text-lg font-bold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
-            {post.title}
-          </h3>
-          
-          <p className="text-muted-foreground mb-4 line-clamp-3">
-            {post.excerpt || (typeof post.content === 'string' ? post.content.substring(0, 120) + '...' : 'No preview available')}
-          </p>
-
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <Eye className="w-4 h-4" />
-                {post.views || 0}
-              </div>
-              <div className="flex items-center gap-1">
-                <Heart className="w-4 h-4" />
-                {post.likes_count || 0}
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {post.reading_time || estimateReadingTime(post.content)}m
-              </div>
-            </div>
-            <span className="text-primary font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
-              Read
-              <ChevronRight className="w-4 h-4" />
-            </span>
-          </div>
-        </div>
-      </article>
-    </Link>
-  );
-}
-
-// Helper functions
-const formatDate = (dateString: string) => {
-  if (!dateString) return 'No date';
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
-};
-
-const estimateReadingTime = (content: string | any) => {
-  if (!content) return 1;
-  const wordsPerMinute = 200;
-  const textContent = typeof content === 'string' ? content : JSON.stringify(content);
-  const wordCount = textContent.split(/\s+/).length;
-  return Math.ceil(wordCount / wordsPerMinute);
-};

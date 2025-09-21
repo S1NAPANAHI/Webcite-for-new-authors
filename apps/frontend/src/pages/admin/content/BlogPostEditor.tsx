@@ -131,10 +131,13 @@ const BlogPostEditor = () => {
       (posts || []).forEach((post: any) => {
         let tags = [];
         try {
-          if (typeof post.tags === 'string') {
+          // ✅ Handle both string and array tags
+          if (typeof post.tags === 'string' && post.tags.startsWith('[')) {
             tags = JSON.parse(post.tags);
           } else if (Array.isArray(post.tags)) {
             tags = post.tags;
+          } else if (typeof post.tags === 'string' && post.tags) {
+            tags = [post.tags];
           }
         } catch {
           tags = [];
@@ -265,10 +268,12 @@ const BlogPostEditor = () => {
         // ✅ ENHANCED: Load category from tags
         try {
           let tags = [];
-          if (typeof data.tags === 'string') {
+          if (typeof data.tags === 'string' && data.tags.startsWith('[')) {
             tags = JSON.parse(data.tags);
           } else if (Array.isArray(data.tags)) {
             tags = data.tags;
+          } else if (typeof data.tags === 'string' && data.tags) {
+            tags = [data.tags];
           }
           
           if (tags.length > 0) {
@@ -392,14 +397,16 @@ const BlogPostEditor = () => {
     return '';
   };
 
+  // 🔥 CRITICAL FIX: Array handling for PostgreSQL
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
 
     try {
       if (!user) throw new Error('Not authenticated');
+      if (!title.trim()) throw new Error('Title is required');
 
-      // ✅ ENHANCED: Combine category and tags
-      const combinedTags = [];
+      // ✅ CRITICAL FIX: Properly format tags as PostgreSQL array
+      const combinedTags: string[] = [];
       if (selectedCategory) {
         combinedTags.push(selectedCategory);
       }
@@ -411,28 +418,34 @@ const BlogPostEditor = () => {
         }
       });
 
+      console.log('🔄 Preparing post data with tags:', combinedTags);
+
       const postData = {
-        title,
-        slug,
-        content: JSON.stringify(content),
-        excerpt,
+        title: title.trim(),
+        slug: slug || generateSlug(title),
+        content: typeof content === 'string' ? content : JSON.stringify(content),
+        excerpt: excerpt || null,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null, // Sync both fields for compatibility
         author: author || user.email || 'Zoroasterverse Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
-        published_at: publishNow ? new Date().toISOString() : null,
+        published_at: publishNow ? new Date().toISOString() : (status === 'published' ? new Date().toISOString() : null),
         is_featured: isFeatured,
         meta_title: metaTitle || null,
         meta_description: metaDescription || null,
-        tags: JSON.stringify(combinedTags), // ✅ Store category + tags
+        // 🔥 CRITICAL FIX: Send as proper PostgreSQL array, NOT JSON string
+        tags: combinedTags.length > 0 ? combinedTags : null,
         updated_at: new Date().toISOString()
       };
+
+      console.log('📦 Saving post data:', postData);
 
       let postId = id;
       let response;
       
       if (id && id !== 'new') {
+        // Update existing post
         response = await supabase
           .from('blog_posts')
           .update(postData)
@@ -440,6 +453,7 @@ const BlogPostEditor = () => {
           .select()
           .single();
       } else {
+        // Create new post  
         response = await supabase
           .from('blog_posts')
           .insert([postData])
@@ -451,9 +465,14 @@ const BlogPostEditor = () => {
         }
       }
 
-      if (response.error) throw response.error;
+      if (response.error) {
+        console.error('❌ Supabase error:', response.error);
+        throw response.error;
+      }
 
-      // Handle tags (only if blog_post_tags table exists)
+      console.log('✅ Post saved successfully:', response.data);
+
+      // Handle additional tag relationships (only if blog_post_tags table exists)
       if (postId && postId !== 'new' && availableTags.length > 0) {
         try {
           // First, delete existing tag relationships
@@ -474,22 +493,27 @@ const BlogPostEditor = () => {
               .insert(tagRelations);
 
             if (tagError) {
-              console.warn('Error saving tags:', tagError);
+              console.warn('Error saving additional tag relationships:', tagError);
             }
           }
         } catch (tagError) {
-          console.warn('Tag system not ready yet:', tagError);
+          console.warn('Tag relationship system not ready yet:', tagError);
         }
       }
 
       // Show success message
-      const message = publishNow ? 'Post published successfully!' : 'Post saved as draft!';
-      alert(`✅ ${message}\n\n${publishNow ? 'Your post is now live on the blog page.' : 'You can publish it later from the admin panel.'}`);
+      const actionText = publishNow ? 'published' : 'saved';
+      const statusText = publishNow ? 'Your post is now live on the blog page!' : 'You can publish it later from the admin panel.';
       
+      alert(`✅ Post ${actionText} successfully!\n\n${statusText}`);
+      
+      // Navigate back to blog manager
       navigate('/admin/content/blog');
+      
     } catch (error) {
-      console.error('Error saving blog post:', error);
-      alert('Failed to save blog post: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      console.error('❌ Error saving blog post:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`❌ Failed to save blog post:\n\n${errorMessage}\n\nPlease check the console for more details.`);
     } finally {
       setSaving(false);
     }
@@ -523,7 +547,7 @@ const BlogPostEditor = () => {
         <div className="flex space-x-3">
           <button
             onClick={() => saveBlogPost(false)}
-            disabled={saving || !title}
+            disabled={saving || !title.trim()}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             <Save className="w-4 h-4 mr-2" />
@@ -531,7 +555,7 @@ const BlogPostEditor = () => {
           </button>
           <button
             onClick={() => saveBlogPost(true)}
-            disabled={saving || !title || !content}
+            disabled={saving || !title.trim()}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <Eye className="w-4 h-4 mr-2" />
@@ -547,7 +571,7 @@ const BlogPostEditor = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title
+                  Title *
                 </label>
                 <input
                   type="text"
@@ -555,6 +579,7 @@ const BlogPostEditor = () => {
                   onChange={(e) => handleTitleChange(e.target.value)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter blog post title..."
+                  required
                 />
               </div>
 
@@ -614,7 +639,7 @@ const BlogPostEditor = () => {
                         {category.name} {category.count ? `(${category.count} posts)` : ''}
                       </option>
                     ))}
-                    <option value="__create_new__">+ Create New Category</option>
+                    <option value="__create_new__">➕ Create New Category</option>
                   </select>
 
                   {/* Create New Category */}

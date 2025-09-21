@@ -109,7 +109,7 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-card shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}}>
+      }`}>
         {/* Sidebar header */}
         <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground flex-shrink-0">
           <div className="flex items-center space-x-3">
@@ -163,7 +163,7 @@ export default function AdminLayout() {
                             pathname === child.href
                               ? 'bg-primary/10 text-primary font-medium'
                               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                          }`}}
+                          }`}
                           onClick={() => setSidebarOpen(false)}
                         >
                           {child.label}
@@ -177,8 +177,8 @@ export default function AdminLayout() {
                   to={item.href}
                   className={`flex items-center space-x-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     pathname === item.href
-                      ? 'bg-indigo-50 text-indigo-700 border-r-2 border-indigo-500'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-foreground hover:bg-muted hover:text-foreground'
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -207,7 +207,8 @@ export default function AdminLayout() {
               </p>
             </div>
           </div>
-        </div>      </div>
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
@@ -217,7 +218,7 @@ export default function AdminLayout() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={toggleSidebar}
-                className="lg:hidden p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                className="lg:hidden p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
               >
                 <Menu className="w-5 h-5" />
               </button>
@@ -235,33 +236,33 @@ export default function AdminLayout() {
               {/* Search */}
               <div className="hidden md:block relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
+                  <Search className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <input
                   type="search"
                   placeholder="Quick search..."
-                  className="block w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="block w-64 pl-10 pr-3 py-2 border border-border rounded-lg text-sm placeholder-muted-foreground bg-card focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 />
               </div>
               
               {/* Notifications */}
-              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors duration-200">
                 <Bell className="w-5 h-5" />
               </button>
               
               {/* User menu */}
               <div className="flex items-center space-x-3">
                 <div className="hidden md:block text-right">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-foreground">
                     {userProfile?.email}
                   </p>
-                  <p className="text-xs text-gray-500 capitalize">
+                  <p className="text-xs text-muted-foreground capitalize">
                     {userProfile?.role}
                   </p>
                 </div>
                 <button
                   onClick={handleSignOut}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
                   title="Sign out"
                 >
                   <LogOut className="w-5 h-5" />

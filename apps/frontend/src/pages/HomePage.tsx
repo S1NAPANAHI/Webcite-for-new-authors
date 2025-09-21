@@ -39,7 +39,13 @@ const HomePage: React.FC = () => {
 
   // Fetch user's spin count
   useEffect(() => {
-    console.log('🏠 HomePage: Component mounted');
+    console.log('🏠 Frontend HomePage: Component mounted');
+    
+    // Make supabase available globally for UI package
+    if (typeof window !== 'undefined') {
+      (window as any).__supabase = supabase;
+      console.log('🔗 Frontend HomePage: Made supabase available globally for UI package');
+    }
     
     const fetchSpins = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -98,7 +104,7 @@ const HomePage: React.FC = () => {
   const isLoading = isLoadingHomepage || postsLoading || isLoadingReleases;
   const isError = isErrorHomepage || false || isErrorReleases;
 
-  console.log('🏠 HomePage: Rendering homepage with LATEST NEWS & UPDATES section');
+  console.log('🏠 Frontend HomePage: Rendering homepage, passing supabase client to UI package');
 
   return (
     <div className="min-h-screen bg-background">
@@ -133,37 +139,36 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 🔥 LATEST NEWS & UPDATES - This is the main section! */}
-      <section className="py-20 bg-black dark:bg-black relative overflow-hidden">
-        {/* Starry background effect */}
-        <div className="absolute inset-0 bg-[url('/starry-bg.svg')] opacity-5"></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-wider">
-              LATEST NEWS & UPDATES
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Stay informed with our latest insights, discoveries, and thoughts from the Zoroasterverse
-            </p>
-          </div>
-
-          {/* 🎠 The LatestNewsSlider Component - This will show your blog posts */}
-          <div className="max-w-6xl mx-auto">
-            <LatestNewsSlider />
-          </div>
-        </div>
-      </section>
-
-      {/* Your existing sections */}
+      {/* 🔥 UI HomePage Component - This contains the "Latest News & Updates" section */}
       {!isLoading && !isError && (
         <UIHomePage 
           posts={latestPosts} 
           content={homepageData || []} 
           releases={releaseData || []} 
           spinsLeft={spinsLeft} 
-          onSpin={handleSpin} 
+          onSpin={handleSpin}
+          supabaseClient={supabase} // 🔑 Pass supabase client to UI package
         />
+      )}
+      
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex justify-center py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading homepage content...</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Error State */}
+      {isError && (
+        <div className="text-center py-16">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <h3 className="text-red-800 font-semibold mb-2">Content Loading Error</h3>
+            <p className="text-red-600 text-sm">There was an issue loading homepage content. Please try refreshing the page.</p>
+          </div>
+        </div>
       )}
 
       {/* Additional Sections */}

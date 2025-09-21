@@ -158,15 +158,47 @@ const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spin
 };
 
 const LatestReleases: React.FC<{ releases: ReleaseItem[] }> = ({ releases }) => {
+    const [isDark, setIsDark] = useState(false);
+
+    // Dark mode detection
+    useEffect(() => {
+        const checkDarkMode = () => {
+            const isDarkMode = document.documentElement.classList.contains('dark') ||
+                              window.matchMedia('(prefers-color-scheme: dark)').matches;
+            setIsDark(isDarkMode);
+        };
+
+        checkDarkMode();
+
+        // Listen for theme changes
+        const observer = new MutationObserver(checkDarkMode);
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', checkDarkMode);
+
+        return () => {
+            observer.disconnect();
+            mediaQuery.removeEventListener('change', checkDarkMode);
+        };
+    }, []);
+
     return (
         <section className={styles.zrSection}>
             <h2 className={styles.zrH2}>Latest Releases</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {releases.map(release => (
-                    <div key={release.id} className={styles.parchmentCard}>
-                        <h3>{release.title}</h3>
-                        <p className="mt-2">Type: {release.type}</p>
-                        <a href={release.link || '#'} className="mt-4 inline-block">View Details / Purchase</a>
+                    <div key={release.id} className={`${styles.parchmentCard} ${
+                        isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+                    }`}>
+                        <h3 className={isDark ? 'text-white' : 'text-gray-900'}>{release.title}</h3>
+                        <p className={`mt-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Type: {release.type}</p>
+                        <a href={release.link || '#'} className={`mt-4 inline-block ${
+                            isDark ? 'text-orange-400 hover:text-orange-300' : 'text-orange-600 hover:text-orange-700'
+                        }`}>View Details / Purchase</a>
                     </div>
                 ))}
             </div>
@@ -198,8 +230,38 @@ export const HomePage: React.FC<HomePageProps> = ({
   supabaseClient
 }) => {
   const [currentSpinsLeft, setCurrentSpinsLeft] = useState(spinsLeft);
+  const [isDark, setIsDark] = useState(false);
 
-  if (isLoading) return <div className="text-center py-8">Loading homepage content...</div>;
+  // Dark mode detection
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark') ||
+                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDark(isDarkMode);
+    };
+
+    checkDarkMode();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', checkDarkMode);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener('change', checkDarkMode);
+    };
+  }, []);
+
+  if (isLoading) return <div className={`text-center py-8 ${
+    isDark ? 'text-gray-300' : 'text-gray-700'
+  }`}>Loading homepage content...</div>;
+  
   if (isError) return <div className="text-center py-8 text-red-400">Error loading homepage content.</div>;
 
   const contentMap = new Map(homepageData?.map(item => [item.section, item]));
@@ -230,29 +292,45 @@ export const HomePage: React.FC<HomePageProps> = ({
       <section className={styles.zrSection}>
           <h2 className={styles.zrH2}>Our Progress</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className={styles.parchmentCard}>
-                  <h3 className="text-4xl font-bold text-primary">
+              <div className={`${styles.parchmentCard} ${
+                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+              }`}>
+                  <h3 className={`text-4xl font-bold ${
+                    isDark ? 'text-orange-400' : 'text-orange-600'
+                  }`}>
                       {contentMap.get('statistics_words_written')?.content || '0'}
                   </h3>
-                  <p className="text-muted-foreground">Words Written</p>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Words Written</p>
               </div>
-              <div className={styles.parchmentCard}>
-                  <h3 className="text-4xl font-bold text-primary">
+              <div className={`${styles.parchmentCard} ${
+                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+              }`}>
+                  <h3 className={`text-4xl font-bold ${
+                    isDark ? 'text-orange-400' : 'text-orange-600'
+                  }`}>
                       {contentMap.get('statistics_beta_readers')?.content || '0'}
                   </h3>
-                  <p className="text-muted-foreground">Beta Readers</p>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Beta Readers</p>
               </div>
-              <div className={styles.parchmentCard}>
-                  <h3 className="text-4xl font-bold text-primary">
+              <div className={`${styles.parchmentCard} ${
+                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+              }`}>
+                  <h3 className={`text-4xl font-bold ${
+                    isDark ? 'text-orange-400' : 'text-orange-600'
+                  }`}>
                       {contentMap.get('statistics_average_rating')?.content || '0'}
                   </h3>
-                  <p className="text-muted-foreground">Average Rating</p>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Average Rating</p>
               </div>
-              <div className={styles.parchmentCard}>
-                  <h3 className="text-4xl font-bold text-primary">
+              <div className={`${styles.parchmentCard} ${
+                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+              }`}>
+                  <h3 className={`text-4xl font-bold ${
+                    isDark ? 'text-orange-400' : 'text-orange-600'
+                  }`}>
                       {contentMap.get('statistics_books_published')?.content || '0'}
                   </h3>
-                  <p className="text-muted-foreground">Books Published</p>
+                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Books Published</p>
               </div>
           </div>
       </section>
@@ -262,7 +340,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         <h2 className={styles.zrH2}>Latest News & Updates</h2>
         <LatestPosts 
           supabaseClient={supabaseClient} 
-          limit={3}
+          limit={5}
         />
       </section>
       
@@ -272,10 +350,14 @@ export const HomePage: React.FC<HomePageProps> = ({
           <h2 className={styles.zrH2}>Artist Collaboration</h2>
           <div className="relative rounded-lg shadow-lg overflow-hidden w-full">
               <img src="/images/invite_to_Colab_card.png" alt="Artist Collaboration Invitation" className="w-full h-full object-contain" />
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-8">
+              <div className={`absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-8 ${
+                isDark ? 'bg-opacity-70' : 'bg-opacity-50'
+              }`}>
                   <h3 className="text-2xl font-bold text-white mb-4 text-shadow-md">Join Our Creative Team!</h3>
                   <p className="text-white mb-6 text-shadow-sm">We're looking for talented artists to help shape the visual identity of the Zangar/Spandam Series. Explore revenue-share opportunities and bring your vision to life.</p>
-                  <Link to="/artist-collaboration" className="inline-block bg-primary hover:bg-primary-dark text-white font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105">
+                  <Link to="/artist-collaboration" className={`inline-block font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 ${
+                    isDark ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-orange-600 hover:bg-orange-700 text-white'
+                  }`}>
                       Apply Now
                   </Link>
               </div>

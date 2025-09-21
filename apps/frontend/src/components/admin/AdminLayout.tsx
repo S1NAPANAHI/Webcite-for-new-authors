@@ -97,7 +97,7 @@ export default function AdminLayout() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
 
   return (
-    <div className="h-screen w-full flex bg-gray-50 overflow-hidden">
+    <div className="h-screen w-full flex bg-background overflow-hidden">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -107,11 +107,11 @@ export default function AdminLayout() {
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col ${
+      <div className={`fixed inset-y-0 left-0 z-50 w-72 bg-card shadow-xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      }`}}>
         {/* Sidebar header */}
-        <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex-shrink-0">
+        <div className="flex items-center justify-between h-16 px-6 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
               <BookOpen className="w-5 h-5" />
@@ -137,7 +137,7 @@ export default function AdminLayout() {
                 <div>
                   <button
                     onClick={() => setOpenItems(prev => ({ ...prev, [item.label]: !prev[item.label] }))}
-                    className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors duration-200"
+                    className="flex items-center justify-between w-full px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted hover:text-foreground rounded-lg transition-colors duration-200"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-6 h-6 flex items-center justify-center">
@@ -161,9 +161,9 @@ export default function AdminLayout() {
                           to={child.href}
                           className={`block px-3 py-2 text-sm rounded-md transition-colors duration-200 ${
                             pathname === child.href
-                              ? 'bg-indigo-50 text-indigo-700 font-medium'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                          }`}
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          }`}}
                           onClick={() => setSidebarOpen(false)}
                         >
                           {child.label}
@@ -193,27 +193,26 @@ export default function AdminLayout() {
         </nav>
 
         {/* User profile section */}
-        <div className="border-t border-gray-200 p-4 flex-shrink-0">
+        <div className="border-t border-border p-4 flex-shrink-0">
           <div className="flex items-center space-x-3 p-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-              <UserCircle className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center">
+              <UserCircle className="w-5 h-5 text-primary-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {userProfile?.email?.split('@')[0] || 'Admin'}
               </p>
-              <p className="text-xs text-gray-500 capitalize">
+              <p className="text-xs text-muted-foreground capitalize">
                 {userProfile?.role || 'Administrator'}
               </p>
             </div>
           </div>
-        </div>
-      </div>
+        </div>      </div>
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Top Bar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 flex-shrink-0">
+        <header className="bg-card shadow-sm border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center space-x-4">
               <button
@@ -225,7 +224,7 @@ export default function AdminLayout() {
               
               {/* Breadcrumb or page title */}
               <div className="hidden lg:block">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-foreground">
                   {pathname === '/admin' ? 'Dashboard' : 
                    pathname.split('/').pop()?.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) || 'Admin'}
                 </h2>
@@ -273,7 +272,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Main Content Area - Full width, no padding */}
-        <main className="flex-1 overflow-hidden bg-gray-50">
+        <main className="flex-1 overflow-hidden bg-background">
           <div className="h-full overflow-y-auto">
             <Outlet />
           </div>

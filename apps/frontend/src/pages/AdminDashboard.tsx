@@ -92,11 +92,11 @@ function KPICard({ title, value, trend, icon: Icon, color, format = 'number' }: 
   const TrendIcon = trend && trend > 0 ? TrendingUp : TrendingDown;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-200">
+    <div className="glass-card-strong rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900 mb-2">
+          <p className="text-sm font-medium text-muted-foreground mb-1">{title}</p>
+          <p className="text-2xl font-bold text-foreground mb-2">
             {formatValue(value)}
           </p>
           {trend !== undefined && (
@@ -125,17 +125,14 @@ interface QuickActionProps {
 
 function QuickAction({ title, description, icon: Icon, href, color }: QuickActionProps) {
   return (
-    <Link
-      to={href}
-      className="block p-4 bg-white rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200"
-    >
+    <div className="block p-4 glass-card rounded-lg hover:shadow-sm transition-all duration-200">
       <div className="flex items-start space-x-3">
         <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center flex-shrink-0`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-gray-900 truncate">{title}</h4>
-          <p className="text-xs text-gray-500 mt-1">{description}</p>
+          <h4 className="text-sm font-medium text-foreground truncate">{title}</h4>
+          <p className="text-xs text-muted-foreground mt-1">{description}</p>
         </div>
       </div>
     </Link>
@@ -182,66 +179,85 @@ export default function AdminDashboard() {
 
   if (!isAdmin) {
     return (
-      <div className="text-center py-12">
-        <div className="w-24 h-24 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
-          <Activity className="w-12 h-12 text-red-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-24 h-24 mx-auto bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+            <Activity className="w-12 h-12 text-destructive" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">Access Denied</h2>
+          <p className="text-muted-foreground">You must be an admin to view this page.</p>
         </div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-        <p className="text-gray-600">You must be an admin to view this page.</p>
       </div>
     );
   }
-
   const quickActions = [
     {
-      title: 'New Blog Post',
-      description: 'Create a new blog post',
+      title: "New Content",
+      description: "Create new books, chapters",
       icon: Plus,
-      href: '/admin/content/blog/new',
-      color: 'from-blue-500 to-blue-600'
+      href: "/admin/content/works/new",
+      color: "from-blue-500 to-blue-600",
     },
     {
-      title: 'New Chapter',
-      description: 'Add a chapter to your work',
-      icon: FileText,
-      href: '/admin/content/chapters/new',
-      color: 'from-green-500 to-green-600'
+      title: "Media Library",
+      description: "Manage files & images",
+      icon: Palette,
+      href: "/admin/content/files",
+      color: "from-green-500 to-green-600",
     },
     {
-      title: 'Manage Users',
-      description: 'View and manage users',
+      title: "User Management",
+      description: "View and manage users",
       icon: Users,
-      href: '/admin/settings/users',
-      color: 'from-purple-500 to-purple-600'
+      href: "/admin/settings/users",
+      color: "from-purple-500 to-purple-600",
     },
     {
-      title: 'View Analytics',
-      description: 'Check detailed analytics',
+      title: "Analytics",
+      description: "View detailed stats",
       icon: BarChart3,
-      href: '/admin/analytics',
-      color: 'from-orange-500 to-orange-600'
-    }
+      href: "/admin/analytics",
+      color: "from-orange-500 to-orange-600",
+    },
+    {
+      title: "Blog Posts",
+      description: "Create & edit blogs",
+      icon: FileText,
+      href: "/admin/content/blog",
+      color: "from-pink-500 to-pink-600",
+    },
+    {
+      title: "World Building",
+      description: "Wiki, timelines, characters",
+      icon: Globe,
+      href: "/admin/world/wiki",
+      color: "from-teal-500 to-teal-600",
+    },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, Admin
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Here's what's happening with your Zoroasterverse platform today.
-          </p>
-        </div>
-        <div className="text-sm text-gray-500 flex items-center space-x-2">
-          <Calendar className="w-4 h-4" />
-          <span>Last updated: {new Date().toLocaleString()}</span>
+    <div className="space-y-6 p-6">
+      {/* Welcome Header */}
+      <div className="glass-card-strong rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">
+              Admin Dashboard
+            </h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's your platform overview for today.
+            </p>
+          </div>
+          <div className="hidden md:block">
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Last login</p>
+              <p className="text-foreground font-medium">{new Date().toLocaleDateString()}</p>
+            </div>
+          </div>
         </div>
       </div>
-
-      {/* KPI Cards */}
+  
+      {/* KPI Cards - with updated styling */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="Total Books"
@@ -273,132 +289,113 @@ export default function AdminDashboard() {
           format="currency"
         />
       </div>
-
-      {/* Quick Actions */}
+  
+      {/* Quick Actions - Enhanced */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <h3 className="text-lg font-semibold text-foreground mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {quickActions.map((action) => (
             <QuickAction key={action.href} {...action} />
           ))}
         </div>
       </div>
-
-      {/* Content Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Books */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Books</h3>
-            <Link 
-              to="/admin/content/works" 
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              View all
-            </Link>
+  
+      {/* Media Gallery Section */}
+      <div className="glass-card-strong rounded-xl">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Recent Media</h3>
+            <p className="text-sm text-muted-foreground">Recently uploaded files and images</p>
           </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {data?.books?.slice(0, 3).map((book: any) => (
-                <div key={book.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{book.title}</h4>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        book.state === 'published' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {book.state}
-                      </span>
-                      <div className="flex items-center space-x-1 text-gray-500 text-sm">
-                        <Eye className="w-4 h-4" />
-                        <span>{book.views}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button className="p-1 text-gray-400 hover:text-gray-600">
-                      <Edit className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Users */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Users</h3>
-            <Link 
-              to="/admin/settings/users" 
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              View all
-            </Link>
-          </div>
-          <div className="p-6">
-            <div className="space-y-4">
-              {data?.users?.slice(0, 3).map((user: any) => (
-                <div key={user.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {user.email.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{user.email}</h4>
-                      <p className="text-sm text-gray-500 capitalize">{user.subscription_status}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-500">
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Last active: {new Date(user.last_active).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Chapters</h3>
+          <Link 
+            to="/admin/content/files" 
+            className="text-sm text-primary hover:text-primary/80 font-medium flex items-center gap-1"
+          >
+            <Eye className="w-4 h-4" />
+            View all
+          </Link>
         </div>
         <div className="p-6">
-          <div className="space-y-4">
-            {data?.chapters?.map((chapter: any) => (
-              <div key={chapter.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{chapter.title}</h4>
-                  <p className="text-sm text-gray-500 mt-1">{chapter.book}</p>
+          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-4">
+            {/* Mock media items - replace with real data */}
+            {Array.from({ length: 8 }, (_, i) => (
+              <div key={i} className="group relative aspect-square bg-muted rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 border border-border">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
+                  <Palette className="w-8 h-8 text-muted-foreground/40" />
                 </div>
-                <div className="flex items-center space-x-4">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    chapter.state === 'published' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {chapter.state}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    {new Date(chapter.created_at).toLocaleDateString()}
-                  </span>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <Eye className="w-5 h-5 text-white" />
+                </div>
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-2 transform translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+                  media_file_${i + 1}.jpg
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+  
+      {/* Two-column layout for content overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Content */}
+        <div className="glass-card-strong rounded-xl">
+          <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-foreground">Recent Content</h3>
+            <Link to="/admin/content/works" className="text-sm text-primary hover:text-primary/80 font-medium">
+              View all
+            </Link>
+          </div>
+          <div className="p-6 space-y-3">
+            {data?.books?.slice(0, 4).map((book: any) => (
+              <div key={book.id} className="flex items-center justify-between p-3 bg-muted/20 hover:bg-muted/30 rounded-lg transition-colors">
+                <div className="flex-1">
+                  <h4 className="font-medium text-foreground">{book.title}</h4>
+                  <div className="flex items-center space-x-3 mt-1">
+                    <span className={\`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium \${
+                      book.state === 'published' 
+                        ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                        : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+                    }\`}>
+                      {book.state}
+                    </span>
+                    <div className="flex items-center space-x-1 text-muted-foreground text-xs">
+                      <Eye className="w-3 h-3" />
+                      <span>{book.views}</span>
+                    </div>
+                  </div>
+                </div>
+                <button className="p-1 text-muted-foreground hover:text-foreground transition-colors">
+                  <Edit className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+  
+        {/* Performance Metrics */}
+        <div className="glass-card-strong rounded-xl">
+          <div className="px-6 py-4 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">Performance Metrics</h3>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Page Views (Today)</span>
+              <span className="font-semibold text-foreground">2,847</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Active Sessions</span>
+              <span className="font-semibold text-foreground">124</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">Content Engagement</span>
+              <span className="font-semibold text-green-600 dark:text-green-400">+18.3%</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-muted-foreground">New Subscriptions</span>
+              <span className="font-semibold text-blue-600 dark:text-blue-400">7 this week</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  );
-}
+  );}

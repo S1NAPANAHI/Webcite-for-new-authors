@@ -10,17 +10,18 @@ import {
   Tag, 
   ChevronRight,
   Clock,
-  TrendingUp
+  TrendingUp,
+  RefreshCw
 } from 'lucide-react';
-import { useLatestPosts } from '../hooks/useLatestPosts';
 import { supabase } from '@zoroaster/shared';
 
 interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
+  excerpt?: string;
   content: string;
   featured_image?: string;
+  cover_url?: string;
   author?: string;
   published_at: string;
   views?: number;
@@ -29,110 +30,91 @@ interface BlogPost {
   slug: string;
   tags?: string[];
   reading_time?: number;
-}
-
-interface BlogCategory {
-  name: string;
-  count: number;
-  slug: string;
+  is_featured?: boolean;
+  status?: string;
 }
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [featuredPosts, setFeaturedPosts] = useState<BlogPost[]>([]);
-  const [categories, setCategories] = useState<BlogCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'latest' | 'popular' | 'trending'>('latest');
-  
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const postsPerPage = 9;
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchBlogData();
-  }, [currentPage, selectedCategory, sortBy, searchQuery]);
+  }, []);
 
   const fetchBlogData = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      console.log('🔄 Fetching blog posts from database...');
+      
+      // Fetch all published posts
+      const { data, error: fetchError } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
 
-      // Use mock data for now - replace with real Supabase queries later
-      const mockPosts = getMockPosts();
-      
-      // Filter posts based on search and category
-      let filteredPosts = [...mockPosts];
-      
-      if (searchQuery.trim()) {
-        filteredPosts = filteredPosts.filter(post => 
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (post.excerpt && post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
+      if (fetchError) {
+        console.error('❌ Supabase error:', fetchError);
+        throw new Error(`Database error: ${fetchError.message}`);
       }
+
+      console.log('✅ Fetched posts:', data);
       
-      if (selectedCategory) {
-        filteredPosts = filteredPosts.filter(post => 
-          post.tags?.includes(selectedCategory)
-        );
-      }
-      
-      // Sort posts
-      switch (sortBy) {
-        case 'popular':
-          filteredPosts.sort((a, b) => (b.views || 0) - (a.views || 0));
-          break;
-        case 'trending':
-          filteredPosts.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
-          break;
-        default:
-          filteredPosts.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-      }
-      
-      // Paginate
-      const startIndex = (currentPage - 1) * postsPerPage;
-      const endIndex = startIndex + postsPerPage;
-      const paginatedPosts = filteredPosts.slice(startIndex, endIndex);
-      
-      setPosts(paginatedPosts);
-      setTotalPages(Math.ceil(filteredPosts.length / postsPerPage));
-      
-      // Set featured posts (first 3 posts when on first page with no filters)
-      if (currentPage === 1 && !searchQuery && !selectedCategory) {
-        setFeaturedPosts(mockPosts.slice(0, 3));
-      } else {
+      if (!data || data.length === 0) {
+        console.warn('⚠️ No published posts found');
+        setPosts([]);
         setFeaturedPosts([]);
+        return;
       }
+
+      // Process posts to ensure all fields are available
+      const processedPosts = data.map(post => ({
+        ...post,
+        // Handle image fields (either cover_url or featured_image)
+        featured_image: post.featured_image || post.cover_url,
+        // Ensure numeric fields are numbers
+        views: post.views || 0,
+        likes_count: post.likes_count || 0,
+        comments_count: post.comments_count || 0,
+        // Handle content parsing if needed
+        content: typeof post.content === 'string' 
+          ? post.content.startsWith('{') || post.content.startsWith('"')
+            ? JSON.parse(post.content)
+            : post.content
+          : post.content || '',
+        // Ensure author is available
+        author: post.author || 'Zoroastervers Team'
+      }));
       
-      // Generate categories from all posts
-      const tagCounts: Record<string, number> = {};
-      mockPosts.forEach(post => {
-        if (post.tags && Array.isArray(post.tags)) {
-          post.tags.forEach((tag: string) => {
-            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-          });
-        }
-      });
+      setPosts(processedPosts);
       
-      const categoryList: BlogCategory[] = Object.entries(tagCounts)
-        .map(([name, count]) => ({
-          name,
-          count,
-          slug: name.toLowerCase().replace(/\s+/g, '-')
-        }))
-        .sort((a, b) => b.count - a.count);
+      // Set featured posts (posts marked as featured, or top 3 if none featured)
+      const featured = processedPosts.filter(post => post.is_featured);
+      setFeaturedPosts(featured.length > 0 ? featured.slice(0, 3) : processedPosts.slice(0, 3));
       
-      setCategories(categoryList);
-    } catch (error) {
-      console.error('Error fetching blog data:', error);
+    } catch (err) {
+      console.error('❌ Error fetching blog data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load blog posts');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchBlogData();
+    setRefreshing(false);
+  };
+
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'No date';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -140,11 +122,37 @@ export default function BlogPage() {
     });
   };
 
-  const estimateReadingTime = (content: string) => {
+  const estimateReadingTime = (content: string | any) => {
+    if (!content) return 1;
     const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
+    const textContent = typeof content === 'string' ? content : JSON.stringify(content);
+    const wordCount = textContent.split(/\s+/).length;
     return Math.ceil(wordCount / wordsPerMinute);
   };
+
+  const handlePostClick = async (postId: string) => {
+    // Increment view count when clicking a post
+    try {
+      await supabase
+        .from('blog_posts')
+        .update({ views: supabase.sql`views + 1` })
+        .eq('id', postId);
+    } catch (error) {
+      console.error('Error updating view count:', error);
+    }
+  };
+
+  // Filter posts based on search
+  const filteredPosts = posts.filter(post => {
+    if (!searchQuery.trim()) return true;
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      post.title.toLowerCase().includes(searchLower) ||
+      post.excerpt?.toLowerCase().includes(searchLower) ||
+      (typeof post.content === 'string' && post.content.toLowerCase().includes(searchLower)) ||
+      post.author?.toLowerCase().includes(searchLower)
+    );
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -161,7 +169,7 @@ export default function BlogPage() {
             </p>
             
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto relative">
+            <div className="max-w-2xl mx-auto relative mb-4">
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <input
@@ -173,162 +181,178 @@ export default function BlogPage() {
                 />
               </div>
             </div>
+            
+            {/* Refresh Button */}
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              {refreshing ? 'Refreshing...' : 'Refresh Posts'}
+            </button>
           </div>
         </div>
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading blog posts...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-16">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-8 max-w-2xl mx-auto">
+              <div className="text-red-600 text-xl mb-4">❌ {error}</div>
+              <p className="text-red-600 mb-6">This usually means:</p>
+              <ul className="text-left text-red-600 mb-6 space-y-2">
+                <li>• Your blog_posts table needs the database fix</li>
+                <li>• No posts have been published yet</li>
+                <li>• There's a connection issue</li>
+              </ul>
+              <div className="space-y-3">
+                <button 
+                  onClick={fetchBlogData}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors mr-4"
+                >
+                  Try Again
+                </button>
+                <a 
+                  href="/admin/content/blog" 
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Go to Admin Panel
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* No Posts State */}
+        {!loading && !error && filteredPosts.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <MessageCircle className="w-12 h-12 text-muted-foreground" />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-4">
+              {searchQuery ? `No posts found for "${searchQuery}"` : 'No blog posts yet'}
+            </h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              {searchQuery 
+                ? 'Try adjusting your search terms or clear the search to see all posts.' 
+                : 'Create and publish your first blog post in the admin panel to get started!'}
+              </p>
+            <div className="space-x-4">
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="px-4 py-2 text-muted-foreground hover:text-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+                >
+                  Clear Search
+                </button>
+              )}
+              <a
+                href="/admin/content/blog/new"
+                className="inline-flex items-center px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
+                Create First Post
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Featured Posts Section */}
-        {featuredPosts.length > 0 && currentPage === 1 && !searchQuery && !selectedCategory && (
+        {!loading && !error && featuredPosts.length > 0 && !searchQuery && (
           <section className="mb-16">
-            <h2 className="text-3xl font-bold text-foreground mb-8">Featured Stories</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-8 flex items-center gap-2">
+              ⭐ Featured Stories
+            </h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {featuredPosts.map((post) => (
-                <FeaturedPostCard key={post.id} post={post} />
+                <FeaturedPostCard key={post.id} post={post} onPostClick={handlePostClick} />
               ))}
             </div>
           </section>
         )}
 
-        {/* Filters and Sort */}
-        <div className="flex flex-col lg:flex-row gap-8 mb-12">
-          {/* Categories Sidebar */}
-          <aside className="lg:w-80">
-            <div className="glass-card-strong rounded-xl p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Categories</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    !selectedCategory 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                >
-                  All Posts
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.slug}
-                    onClick={() => setSelectedCategory(category.name)}
-                    className={`w-full text-left px-4 py-2 rounded-lg transition-colors flex items-center justify-between ${
-                      selectedCategory === category.name 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <span>{category.name}</span>
-                    <span className="text-xs">{category.count}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Sort Options */}
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Sort By</h3>
-                <div className="space-y-2">
-                  {[
-                    { key: 'latest', label: 'Latest Posts', icon: Calendar },
-                    { key: 'popular', label: 'Most Viewed', icon: Eye },
-                    { key: 'trending', label: 'Most Liked', icon: TrendingUp }
-                  ].map(({ key, label, icon: Icon }) => (
-                    <button
-                      key={key}
-                      onClick={() => setSortBy(key as typeof sortBy)}
-                      className={`w-full text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                        sortBy === key 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* All Posts Section */}
+        {!loading && !error && filteredPosts.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-foreground">
+                {searchQuery ? `Search Results (${filteredPosts.length})` : 'Latest Articles'}
+              </h2>
+              <p className="text-muted-foreground">
+                {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''} found
+              </p>
             </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1">
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <BlogPostSkeleton key={index} />
-                ))}
-              </div>
-            ) : posts.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-12 h-12 text-muted-foreground" />
-                </div>
-                <h3 className="text-xl font-semibold text-foreground mb-2">No posts found</h3>
-                <p className="text-muted-foreground">
-                  {searchQuery ? `No results for "${searchQuery}"` : 'No blog posts available yet.'}
-                </p>
-              </div>
-            ) : (
-              <>
-                {/* Posts Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-                  {posts.map((post) => (
-                    <BlogPostCard key={post.id} post={post} />
-                  ))}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <Pagination 
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                  />
-                )}
-              </>
-            )}
-          </main>
-        </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredPosts.map((post) => (
+                <BlogPostCard key={post.id} post={post} onPostClick={handlePostClick} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
 }
 
 // Featured Post Card Component
-function FeaturedPostCard({ post }: { post: BlogPost }) {
-  const estimateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+function FeaturedPostCard({ post, onPostClick }: { post: BlogPost; onPostClick: (id: string) => void }) {
+  const getImageUrl = (post: BlogPost) => {
+    return post.featured_image || post.cover_url || '/api/placeholder/600/400';
   };
 
   return (
-    <Link to={`/blog/${post.slug}`} className="group">
-      <article className="glass-card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
+    <Link 
+      to={`/blog/${post.slug}`} 
+      className="group" 
+      onClick={() => onPostClick(post.id)}
+    >
+      <article className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
         <div className="aspect-video bg-muted overflow-hidden">
           <img
-            src={post.featured_image || '/api/placeholder/600/400'}
+            src={getImageUrl(post)}
             alt={post.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.currentTarget.src = '/api/placeholder/600/400';
+            }}
           />
         </div>
         <div className="p-6">
+          {post.is_featured && (
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full mb-3">
+              ⭐ Featured
+            </div>
+          )}
+          
           <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
             <div className="flex items-center gap-1">
               <Calendar className="w-4 h-4" />
-              {new Date(post.published_at).toLocaleDateString()}
+              {formatDate(post.published_at)}
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
               {post.reading_time || estimateReadingTime(post.content)} min read
             </div>
           </div>
-          <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+          
+          <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
             {post.title}
           </h3>
+          
           <p className="text-muted-foreground mb-4 line-clamp-3">
-            {post.excerpt}
+            {post.excerpt || (typeof post.content === 'string' ? post.content.substring(0, 150) + '...' : 'No preview available')}
           </p>
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
@@ -340,7 +364,10 @@ function FeaturedPostCard({ post }: { post: BlogPost }) {
                 {post.likes_count || 0}
               </div>
             </div>
-            <span className="text-primary font-medium">Read More →</span>
+            <span className="text-primary font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
+              Read More 
+              <ChevronRight className="w-4 h-4" />
+            </span>
           </div>
         </div>
       </article>
@@ -349,58 +376,50 @@ function FeaturedPostCard({ post }: { post: BlogPost }) {
 }
 
 // Regular Blog Post Card Component
-function BlogPostCard({ post }: { post: BlogPost }) {
-  const estimateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+function BlogPostCard({ post, onPostClick }: { post: BlogPost; onPostClick: (id: string) => void }) {
+  const getImageUrl = (post: BlogPost) => {
+    return post.featured_image || post.cover_url || '/api/placeholder/400/250';
   };
 
   return (
-    <Link to={`/blog/${post.slug}`} className="group">
-      <article className="glass-card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
+    <Link 
+      to={`/blog/${post.slug}`} 
+      className="group"
+      onClick={() => onPostClick(post.id)}
+    >
+      <article className="bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 h-full">
         <div className="aspect-video bg-muted overflow-hidden">
           <img
-            src={post.featured_image || '/api/placeholder/400/250'}
+            src={getImageUrl(post)}
             alt={post.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.currentTarget.src = '/api/placeholder/400/250';
+            }}
           />
         </div>
         <div className="p-6">
-          {/* Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div className="flex items-center gap-2 mb-3">
-              {post.tags.slice(0, 2).map((tag, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <User className="w-4 h-4" />
+              {post.author}
             </div>
-          )}
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Calendar className="w-4 h-4" />
+              {formatDate(post.published_at)}
+            </div>
+          </div>
 
           <h3 className="text-lg font-bold text-foreground mb-3 group-hover:text-primary transition-colors line-clamp-2">
             {post.title}
           </h3>
           
           <p className="text-muted-foreground mb-4 line-clamp-3">
-            {post.excerpt || post.content.substring(0, 120) + '...'}
+            {post.excerpt || (typeof post.content === 'string' ? post.content.substring(0, 120) + '...' : 'No preview available')}
           </p>
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <User className="w-4 h-4" />
-                {post.author || 'Zoroastervers'}
-              </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                {post.reading_time || estimateReadingTime(post.content)} min
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
                 {post.views || 0}
@@ -409,7 +428,15 @@ function BlogPostCard({ post }: { post: BlogPost }) {
                 <Heart className="w-4 h-4" />
                 {post.likes_count || 0}
               </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {post.reading_time || estimateReadingTime(post.content)}m
+              </div>
             </div>
+            <span className="text-primary font-medium group-hover:gap-2 flex items-center gap-1 transition-all">
+              Read
+              <ChevronRight className="w-4 h-4" />
+            </span>
           </div>
         </div>
       </article>
@@ -417,241 +444,20 @@ function BlogPostCard({ post }: { post: BlogPost }) {
   );
 }
 
-// Loading Skeleton Component
-function BlogPostSkeleton() {
-  return (
-    <div className="glass-card rounded-xl overflow-hidden animate-pulse">
-      <div className="aspect-video bg-muted"></div>
-      <div className="p-6">
-        <div className="flex gap-2 mb-3">
-          <div className="h-6 w-16 bg-muted rounded-full"></div>
-          <div className="h-6 w-20 bg-muted rounded-full"></div>
-        </div>
-        <div className="h-6 bg-muted rounded mb-3"></div>
-        <div className="h-4 bg-muted rounded mb-2"></div>
-        <div className="h-4 bg-muted rounded mb-4 w-3/4"></div>
-        <div className="flex justify-between">
-          <div className="h-4 w-24 bg-muted rounded"></div>
-          <div className="h-4 w-16 bg-muted rounded"></div>
-        </div>
-      </div>
-    </div>
-  );
-}
+// Helper functions
+const formatDate = (dateString: string) => {
+  if (!dateString) return 'No date';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
 
-// Pagination Component
-function Pagination({ currentPage, totalPages, onPageChange }: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) {
-  const getPageNumbers = () => {
-    const delta = 2;
-    const range = [];
-    const rangeWithDots = [];
-
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-      range.push(i);
-    }
-
-    if (currentPage - delta > 2) {
-      rangeWithDots.push(1, '...');
-    } else {
-      rangeWithDots.push(1);
-    }
-
-    rangeWithDots.push(...range);
-
-    if (currentPage + delta < totalPages - 1) {
-      rangeWithDots.push('...', totalPages);
-    } else {
-      rangeWithDots.push(totalPages);
-    }
-
-    return rangeWithDots;
-  };
-
-  if (totalPages <= 1) return null;
-
-  return (
-    <nav className="flex justify-center" aria-label="Pagination">
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Previous
-        </button>
-
-        {getPageNumbers().map((page, index) => (
-          <React.Fragment key={index}>
-            {page === '...' ? (
-              <span className="px-4 py-2 text-sm text-muted-foreground">...</span>
-            ) : (
-              <button
-                onClick={() => onPageChange(page as number)}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                  currentPage === page
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground bg-card border border-border hover:bg-muted'
-                }`}
-              >
-                {page}
-              </button>
-            )}
-          </React.Fragment>
-        ))}
-
-        <button
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="px-4 py-2 text-sm font-medium text-muted-foreground bg-card border border-border rounded-lg hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          Next
-        </button>
-      </div>
-    </nav>
-  );
-}
-
-// Mock data for development
-function getMockPosts(): BlogPost[] {
-  return [
-    {
-      id: '1',
-      title: 'The Ancient Wisdom of Zoroaster: A Journey Through Time',
-      excerpt: 'Explore the profound teachings of Zoroaster and their relevance in modern times. Discover how ancient wisdom shapes our understanding of good versus evil.',
-      content: 'The teachings of Zoroaster have shaped civilizations for over 3,000 years. In this comprehensive exploration, we delve into the core principles of Zoroastrianism and examine how these ancient beliefs continue to influence modern thought and spirituality. From the concept of free will to the eternal struggle between light and darkness, Zoroastrian philosophy offers profound insights into the human condition and our relationship with the divine.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Dr. Sarah Mirza',
-      published_at: new Date(Date.now() - 86400000).toISOString(),
-      views: 1247,
-      likes_count: 89,
-      comments_count: 23,
-      slug: 'ancient-wisdom-of-zoroaster',
-      tags: ['History', 'Philosophy', 'Religion'],
-      reading_time: 8
-    },
-    {
-      id: '2',
-      title: 'Fire Temples: Sacred Architecture of the Zoroastrian Faith',
-      excerpt: 'An architectural journey through the sacred fire temples that have served as centers of worship for thousands of years.',
-      content: 'Fire temples represent the heart of Zoroastrian worship. These sacred structures, with their eternal flames, tell stories of devotion, community, and architectural brilliance spanning millennia. From the great fire of Yazd to the Atash Bahrams of Mumbai, each temple carries unique historical significance.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Prof. Jamshid Rostami',
-      published_at: new Date(Date.now() - 172800000).toISOString(),
-      views: 2156,
-      likes_count: 134,
-      comments_count: 67,
-      slug: 'fire-temples-sacred-architecture',
-      tags: ['Architecture', 'Sacred Sites', 'Culture'],
-      reading_time: 12
-    },
-    {
-      id: '3',
-      title: 'The Gathas: Poetry of Divine Inspiration',
-      excerpt: 'Dive into the beautiful hymns composed by Zoroaster himself, exploring their poetic structure and spiritual significance.',
-      content: 'The Gathas represent the oldest part of the Avesta and contain the direct words of Zoroaster. These seventeen hymns offer profound insights into the prophet\'s teachings and relationship with Ahura Mazda. Their poetic beauty and theological depth continue to inspire scholars and believers alike.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Dr. Farah Kermani',
-      published_at: new Date(Date.now() - 259200000).toISOString(),
-      views: 892,
-      likes_count: 67,
-      comments_count: 31,
-      slug: 'gathas-poetry-divine-inspiration',
-      tags: ['Scripture', 'Poetry', 'Theology'],
-      reading_time: 15
-    },
-    {
-      id: '4',
-      title: 'Modern Zoroastrian Communities Around the World',
-      excerpt: 'Meet the vibrant Zoroastrian communities that keep ancient traditions alive in our modern world.',
-      content: 'From Mumbai to Toronto, London to Tehran, Zoroastrian communities continue to thrive while preserving their ancient heritage. This article explores how modern Zoroastrians navigate tradition and contemporary life, maintaining their identity while contributing to diverse societies worldwide.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Reza Dalal',
-      published_at: new Date(Date.now() - 345600000).toISOString(),
-      views: 1683,
-      likes_count: 203,
-      comments_count: 89,
-      slug: 'modern-zoroastrian-communities',
-      tags: ['Community', 'Modern Life', 'Global'],
-      reading_time: 10
-    },
-    {
-      id: '5',
-      title: 'The Symbolism of Light and Darkness in Zoroastrian Thought',
-      excerpt: 'Understanding the fundamental dualism that forms the core of Zoroastrian theology and its impact on world religions.',
-      content: 'The eternal struggle between light and darkness, good and evil, forms the foundation of Zoroastrian thought. This exploration examines how this dualistic worldview has influenced major world religions and philosophical systems, from Christianity to Buddhism.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Prof. Cyrus Bahram',
-      published_at: new Date(Date.now() - 432000000).toISOString(),
-      views: 756,
-      likes_count: 45,
-      comments_count: 18,
-      slug: 'symbolism-light-darkness',
-      tags: ['Theology', 'Symbolism', 'Philosophy'],
-      reading_time: 7
-    },
-    {
-      id: '6',
-      title: 'Celebrations and Festivals: The Zoroastrian Calendar',
-      excerpt: 'Discover the rich tradition of Zoroastrian festivals and celebrations that mark the passage of seasons and spiritual milestones.',
-      content: 'The Zoroastrian calendar is filled with meaningful celebrations that connect believers to the natural world and spiritual realm. From Nowruz to the six seasonal festivals, each celebration carries deep significance and brings communities together in joyous observance.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Shireen Irani',
-      published_at: new Date(Date.now() - 518400000).toISOString(),
-      views: 1124,
-      likes_count: 78,
-      comments_count: 42,
-      slug: 'celebrations-festivals-calendar',
-      tags: ['Festivals', 'Culture', 'Traditions'],
-      reading_time: 9
-    },
-    {
-      id: '7',
-      title: 'Women in Zoroastrianism: Equality and Spiritual Leadership',
-      excerpt: 'Exploring the progressive role of women in Zoroastrian society and their contributions to the faith throughout history.',
-      content: 'Zoroastrianism has long recognized the spiritual equality of women and men. This article examines the roles of women as priests, scholars, and community leaders, highlighting their significant contributions to preserving and advancing the faith across generations.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Dr. Dina Mehta',
-      published_at: new Date(Date.now() - 604800000).toISOString(),
-      views: 934,
-      likes_count: 112,
-      comments_count: 56,
-      slug: 'women-in-zoroastrianism',
-      tags: ['Gender Studies', 'History', 'Leadership'],
-      reading_time: 11
-    },
-    {
-      id: '8',
-      title: 'The Avesta: Understanding Zoroastrian Sacred Texts',
-      excerpt: 'A comprehensive guide to the Avesta, the primary collection of religious texts of Zoroastrianism.',
-      content: 'The Avesta comprises the religious texts of Zoroastrianism, composed in the Avestan language. This guide explores the structure, content, and significance of these sacred writings, from the Yasna to the Yashts, providing insight into Zoroastrian liturgy and belief.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Prof. Ardashir Mistri',
-      published_at: new Date(Date.now() - 691200000).toISOString(),
-      views: 678,
-      likes_count: 34,
-      comments_count: 19,
-      slug: 'avesta-sacred-texts',
-      tags: ['Scripture', 'Language', 'Literature'],
-      reading_time: 13
-    },
-    {
-      id: '9',
-      title: 'Environmental Ethics in Zoroastrian Teaching',
-      excerpt: 'How ancient Zoroastrian principles align with modern environmental consciousness and sustainability.',
-      content: 'Zoroastrianism\'s emphasis on the purity of the elements - earth, water, fire, and air - provides a foundation for environmental stewardship that feels remarkably contemporary. This article explores how these ancient teachings can guide modern environmental action.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Dr. Kaveh Farrokh',
-      published_at: new Date(Date.now() - 777600000).toISOString(),
-      views: 1456,
-      likes_count: 167,
-      comments_count: 73,
-      slug: 'environmental-ethics-teaching',
-      tags: ['Environment', 'Ethics', 'Modern Life'],
-      reading_time: 6
-    }
-  ];
-}
+const estimateReadingTime = (content: string | any) => {
+  if (!content) return 1;
+  const wordsPerMinute = 200;
+  const textContent = typeof content === 'string' ? content : JSON.stringify(content);
+  const wordCount = textContent.split(/\s+/).length;
+  return Math.ceil(wordCount / wordsPerMinute);
+};

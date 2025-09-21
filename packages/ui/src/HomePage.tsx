@@ -171,11 +171,12 @@ const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spin
     );
 };
 
-// 🔥 BULLETPROOF Latest Posts component
+// 🔥 ENHANCED Latest Posts component with comprehensive debugging
 const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts, supabaseClient }) => {
     const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
     const [loading, setLoading] = useState(true);
     const [usingSampleData, setUsingSampleData] = useState(true); // Default to sample data
+    const [debugInfo, setDebugInfo] = useState('');
 
     // GUARANTEED fallback posts - Always professional content
     const fallbackPosts: BlogPost[] = [
@@ -223,27 +224,39 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
     useEffect(() => {
         const fetchBlogPosts = async () => {
             console.log('🔥 UI LatestPosts: Starting blog posts fetch...');
+            console.log('📋 UI LatestPosts: Props received:', {
+                hasSupabaseClient: !!supabaseClient,
+                supabaseClientType: typeof supabaseClient,
+                postsLength: posts?.length || 0
+            });
             
             // Always start with fallback posts for guaranteed content
             setBlogPosts(fallbackPosts);
             setUsingSampleData(true);
+            setDebugInfo('Starting with fallback posts');
             
             try {
                 // Try to get supabase client from multiple sources
                 let client = supabaseClient;
+                console.log('🔍 UI LatestPosts: Checking supabase client from prop:', !!client);
                 
                 // Try global window if client not passed as prop
                 if (!client && typeof window !== 'undefined') {
                     client = (window as any).__supabase || (window as any).supabase;
+                    console.log('🔍 UI LatestPosts: Checking global window client:', !!client);
                 }
                 
                 if (!client) {
                     console.log('📦 UI LatestPosts: No supabase client available, keeping fallback posts');
+                    setDebugInfo('No supabase client available');
                     setLoading(false);
                     return;
                 }
 
-                console.log('📋 UI LatestPosts: Client found, querying blog_posts table...');
+                console.log('📋 UI LatestPosts: ✅ Client found! Type:', typeof client);
+                console.log('📋 UI LatestPosts: Client has ".from" method:', typeof client.from);
+                setDebugInfo('Supabase client found, querying...');
+
                 const { data, error } = await client
                     .from('blog_posts')
                     .select(`
@@ -257,7 +270,8 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                         published_at,
                         views,
                         category,
-                        reading_time
+                        reading_time,
+                        status
                     `)
                     .eq('status', 'published')
                     .not('published_at', 'is', null)
@@ -268,23 +282,29 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                     hasData: !!data, 
                     dataLength: data?.length || 0, 
                     hasError: !!error,
-                    errorMessage: error?.message 
+                    errorMessage: error?.message,
+                    firstPostTitle: data?.[0]?.title,
+                    firstPostStatus: data?.[0]?.status 
                 });
 
                 if (error) {
                     console.error('❌ UI LatestPosts: Database error:', error.message);
+                    setDebugInfo(`Database error: ${error.message}`);
                     // Keep fallback posts, don't change anything
                 } else if (data && data.length > 0) {
-                    console.log(`✅ UI LatestPosts: Found ${data.length} real blog posts! Replacing fallback content.`);
-                    console.log('📋 UI LatestPosts: First post title:', data[0]?.title);
+                    console.log(`✅ UI LatestPosts: SUCCESS! Found ${data.length} real blog posts! Replacing fallback content.`);
+                    console.log('📋 UI LatestPosts: Post titles:', data.map(p => p.title));
                     setBlogPosts(data as BlogPost[]);
                     setUsingSampleData(false);
+                    setDebugInfo(`Found ${data.length} real posts`);
                 } else {
                     console.log('📝 UI LatestPosts: No published posts found, keeping fallback posts');
+                    setDebugInfo('No published posts found');
                     // Keep fallback posts
                 }
             } catch (err) {
                 console.error('💥 UI LatestPosts: Critical error:', err);
+                setDebugInfo(`Critical error: ${(err as Error).message}`);
                 // Keep fallback posts, don't change anything
             } finally {
                 setLoading(false);
@@ -293,7 +313,7 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
         };
 
         fetchBlogPosts();
-    }, [supabaseClient]);
+    }, [supabaseClient, posts]);
 
     const formatDate = (dateString: string) => {
         try {
@@ -324,6 +344,7 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
                         <p className="text-gray-600">Loading latest articles...</p>
+                        <p className="text-xs text-gray-500 mt-2">{debugInfo}</p>
                     </div>
                 </div>
             </section>
@@ -335,12 +356,13 @@ const LatestPosts: React.FC<{ posts: Post[], supabaseClient?: any }> = ({ posts,
         <section className={styles.zrSection}>
             <h2 className={styles.zrH2}>Latest News & Updates</h2>
             
-            {/* Debug info */}
+            {/* Enhanced Debug info */}
             {process.env.NODE_ENV === 'development' && (
                 <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
                     <strong>🔍 UI Debug:</strong> {blogPosts.length} posts, 
-                    Sample data: {usingSampleData ? 'Yes' : 'No'}, 
-                    Client: {!!supabaseClient ? 'Available' : 'Missing'}
+                    Sample: {usingSampleData ? 'Yes' : 'No'}, 
+                    Client: {!!supabaseClient ? 'Available' : 'Missing'}, 
+                    Status: {debugInfo}
                 </div>
             )}
             
@@ -522,8 +544,10 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   console.log('🏠 UI HomePage: Rendering with', {
     hasSupabaseClient: !!supabaseClient,
+    supabaseClientType: typeof supabaseClient,
     postsCount: latestPosts.length,
-    spinsLeft: currentSpinsLeft
+    spinsLeft: currentSpinsLeft,
+    homepageDataLength: homepageData.length
   });
 
   return (
@@ -561,7 +585,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
       </section>
       
-      {/* 🔥 THE ACTUAL "Latest News & Updates" section - GUARANTEED TO SHOW CONTENT */}
+      {/* 🔥 THE ACTUAL "Latest News & Updates" section - WITH ENHANCED DEBUGGING */}
       <LatestPosts posts={latestPosts || []} supabaseClient={supabaseClient} />
       
       <LatestReleases releases={releaseData || []} />

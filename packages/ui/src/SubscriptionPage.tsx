@@ -116,28 +116,26 @@ export const SubscriptionPage: React.FC = () => {
               >
                 
                 
-                <div className={`
-                  bg-white/90 dark:bg-gray-800/95 backdrop-blur-sm
-                  border-2 rounded-3xl p-8 h-full
-                  transition-all duration-500 group-hover:-translate-y-2
-                  ${
-                    plan.popular 
-                      ? 'border-yellow-400 shadow-2xl shadow-yellow-500/25 bg-gradient-to-b from-yellow-50/90 to-white/90 dark:from-yellow-900/30 dark:to-gray-800/95' 
-                      : 'border-gray-200 dark:border-gray-600 shadow-xl hover:shadow-2xl hover:border-blue-400 dark:hover:border-blue-500'
-                  }
-                `}>
-                  {/* Plan Header */}
+                                <div className={`
+                                  bg-card dark:bg-card backdrop-blur-sm
+                                  border rounded-3xl p-8 h-full
+                                  transition-all duration-500 group-hover:-translate-y-2
+                                  ${
+                                    plan.popular
+                                      ? 'border-yellow-400 shadow-2xl shadow-yellow-500/25 bg-gradient-to-b from-yellow-50/90 to-white/90 dark:from-yellow-900/30 dark:to-gray-800/95'
+                                      : 'border-border shadow-xl hover:shadow-2xl hover:border-blue-400 dark:hover:border-blue-500'
+                                  }
+                                `}>                  {/* Plan Header */}
                   <div className="text-center mb-8">
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    <h3 className="text-2xl font-bold text-foreground mb-4">
                       {plan.name}
                     </h3>
                     
                     {plan.highlight && (
                       <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium mb-4 ${
-                        plan.popular 
-                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
-                          : 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200'
-                      }`}>
+                                              plan.popular 
+                                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200'
+                                                : 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'                      }`}>
                         {plan.highlight}
                       </div>
                     )}
@@ -166,18 +164,18 @@ export const SubscriptionPage: React.FC = () => {
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
                           plan.popular 
                             ? 'bg-yellow-100 dark:bg-yellow-900/50' 
-                            : 'bg-blue-100 dark:bg-blue-900/50'
+                            : 'bg-primary/10 dark:bg-primary/20'
                         }`}>
                           <CheckCircle 
                             className={`${
                               plan.popular 
                                 ? 'text-yellow-600 dark:text-yellow-300' 
-                                : 'text-blue-600 dark:text-blue-300'
+                                : 'text-primary'
                             }`} 
                             size={16} 
                           />
                         </div>
-                        <span className="text-gray-800 dark:text-gray-100 font-medium leading-relaxed">{feature}</span>
+                        <span className="text-muted-foreground font-medium leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>

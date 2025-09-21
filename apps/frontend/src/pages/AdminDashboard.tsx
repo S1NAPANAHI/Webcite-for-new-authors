@@ -125,15 +125,13 @@ interface QuickActionProps {
 
 function QuickAction({ title, description, icon: Icon, href, color }: QuickActionProps) {
   return (
-    <div className="block p-4 glass-card rounded-lg hover:shadow-sm transition-all duration-200">
-      <div className="flex items-start space-x-3">
-        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center flex-shrink-0`}>
-          <Icon className="w-5 h-5 text-white" />
+    <Link to={href} className="group">
+      <div className="block p-4 glass-card rounded-lg hover:shadow-sm transition-all duration-200">
+        <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-200`}>
+          <Icon className="w-6 h-6 text-white" />
         </div>
-        <div className="flex-1 min-w-0">
-          <h4 className="text-sm font-medium text-foreground truncate">{title}</h4>
-          <p className="text-xs text-muted-foreground mt-1">{description}</p>
-        </div>
+        <h4 className="text-sm font-medium text-foreground truncate">{title}</h4>
+        <p className="text-xs text-muted-foreground mt-1">{description}</p>
       </div>
     </Link>
   );
@@ -351,7 +349,7 @@ export default function AdminDashboard() {
                 <div className="flex-1">
                   <h4 className="font-medium text-foreground">{book.title}</h4>
                   <div className="flex items-center space-x-3 mt-1">
-                    <span className={\`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium \${
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                       book.state === 'published' 
                         ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
                         : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'

@@ -157,12 +157,12 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
       {/* Header with Welcome and Sign Out */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Account Dashboard</h1>
-          <p className="text-gray-400">Welcome back, {username || 'User'}</p>
+          <h1 className="text-2xl font-bold text-foreground">Account Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back, {username || 'User'}</p>
         </div>
         <button
           onClick={onSignOut}
-          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-700/50 rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors"
         >
           <LogOut size={16} />
           Sign Out
@@ -171,12 +171,11 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
 
       {/* Status Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Subscription Status */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+<div className="glass-card rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-white">Subscription Status</h3>
+                <h3 className="text-lg font-semibold text-foreground">Subscription Status</h3>
                 {isLoadingSubscription ? (
                   <RefreshCcw size={16} className="text-gray-400 animate-spin" />
                 ) : (
@@ -191,7 +190,7 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
               </div>
               <div className="flex items-center mt-2">
                 <span className={`w-3 h-3 rounded-full mr-2 ${subscriptionInfo.color}`}></span>
-                <span className="text-white">{subscriptionInfo.displayName}</span>
+                <span className="text-foreground">{subscriptionInfo.displayName}</span>
               </div>
               {actualIsSubscribed && actualSubscriptionStatus === 'active' && (
                 <div className="mt-2 space-y-1">
@@ -239,13 +238,13 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
         </div>
 
         {/* Beta Reader Status */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+        <div className="glass-card rounded-xl p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-white">Beta Reader Program</h3>
+              <h3 className="text-lg font-semibold text-foreground">Beta Reader Program</h3>
               <div className="flex items-center mt-2">
                 <span className={`w-3 h-3 rounded-full mr-2 ${betaReaderInfo.color}`}></span>
-                <span className="text-white">{betaReaderInfo.text}</span>
+                <span className="text-foreground">{betaReaderInfo.text}</span>
               </div>
               {betaReaderStatus === 'not_applied' && (
                 <p className="text-sm text-gray-400 mt-1">Apply to get early access to new content</p>
@@ -274,11 +273,11 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-background-light/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+          <div key={index} className="glass-card rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-white">{stat.value}</p>
-                <p className="text-sm text-gray-400 mt-1">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
               </div>
               <div className="p-2 rounded-lg bg-primary/10">
                 {stat.icon}
@@ -289,9 +288,9 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-background-light/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
+      <div className="glass-card rounded-xl p-6 overflow-hidden">
         <div className="p-6">
-          <h2 className="text-xl font-semibold text-white mb-6">Recent Activity</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-6">Recent Activity</h2>
           <div className="space-y-4">
             {activities && activities.length > 0 ? (
               activities.map((activity) => (
@@ -315,8 +314,8 @@ export const OverviewContent: React.FC<{ userId: string } & Omit<UserStatus, 'us
                       </div>
                     )}
                     <div>
-                      <h3 className="font-medium text-white">{activity.item_title}</h3>
-                      <p className="text-sm text-gray-400">
+                      <h3 className="font-medium text-foreground">{activity.item_title}</h3>
+                      <p className="text-sm text-muted-foreground">
                         {activity.status === 'completed' ? 'Completed' : 'In Progress'}
                       </p>
                     </div>
@@ -1562,7 +1561,7 @@ const ProfileDashboard = () => {
 
   if (isLoading || (isAuthenticated && (!userProfile || isLoadingStats || isLoadingSubscription))) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background-dark to-background-darker flex items-center justify-center">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mx-auto"></div>
           <p className="mt-4 text-gray-400">Loading your profile...</p>
@@ -1577,14 +1576,14 @@ const ProfileDashboard = () => {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background-dark to-background-darker text-text-light">
+    <div className="min-h-screen bg-background text-foreground">
 
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
           <aside className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-background-light/50 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-800">
+            <div className="glass-card-strong rounded-xl overflow-hidden">
               {/* Profile Card */}
               <div className="p-6 text-center border-b border-gray-800">
                 <div className="relative inline-block">
@@ -1595,8 +1594,8 @@ const ProfileDashboard = () => {
                     <UserIcon size={16} />
                   </button>
                 </div>
-                <h2 className="mt-4 text-xl font-semibold text-white">{userProfile?.display_name || userProfile?.username}</h2>
-                <p className="text-sm text-gray-400">{isAdmin ? 'Admin' : 'Member'}</p>
+                <h2 className="mt-4 text-xl font-semibold text-foreground">{userProfile?.display_name || userProfile?.username}</h2>
+                <p className="text-sm text-muted-foreground">{isAdmin ? 'Admin' : 'Member'}</p>
               </div>
 
               {/* Navigation */}
@@ -1611,7 +1610,7 @@ const ProfileDashboard = () => {
                           `flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 ${
                             isActive
                               ? 'bg-primary/10 text-primary'
-                              : 'text-gray-300 hover:bg-gray-800/50 hover:text-white'
+                              : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                           }`
                         }
                       >
@@ -1629,7 +1628,7 @@ const ProfileDashboard = () => {
 
             {/* Stats Card - Only show on overview */}
             {activeTab === 'overview' && (
-              <div className="mt-6 bg-background-light/50 backdrop-blur-sm rounded-xl p-6 border border-gray-800">
+              <div className="mt-6 bg-card/80 backdrop-blur-md rounded-xl p-6 border border-border shadow-lg">
                 <h3 className="text-sm font-medium text-gray-400 mb-4">YOUR STATS</h3>
                 <div className="space-y-4">
                   <div className="flex items-center">
@@ -1637,8 +1636,8 @@ const ProfileDashboard = () => {
                       <BookOpen size={16} />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-300">Books Read</p>
-                      <p className="text-lg font-semibold text-white">{displayProfile.booksRead}</p>
+                      <p className="text-sm font-medium text-muted-foreground">Books Read</p>
+                      <p className="text-lg font-semibold text-foreground">{displayProfile.booksRead}</p>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -1646,8 +1645,8 @@ const ProfileDashboard = () => {
                       <Clock size={16} />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-300">Reading Hours</p>
-                      <p className="text-lg font-semibold text-white">{displayProfile.readingHours}h</p>
+                      <p className="text-sm font-medium text-muted-foreground">Reading Hours</p>
+                      <p className="text-lg font-semibold text-foreground">{displayProfile.readingHours}h</p>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -1655,8 +1654,8 @@ const ProfileDashboard = () => {
                       <BookmarkIcon size={16} />
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-300">Currently Reading</p>
-                      <p className="text-lg font-semibold text-white">{displayProfile.currentlyReading || 'None'}</p>
+                      <p className="text-sm font-medium text-muted-foreground">Currently Reading</p>
+                      <p className="text-lg font-semibold text-foreground">{displayProfile.currentlyReading || 'None'}</p>
                     </div>
                   </div>
                 </div>
@@ -1666,7 +1665,7 @@ const ProfileDashboard = () => {
 
           {/* Main Content */}
           <main className="flex-1">
-            <div className="bg-background-light/50 backdrop-blur-sm rounded-xl border border-gray-800 overflow-hidden">
+<div className="glass-card-strong rounded-xl overflow-hidden">
               <div className="p-6">
                 <Routes>
                   <Route

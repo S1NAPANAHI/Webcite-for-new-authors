@@ -17,9 +17,7 @@ import {
   Search,
   Grid,
   List,
-  FolderPlus,
-  Trash2,
-  Check
+  Trash2
 } from 'lucide-react';
 
 interface FileRecord {
@@ -43,13 +41,6 @@ interface BlogTag {
   slug: string;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  count?: number;
-}
-
 const BlogPostEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -65,17 +56,10 @@ const BlogPostEditor = () => {
   const [author, setAuthor] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   
-  // ✅ ENHANCED: Category Management
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  
-  // Enhanced tag system
+  // ✅ SIMPLIFIED: Only tags system (category is first tag)
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState('');
   const [availableTags, setAvailableTags] = useState<BlogTag[]>([]);
-  const [newTagName, setNewTagName] = useState('');
-  const [isCreatingTag, setIsCreatingTag] = useState(false);
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [availablePosts, setAvailablePosts] = useState<any[]>([]);
   
@@ -103,90 +87,10 @@ const BlogPostEditor = () => {
 
   const loadInitialData = async () => {
     await Promise.all([
-      loadCategories(),
       loadTags(),
       loadAvailablePosts(),
       loadMediaFiles()
     ]);
-  };
-
-  // ✅ NEW: Load Categories
-  const loadCategories = async () => {
-    try {
-      // Get categories from existing blog posts
-      const { data: posts, error } = await supabase
-        .from('blog_posts')
-        .select('tags')
-        .neq('tags', null);
-      
-      if (error && error.code !== 'PGRST116') {
-        console.warn('Error loading posts for categories:', error);
-        return;
-      }
-      
-      const categoryMap = new Map<string, number>();
-      const categories: Category[] = [];
-      
-      // Extract categories from existing posts' tags
-      (posts || []).forEach((post: any) => {
-        let tags = [];
-        try {
-          // ✅ Handle both string and array tags
-          if (typeof post.tags === 'string' && post.tags.startsWith('[')) {
-            tags = JSON.parse(post.tags);
-          } else if (Array.isArray(post.tags)) {
-            tags = post.tags;
-          } else if (typeof post.tags === 'string' && post.tags) {
-            tags = [post.tags];
-          }
-        } catch {
-          tags = [];
-        }
-        
-        if (tags.length > 0) {
-          const category = tags[0]; // First tag is considered category
-          categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
-        }
-      });
-      
-      // Convert to categories array
-      categoryMap.forEach((count, name) => {
-        categories.push({
-          id: generateSlug(name),
-          name,
-          slug: generateSlug(name),
-          count
-        });
-      });
-      
-      // Add default categories if none exist
-      const defaultCategories = [
-        'History', 'Philosophy', 'Religion', 'Culture', 'Modern Life',
-        'Architecture', 'Scripture', 'Theology', 'Community'
-      ];
-      
-      defaultCategories.forEach(cat => {
-        const slug = generateSlug(cat);
-        if (!categories.find(c => c.slug === slug)) {
-          categories.push({
-            id: slug,
-            name: cat,
-            slug,
-            count: 0
-          });
-        }
-      });
-      
-      // Sort by usage and name
-      categories.sort((a, b) => {
-        if (a.count !== b.count) return (b.count || 0) - (a.count || 0);
-        return a.name.localeCompare(b.name);
-      });
-      
-      setAvailableCategories(categories);
-    } catch (error) {
-      console.warn('Error loading categories:', error);
-    }
   };
 
   const loadTags = async () => {
@@ -265,7 +169,7 @@ const BlogPostEditor = () => {
         setMetaTitle(data.meta_title || '');
         setMetaDescription(data.meta_description || '');
         
-        // ✅ ENHANCED: Load category from tags
+        // ✅ SIMPLIFIED: Load tags directly
         try {
           let tags = [];
           if (typeof data.tags === 'string' && data.tags.startsWith('[')) {
@@ -276,10 +180,7 @@ const BlogPostEditor = () => {
             tags = [data.tags];
           }
           
-          if (tags.length > 0) {
-            setSelectedCategory(tags[0]); // First tag is category
-            setSelectedTags(tags.slice(1)); // Rest are tags
-          }
+          setSelectedTags(tags);
         } catch (error) {
           console.warn('Error parsing post tags:', error);
         }
@@ -293,11 +194,8 @@ const BlogPostEditor = () => {
           .eq('blog_post_id', id);
         
         if (tagData && tagData.length > 0) {
-          setSelectedTags(prev => {
-            const existing = prev.map(t => t);
-            const additional = tagData.map((bt: any) => bt.tag_id).filter((tid: string) => !existing.includes(tid));
-            return [...existing, ...additional];
-          });
+          const additionalTags = tagData.map((bt: any) => bt.tag_id).filter((tid: string) => !selectedTags.includes(tid));
+          setSelectedTags(prev => [...prev, ...additionalTags]);
         }
       } catch (tagError) {
         console.warn('Blog post tags table may not exist yet');
@@ -323,65 +221,27 @@ const BlogPostEditor = () => {
     }
   };
 
-  // ✅ NEW: Create Category
-  const createNewCategory = async () => {
-    if (!newCategoryName.trim()) return;
-
-    try {
-      setIsCreatingCategory(true);
-      const categorySlug = generateSlug(newCategoryName);
-      
-      // Check if category already exists
-      if (availableCategories.find(c => c.slug === categorySlug)) {
-        alert('Category already exists!');
-        return;
-      }
-      
-      const newCategory: Category = {
-        id: categorySlug,
-        name: newCategoryName,
-        slug: categorySlug,
-        count: 0
-      };
-      
-      setAvailableCategories(prev => [newCategory, ...prev]);
-      setSelectedCategory(newCategoryName);
-      setNewCategoryName('');
-      setIsCreatingCategory(false);
-      
-      console.log('Created new category:', newCategory);
-    } catch (error) {
-      console.error('Error creating category:', error);
-      alert('Failed to create category');
-    } finally {
-      setIsCreatingCategory(false);
+  // ✅ SIMPLIFIED: Add tag function
+  const handleAddTag = () => {
+    const tagName = newTagInput.trim();
+    if (!tagName) return;
+    
+    // Don't add duplicate tags
+    if (selectedTags.includes(tagName)) {
+      setNewTagInput('');
+      return;
     }
+    
+    setSelectedTags(prev => [...prev, tagName]);
+    setNewTagInput('');
+    
+    console.log(`✅ Added tag: ${tagName}`);
   };
 
-  const createNewTag = async () => {
-    if (!newTagName.trim()) return;
-
-    try {
-      setIsCreatingTag(true);
-      const tagSlug = generateSlug(newTagName);
-      
-      const { data, error } = await supabase
-        .from('blog_tags')
-        .insert({ name: newTagName, slug: tagSlug })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setAvailableTags(prev => [...prev, data]);
-      setSelectedTags(prev => [...prev, data.id]);
-      setNewTagName('');
-    } catch (error) {
-      console.error('Error creating tag:', error);
-      alert('Failed to create tag. Make sure you ran the database setup first.');
-    } finally {
-      setIsCreatingTag(false);
-    }
+  // ✅ SIMPLIFIED: Remove tag function
+  const handleRemoveTag = (tagToRemove: string) => {
+    setSelectedTags(prev => prev.filter(tag => tag !== tagToRemove));
+    console.log(`❌ Removed tag: ${tagToRemove}`);
   };
 
   const getFileUrl = (file: FileRecord): string => {
@@ -397,7 +257,7 @@ const BlogPostEditor = () => {
     return '';
   };
 
-  // 🔥 CRITICAL FIX: Array handling for PostgreSQL
+  // 🔥 CRITICAL FIX: Simplified save function
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
 
@@ -405,20 +265,7 @@ const BlogPostEditor = () => {
       if (!user) throw new Error('Not authenticated');
       if (!title.trim()) throw new Error('Title is required');
 
-      // ✅ CRITICAL FIX: Properly format tags as PostgreSQL array
-      const combinedTags: string[] = [];
-      if (selectedCategory) {
-        combinedTags.push(selectedCategory);
-      }
-      // Add additional tags (excluding category if it's already in tags)
-      selectedTags.forEach(tag => {
-        const tagName = availableTags.find(t => t.id === tag)?.name || tag;
-        if (tagName !== selectedCategory) {
-          combinedTags.push(tagName);
-        }
-      });
-
-      console.log('🔄 Preparing post data with tags:', combinedTags);
+      console.log('🔄 Preparing post data with tags:', selectedTags);
 
       const postData = {
         title: title.trim(),
@@ -426,16 +273,16 @@ const BlogPostEditor = () => {
         content: typeof content === 'string' ? content : JSON.stringify(content),
         excerpt: excerpt || null,
         cover_url: coverUrl || null,
-        featured_image: coverUrl || null, // Sync both fields for compatibility
-        author: author || user.email || 'Zoroasterverse Team',
+        featured_image: coverUrl || null,
+        author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
         published_at: publishNow ? new Date().toISOString() : (status === 'published' ? new Date().toISOString() : null),
         is_featured: isFeatured,
         meta_title: metaTitle || null,
         meta_description: metaDescription || null,
-        // 🔥 CRITICAL FIX: Send as proper PostgreSQL array, NOT JSON string
-        tags: combinedTags.length > 0 ? combinedTags : null,
+        // 🔥 CRITICAL FIX: Send as proper PostgreSQL array
+        tags: selectedTags.length > 0 ? selectedTags : null,
         updated_at: new Date().toISOString()
       };
 
@@ -472,35 +319,6 @@ const BlogPostEditor = () => {
 
       console.log('✅ Post saved successfully:', response.data);
 
-      // Handle additional tag relationships (only if blog_post_tags table exists)
-      if (postId && postId !== 'new' && availableTags.length > 0) {
-        try {
-          // First, delete existing tag relationships
-          await supabase
-            .from('blog_post_tags')
-            .delete()
-            .eq('blog_post_id', postId);
-
-          // Then, insert new tag relationships
-          if (selectedTags.length > 0) {
-            const tagRelations = selectedTags.map(tagId => ({
-              blog_post_id: postId,
-              tag_id: tagId
-            }));
-
-            const { error: tagError } = await supabase
-              .from('blog_post_tags')
-              .insert(tagRelations);
-
-            if (tagError) {
-              console.warn('Error saving additional tag relationships:', tagError);
-            }
-          }
-        } catch (tagError) {
-          console.warn('Tag relationship system not ready yet:', tagError);
-        }
-      }
-
       // Show success message
       const actionText = publishNow ? 'published' : 'saved';
       const statusText = publishNow ? 'Your post is now live on the blog page!' : 'You can publish it later from the admin panel.';
@@ -530,7 +348,7 @@ const BlogPostEditor = () => {
       <div className="flex justify-center items-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <span className="text-gray-600">Loading...</span>
+          <span className="text-gray-600 dark:text-gray-300">Loading...</span>
         </div>
       </div>
     );
@@ -540,7 +358,7 @@ const BlogPostEditor = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {id && id !== 'new' ? 'Edit Blog Post' : 'New Blog Post'}
         </h1>
 
@@ -548,7 +366,7 @@ const BlogPostEditor = () => {
           <button
             onClick={() => saveBlogPost(false)}
             disabled={saving || !title.trim()}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
             <Save className="w-4 h-4 mr-2" />
             {saving ? 'Saving...' : 'Save Draft'}
@@ -567,40 +385,40 @@ const BlogPostEditor = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-lg border p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Title *
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => handleTitleChange(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter blog post title..."
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   URL Slug
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-500">/blog/</span>
+                  <span className="text-gray-500 dark:text-gray-400">/blog/</span>
                   <input
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="url-friendly-slug"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   <User className="w-4 h-4 inline mr-1" />
                   Author Name
                 </label>
@@ -608,110 +426,27 @@ const BlogPostEditor = () => {
                   type="text"
                   value={author}
                   onChange={(e) => setAuthor(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={`Author name (defaults to ${user?.email || 'your email'})`}
                 />
               </div>
 
-              {/* ✅ CATEGORY SELECTION */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <FolderPlus className="w-4 h-4 inline mr-1" />
-                  Category
-                </label>
-                
-                <div className="space-y-3">
-                  {/* Category Selection */}
-                  <select
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      if (e.target.value === '__create_new__') {
-                        setIsCreatingCategory(true);
-                      } else {
-                        setSelectedCategory(e.target.value);
-                      }
-                    }}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Select a category...</option>
-                    {availableCategories.map(category => (
-                      <option key={category.id} value={category.name}>
-                        {category.name} {category.count ? `(${category.count} posts)` : ''}
-                      </option>
-                    ))}
-                    <option value="__create_new__">➕ Create New Category</option>
-                  </select>
-
-                  {/* Create New Category */}
-                  {isCreatingCategory && (
-                    <div className="flex gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      <input
-                        type="text"
-                        placeholder="Enter new category name"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        onKeyPress={(e) => e.key === 'Enter' && createNewCategory()}
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={createNewCategory}
-                        disabled={!newCategoryName.trim() || isCreatingCategory}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center gap-1"
-                      >
-                        <Check className="w-4 h-4" />
-                        Create
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCreatingCategory(false);
-                          setNewCategoryName('');
-                        }}
-                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Selected Category Display */}
-                  {selectedCategory && !isCreatingCategory && (
-                    <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
-                      <span className="text-sm text-blue-800">Selected:</span>
-                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                        📁 {selectedCategory}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedCategory('')}
-                        className="text-red-600 hover:text-red-700 text-sm p-1 hover:bg-red-50 rounded transition-colors"
-                        title="Remove category"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Excerpt
                 </label>
                 <textarea
                   value={excerpt}
                   onChange={(e) => setExcerpt(e.target.value)}
                   rows={3}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Brief description of the blog post..."
                 />
               </div>
 
               {/* Featured Image Section */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Featured Image
                 </label>
                 {coverUrl ? (
@@ -731,7 +466,7 @@ const BlogPostEditor = () => {
                 ) : (
                   <button
                     onClick={() => setShowMediaPicker(true)}
-                    className="w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                    className="w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
                   >
                     <ImageIcon className="w-8 h-8 mb-2" />
                     <span>Choose from Media Library</span>
@@ -745,7 +480,7 @@ const BlogPostEditor = () => {
                     type="url"
                     value={coverUrl}
                     onChange={(e) => setCoverUrl(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Or paste image URL here"
                   />
                 </div>
@@ -754,7 +489,7 @@ const BlogPostEditor = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Content
             </label>
             <AdvancedEditor
@@ -768,18 +503,18 @@ const BlogPostEditor = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Publish Settings */}
-          <div className="bg-white rounded-lg border p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Publish Settings</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Publish Settings</h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Status
                 </label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -793,9 +528,9 @@ const BlogPostEditor = () => {
                   id="featured"
                   checked={isFeatured}
                   onChange={(e) => setIsFeatured(e.target.checked)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-300 dark:border-gray-600"
                 />
-                <label htmlFor="featured" className="text-sm text-gray-700 flex items-center gap-2">
+                <label htmlFor="featured" className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <Star className="w-4 h-4" />
                   Featured Post
                 </label>
@@ -803,64 +538,76 @@ const BlogPostEditor = () => {
             </div>
           </div>
 
-          {/* Additional Tags */}
-          {availableTags.length > 0 && (
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <Tag className="w-5 h-5" />
-                Additional Tags
-              </h3>
-              
-              <p className="text-xs text-gray-500 mb-3">
-                💡 Category is automatically included. Add more specific tags here.
-              </p>
-              
-              {/* Create New Tag */}
-              <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  placeholder="New tag name"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                  onKeyPress={(e) => e.key === 'Enter' && createNewTag()}
-                />
-                <button
-                  onClick={createNewTag}
-                  disabled={!newTagName.trim() || isCreatingTag}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm"
-                >
-                  {isCreatingTag ? '...' : <Plus className="w-4 h-4" />}
-                </button>
-              </div>
-              
-              {/* Tag Selection */}
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {availableTags.map(tag => (
-                  <label key={tag.id} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedTags.includes(tag.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedTags(prev => [...prev, tag.id]);
-                        } else {
-                          setSelectedTags(prev => prev.filter(id => id !== tag.id));
-                        }
-                      }}
-                      className="rounded border-gray-300"
-                    />
-                    <span className="text-sm text-gray-700">{tag.name}</span>
-                  </label>
-                ))}
-              </div>
+          {/* ✅ SIMPLIFIED: Tags Only */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Tag className="w-5 h-5" />
+              Tags & Categories
+            </h3>
+            
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              💡 <strong>First tag is the category.</strong> Add tags to organize your content effectively.
+            </p>
+            
+            {/* Add New Tag */}
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                placeholder="Add a tag..."
+                value={newTagInput}
+                onChange={(e) => setNewTagInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                className="flex-1 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={handleAddTag}
+                disabled={!newTagInput.trim()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
             </div>
-          )}
+            
+            {/* Selected Tags with better spacing */}
+            {selectedTags.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Selected Tags:</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedTags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                        index === 0 
+                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-2 border-green-300 dark:border-green-700' 
+                          : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                      }`}
+                    >
+                      {index === 0 && '📁'} {tag}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag)}
+                        className="text-red-500 hover:text-red-700 ml-1 transition-colors"
+                        title="Remove tag"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                {selectedTags.length > 0 && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    📁 <strong>"{selectedTags[0]}"</strong> is your main category.
+                    {selectedTags.length > 1 && ` You have ${selectedTags.length - 1} additional tags.`}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Related Articles */}
           {availablePosts.length > 0 && (
-            <div className="bg-white rounded-lg border p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <LinkIcon className="w-5 h-5" />
                 Related Articles
               </h3>
@@ -880,9 +627,9 @@ const BlogPostEditor = () => {
                           setRelatedArticles(prev => prev.filter(id => id !== post.id));
                         }
                       }}
-                      className="rounded border-gray-300"
+                      className="rounded border-gray-300 dark:border-gray-600"
                     />
-                    <span className="text-sm text-gray-700 truncate">{post.title}</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{post.title}</span>
                   </label>
                 ))}
               </div>
@@ -890,16 +637,16 @@ const BlogPostEditor = () => {
           )}
 
           {/* SEO Settings */}
-          <div className="bg-white rounded-lg border p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
             <button
               onClick={() => setShowSEOSettings(!showSEOSettings)}
-              className="w-full flex items-center justify-between text-lg font-medium text-gray-900 mb-4 hover:text-blue-600 transition-colors"
+              className="w-full flex items-center justify-between text-lg font-medium text-gray-900 dark:text-white mb-4 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
             >
               <div className="flex items-center gap-2">
                 <Settings className="w-5 h-5" />
                 SEO Settings
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 {showSEOSettings ? 'Hide' : 'Show'}
               </span>
             </button>
@@ -907,33 +654,33 @@ const BlogPostEditor = () => {
             {showSEOSettings && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Meta Title
                   </label>
                   <input
                     type="text"
                     value={metaTitle}
                     onChange={(e) => setMetaTitle(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                     placeholder="Custom SEO title"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {metaTitle.length}/60 characters
                   </p>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Meta Description
                   </label>
                   <textarea
                     value={metaDescription}
                     onChange={(e) => setMetaDescription(e.target.value)}
                     rows={3}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 resize-none"
                     placeholder="Custom meta description for search engines"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {metaDescription.length}/160 characters
                   </p>
                 </div>
@@ -946,20 +693,20 @@ const BlogPostEditor = () => {
       {/* Media Picker Modal */}
       {showMediaPicker && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
               <div className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-gray-900">Choose Image from Media Library</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Choose Image from Media Library</h3>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setMediaViewMode('grid')}
-                    className={`p-2 rounded ${mediaViewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+                    className={`p-2 rounded ${mediaViewMode === 'grid' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                   >
                     <Grid className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setMediaViewMode('list')}
-                    className={`p-2 rounded ${mediaViewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-500 hover:bg-gray-100'}`}
+                    className={`p-2 rounded ${mediaViewMode === 'list' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
                   >
                     <List className="w-4 h-4" />
                   </button>
@@ -967,18 +714,18 @@ const BlogPostEditor = () => {
               </div>
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
                   <input
                     type="text"
                     placeholder="Search images..."
                     value={mediaSearch}
                     onChange={(e) => setMediaSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 w-64"
+                    className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 w-64"
                   />
                 </div>
                 <button
                   onClick={() => setShowMediaPicker(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -988,11 +735,11 @@ const BlogPostEditor = () => {
             <div className="p-6 overflow-y-auto max-h-[70vh]">
               {filteredMediaFiles.length === 0 ? (
                 <div className="text-center py-12">
-                  <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2">
+                  <ImageIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-300 mb-2">
                     {mediaSearch ? 'No images found matching your search' : 'No images in your media library'}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     {mediaSearch ? 'Try different search terms' : 'Upload some images to /admin/content/files first'}
                   </p>
                 </div>
@@ -1007,7 +754,7 @@ const BlogPostEditor = () => {
                           setCoverUrl(fileUrl);
                           setShowMediaPicker(false);
                         }}
-                        className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
+                        className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
                       >
                         <img
                           src={fileUrl}
@@ -1033,7 +780,7 @@ const BlogPostEditor = () => {
                           setCoverUrl(fileUrl);
                           setShowMediaPicker(false);
                         }}
-                        className="w-full flex items-center gap-4 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors"
+                        className="w-full flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
                       >
                         <img
                           src={fileUrl}
@@ -1041,8 +788,8 @@ const BlogPostEditor = () => {
                           className="w-16 h-16 object-cover rounded"
                         />
                         <div className="flex-1 text-left">
-                          <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {file.width && file.height && `${file.width}×${file.height} • `}
                             {file.folder || 'misc'}
                           </p>
@@ -1054,10 +801,10 @@ const BlogPostEditor = () => {
               )}
             </div>
             
-            <div className="px-6 py-4 border-t bg-gray-50">
-              <p className="text-sm text-gray-600">
+            <div className="px-6 py-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 💡 <strong>Tip:</strong> You can also upload new images at 
-                <a href="/admin/content/files" className="text-blue-600 hover:underline ml-1">
+                <a href="/admin/content/files" className="text-blue-600 dark:text-blue-400 hover:underline ml-1">
                   /admin/content/files
                 </a>
               </p>

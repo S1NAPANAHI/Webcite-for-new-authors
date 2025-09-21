@@ -83,16 +83,16 @@ interface BreadcrumbProps {
 
 function Breadcrumb({ breadcrumbs }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-6">
+    <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
       {breadcrumbs.map((crumb, index) => (
         <React.Fragment key={index}>
-          {index > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+          {index > 0 && <ChevronRight className="w-4 h-4 text-muted-foreground/60" />}
           {crumb.current ? (
-            <span className="text-gray-900 font-medium">{crumb.title}</span>
+            <span className="text-foreground font-medium">{crumb.title}</span>
           ) : (
             <Link 
               to={crumb.href}
-              className="hover:text-indigo-600 transition-colors duration-200"
+              className="hover:text-primary transition-colors duration-200"
             >
               {crumb.title}
             </Link>
@@ -135,7 +135,7 @@ function RatingDisplay({ rating, reviewCount, userRating, onRate }: RatingDispla
             className={`w-5 h-5 ${
               isFilled
                 ? 'text-yellow-400 fill-current'
-                : 'text-gray-300'
+                : 'text-muted-foreground/40'
             }`}
           />
         </button>
@@ -150,18 +150,18 @@ function RatingDisplay({ rating, reviewCount, userRating, onRate }: RatingDispla
         <div className="flex items-center">
           {renderStars(rating)}
         </div>
-        <span className="text-lg font-semibold text-gray-900">{rating.toFixed(1)}</span>
-        <span className="text-gray-600">({reviewCount} reviews)</span>
+        <span className="text-lg font-semibold text-foreground">{rating.toFixed(1)}</span>
+        <span className="text-muted-foreground">({reviewCount} reviews)</span>
       </div>
       
       {/* User Rating */}
       {onRate && (
-        <div className="border-t border-gray-200 pt-3">
-          <p className="text-sm font-medium text-gray-700 mb-2">Rate this content:</p>
+        <div className="border-t border-border pt-3">
+          <p className="text-sm font-medium text-foreground mb-2">Rate this content:</p>
           <div className="flex items-center space-x-1">
             {renderStars(userRating || 0, true)}
             {userRating && (
-              <span className="text-sm text-gray-600 ml-2">Your rating: {userRating}/5</span>
+              <span className="text-sm text-muted-foreground ml-2">Your rating: {userRating}/5</span>
             )}
           </div>
         </div>
@@ -599,49 +599,43 @@ export default function ContentItemDetailPage() {
   }, [totalChapters, completedChapters]);
   
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader className="w-12 h-12 text-indigo-600 animate-spin mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Loading content...</h3>
-          <p className="text-gray-600">Fetching {type} details</p>
-        </div>
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center">
+        <Loader className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground mb-2">Loading content...</h3>
+        <p className="text-muted-foreground">Fetching {type} details</p>
       </div>
-    );
-  }
+    </div>
+  );
+}
   
   if (error || !item) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            {error || 'Content Not Found'}
-          </h2>
-          <p className="text-gray-600 mb-4">
-            {error === 'Content not found' 
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="text-center">
+        <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-foreground mb-2">
+          {error || 'Content Not Found'}
+        </h2>
+        <p className="text-muted-foreground mb-4">
+          {error === 'Content not found' 
               ? `The requested ${type} could not be found.` 
               : 'There was an error loading the content.'}
-          </p>
-          <div className="space-x-3">
-            <Link 
-              to="/library"
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Library</span>
-            </Link>
-            <button
-              onClick={loadItemDetails}
-              className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200"
-            >
-              <span>Try Again</span>
-            </button>
-          </div>
+        </p>
+        <div className="space-x-3">
+          <Link 
+            to="/library"
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Back to Library</span>
+          </Link>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
   
   console.log('\n📊 CONTENT ITEM DETAIL - Render stats:', {
     publishedChapters: publishedChapters.length,
@@ -658,7 +652,7 @@ export default function ContentItemDetailPage() {
   });
   
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         {breadcrumbs.length > 0 && (
@@ -671,8 +665,8 @@ export default function ContentItemDetailPage() {
           <div className="lg:col-span-1">
             <div className="sticky top-8">
               {/* Cover Image */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-                <div className="aspect-[3/4] bg-gray-200 rounded-lg overflow-hidden mb-4">
+              <div className="bg-card rounded-lg border border-border p-6 mb-6">
+                <div className="aspect-[3/4] bg-muted rounded-lg overflow-hidden mb-4">
                   {finalCoverUrl ? (
                     <img 
                       src={finalCoverUrl} 
@@ -689,7 +683,7 @@ export default function ContentItemDetailPage() {
                         if (container) {
                           container.innerHTML = `
                             <div class="w-full h-full flex items-center justify-center">
-                              <svg class="w-16 h-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                              <svg class="w-16 h-16 text-muted-foreground/60" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17l2.5-3.21L14.5 17H9z"/>
                               </svg>
                             </div>
@@ -699,14 +693,14 @@ export default function ContentItemDetailPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <BookOpen className="w-16 h-16 text-gray-400" />
+                      <BookOpen className="w-16 h-16 text-muted-foreground/60" />
                     </div>
                   )}
                 </div>
                 
                 {/* Type Badge */}
                 <div className="text-center mb-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
                     {HIERARCHY_LEVELS[item.type].label}
                   </span>
                 </div>
@@ -720,7 +714,7 @@ export default function ContentItemDetailPage() {
                       className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
                         inUserLibrary
                           ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'
+                          : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md hover:shadow-lg'
                       }`}
                     >
                       {inUserLibrary ? (
@@ -732,7 +726,7 @@ export default function ContentItemDetailPage() {
                   ) : (
                     <Link
                       to="/login"
-                      className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors duration-200 flex items-center justify-center space-x-2"
+                      className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center space-x-2"
                     >
                       <User className="w-5 h-5" />
                       <span>Login to Add</span>
@@ -764,11 +758,11 @@ export default function ContentItemDetailPage() {
                   
                   {/* Secondary Actions */}
                   <div className="flex space-x-2">
-                    <button className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center space-x-1">
+                    <button className="flex-1 px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors duration-200 flex items-center justify-center space-x-1">
                       <Heart className="w-4 h-4" />
                       <span>Favorite</span>
                     </button>
-                    <button className="flex-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center justify-center space-x-1">
+                    <button className="flex-1 px-3 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors duration-200 flex items-center justify-center space-x-1">
                       <Share2 className="w-4 h-4" />
                       <span>Share</span>
                     </button>
@@ -777,32 +771,32 @@ export default function ContentItemDetailPage() {
               </div>
               
               {/* Stats */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
+              <div className="bg-card rounded-lg border border-border p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Statistics</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Completion</span>
-                    <span className="font-medium text-gray-900">{item.completion_percentage}%</span>
+                    <span className="text-muted-foreground">Completion</span>
+                    <span className="font-medium text-foreground">{item.completion_percentage}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Chapters</span>
-                    <span className="font-medium text-gray-900">{publishedChapters.length}/{totalChapters}</span>
+                    <span className="text-muted-foreground">Chapters</span>
+                    <span className="font-medium text-foreground">{publishedChapters.length}/{totalChapters}</span>
                   </div>
                   {item.metadata?.total_words && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Word Count</span>
-                      <span className="font-medium text-gray-900">{item.metadata.total_words.toLocaleString()}</span>
+                      <span className="text-muted-foreground">Word Count</span>
+                      <span className="font-medium text-foreground">{item.metadata.total_words.toLocaleString()}</span>
                     </div>
                   )}
                   {item.metadata?.estimated_read_time && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Read Time</span>
-                      <span className="font-medium text-gray-900">{item.metadata.estimated_read_time} min</span>
+                      <span className="text-muted-foreground">Read Time</span>
+                      <span className="font-medium text-foreground">{item.metadata.estimated_read_time} min</span>
                     </div>
                   )}
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Published</span>
-                    <span className="font-medium text-gray-900">
+                    <span className="text-muted-foreground">Published</span>
+                    <span className="font-medium text-foreground">
                       {item.published_at ? new Date(item.published_at).toLocaleDateString() : 'Not published'}
                     </span>
                   </div>
@@ -815,8 +809,8 @@ export default function ContentItemDetailPage() {
           <div className="lg:col-span-2 space-y-8">
             {/* Header */}
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">{item.title}</h1>
-              <p className="text-xl text-gray-600 leading-relaxed">{item.description}</p>
+              <h1 className="text-4xl font-bold text-foreground mb-4">{item.title}</h1>
+              <p className="text-xl text-muted-foreground leading-relaxed">{item.description}</p>
               
               {/* Tags */}
               {item.metadata?.genre_tags && (
@@ -824,7 +818,7 @@ export default function ContentItemDetailPage() {
                   {item.metadata.genre_tags.map((tag: string) => (
                     <span 
                       key={tag}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800"
+                      className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-muted text-muted-foreground"
                     >
                       {tag}
                     </span>
@@ -834,8 +828,8 @@ export default function ContentItemDetailPage() {
             </div>
             
             {/* Rating Section */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Ratings & Reviews</h3>
+            <div className="bg-card rounded-lg border border-border p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Ratings & Reviews</h3>
               <RatingDisplay 
                 rating={item.average_rating}
                 reviewCount={item.rating_count}
@@ -846,12 +840,12 @@ export default function ContentItemDetailPage() {
             
             {/* Chapters List */}
             {item.type === 'issue' && item.chapters && (
-              <div className="bg-white rounded-lg border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
+              <div className="bg-card rounded-lg border border-border">
+                <div className="px-6 py-4 border-b border-border">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Chapters</h3>
-                      <p className="text-sm text-gray-600">
+                      <h3 className="text-lg font-semibold text-foreground">Chapters</h3>
+                      <p className="text-sm text-muted-foreground">
                         {publishedChapters.length} of {totalChapters} published
                         {inUserLibrary && ` • ${completedChapters} completed`}
                       </p>
@@ -859,8 +853,8 @@ export default function ContentItemDetailPage() {
                     
                     {inUserLibrary && overallProgress > 0 && (
                       <div className="text-right">
-                        <div className="text-sm text-gray-600">Overall Progress</div>
-                        <div className="text-lg font-semibold text-indigo-600">{overallProgress}%</div>
+                        <div className="text-sm text-muted-foreground">Overall Progress</div>
+                        <div className="text-lg font-semibold text-primary">{overallProgress}%</div>
                       </div>
                     )}
                   </div>

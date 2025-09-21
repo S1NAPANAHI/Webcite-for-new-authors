@@ -26,6 +26,15 @@ const fetchReleaseItems = async (): Promise<ReleaseItem[]> => {
 const HomePage: React.FC = () => {
   const [spinsLeft, setSpinsLeft] = useState(3);
 
+  // Comprehensive debug logging for supabase client
+  console.log('🚀 Frontend HomePage: Component initialization with supabase analysis:', {
+    hasSupabase: !!supabase,
+    supabaseType: typeof supabase,
+    supabaseKeys: supabase ? Object.keys(supabase).slice(0, 10) : [],
+    supabaseFromMethod: typeof supabase?.from,
+    supabaseAuthMethod: typeof supabase?.auth
+  });
+
   // Fetch data using React Query
   const { data: homepageData, isLoading: isLoadingHomepage, isError: isErrorHomepage } = useQuery<HomepageContentItem[]>({ 
     queryKey: ['homepageContent'], 
@@ -39,12 +48,16 @@ const HomePage: React.FC = () => {
 
   // Fetch user's spin count
   useEffect(() => {
-    console.log('🏠 Frontend HomePage: Component mounted');
+    console.log('🏠 Frontend HomePage: Component mounted, setting up global supabase access');
     
-    // Make supabase available globally for UI package
+    // CRITICAL: Make supabase available globally for UI package as backup
     if (typeof window !== 'undefined') {
       (window as any).__supabase = supabase;
-      console.log('🔗 Frontend HomePage: Made supabase available globally for UI package');
+      (window as any).supabase = supabase; // Also set without underscore
+      console.log('🔗 Frontend HomePage: Set supabase on window object:', {
+        windowSupabase: !!(window as any).__supabase,
+        windowSupabaseAlt: !!(window as any).supabase
+      });
     }
     
     const fetchSpins = async () => {
@@ -104,14 +117,20 @@ const HomePage: React.FC = () => {
   const isLoading = isLoadingHomepage || postsLoading || isLoadingReleases;
   const isError = isErrorHomepage || false || isErrorReleases;
 
-  console.log('🏠 Frontend HomePage: About to render UI component with:', {
+  // CRITICAL DEBUG: Log exactly what we're passing to UI component
+  console.log('🔥 Frontend HomePage: About to render UI component with EXACT props:', {
     hasSupabaseClient: !!supabase,
+    supabaseClientType: typeof supabase,
+    supabaseClientConstructor: supabase?.constructor?.name,
     homepageDataLength: homepageData?.length || 0,
     latestPostsLength: latestPosts?.length || 0,
     releaseDataLength: releaseData?.length || 0,
     spinsLeft,
     isLoading,
-    isError
+    isError,
+    // Test supabase client functionality
+    canCallFrom: typeof supabase?.from === 'function',
+    canCallAuth: typeof supabase?.auth?.getUser === 'function'
   });
 
   return (
@@ -147,18 +166,23 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 🔥 UI HomePage Component - This contains the "Latest News & Updates" section */}
+      {/* 🔥 UI HomePage Component - CRITICAL: This contains the "Latest News & Updates" section */}
       {!isLoading && !isError && (
-        <UIHomePage 
-          homepageData={homepageData || []}  // ✅ Correct prop name
-          latestPosts={latestPosts || []}    // ✅ Correct prop name  
-          releaseData={releaseData || []}    // ✅ Correct prop name
-          spinsLeft={spinsLeft} 
-          isLoading={false}                  // ✅ Add missing props
-          isError={false}                    // ✅ Add missing props
-          onSpin={handleSpin}
-          supabaseClient={supabase}          // 🔑 Pass supabase client correctly
-        />
+        <>
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-sm text-center">
+            🚀 Frontend Debug: Passing supabase client to UI component: {!!supabase ? 'YES' : 'NO'}
+          </div>
+          <UIHomePage 
+            homepageData={homepageData || []}   // ✅ Correct prop name
+            latestPosts={latestPosts || []}     // ✅ Correct prop name  
+            releaseData={releaseData || []}     // ✅ Correct prop name
+            spinsLeft={spinsLeft} 
+            isLoading={false}                   // ✅ Add missing props
+            isError={false}                     // ✅ Add missing props
+            onSpin={handleSpin}
+            supabaseClient={supabase}           // 🔑 CRITICAL: Pass supabase client
+          />
+        </>
       )}
       
       {/* Loading State */}

@@ -22,7 +22,8 @@
   "peerDependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@zoroaster/shared": "workspace:*"
+    "@zoroaster/shared": "workspace:*",
+    "swiper": "^11.0.0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

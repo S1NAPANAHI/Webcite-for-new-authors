@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay, A11y } from 'swiper/modules';
+import { supabase } from '../lib/supabaseClient';
+
+// Swiper styles
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 // Blog post interface
 interface BlogPost {
@@ -64,18 +72,71 @@ const FALLBACK_POSTS: BlogPost[] = [
     published_at: new Date(Date.now() - 172800000).toISOString(),
     views: 967,
     reading_time: 5
+  },
+  {
+    id: 'sample-4',
+    title: 'Modern Applications of Ancient Wisdom',
+    slug: 'modern-applications-ancient-wisdom',
+    excerpt: 'How Zoroastrian principles can guide us in contemporary challenges and ethical decision-making.',
+    content: 'Ancient wisdom for modern times.',
+    featured_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop',
+    author: 'Sarah Mitchell',
+    category: 'Modern Life',
+    published_at: new Date(Date.now() - 259200000).toISOString(),
+    views: 743,
+    reading_time: 7
+  },
+  {
+    id: 'sample-5',
+    title: 'The History of Zoroastrianism',
+    slug: 'history-of-zoroastrianism',
+    excerpt: 'Tracing the origins and evolution of one of the world\'s oldest monotheistic religions.',
+    content: 'A journey through time exploring Zoroastrian history.',
+    featured_image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=600&h=400&fit=crop',
+    author: 'Dr. Rostam Yazdi',
+    category: 'History',
+    published_at: new Date(Date.now() - 345600000).toISOString(),
+    views: 1156,
+    reading_time: 10
   }
 ];
 
 // Main component
 export const LatestPosts: React.FC<LatestPostsProps> = ({ 
-  limit = 3, 
+  limit = 5, 
   supabaseClient 
 }) => {
   const [posts, setPosts] = useState<BlogPost[]>(FALLBACK_POSTS);
   const [loading, setLoading] = useState(true);
   const [usingFallback, setUsingFallback] = useState(true);
   const [debugInfo, setDebugInfo] = useState('Initializing...');
+  const [isDark, setIsDark] = useState(false);
+
+  // Dark mode detection
+  useEffect(() => {
+    const checkDarkMode = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark') ||
+                        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDark(isDarkMode);
+    };
+
+    checkDarkMode();
+
+    // Listen for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', checkDarkMode);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener('change', checkDarkMode);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -89,13 +150,13 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
       
       try {
         // Start with fallback posts for guaranteed content
-        setPosts(FALLBACK_POSTS);
+        setPosts(FALLBACK_POSTS.slice(0, limit));
         setUsingFallback(true);
         setDebugInfo('Starting with fallback posts');
         
         // Try multiple ways to get Supabase client
-        let client = supabaseClient;
-        console.log('📋 LatestPosts: Supabase from prop:', !!client);
+        let client = supabaseClient || supabase;
+        console.log('📋 LatestPosts: Supabase from prop/singleton:', !!client);
         
         // Try global window
         if (!client && typeof window !== 'undefined') {
@@ -211,8 +272,8 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
     return (
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading latest articles...</p>
-        <p className="text-xs text-gray-500 mt-2">{debugInfo}</p>
+        <p className={`${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Loading latest articles...</p>
+        <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} mt-2`}>{debugInfo}</p>
       </div>
     );
   }
@@ -221,7 +282,9 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
     <div>
       {/* Debug info for development */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+        <div className={`mb-6 p-4 rounded-lg text-sm border ${
+          isDark ? 'bg-yellow-900/20 border-yellow-700 text-yellow-200' : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        }`}>
           <strong>🔍 LatestPosts Debug:</strong> {posts.length} posts loaded, 
           Using fallback: {usingFallback ? 'Yes' : 'No'}, 
           Status: {debugInfo}
@@ -231,122 +294,225 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
       {/* Status banner for fallback content */}
       {usingFallback && (
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-blue-700 text-sm">
+          <div className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm border ${
+            isDark ? 'bg-blue-900/20 border-blue-700 text-blue-200' : 'bg-blue-50 border-blue-200 text-blue-700'
+          }`}>
             💡 Sample content shown - You have real blog posts available!
-            <Link to="/blog" className="text-blue-600 hover:text-blue-800 underline font-medium ml-2">
+            <Link to="/blog" className={`${isDark ? 'text-blue-300 hover:text-blue-100' : 'text-blue-600 hover:text-blue-800'} underline font-medium ml-2`}>
               View your blog →
             </Link>
           </div>
         </div>
       )}
       
-      {/* Posts grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map((post, index) => {
-          const readingTime = getReadingTime(post.content, post.reading_time);
-          const imageUrl = post.featured_image || post.cover_url;
-          
-          return (
-            <article 
-              key={post.id}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer"
-            >
-              {/* Featured Image */}
-              <div className="relative h-48 bg-gradient-to-br from-orange-400 to-red-500">
-                {imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                )}
-                
-                {/* Latest badge */}
-                {index === 0 && !usingFallback && (
-                  <div className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                    ✨ LATEST
+      {/* Swiper Carousel */}
+      <div className="relative">
+        <Swiper
+          modules={[Navigation, Pagination, Autoplay, A11y]}
+          spaceBetween={24}
+          slidesPerView={1}
+          navigation={{
+            nextEl: '.custom-swiper-button-next',
+            prevEl: '.custom-swiper-button-prev',
+          }}
+          pagination={{
+            el: '.custom-swiper-pagination',
+            clickable: true,
+            bulletClass: `swiper-pagination-bullet ${
+              isDark ? 'bg-gray-600' : 'bg-gray-300'
+            }`,
+            bulletActiveClass: `swiper-pagination-bullet-active ${
+              isDark ? 'bg-orange-500' : 'bg-orange-600'
+            }`
+          }}
+          autoplay={{
+            delay: 5000,
+            disableOnInteraction: false,
+          }}
+          breakpoints={{
+            640: {
+              slidesPerView: 1,
+              spaceBetween: 20,
+            },
+            768: {
+              slidesPerView: 2,
+              spaceBetween: 24,
+            },
+            1024: {
+              slidesPerView: 3,
+              spaceBetween: 32,
+            },
+            1280: {
+              slidesPerView: Math.min(posts.length, 4),
+              spaceBetween: 32,
+            }
+          }}
+          className="latest-posts-swiper"
+        >
+          {posts.map((post, index) => {
+            const readingTime = getReadingTime(post.content, post.reading_time);
+            const imageUrl = post.featured_image || post.cover_url;
+            
+            return (
+              <SwiperSlide key={post.id}>
+                <article className={`rounded-lg shadow-lg overflow-hidden transition-all duration-300 group cursor-pointer h-full ${
+                  isDark ? 'bg-gray-800 hover:shadow-2xl hover:shadow-orange-500/10' : 'bg-white hover:shadow-xl'
+                }`}>
+                  {/* Featured Image */}
+                  <div className="relative h-48 bg-gradient-to-br from-orange-400 to-red-500">
+                    {imageUrl && (
+                      <img
+                        src={imageUrl}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    )}
+                    
+                    {/* Latest badge */}
+                    {index === 0 && !usingFallback && (
+                      <div className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                        ✨ LATEST
+                      </div>
+                    )}
+                    
+                    {/* Category badge */}
+                    {post.category && (
+                      <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                        {post.category}
+                      </div>
+                    )}
                   </div>
-                )}
-                
-                {/* Category badge */}
-                {post.category && (
-                  <div className="absolute top-3 right-3 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                    {post.category}
-                  </div>
-                )}
-              </div>
 
-              {/* Content */}
-              <div className="p-6">
-                {/* Title */}
-                <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors">
-                  {post.title}
-                </h3>
+                  {/* Content */}
+                  <div className="p-6 flex flex-col flex-1">
+                    {/* Title */}
+                    <h3 className={`text-xl font-bold mb-3 line-clamp-2 group-hover:text-orange-600 transition-colors ${
+                      isDark ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      {post.title}
+                    </h3>
 
-                {/* Excerpt */}
-                <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                  {post.excerpt || (post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content)}
-                </p>
+                    {/* Excerpt */}
+                    <p className={`text-sm mb-4 line-clamp-3 flex-1 ${
+                      isDark ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      {post.excerpt || (post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content)}
+                    </p>
 
-                {/* Meta info */}
-                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-4">
-                  <span className="flex items-center gap-1">
-                    👤 {post.author || 'Zoroasterverse Team'}
-                  </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    📅 {formatDate(post.published_at)}
-                  </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    ⏱️ {readingTime}m read
-                  </span>
-                  {post.views && (
-                    <>
+                    {/* Meta info */}
+                    <div className={`flex flex-wrap items-center gap-2 text-xs mb-4 ${
+                      isDark ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                      <span className="flex items-center gap-1">
+                        👤 {post.author || 'Zoroasterverse Team'}
+                      </span>
                       <span>•</span>
                       <span className="flex items-center gap-1">
-                        👁️ {post.views} views
+                        📅 {formatDate(post.published_at)}
                       </span>
-                    </>
-                  )}
-                </div>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        ⏱️ {readingTime}m read
+                      </span>
+                      {post.views && (
+                        <>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            👁️ {post.views} views
+                          </span>
+                        </>
+                      )}
+                    </div>
 
-                {/* Read more link */}
-                <Link 
-                  to={usingFallback ? '/blog' : `/blog/${post.slug}`}
-                  className="inline-flex items-center text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group-hover:underline"
-                >
-                  {usingFallback ? 'Explore Blog' : 'Read Full Article'}
-                  <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
-                </Link>
-              </div>
-            </article>
-          );
-        })}
+                    {/* Read more link */}
+                    <Link 
+                      to={usingFallback ? '/blog' : `/blog/${post.slug}`}
+                      className="inline-flex items-center text-orange-600 hover:text-orange-700 font-semibold text-sm transition-colors group-hover:underline"
+                    >
+                      {usingFallback ? 'Explore Blog' : 'Read Full Article'}
+                      <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
+                    </Link>
+                  </div>
+                </article>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+
+        {/* Custom Navigation Arrows */}
+        <div className={`custom-swiper-button-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
+          isDark ? 'bg-gray-800 text-orange-400 hover:bg-gray-700 border border-gray-600' : 'bg-white text-orange-600 hover:bg-orange-50 shadow-lg'
+        }`}>
+          ←
+        </div>
+        <div className={`custom-swiper-button-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 w-12 h-12 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ${
+          isDark ? 'bg-gray-800 text-orange-400 hover:bg-gray-700 border border-gray-600' : 'bg-white text-orange-600 hover:bg-orange-50 shadow-lg'
+        }`}>
+          →
+        </div>
+
+        {/* Custom Pagination */}
+        <div className="custom-swiper-pagination flex justify-center mt-8"></div>
       </div>
       
       {/* Explore all articles CTA */}
       <div className="text-center mt-12">
         <Link 
           to="/blog"
-          className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-600 to-red-600 text-white px-8 py-4 rounded-lg hover:from-orange-700 hover:to-red-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105"
+          className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
+            isDark ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white' : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white'
+          }`}
         >
           🔥 Explore All Articles
           <span>→</span>
         </Link>
         
-        <p className="mt-4 text-sm text-gray-600">
+        <p className={`mt-4 text-sm ${
+          isDark ? 'text-gray-400' : 'text-gray-600'
+        }`}>
           {usingFallback ? 'Sample content shown' : `Latest ${posts.length} articles`} from your blog
           {usingFallback && (
-            <span className="block mt-2 text-blue-600">
+            <span className={`block mt-2 ${
+              isDark ? 'text-blue-400' : 'text-blue-600'
+            }`}>
               💡 You have real blog posts! They'll appear here once the data connection is established.
             </span>
           )}
         </p>
       </div>
+
+      {/* Custom CSS for dark mode Swiper */}
+      <style jsx>{`
+        .latest-posts-swiper .swiper-pagination-bullet {
+          width: 12px;
+          height: 12px;
+          margin: 0 6px;
+          opacity: 0.5;
+          transition: all 0.3s ease;
+        }
+        .latest-posts-swiper .swiper-pagination-bullet-active {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+        ${isDark ? `
+          .latest-posts-swiper .swiper-pagination-bullet {
+            background: #4B5563 !important;
+          }
+          .latest-posts-swiper .swiper-pagination-bullet-active {
+            background: #F97316 !important;
+          }
+        ` : `
+          .latest-posts-swiper .swiper-pagination-bullet {
+            background: #D1D5DB !important;
+          }
+          .latest-posts-swiper .swiper-pagination-bullet-active {
+            background: #EA580C !important;
+          }
+        `}
+      `}</style>
     </div>
   );
 };

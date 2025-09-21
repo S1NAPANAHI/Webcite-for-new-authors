@@ -13,7 +13,8 @@ export default defineConfig(({ mode }) => {
       // Fix Node.js globals for browser environment
       'process.env': {},
       'process.platform': JSON.stringify('browser'),
-      'process.version': JSON.stringify('v16.0.0')
+      'process.version': JSON.stringify('v16.0.0'),
+      __SUPABASE__: 'window.supabase'
     },
     plugins: [react(), tsconfigPaths()],
     resolve: {

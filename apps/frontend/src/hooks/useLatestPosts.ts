@@ -4,7 +4,7 @@ import { supabase } from '@zoroaster/shared';
 interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
+  excerpt?: string;
   content: string;
   featured_image?: string;
   author?: string;
@@ -13,11 +13,15 @@ interface BlogPost {
   likes_count?: number;
   comments_count?: number;
   slug: string;
-  tags?: string[];
+  tag_names?: string[];
   reading_time?: number;
+  category?: string;
+  category_name?: string;
+  category_color?: string;
+  is_featured?: boolean;
 }
 
-// Guaranteed fallback posts
+// Guaranteed fallback posts using your existing schema structure
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: 'fallback-1',
@@ -31,8 +35,12 @@ const FALLBACK_POSTS: BlogPost[] = [
     views: 234,
     likes_count: 12,
     comments_count: 5,
-    tags: ['Welcome', 'Introduction'],
-    reading_time: 5
+    tag_names: ['Philosophy', 'Religion'],
+    reading_time: 5,
+    category: 'Philosophy',
+    category_name: 'Philosophy',
+    category_color: '#8b5cf6',
+    is_featured: true
   },
   {
     id: 'fallback-2',
@@ -46,8 +54,12 @@ const FALLBACK_POSTS: BlogPost[] = [
     views: 456,
     likes_count: 28,
     comments_count: 12,
-    tags: ['Fire', 'Symbols', 'Worship'],
-    reading_time: 7
+    tag_names: ['Fire', 'Worship', 'Religion'],
+    reading_time: 7,
+    category: 'Religion',
+    category_name: 'Religion',
+    category_color: '#10b981',
+    is_featured: false
   },
   {
     id: 'fallback-3',
@@ -61,8 +73,12 @@ const FALLBACK_POSTS: BlogPost[] = [
     views: 678,
     likes_count: 45,
     comments_count: 19,
-    tags: ['Ethics', 'Philosophy', 'Practice'],
-    reading_time: 6
+    tag_names: ['Ethics', 'Philosophy', 'Practice'],
+    reading_time: 6,
+    category: 'Philosophy',
+    category_name: 'Philosophy',
+    category_color: '#8b5cf6',
+    is_featured: false
   }
 ];
 
@@ -77,25 +93,12 @@ export function useLatestPosts(limit: number = 5) {
         setLoading(true);
         setError(null);
 
-        console.log('🔄 useLatestPosts: Fetching blog posts...');
+        console.log('🔄 useLatestPosts: Fetching from existing blog schema...');
 
+        // Use your existing blog_posts_with_stats view which includes all related data
         const { data, error: fetchError } = await supabase
-          .from('blog_posts')
-          .select(`
-            id,
-            title,
-            excerpt,
-            content,
-            featured_image,
-            author,
-            published_at,
-            views,
-            likes_count,
-            comments_count,
-            slug,
-            tags,
-            reading_time
-          `)
+          .from('blog_posts_with_stats')
+          .select('*')
           .eq('status', 'published')
           .order('published_at', { ascending: false })
           .limit(limit);
@@ -104,8 +107,8 @@ export function useLatestPosts(limit: number = 5) {
           console.error('useLatestPosts: Database error, using fallback posts:', fetchError);
           setPosts(FALLBACK_POSTS.slice(0, limit));
         } else if (data && data.length > 0) {
-          console.log(`useLatestPosts: Found ${data.length} real posts`);
-          setPosts(data);
+          console.log(`useLatestPosts: Found ${data.length} real posts from existing schema`);
+          setPosts(data as BlogPost[]);
         } else {
           console.log('useLatestPosts: No published posts, using fallback content');
           setPosts(FALLBACK_POSTS.slice(0, limit));

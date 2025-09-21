@@ -104,7 +104,15 @@ const HomePage: React.FC = () => {
   const isLoading = isLoadingHomepage || postsLoading || isLoadingReleases;
   const isError = isErrorHomepage || false || isErrorReleases;
 
-  console.log('🏠 Frontend HomePage: Rendering homepage, passing supabase client to UI package');
+  console.log('🏠 Frontend HomePage: About to render UI component with:', {
+    hasSupabaseClient: !!supabase,
+    homepageDataLength: homepageData?.length || 0,
+    latestPostsLength: latestPosts?.length || 0,
+    releaseDataLength: releaseData?.length || 0,
+    spinsLeft,
+    isLoading,
+    isError
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -142,12 +150,14 @@ const HomePage: React.FC = () => {
       {/* 🔥 UI HomePage Component - This contains the "Latest News & Updates" section */}
       {!isLoading && !isError && (
         <UIHomePage 
-          posts={latestPosts} 
-          content={homepageData || []} 
-          releases={releaseData || []} 
+          homepageData={homepageData || []}  // ✅ Correct prop name
+          latestPosts={latestPosts || []}    // ✅ Correct prop name  
+          releaseData={releaseData || []}    // ✅ Correct prop name
           spinsLeft={spinsLeft} 
+          isLoading={false}                  // ✅ Add missing props
+          isError={false}                    // ✅ Add missing props
           onSpin={handleSpin}
-          supabaseClient={supabase} // 🔑 Pass supabase client to UI package
+          supabaseClient={supabase}          // 🔑 Pass supabase client correctly
         />
       )}
       

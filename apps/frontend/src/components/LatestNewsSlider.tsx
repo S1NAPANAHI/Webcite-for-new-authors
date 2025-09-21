@@ -14,7 +14,6 @@ interface BlogPost {
   slug: string;
   excerpt?: string;
   content: string;
-  cover_url?: string;
   featured_image?: string;
   author?: string;
   status?: string;
@@ -22,44 +21,56 @@ interface BlogPost {
   views?: number;
   likes_count?: number;
   comments_count?: number;
-  tags?: string[];
   is_featured?: boolean;
   category?: string;
+  category_name?: string;
+  category_color?: string;
+  tag_names?: string[];
+  reading_time?: number;
+  word_count?: number;
 }
 
-// GUARANTEED sample posts that will always display if no real posts exist
+// Sample posts that match your existing schema structure
 const SAMPLE_POSTS: BlogPost[] = [
   {
     id: 'sample-1',
     title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
     slug: 'welcome-to-zoroasterverse',
     excerpt: 'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
-    content: 'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world\'s oldest monotheistic religions, offers profound insights into the nature of good and evil, the importance of free will, and the cosmic struggle between light and darkness.',
+    content: 'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world\'s oldest monotheistic religions, offers profound insights into the nature of good and evil, free will, and the cosmic struggle between light and darkness.',
     featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=600&fit=crop&crop=center',
     author: 'Zoroasterverse Team',
     published_at: new Date().toISOString(),
     views: 856,
     likes_count: 42,
     comments_count: 18,
-    tags: ['Welcome', 'Introduction', 'Philosophy'],
+    tag_names: ['Philosophy', 'Religion', 'Introduction'],
     is_featured: true,
-    category: 'Introduction'
+    category: 'Philosophy',
+    category_name: 'Philosophy',
+    category_color: '#8b5cf6',
+    reading_time: 8,
+    word_count: 1520
   },
   {
     id: 'sample-2',
     title: 'The Sacred Fire: Symbol of Divine Light and Purity',
     slug: 'sacred-fire-symbol',
-    excerpt: 'Fire holds a central place in Zoroastrian worship as a symbol of Ahura Mazda\'s light and purity. Learn about its significance and role in prayer.',
-    content: 'In Zoroastrianism, fire represents the light of Ahura Mazda and serves as a focal point for prayer and meditation. The sacred fire in temples burns continuously, symbolizing the eternal presence of the divine and the devotee\'s connection to truth and righteousness.',
+    excerpt: 'Fire holds a central place in Zoroastrian worship as a symbol of Ahura Mazda\'s light and the path to truth.',
+    content: 'In Zoroastrian tradition, fire is not worshipped itself but serves as a symbol of Ahura Mazda\'s light and purity. Fire temples around the world maintain this sacred flame as a focal point for prayer and meditation.',
     featured_image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=600&fit=crop&crop=center',
-    author: 'Zoroasterverse Team',
+    author: 'Dr. Farah Kermani',
     published_at: new Date(Date.now() - 86400000).toISOString(),
     views: 1234,
     likes_count: 89,
     comments_count: 34,
-    tags: ['Fire', 'Symbols', 'Worship'],
+    tag_names: ['Fire', 'Symbols', 'Worship'],
     is_featured: false,
-    category: 'Religion'
+    category: 'Religion',
+    category_name: 'Religion',
+    category_color: '#10b981',
+    reading_time: 6,
+    word_count: 1200
   },
   {
     id: 'sample-3',
@@ -68,14 +79,18 @@ const SAMPLE_POSTS: BlogPost[] = [
     excerpt: 'The threefold path of righteousness in Zoroastrianism emphasizes the importance of aligning our thoughts, words, and actions with truth and goodness.',
     content: 'Humata, Hukhta, Hvarshta - Good Thoughts, Good Words, Good Deeds. This fundamental principle of Zoroastrianism guides believers in living a righteous life. It emphasizes personal responsibility and the power of individual choice in the cosmic battle between good and evil.',
     featured_image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=600&fit=crop&crop=center',
-    author: 'Zoroasterverse Team',
+    author: 'Prof. Jamshid Rostami',
     published_at: new Date(Date.now() - 172800000).toISOString(),
     views: 967,
     likes_count: 76,
     comments_count: 29,
-    tags: ['Ethics', 'Philosophy', 'Practice'],
+    tag_names: ['Ethics', 'Philosophy', 'Practice'],
     is_featured: false,
-    category: 'Philosophy'
+    category: 'Philosophy',
+    category_name: 'Philosophy',
+    category_color: '#8b5cf6',
+    reading_time: 5,
+    word_count: 980
   }
 ];
 
@@ -94,18 +109,18 @@ export default function LatestNewsSlider() {
       setLoading(true);
       setError(null);
       
-      console.log('🔄 Fetching latest blog posts for homepage slider...');
+      console.log('🔄 Fetching latest blog posts using existing schema...');
       
-      // First, try to fetch real blog posts from Supabase
+      // Query using your EXISTING blog schema with the comprehensive view
       const { data, error } = await supabase
-        .from('blog_posts')
+        .from('blog_posts_with_stats') // Use the view that includes category and tag data
         .select('*')
         .eq('status', 'published')
         .order('published_at', { ascending: false })
         .limit(5);
 
       if (error) {
-        console.warn('⚠️ Supabase error, using sample data:', error.message);
+        console.warn('⚠️ Database query failed, using sample data:', error.message);
         setPosts(SAMPLE_POSTS);
         setIsUsingSampleData(true);
         return;
@@ -113,33 +128,8 @@ export default function LatestNewsSlider() {
 
       // If we have real published posts, use them
       if (data && data.length > 0) {
-        console.log(`✅ Found ${data.length} published blog posts`);
-        
-        const processedPosts = data.map((post, index) => {
-          let tags = [];
-          try {
-            if (typeof post.tags === 'string' && post.tags.startsWith('[')) {
-              tags = JSON.parse(post.tags);
-            } else if (Array.isArray(post.tags)) {
-              tags = post.tags;
-            } else if (typeof post.tags === 'string' && post.tags) {
-              tags = [post.tags];
-            }
-          } catch {
-            tags = ['News'];
-          }
-
-          return {
-            ...post,
-            tags,
-            category: post.category || (tags.length > 0 ? tags[0] : 'News'),
-            author: post.author || 'Zoroasterverse Team',
-            featured_image: post.featured_image || post.cover_url,
-            excerpt: post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Read more...')
-          };
-        });
-        
-        setPosts(processedPosts);
+        console.log(`✅ Found ${data.length} real published blog posts`);
+        setPosts(data as BlogPost[]);
         setIsUsingSampleData(false);
       } else {
         // No published posts found, use sample data
@@ -171,7 +161,8 @@ export default function LatestNewsSlider() {
     }
   };
 
-  const calculateReadTime = (content: string) => {
+  const calculateReadTime = (content?: string, reading_time?: number) => {
+    if (reading_time) return reading_time;
     if (!content) return 3;
     const words = content.split(/\s+/).length;
     return Math.max(Math.ceil(words / 200), 1);
@@ -274,10 +265,16 @@ export default function LatestNewsSlider() {
                   
                   {/* Content Section */}
                   <div className="lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-                    {/* Category */}
+                    {/* Category with color from your existing schema */}
                     <div className="mb-4">
-                      <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-amber-200 bg-amber-900/40 border border-amber-600/30 rounded-full">
-                        📁 {post.category || 'News'}
+                      <span 
+                        className="inline-flex items-center px-3 py-1 text-sm font-semibold text-white rounded-full border border-white/20"
+                        style={{ 
+                          backgroundColor: post.category_color || '#f59e0b',
+                          boxShadow: `0 0 20px ${post.category_color || '#f59e0b'}40`
+                        }}
+                      >
+                        📁 {post.category_name || post.category || 'News'}
                       </span>
                     </div>
                     
@@ -291,6 +288,20 @@ export default function LatestNewsSlider() {
                       {post.excerpt || (post.content ? post.content.substring(0, 160) + '...' : 'Discover more about this fascinating topic...')}
                     </p>
                     
+                    {/* Tags from your existing schema */}
+                    {post.tag_names && post.tag_names.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-6">
+                        {post.tag_names.slice(0, 3).map((tag) => (
+                          <span 
+                            key={tag}
+                            className="px-2 py-1 text-xs font-medium text-amber-200 bg-amber-900/30 border border-amber-600/30 rounded-full"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
                     {/* Metadata */}
                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-8">
                       <span className="flex items-center gap-2">
@@ -303,7 +314,7 @@ export default function LatestNewsSlider() {
                       </span>
                       <span className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
-                        {calculateReadTime(post.content)}m read
+                        {calculateReadTime(post.content, post.reading_time)}m read
                       </span>
                       <span className="flex items-center gap-2">
                         <Eye className="w-4 h-4" />
@@ -348,7 +359,7 @@ export default function LatestNewsSlider() {
         
         <div className="mt-6">
           <p className="text-gray-400 text-sm">
-            Showing latest {posts.length} articles
+            Showing latest {posts.length} articles from your blog
             {isUsingSampleData && (
               <span className="block mt-2 text-blue-400">
                 💡 <Link to="/admin/content/blog/new" className="underline hover:text-blue-300 font-medium">
@@ -375,6 +386,10 @@ export default function LatestNewsSlider() {
         .news-slider .swiper-pagination-bullet-active {
           background: #d97706 !important;
           transform: scale(1.2);
+        }
+        
+        .news-slider .swiper-navigation {
+          color: #d97706 !important;
         }
       `}</style>
     </div>

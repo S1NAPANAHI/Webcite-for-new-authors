@@ -55,3 +55,9 @@ export * from './tooltip';
 
 // Utils (safe)
 export * from './lib/utils';
+
+// ─────────────────────────────────────────────────────────────
+//  Expose the singleton Supabase client so that other packages
+//  can simply `import { supabase } from "@zoroaster/ui";`
+// ─────────────────────────────────────────────────────────────
+export { supabase } from './lib/supabaseClient';

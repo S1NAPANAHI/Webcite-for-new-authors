@@ -16,7 +16,10 @@ import {
   Link as LinkIcon,
   Search,
   Grid,
-  List
+  List,
+  FolderPlus,
+  Trash2,
+  Check
 } from 'lucide-react';
 
 interface FileRecord {
@@ -40,6 +43,13 @@ interface BlogTag {
   slug: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  count?: number;
+}
+
 const BlogPostEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -55,7 +65,13 @@ const BlogPostEditor = () => {
   const [author, setAuthor] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   
-  // New features
+  // ✅ ENHANCED: Category Management
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [availableCategories, setAvailableCategories] = useState<Category[]>([]);
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  
+  // Enhanced tag system
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [availableTags, setAvailableTags] = useState<BlogTag[]>([]);
   const [newTagName, setNewTagName] = useState('');
@@ -87,10 +103,87 @@ const BlogPostEditor = () => {
 
   const loadInitialData = async () => {
     await Promise.all([
+      loadCategories(),
       loadTags(),
       loadAvailablePosts(),
       loadMediaFiles()
     ]);
+  };
+
+  // ✅ NEW: Load Categories
+  const loadCategories = async () => {
+    try {
+      // Get categories from existing blog posts
+      const { data: posts, error } = await supabase
+        .from('blog_posts')
+        .select('tags')
+        .neq('tags', null);
+      
+      if (error && error.code !== 'PGRST116') {
+        console.warn('Error loading posts for categories:', error);
+        return;
+      }
+      
+      const categoryMap = new Map<string, number>();
+      const categories: Category[] = [];
+      
+      // Extract categories from existing posts' tags
+      (posts || []).forEach((post: any) => {
+        let tags = [];
+        try {
+          if (typeof post.tags === 'string') {
+            tags = JSON.parse(post.tags);
+          } else if (Array.isArray(post.tags)) {
+            tags = post.tags;
+          }
+        } catch {
+          tags = [];
+        }
+        
+        if (tags.length > 0) {
+          const category = tags[0]; // First tag is considered category
+          categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+        }
+      });
+      
+      // Convert to categories array
+      categoryMap.forEach((count, name) => {
+        categories.push({
+          id: generateSlug(name),
+          name,
+          slug: generateSlug(name),
+          count
+        });
+      });
+      
+      // Add default categories if none exist
+      const defaultCategories = [
+        'History', 'Philosophy', 'Religion', 'Culture', 'Modern Life',
+        'Architecture', 'Scripture', 'Theology', 'Community'
+      ];
+      
+      defaultCategories.forEach(cat => {
+        const slug = generateSlug(cat);
+        if (!categories.find(c => c.slug === slug)) {
+          categories.push({
+            id: slug,
+            name: cat,
+            slug,
+            count: 0
+          });
+        }
+      });
+      
+      // Sort by usage and name
+      categories.sort((a, b) => {
+        if (a.count !== b.count) return (b.count || 0) - (a.count || 0);
+        return a.name.localeCompare(b.name);
+      });
+      
+      setAvailableCategories(categories);
+    } catch (error) {
+      console.warn('Error loading categories:', error);
+    }
   };
 
   const loadTags = async () => {
@@ -100,7 +193,7 @@ const BlogPostEditor = () => {
         .select('*')
         .order('name');
       
-      if (error && error.code !== 'PGRST116') { // Ignore "relation does not exist" error
+      if (error && error.code !== 'PGRST116') {
         console.warn('Tags table may not exist yet:', error);
         return;
       }
@@ -149,7 +242,6 @@ const BlogPostEditor = () => {
     try {
       setLoading(true);
       
-      // First try to get the post
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
@@ -169,17 +261,38 @@ const BlogPostEditor = () => {
         setIsFeatured(data.is_featured || false);
         setMetaTitle(data.meta_title || '');
         setMetaDescription(data.meta_description || '');
+        
+        // ✅ ENHANCED: Load category from tags
+        try {
+          let tags = [];
+          if (typeof data.tags === 'string') {
+            tags = JSON.parse(data.tags);
+          } else if (Array.isArray(data.tags)) {
+            tags = data.tags;
+          }
+          
+          if (tags.length > 0) {
+            setSelectedCategory(tags[0]); // First tag is category
+            setSelectedTags(tags.slice(1)); // Rest are tags
+          }
+        } catch (error) {
+          console.warn('Error parsing post tags:', error);
+        }
       }
 
-      // Try to load tags if table exists
+      // Try to load additional tag relationships if table exists
       try {
         const { data: tagData } = await supabase
           .from('blog_post_tags')
           .select('tag_id')
           .eq('blog_post_id', id);
         
-        if (tagData) {
-          setSelectedTags(tagData.map((bt: any) => bt.tag_id));
+        if (tagData && tagData.length > 0) {
+          setSelectedTags(prev => {
+            const existing = prev.map(t => t);
+            const additional = tagData.map((bt: any) => bt.tag_id).filter((tid: string) => !existing.includes(tid));
+            return [...existing, ...additional];
+          });
         }
       } catch (tagError) {
         console.warn('Blog post tags table may not exist yet');
@@ -202,6 +315,41 @@ const BlogPostEditor = () => {
     setTitle(newTitle);
     if (!slug || slug === generateSlug(title)) {
       setSlug(generateSlug(newTitle));
+    }
+  };
+
+  // ✅ NEW: Create Category
+  const createNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    try {
+      setIsCreatingCategory(true);
+      const categorySlug = generateSlug(newCategoryName);
+      
+      // Check if category already exists
+      if (availableCategories.find(c => c.slug === categorySlug)) {
+        alert('Category already exists!');
+        return;
+      }
+      
+      const newCategory: Category = {
+        id: categorySlug,
+        name: newCategoryName,
+        slug: categorySlug,
+        count: 0
+      };
+      
+      setAvailableCategories(prev => [newCategory, ...prev]);
+      setSelectedCategory(newCategoryName);
+      setNewCategoryName('');
+      setIsCreatingCategory(false);
+      
+      console.log('Created new category:', newCategory);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      alert('Failed to create category');
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -250,6 +398,19 @@ const BlogPostEditor = () => {
     try {
       if (!user) throw new Error('Not authenticated');
 
+      // ✅ ENHANCED: Combine category and tags
+      const combinedTags = [];
+      if (selectedCategory) {
+        combinedTags.push(selectedCategory);
+      }
+      // Add additional tags (excluding category if it's already in tags)
+      selectedTags.forEach(tag => {
+        const tagName = availableTags.find(t => t.id === tag)?.name || tag;
+        if (tagName !== selectedCategory) {
+          combinedTags.push(tagName);
+        }
+      });
+
       const postData = {
         title,
         slug,
@@ -264,6 +425,7 @@ const BlogPostEditor = () => {
         is_featured: isFeatured,
         meta_title: metaTitle || null,
         meta_description: metaDescription || null,
+        tags: JSON.stringify(combinedTags), // ✅ Store category + tags
         updated_at: new Date().toISOString()
       };
 
@@ -320,6 +482,10 @@ const BlogPostEditor = () => {
         }
       }
 
+      // Show success message
+      const message = publishNow ? 'Post published successfully!' : 'Post saved as draft!';
+      alert(`✅ ${message}\n\n${publishNow ? 'Your post is now live on the blog page.' : 'You can publish it later from the admin panel.'}`);
+      
       navigate('/admin/content/blog');
     } catch (error) {
       console.error('Error saving blog post:', error);
@@ -336,7 +502,14 @@ const BlogPostEditor = () => {
   );
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <span className="text-gray-600">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -351,18 +524,18 @@ const BlogPostEditor = () => {
           <button
             onClick={() => saveBlogPost(false)}
             disabled={saving || !title}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             <Save className="w-4 h-4 mr-2" />
-            Save Draft
+            {saving ? 'Saving...' : 'Save Draft'}
           </button>
           <button
             onClick={() => saveBlogPost(true)}
             disabled={saving || !title || !content}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <Eye className="w-4 h-4 mr-2" />
-            {id && id !== 'new' ? 'Update & Publish' : 'Publish'}
+            {saving ? 'Publishing...' : (id && id !== 'new' ? 'Update & Publish' : 'Publish')}
           </button>
         </div>
       </div>
@@ -413,6 +586,89 @@ const BlogPostEditor = () => {
                   className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={`Author name (defaults to ${user?.email || 'your email'})`}
                 />
+              </div>
+
+              {/* ✅ CATEGORY SELECTION */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <FolderPlus className="w-4 h-4 inline mr-1" />
+                  Category
+                </label>
+                
+                <div className="space-y-3">
+                  {/* Category Selection */}
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => {
+                      if (e.target.value === '__create_new__') {
+                        setIsCreatingCategory(true);
+                      } else {
+                        setSelectedCategory(e.target.value);
+                      }
+                    }}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select a category...</option>
+                    {availableCategories.map(category => (
+                      <option key={category.id} value={category.name}>
+                        {category.name} {category.count ? `(${category.count} posts)` : ''}
+                      </option>
+                    ))}
+                    <option value="__create_new__">+ Create New Category</option>
+                  </select>
+
+                  {/* Create New Category */}
+                  {isCreatingCategory && (
+                    <div className="flex gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <input
+                        type="text"
+                        placeholder="Enter new category name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onKeyPress={(e) => e.key === 'Enter' && createNewCategory()}
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={createNewCategory}
+                        disabled={!newCategoryName.trim() || isCreatingCategory}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center gap-1"
+                      >
+                        <Check className="w-4 h-4" />
+                        Create
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCreatingCategory(false);
+                          setNewCategoryName('');
+                        }}
+                        className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Selected Category Display */}
+                  {selectedCategory && !isCreatingCategory && (
+                    <div className="flex items-center gap-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                      <span className="text-sm text-blue-800">Selected:</span>
+                      <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        📁 {selectedCategory}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCategory('')}
+                        className="text-red-600 hover:text-red-700 text-sm p-1 hover:bg-red-50 rounded transition-colors"
+                        title="Remove category"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -522,13 +778,17 @@ const BlogPostEditor = () => {
             </div>
           </div>
 
-          {/* Tags */}
+          {/* Additional Tags */}
           {availableTags.length > 0 && (
             <div className="bg-white rounded-lg border p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
                 <Tag className="w-5 h-5" />
-                Tags
+                Additional Tags
               </h3>
+              
+              <p className="text-xs text-gray-500 mb-3">
+                💡 Category is automatically included. Add more specific tags here.
+              </p>
               
               {/* Create New Tag */}
               <div className="flex gap-2 mb-4">

@@ -1,42 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { supabase } from '@zoroaster/shared';
 import { 
   Calendar, 
   User, 
-  Eye, 
-  Heart, 
-  MessageCircle, 
-  Share2, 
   Clock, 
-  ArrowLeft,
+  ArrowLeft, 
+  Heart, 
+  Share2, 
+  Eye, 
+  MessageCircle,
+  Bookmark,
   Tag,
-  ThumbsUp
+  ExternalLink
 } from 'lucide-react';
-import { supabase } from '@zoroaster/shared';
 
 interface BlogPost {
   id: string;
   title: string;
+  slug: string;
+  excerpt?: string;
   content: string;
-  excerpt: string;
+  cover_url?: string;
   featured_image?: string;
   author?: string;
+  status?: string;
   published_at: string;
+  created_at: string;
   views?: number;
   likes_count?: number;
   comments_count?: number;
   tags?: string[];
-  reading_time?: number;
-  slug: string;
+  is_featured?: boolean;
+  meta_title?: string;
+  meta_description?: string;
 }
 
 export default function BlogPostPage() {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<BlogPost | null>(null);
-  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isLiked, setIsLiked] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPost[]>([]);
 
   useEffect(() => {
     if (slug) {
@@ -44,65 +51,170 @@ export default function BlogPostPage() {
     }
   }, [slug]);
 
+  useEffect(() => {
+    if (post) {
+      fetchRelatedPosts();
+      // Update page title and meta
+      document.title = post.meta_title || `${post.title} | Zoroasterverse Blog`;
+      if (post.meta_description) {
+        const metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) {
+          metaDescription.setAttribute('content', post.meta_description);
+        }
+      }
+    }
+  }, [post]);
+
   const fetchPost = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      // For now, use mock data - replace with Supabase query later
-      const mockPost = getMockPostBySlug(slug!);
       
-      if (!mockPost) {
+      console.log(`🔍 Fetching blog post with slug: ${slug}`);
+      
+      // Fetch post by slug
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .eq('slug', slug)
+        .eq('status', 'published')
+        .single();
+
+      if (error) {
+        console.error('❌ Error fetching post:', error);
+        if (error.code === 'PGRST116') {
+          setError('Post not found');
+        } else {
+          throw error;
+        }
+        return;
+      }
+
+      if (!data) {
         setError('Post not found');
         return;
       }
 
-      setPost(mockPost);
+      console.log('✅ Post found:', data);
 
-      // Get related posts (other posts with similar tags)
-      if (mockPost.tags && mockPost.tags.length > 0) {
-        const allMockPosts = getMockPosts();
-        const related = allMockPosts
-          .filter(p => 
-            p.id !== mockPost.id && 
-            p.tags?.some(tag => mockPost.tags?.includes(tag))
-          )
-          .slice(0, 3);
-        
-        setRelatedPosts(related);
+      // Process post data
+      let tags = [];
+      try {
+        if (typeof data.tags === 'string' && data.tags.startsWith('[')) {
+          tags = JSON.parse(data.tags);
+        } else if (Array.isArray(data.tags)) {
+          tags = data.tags;
+        } else if (typeof data.tags === 'string' && data.tags) {
+          tags = [data.tags];
+        }
+      } catch {
+        tags = [];
       }
-    } catch (error) {
-      console.error('Error fetching post:', error);
-      setError('Post not found');
+
+      // Process content
+      let content = data.content;
+      try {
+        if (typeof content === 'string' && (content.startsWith('{') || content.startsWith('"'))) {
+          content = JSON.parse(content);
+        }
+      } catch {
+        // Keep as string if parsing fails
+      }
+
+      const processedPost = {
+        ...data,
+        tags,
+        content: typeof content === 'string' ? content : JSON.stringify(content),
+        views: (data.views || 0) + 1, // Increment view count
+        author: data.author || 'Zoroastervers Team',
+        featured_image: data.featured_image || data.cover_url
+      };
+
+      setPost(processedPost);
+
+      // Increment view count in database
+      await supabase
+        .from('blog_posts')
+        .update({ views: processedPost.views })
+        .eq('id', data.id);
+
+      console.log('✅ Post loaded and view count updated');
+
+    } catch (err) {
+      console.error('❌ Error in fetchPost:', err);
+      setError('Failed to load post. Please try again later.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRelatedPosts = async () => {
+    if (!post || !post.tags || post.tags.length === 0) return;
+
+    try {
+      console.log('🔍 Fetching related posts...');
+      
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('id, title, slug, excerpt, cover_url, featured_image, author, published_at, views')
+        .eq('status', 'published')
+        .neq('id', post.id)
+        .limit(3);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        setRelatedPosts(data.map(p => ({
+          ...p,
+          featured_image: p.featured_image || p.cover_url
+        })));
+        console.log(`✅ Found ${data.length} related posts`);
+      }
+    } catch (err) {
+      console.error('❌ Error fetching related posts:', err);
     }
   };
 
   const handleLike = async () => {
     if (!post) return;
 
-    const newLikesCount = (post.likes_count || 0) + (isLiked ? -1 : 1);
-    setPost({ ...post, likes_count: newLikesCount });
-    setIsLiked(!isLiked);
-  };
+    try {
+      const newLikesCount = (post.likes_count || 0) + (liked ? -1 : 1);
+      
+      await supabase
+        .from('blog_posts')
+        .update({ likes_count: newLikesCount })
+        .eq('id', post.id);
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      await navigator.share({
-        title: post?.title,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      // You could show a toast notification here
+      setPost(prev => prev ? { ...prev, likes_count: newLikesCount } : null);
+      setLiked(!liked);
+      
+      console.log(`${liked ? '💔' : '❤️'} Post ${liked ? 'unliked' : 'liked'}`);
+    } catch (error) {
+      console.error('❌ Error updating like:', error);
     }
   };
 
-  const estimateReadingTime = (content: string) => {
-    const wordsPerMinute = 200;
-    const wordCount = content.split(/\s+/).length;
-    return Math.ceil(wordCount / wordsPerMinute);
+  const handleShare = async () => {
+    if (!post) return;
+
+    try {
+      await navigator.share({
+        title: post.title,
+        text: post.excerpt || `Read "${post.title}" on Zoroasterverse Blog`,
+        url: window.location.href
+      });
+      console.log('📤 Post shared successfully');
+    } catch (error) {
+      // Fallback to copy to clipboard
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('✅ Link copied to clipboard!');
+      } catch (clipboardError) {
+        console.error('❌ Error sharing:', error);
+        alert('❌ Could not share. Please copy the URL manually.');
+      }
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -113,20 +225,30 @@ export default function BlogPostPage() {
     });
   };
 
+  const calculateReadTime = (content: string) => {
+    if (!content) return 1;
+    const words = content.split(/\s+/).length;
+    return Math.ceil(words / 200);
+  };
+
+  const renderContent = (content: string) => {
+    // Simple content rendering - split by paragraphs
+    const paragraphs = content.split('\n\n').filter(p => p.trim());
+    
+    return paragraphs.map((paragraph, index) => (
+      <p key={index} className="mb-4 leading-relaxed text-gray-900 dark:text-gray-100">
+        {paragraph.trim()}
+      </p>
+    ));
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="animate-pulse">
-            <div className="h-8 bg-muted rounded w-1/4 mb-8"></div>
-            <div className="aspect-video bg-muted rounded-2xl mb-8"></div>
-            <div className="h-12 bg-muted rounded mb-4"></div>
-            <div className="h-6 bg-muted rounded w-3/4 mb-8"></div>
-            <div className="space-y-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="h-4 bg-muted rounded"></div>
-              ))}
-            </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="max-w-4xl mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-300 transition-colors">Loading article...</p>
           </div>
         </div>
       </div>
@@ -135,255 +257,230 @@ export default function BlogPostPage() {
 
   if (error || !post) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Post Not Found</h1>
-          <p className="text-muted-foreground mb-8">The blog post you're looking for doesn't exist.</p>
-          <Link 
-            to="/blog"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Blog
-          </Link>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+        <div className="max-w-4xl mx-auto px-4 py-16">
+          <div className="text-center">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 max-w-md mx-auto transition-colors">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 transition-colors">
+                Post Not Found
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6 transition-colors">
+                {error || 'The blog post you\'re looking for doesn\'t exist or has been removed.'}
+              </p>
+              <div className="space-y-3">
+                <Link
+                  to="/blog"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Blog
+                </Link>
+                <div>
+                  <Link
+                    to="/admin/content/blog"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                  >
+                    Go to Admin Panel
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <Link 
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
+      <article className="max-w-4xl mx-auto px-4 py-12">
+        {/* Back button */}
+        <div className="mb-8">
+          <Link
             to="/blog"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
+            className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Blog
           </Link>
         </div>
-      </header>
 
-      {/* Article */}
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-        {/* Featured Image */}
+        {/* Post header */}
+        <header className="mb-8">
+          {/* Featured badge */}
+          {post.is_featured && (
+            <div className="mb-4">
+              <span className="inline-flex items-center px-3 py-1 text-sm font-semibold text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-200 rounded-full transition-colors">
+                ⭐ Featured Post
+              </span>
+            </div>
+          )}
+
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight transition-colors">
+            {post.title}
+          </h1>
+          
+          {post.excerpt && (
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 leading-relaxed transition-colors">
+              {post.excerpt}
+            </p>
+          )}
+
+          {/* ✅ FIXED: Post metadata with better spacing */}
+          <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 dark:text-gray-400 pb-6 border-b dark:border-gray-700 transition-colors">
+            <span className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span className="font-medium">{post.author}</span>
+            </span>
+            <span className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              {formatDate(post.published_at)}
+            </span>
+            <span className="flex items-center gap-2">
+              <Clock className="w-4 h-4" />
+              {calculateReadTime(post.content)} min read
+            </span>
+            <span className="flex items-center gap-2">
+              <Eye className="w-4 h-4" />
+              {post.views || 0} views
+            </span>
+          </div>
+        </header>
+
+        {/* Cover image */}
         {post.featured_image && (
-          <div className="aspect-video bg-muted rounded-2xl overflow-hidden mb-8">
+          <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
             <img
               src={post.featured_image}
               alt={post.title}
-              className="w-full h-full object-cover"
+              className="w-full h-96 object-cover"
+              onError={(e) => {
+                e.currentTarget.src = '/api/placeholder/800/400';
+              }}
             />
           </div>
         )}
 
-        {/* Article Header */}
-        <header className="mb-8">
-          {/* Tags */}
-          {post.tags && post.tags.length > 0 && (
-            <div className="flex items-center gap-2 mb-4">
+        {/* Post content with dark mode */}
+        <div className="prose prose-lg max-w-none dark:prose-invert mb-8">
+          <div className="leading-relaxed transition-colors">
+            {renderContent(post.content)}
+          </div>
+        </div>
+
+        {/* Tags */}
+        {post.tags && post.tags.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 transition-colors">Tags:</h3>
+            <div className="flex flex-wrap gap-2">
               {post.tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-full"
+                  className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full transition-colors"
                 >
-                  <Tag className="w-3 h-3" />
-                  {tag}
+                  #{tag}
                 </span>
               ))}
             </div>
-          )}
-
-          <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-            {post.title}
-          </h1>
-
-          {/* Meta Information */}
-          <div className="flex flex-wrap items-center gap-6 text-muted-foreground mb-6">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4" />
-              <span>{post.author || 'Zoroastervers Team'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>{formatDate(post.published_at)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>{post.reading_time || estimateReadingTime(post.content)} min read</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              <span>{(post.views || 0).toLocaleString()} views</span>
-            </div>
           </div>
+        )}
 
-          {/* Social Actions */}
-          <div className="flex items-center gap-4 pb-6 border-b border-border">
+        {/* Engagement buttons with dark mode */}
+        <div className="flex items-center justify-between py-6 border-t border-b dark:border-gray-700 mb-8 transition-colors">
+          <div className="flex items-center gap-4">
             <button
               onClick={handleLike}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                isLiked
-                  ? 'bg-red-500/10 text-red-600 hover:bg-red-500/20'
-                  : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                liked
+                  ? 'text-red-600 bg-red-50 dark:bg-red-900/20'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
               }`}
             >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-              <span>{post.likes_count || 0}</span>
+              <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+              {post.likes_count || 0}
             </button>
-
-            <button className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-lg transition-colors">
-              <MessageCircle className="w-4 h-4" />
-              <span>{post.comments_count || 0}</span>
+            
+            <button
+              onClick={() => setBookmarked(!bookmarked)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                bookmarked
+                  ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+              }`}
+            >
+              <Bookmark className={`w-5 h-5 ${bookmarked ? 'fill-current' : ''}`} />
+              Save
             </button>
-
+            
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
             >
-              <Share2 className="w-4 h-4" />
-              <span>Share</span>
+              <Share2 className="w-5 h-5" />
+              Share
             </button>
           </div>
-        </header>
 
-        {/* Article Content */}
-        <div className="prose prose-lg max-w-none mb-12">
-          {post.content.split('\n\n').map((paragraph, index) => (
-            <p key={index} className="text-foreground leading-relaxed mb-6">
-              {paragraph}
-            </p>
-          ))}
+          <div className="text-sm text-gray-500 dark:text-gray-400 transition-colors">
+            <span>{post.views || 0} views</span>
+          </div>
         </div>
 
-        {/* Related Posts */}
+        {/* Related posts with dark mode */}
         {relatedPosts.length > 0 && (
-          <section className="mt-16 pt-12 border-t border-border">
-            <h2 className="text-2xl font-bold text-foreground mb-8">Related Articles</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 transition-colors">Related Posts</h3>
+            <div className="grid md:grid-cols-3 gap-6">
               {relatedPosts.map((relatedPost) => (
-                <Link key={relatedPost.id} to={`/blog/${relatedPost.slug}`} className="group">
-                  <article className="glass-card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
-                    <div className="aspect-video bg-muted overflow-hidden">
+                <Link
+                  key={relatedPost.id}
+                  to={`/blog/${relatedPost.slug}`}
+                  className="group block bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border dark:border-gray-700"
+                >
+                  {relatedPost.featured_image && (
+                    <div className="aspect-video overflow-hidden">
                       <img
-                        src={relatedPost.featured_image || '/api/placeholder/300/200'}
+                        src={relatedPost.featured_image}
                         alt={relatedPost.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                        onError={(e) => {
+                          e.currentTarget.src = '/api/placeholder/300/200';
+                        }}
                       />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 mb-2">
-                        {relatedPost.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                  )}
+                  <div className="p-4">
+                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 mb-2">
+                      {relatedPost.title}
+                    </h4>
+                    {relatedPost.excerpt && (
+                      <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3 transition-colors">
                         {relatedPost.excerpt}
                       </p>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          {relatedPost.views || 0}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-3 h-3" />
-                          {relatedPost.likes_count || 0}
-                        </div>
-                      </div>
+                    )}
+                    <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 transition-colors">
+                      <span>{relatedPost.author}</span>
+                      <span>•</span>
+                      <span>{relatedPost.views || 0} views</span>
                     </div>
-                  </article>
+                  </div>
                 </Link>
               ))}
             </div>
-          </section>
+          </div>
         )}
+
+        {/* Back to blog */}
+        <div className="text-center pt-8 border-t dark:border-gray-700 transition-colors">
+          <Link
+            to="/blog"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to All Posts
+          </Link>
+        </div>
       </article>
     </div>
   );
-}
-
-// Mock data functions
-function getMockPosts(): BlogPost[] {
-  return [
-    {
-      id: '1',
-      title: 'The Ancient Wisdom of Zoroaster: A Journey Through Time',
-      slug: 'ancient-wisdom-of-zoroaster',
-      excerpt: 'Explore the profound teachings of Zoroaster and their relevance in modern times. Discover how ancient wisdom shapes our understanding of good versus evil.',
-      content: 'The teachings of Zoroaster have shaped civilizations for over 3,000 years. In this comprehensive exploration, we delve into the core principles of Zoroastrianism and examine how these ancient beliefs continue to influence modern thought and spirituality.\n\nFrom the concept of free will to the eternal struggle between light and darkness, Zoroastrian philosophy offers profound insights into the human condition and our relationship with the divine. The prophet Zoroaster, also known as Zarathustra, lived sometime between 628-551 BCE in ancient Persia, and his teachings formed the foundation of one of the world\'s oldest monotheistic religions.\n\nThe core principle of "Good Thoughts, Good Words, Good Deeds" (Humata, Hukhta, Hvarshta) remains as relevant today as it was over three millennia ago. This ethical framework provides a simple yet profound guide for living a righteous life, emphasizing the power of individual choice in the cosmic battle between good and evil.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Dr. Sarah Mirza',
-      published_at: new Date(Date.now() - 86400000).toISOString(),
-      views: 1247,
-      likes_count: 89,
-      comments_count: 23,
-      tags: ['History', 'Philosophy', 'Religion'],
-      reading_time: 8
-    },
-    {
-      id: '2',
-      title: 'Fire Temples: Sacred Architecture of the Zoroastrian Faith',
-      slug: 'fire-temples-sacred-architecture',
-      excerpt: 'An architectural journey through the sacred fire temples that have served as centers of worship for thousands of years.',
-      content: 'Fire temples represent the heart of Zoroastrian worship. These sacred structures, with their eternal flames, tell stories of devotion, community, and architectural brilliance spanning millennia.\n\nFrom the great fire of Yazd to the Atash Bahrams of Mumbai, each temple carries unique historical significance. The eternal flames housed within these sacred spaces have burned continuously for centuries, some for over a thousand years, representing the eternal light of Ahura Mazda.\n\nThe architecture of fire temples reflects both practical needs and spiritual symbolism. The inner sanctum, where the sacred fire burns, is carefully designed to maintain purity while allowing the faithful to offer prayers and make offerings.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Prof. Jamshid Rostami',
-      published_at: new Date(Date.now() - 172800000).toISOString(),
-      views: 2156,
-      likes_count: 134,
-      comments_count: 67,
-      tags: ['Architecture', 'Sacred Sites', 'Culture'],
-      reading_time: 12
-    },
-    {
-      id: '3',
-      title: 'The Gathas: Poetry of Divine Inspiration',
-      slug: 'gathas-poetry-divine-inspiration',
-      excerpt: 'Dive into the beautiful hymns composed by Zoroaster himself, exploring their poetic structure and spiritual significance.',
-      content: 'The Gathas represent the oldest part of the Avesta and contain the direct words of Zoroaster. These seventeen hymns offer profound insights into the prophet\'s teachings and relationship with Ahura Mazda.\n\nTheir poetic beauty and theological depth continue to inspire scholars and believers alike. Each Gatha reveals different aspects of Zoroastrian thought, from the nature of the divine to humanity\'s role in the cosmic order.\n\nThe language of the Gathas is both archaic and profound, requiring careful study to unlock their full meaning. Modern scholars have worked tirelessly to preserve and interpret these ancient texts for contemporary readers.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Dr. Farah Kermani',
-      published_at: new Date(Date.now() - 259200000).toISOString(),
-      views: 892,
-      likes_count: 67,
-      comments_count: 31,
-      tags: ['Scripture', 'Poetry', 'Theology'],
-      reading_time: 15
-    },
-    {
-      id: '4',
-      title: 'Modern Zoroastrian Communities Around the World',
-      slug: 'modern-zoroastrian-communities',
-      excerpt: 'Meet the vibrant Zoroastrian communities that keep ancient traditions alive in our modern world.',
-      content: 'From Mumbai to Toronto, London to Tehran, Zoroastrian communities continue to thrive while preserving their ancient heritage. This article explores how modern Zoroastrians navigate tradition and contemporary life.\n\nDespite their small numbers, Zoroastrian communities have made significant contributions to their adopted countries while maintaining their unique identity. The Parsi community in India, descendants of Persian Zoroastrians, exemplifies this balance between tradition and modernity.\n\nIn North America and Europe, younger generations of Zoroastrians face the challenge of preserving their faith while fully participating in multicultural societies.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Reza Dalal',
-      published_at: new Date(Date.now() - 345600000).toISOString(),
-      views: 1683,
-      likes_count: 203,
-      comments_count: 89,
-      tags: ['Community', 'Modern Life', 'Global'],
-      reading_time: 10
-    },
-    {
-      id: '5',
-      title: 'The Symbolism of Light and Darkness in Zoroastrian Thought',
-      slug: 'symbolism-light-darkness',
-      excerpt: 'Understanding the fundamental dualism that forms the core of Zoroastrian theology and its impact on world religions.',
-      content: 'The eternal struggle between light and darkness, good and evil, forms the foundation of Zoroastrian thought. This exploration examines how this dualistic worldview has influenced major world religions and philosophical systems.\n\nIn Zoroastrian cosmology, Ahura Mazda represents absolute goodness and light, while Angra Mainyu embodies evil and darkness. This cosmic battle is not just theological but deeply practical, calling each person to choose their side through thoughts, words, and deeds.\n\nThis dualistic framework has profoundly influenced Christianity, Islam, and other monotheistic traditions, making Zoroastrianism one of history\'s most influential religions despite its relatively small following today.',
-      featured_image: '/api/placeholder/1200/600',
-      author: 'Prof. Cyrus Bahram',
-      published_at: new Date(Date.now() - 432000000).toISOString(),
-      views: 756,
-      likes_count: 45,
-      comments_count: 18,
-      tags: ['Theology', 'Symbolism', 'Philosophy'],
-      reading_time: 7
-    }
-  ];
-}
-
-function getMockPostBySlug(slug: string): BlogPost | null {
-  const posts = getMockPosts();
-  return posts.find(post => post.slug === slug) || null;
 }

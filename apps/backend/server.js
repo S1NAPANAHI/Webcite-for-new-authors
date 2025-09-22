@@ -169,6 +169,7 @@ async function startServer() {
   });
 
   // Add JSON body parsing middleware (AFTER webhook endpoint)
+  // This must be here to ensure that the raw body is available for the Stripe webhook.
   app.use(express.json());
 
   // Add enhanced debug logging middleware

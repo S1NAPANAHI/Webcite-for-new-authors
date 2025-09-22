@@ -85,6 +85,9 @@ router.get('/', requireSupabase, async (req, res) => {
     console.log('📊 Content result:', contentResult.error ? 'ERROR' : 'SUCCESS');
     console.log('💬 Quotes result:', quotesResult.error ? 'ERROR' : 'SUCCESS', `(${quotesResult.data?.length || 0} quotes)`);
 
+    // ADDED FOR DEBUGGING: Log the raw content data
+    console.log('🔍 Raw content data from DB:', JSON.stringify(contentResult.data, null, 2));
+
     // Handle content not found gracefully
     const content = contentResult.data || {
       id: 'homepage',

@@ -2,6 +2,7 @@ import NewsCarousel from '../components/NewsCarousel';
 import LatestNewsSlider from '../components/LatestNewsSlider';
 import NewsGrid from '../components/NewsGrid';
 import { useLatestPosts } from '../hooks/useLatestPosts';
+import { LatestReleases } from '../components/home/LatestReleases';
 import React, { useState, useEffect } from 'react';
 import { HomePage as UIHomePage, type HomepageContentItem, type Post, type ReleaseItem } from '@zoroaster/ui';
 import { supabase } from '@zoroaster/shared';
@@ -338,6 +339,9 @@ const HomePage: React.FC = () => {
           />
         </>
       )}
+      
+      {/* 🎯 DEDICATED LATEST RELEASES COMPONENT - This will actually work! */}
+      <LatestReleases limit={6} />
       
       {/* Loading State */}
       {isLoading && (

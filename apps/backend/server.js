@@ -264,6 +264,21 @@ async function startServer() {
     });
   });
 
+  // Error handling middleware
+  app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    if (err.message && err.message.includes('CORS')) {
+      return res.status(403).json({ 
+        error: 'CORS policy violation',
+        message: 'Origin not allowed'
+      });
+    }
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    });
+  });
+
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);

@@ -168,6 +168,20 @@ async function startServer() {
     return res.sendStatus(403);
   });
 
+  app.use((req, res, next) => {
+    if (req.path === '/api/homepage/content' && req.method === 'PUT') {
+      const chunks = [];
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', () => {
+        const rawBody = Buffer.concat(chunks).toString();
+        console.log('RAW REQUEST BODY:', rawBody);
+        next();
+      });
+    } else {
+      next();
+    }
+  });
+
   // Add JSON body parsing middleware (AFTER webhook endpoint)
   app.use(express.json());
 

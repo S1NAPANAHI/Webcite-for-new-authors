@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Book, Clock, ArrowRight, ExternalLink } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
 import { Link } from 'react-router-dom';
+import '../../styles/releases.css';
 
 interface Release {
   id: string;
@@ -212,7 +213,7 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => 
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {releases.map((release) => (
-            <div key={release.id} className="group bg-gray-800/50 border border-gray-700 hover:border-orange-500/50 rounded-lg p-6 transition-all duration-300 hover:transform hover:scale-105">
+            <div key={release.id} className="group release-card bg-gray-800/50 border border-gray-700 hover:border-orange-500/50 rounded-lg p-6 transition-all duration-300">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center text-orange-500">
                   {release.type === 'chapter' ? (

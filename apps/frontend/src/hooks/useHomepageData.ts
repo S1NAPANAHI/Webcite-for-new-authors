@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { useHomepageContextOptional } from '../contexts/HomepageContext';
 
 // Create Supabase client as singleton
 let supabaseInstance: any = null;
@@ -216,6 +217,9 @@ export const useHomepageData = () => {
   const [data, setData] = useState<HomepageData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get context for cache invalidation (optional)
+  const homepageContext = useHomepageContextOptional();
 
   const fetchHomepageData = useCallback(async () => {
     try {
@@ -307,6 +311,14 @@ export const useHomepageData = () => {
     }
   }, []);
 
+  // Register for cache invalidation
+  useEffect(() => {
+    if (homepageContext) {
+      const cleanup = homepageContext.registerDataRefresh(fetchHomepageData);
+      return cleanup;
+    }
+  }, [homepageContext, fetchHomepageData]);
+
   useEffect(() => {
     fetchHomepageData();
   }, [fetchHomepageData]);
@@ -324,6 +336,9 @@ export const useHomepageMetrics = (autoRefresh = false, intervalMs = 60000) => {
   const [metrics, setMetrics] = useState<HomepageMetrics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get context for cache invalidation (optional)
+  const homepageContext = useHomepageContextOptional();
 
   const fetchMetrics = useCallback(async () => {
     try {
@@ -371,6 +386,14 @@ export const useHomepageMetrics = (autoRefresh = false, intervalMs = 60000) => {
     }
   }, []);
 
+  // Register for cache invalidation
+  useEffect(() => {
+    if (homepageContext) {
+      const cleanup = homepageContext.registerMetricsRefresh(fetchMetrics);
+      return cleanup;
+    }
+  }, [homepageContext, fetchMetrics]);
+
   useEffect(() => {
     fetchMetrics();
     
@@ -393,6 +416,9 @@ export const useHomepageQuotes = () => {
   const [quotes, setQuotes] = useState<HomepageQuote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get context for cache invalidation (optional)
+  const homepageContext = useHomepageContextOptional();
 
   const fetchQuotes = useCallback(async () => {
     try {
@@ -449,6 +475,14 @@ export const useHomepageQuotes = () => {
     }
   }, []);
 
+  // Register for cache invalidation
+  useEffect(() => {
+    if (homepageContext) {
+      const cleanup = homepageContext.registerQuotesRefresh(fetchQuotes);
+      return cleanup;
+    }
+  }, [homepageContext, fetchQuotes]);
+
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
@@ -465,6 +499,9 @@ export const useHomepageQuotes = () => {
 export const useHomepageAdmin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Get context for cache invalidation
+  const homepageContext = useHomepageContextOptional();
 
   const getAuthToken = async () => {
     if (!supabase) throw new Error('Supabase client not available');
@@ -482,6 +519,8 @@ export const useHomepageAdmin = () => {
       setIsLoading(true);
       setError(null);
       
+      console.log('🔄 useHomepageAdmin: Updating content with data:', contentData);
+      
       const token = await getAuthToken();
       let response;
       
@@ -496,6 +535,7 @@ export const useHomepageAdmin = () => {
       } catch (apiError) {
         if (!supabase) throw new Error('Supabase client not available');
         
+        console.log('🔄 API failed, using Supabase fallback for content update');
         // Fallback to direct Supabase
         const { data, error } = await supabase
           .from('homepage_content')
@@ -503,7 +543,7 @@ export const useHomepageAdmin = () => {
             id: 'homepage',
             ...contentData,
             updated_at: new Date().toISOString()
-          })
+          }, { onConflict: 'id' })
           .select()
           .single();
           
@@ -512,6 +552,13 @@ export const useHomepageAdmin = () => {
       }
       
       console.log('✅ useHomepageAdmin: Content updated successfully');
+      
+      // Invalidate all caches after successful update
+      if (homepageContext) {
+        console.log('🔄 Invalidating homepage caches after content update...');
+        homepageContext.invalidateAll();
+      }
+      
       return response;
     } catch (err) {
       console.error('❌ useHomepageAdmin: Content update error:', err);
@@ -520,7 +567,7 @@ export const useHomepageAdmin = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [homepageContext]);
 
   // Update metrics manually
   const updateMetrics = useCallback(async (metricsData: Partial<HomepageMetrics>) => {
@@ -558,6 +605,13 @@ export const useHomepageAdmin = () => {
       }
       
       console.log('✅ useHomepageAdmin: Metrics updated successfully');
+      
+      // Invalidate metrics cache after successful update
+      if (homepageContext) {
+        console.log('🔄 Invalidating metrics cache after update...');
+        homepageContext.invalidateMetrics();
+      }
+      
       return response;
     } catch (err) {
       console.error('❌ useHomepageAdmin: Metrics update error:', err);
@@ -566,7 +620,7 @@ export const useHomepageAdmin = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [homepageContext]);
 
   // Calculate metrics automatically
   const calculateMetrics = useCallback(async () => {
@@ -636,6 +690,13 @@ export const useHomepageAdmin = () => {
       }
       
       console.log('✅ useHomepageAdmin: Metrics calculated successfully');
+      
+      // Invalidate all caches after successful calculation
+      if (homepageContext) {
+        console.log('🔄 Invalidating caches after metrics calculation...');
+        homepageContext.invalidateAll();
+      }
+      
       return response;
     } catch (err) {
       console.error('❌ useHomepageAdmin: Metrics calculation error:', err);
@@ -644,7 +705,7 @@ export const useHomepageAdmin = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [homepageContext]);
 
   // Simplified quote management functions with fallbacks
   const addQuote = useCallback(async (quoteData: { quote_text: string; author?: string; display_order?: number }) => {
@@ -668,6 +729,13 @@ export const useHomepageAdmin = () => {
       if (error) throw error;
       
       console.log('✅ useHomepageAdmin: Quote added successfully');
+      
+      // Invalidate quotes cache after successful add
+      if (homepageContext) {
+        console.log('🔄 Invalidating quotes cache after add...');
+        homepageContext.invalidateQuotes();
+      }
+      
       return { success: true, data };
     } catch (err) {
       console.error('❌ useHomepageAdmin: Quote add error:', err);
@@ -676,7 +744,7 @@ export const useHomepageAdmin = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [homepageContext]);
 
   const updateQuote = useCallback(async (id: number, quoteData: Partial<HomepageQuote>) => {
     try {
@@ -698,6 +766,13 @@ export const useHomepageAdmin = () => {
       if (error) throw error;
       
       console.log('✅ useHomepageAdmin: Quote updated successfully');
+      
+      // Invalidate quotes cache after successful update
+      if (homepageContext) {
+        console.log('🔄 Invalidating quotes cache after update...');
+        homepageContext.invalidateQuotes();
+      }
+      
       return { success: true, data };
     } catch (err) {
       console.error('❌ useHomepageAdmin: Quote update error:', err);
@@ -706,7 +781,7 @@ export const useHomepageAdmin = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [homepageContext]);
 
   const deleteQuote = useCallback(async (id: number) => {
     try {
@@ -723,6 +798,13 @@ export const useHomepageAdmin = () => {
       if (error) throw error;
       
       console.log('✅ useHomepageAdmin: Quote deleted successfully');
+      
+      // Invalidate quotes cache after successful delete
+      if (homepageContext) {
+        console.log('🔄 Invalidating quotes cache after delete...');
+        homepageContext.invalidateQuotes();
+      }
+      
       return { success: true };
     } catch (err) {
       console.error('❌ useHomepageAdmin: Quote delete error:', err);
@@ -731,7 +813,7 @@ export const useHomepageAdmin = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [homepageContext]);
 
   const getAllQuotes = useCallback(async () => {
     try {

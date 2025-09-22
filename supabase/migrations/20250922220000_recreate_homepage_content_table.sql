@@ -93,7 +93,7 @@ CREATE POLICY "Authenticated admin can manage homepage content" ON public.homepa
         auth.uid() IS NOT NULL AND
         EXISTS (
             SELECT 1 FROM profiles
-            WHERE profiles.user_id = auth.uid()
+            WHERE profiles.id = auth.uid()
             AND profiles.role = 'admin'
         )
     );

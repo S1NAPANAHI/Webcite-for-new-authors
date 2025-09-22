@@ -1,15 +1,15 @@
 // Homepage Management API Routes
 // Provides endpoints for managing homepage content, metrics, and quotes
 
-const express = require('express');
+import express from 'express';
+import { createClient } from '@supabase/supabase-js';
+
 const router = express.Router();
-const { createClient } = require('@supabase/supabase-js');
-const config = require('../config');
 
 // Initialize Supabase client
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || config.supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || config.supabaseAnonKey
+  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
 // Authentication middleware for admin-only routes
@@ -404,4 +404,4 @@ router.use((error, req, res, next) => {
   });
 });
 
-module.exports = router;
+export default router;

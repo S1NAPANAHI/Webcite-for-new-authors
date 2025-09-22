@@ -389,7 +389,7 @@ const HomePage: React.FC = () => {
           </p>
           <Link
             to="/texts"
-            className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors font-semibmuch font-semibold"
+            className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
           >
             Browse Texts
             <ArrowRight className="w-5 h-5" />

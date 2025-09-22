@@ -6,7 +6,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { Pagination, Navigation, Autoplay } from 'swiper/modules';
-import { ArrowRight, Calendar, User, Clock, Eye, BookOpen, TrendingUp, Star, Plus } from 'lucide-react';
+import { ArrowRight, Calendar, User, Clock, Eye, BookOpen, Plus } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -349,31 +349,6 @@ export default function LatestNewsSlider() {
       </div>
       <div className="news-slider-next absolute right-4 top-1/2 -translate-y-1/2 z-30 w-12 h-12 bg-black/60 hover:bg-black/80 border border-amber-600/30 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 hover:border-amber-500">
         <ArrowRight className="w-6 h-6 text-amber-400" />
-      </div>
-
-      {/* Bottom CTA Section */}
-      <div className="text-center mt-12">
-        <Link
-          to="/blog"
-          className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white px-10 py-4 rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-300 font-bold shadow-lg hover:shadow-xl text-lg group"
-        >
-          <TrendingUp className="w-6 h-6" />
-          Explore All Articles
-          <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-        </Link>
-        
-        <div className="mt-6">
-          <p className="text-gray-400 text-sm">
-            {isUsingSampleData ? 'Showing fallback content' : `Latest ${posts.length} articles`} from your blog
-            {isUsingSampleData && (
-              <span className="block mt-2 text-blue-400">
-                💡 <Link to="/admin/content/blog/new" className="underline hover:text-blue-300 font-medium">
-                  Create your first blog post
-                </Link> to show your real content here
-              </span>
-            )}
-          </p>
-        </div>
       </div>
 
       {/* Custom CSS for Swiper */}

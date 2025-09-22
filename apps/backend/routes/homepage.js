@@ -259,10 +259,8 @@ router.put('/content', requireSupabase, async (req, res) => {
     console.log('🚀 Executing database upsert...');
     const { data, error } = await supabase
       .from('homepage_content')
-      .upsert(updates, { 
-        onConflict: 'id',
-        ignoreDuplicates: false  // This ensures updates actually happen
-      })
+      .update(updates)
+      .eq('id', 'homepage') // Explicitly target the 'homepage' row
       .select()
       .single();
 

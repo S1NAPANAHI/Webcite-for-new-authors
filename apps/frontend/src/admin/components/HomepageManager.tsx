@@ -48,6 +48,7 @@ const HomepageManager: React.FC = () => {
 
   const handleSaveContent = async () => {
     if (!localContent) return;
+    console.log('🔍 Preparing to save content:', JSON.stringify(localContent, null, 2));
     
     try {
       await updateContent(localContent);

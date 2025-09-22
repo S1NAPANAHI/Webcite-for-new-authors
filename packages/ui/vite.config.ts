@@ -16,6 +16,7 @@ export default defineConfig({
     exclude: ['@zoroaster/shared'],
   },
   build: {
+    target: 'es2022', // Updated to support modern JavaScript features
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'ZoroasterUI',
@@ -28,7 +29,7 @@ export default defineConfig({
         'react-dom', 
         'react-router-dom', 
         '@tanstack/react-query', 
-        /^@zoroaster\/shared($|\/)/,
+        /^@zoroaster\/shared($|\/)/, 
         /^@radix-ui\/.*/,
         'lucide-react',
         'clsx',

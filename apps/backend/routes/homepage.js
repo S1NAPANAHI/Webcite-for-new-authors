@@ -5,13 +5,13 @@ const router = express.Router();
 
 // Environment variables validation and fallbacks
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('🔧 Environment check:', {
+console.log('🔧 Homepage API - Environment check:', {
   hasSupabaseUrl: !!SUPABASE_URL,
   hasSupabaseKey: !!SUPABASE_KEY,
-  urlPreview: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'MISSING',
-  keyPreview: SUPABASE_KEY ? `${SUPABASE_KEY.substring(0, 10)}...` : 'MISSING'
+  urlPreview: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 30)}...` : 'MISSING',
+  keyPreview: SUPABASE_KEY ? `${SUPABASE_KEY.substring(0, 15)}...` : 'MISSING'
 });
 
 // Initialize Supabase client with better error handling
@@ -22,16 +22,16 @@ try {
     throw new Error('Missing SUPABASE_URL or VITE_SUPABASE_URL environment variable');
   }
   if (!SUPABASE_KEY) {
-    throw new Error('Missing SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY environment variable');
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY environment variable');
   }
 
   supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-  console.log('✅ Supabase client initialized successfully');
+  console.log('✅ Homepage API - Supabase client initialized successfully');
 } catch (error) {
-  console.error('❌ Supabase client initialization failed:', error.message);
+  console.error('❌ Homepage API - Supabase client initialization failed:', error.message);
   console.error('📋 Required environment variables:');
   console.error('   - SUPABASE_URL or VITE_SUPABASE_URL');
-  console.error('   - SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY');
+  console.error('   - SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY');
 }
 
 // Middleware to check if Supabase is available
@@ -40,9 +40,10 @@ const requireSupabase = (req, res, next) => {
     return res.status(500).json({
       error: 'Database connection not available',
       message: 'Supabase client not initialized. Check environment variables.',
+      success: false,
       requiredEnvVars: [
         'SUPABASE_URL or VITE_SUPABASE_URL',
-        'SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY'
+        'SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY'
       ]
     });
   }
@@ -119,6 +120,116 @@ router.get('/', requireSupabase, async (req, res) => {
   }
 });
 
+// GET /api/homepage/content - Get homepage content only (ADDED MISSING ENDPOINT)
+router.get('/content', requireSupabase, async (req, res) => {
+  try {
+    console.log('📡 GET /api/homepage/content - Fetching homepage content...');
+    
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .eq('id', 'homepage')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('❌ Content fetch error:', error);
+      throw error;
+    }
+
+    // Handle content not found gracefully
+    const content = data || {
+      id: 'homepage',
+      hero_title: 'Zoroasterverse',
+      hero_subtitle: '',
+      hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
+      hero_quote: '"Happiness comes to them who bring happiness to others."',
+      cta_button_text: 'Learn More',
+      cta_button_link: '/blog/about',
+      words_written: 50000,
+      beta_readers: 5,
+      average_rating: 4.5,
+      books_published: 1,
+      show_latest_news: true,
+      show_latest_releases: true,
+      show_artist_collaboration: true,
+      show_progress_metrics: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    console.log('✅ Homepage content fetched successfully');
+    res.json({ success: true, data: content });
+  } catch (error) {
+    console.error('❌ Homepage content fetch error:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch homepage content' });
+  }
+});
+
+// PUT /api/homepage/content - Update homepage content (FIXED FOR SECTION VISIBILITY)
+router.put('/content', requireSupabase, async (req, res) => {
+  try {
+    console.log('📝 PUT /api/homepage/content - Updating content...');
+    console.log('📋 Request body keys:', Object.keys(req.body));
+    console.log('🔧 Request body:', req.body);
+    
+    // First, try to get existing content to merge with
+    const { data: existingContent, error: fetchError } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .eq('id', 'homepage')
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.warn('⚠️ Could not fetch existing content:', fetchError.message);
+    }
+
+    // Prepare the updates object
+    const updates = {
+      id: 'homepage', // Ensure ID is set
+      ...existingContent, // Merge with existing data
+      ...req.body, // Apply new updates
+      updated_at: new Date().toISOString()
+    };
+    
+    // Remove any undefined values
+    Object.keys(updates).forEach(key => {
+      if (updates[key] === undefined) {
+        delete updates[key];
+      }
+    });
+
+    console.log('💾 Final updates object keys:', Object.keys(updates));
+    
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .upsert(updates, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ Content update error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
+    
+    console.log('✅ Content updated successfully');
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('❌ Content update error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Failed to update content',
+      details: error.details || null,
+      hint: error.hint || null
+    });
+  }
+});
+
 // GET /api/homepage/metrics - Get metrics only
 router.get('/metrics', requireSupabase, async (req, res) => {
   try {
@@ -153,60 +264,6 @@ router.get('/metrics', requireSupabase, async (req, res) => {
   } catch (error) {
     console.error('❌ Metrics fetch error:', error);
     res.status(500).json({ error: error.message || 'Failed to fetch metrics' });
-  }
-});
-
-// GET /api/homepage/quotes - Get active quotes only
-router.get('/quotes', requireSupabase, async (req, res) => {
-  try {
-    console.log('💬 GET /api/homepage/quotes - Fetching quotes...');
-    
-    const { data, error } = await supabase
-      .from('homepage_quotes')
-      .select('*')
-      .eq('is_active', true)
-      .order('display_order');
-
-    if (error) {
-      throw error;
-    }
-
-    console.log(`✅ Fetched ${data?.length || 0} active quotes`);
-    res.json(data || []);
-  } catch (error) {
-    console.error('❌ Quotes fetch error:', error);
-    res.status(500).json({ error: error.message || 'Failed to fetch quotes' });
-  }
-});
-
-// PUT /api/homepage/content - Update homepage content
-router.put('/content', requireSupabase, async (req, res) => {
-  try {
-    console.log('📝 PUT /api/homepage/content - Updating content...');
-    console.log('📋 Request body keys:', Object.keys(req.body));
-    
-    const updates = { 
-      ...req.body, 
-      id: 'homepage', // Ensure ID is set
-      updated_at: new Date().toISOString() 
-    };
-    
-    const { data, error } = await supabase
-      .from('homepage_content')
-      .upsert(updates, { onConflict: 'id' })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('❌ Content update error:', error);
-      throw error;
-    }
-    
-    console.log('✅ Content updated successfully');
-    res.json({ success: true, data });
-  } catch (error) {
-    console.error('❌ Content update error:', error);
-    res.status(500).json({ error: error.message || 'Failed to update content' });
   }
 });
 
@@ -261,8 +318,8 @@ router.post('/metrics/calculate', requireSupabase, async (req, res) => {
       // Try to get real data from various tables
       const [profilesResult, postsResult, worksResult] = await Promise.all([
         supabase.from('profiles').select('role, beta_reader_status').or('role.eq.admin,beta_reader_status.eq.approved'),
-        supabase.from('posts').select('content').eq('status', 'published'),
-        supabase.from('works').select('id').eq('status', 'published')
+        supabase.from('blog_posts').select('content').eq('status', 'published'),
+        supabase.from('content_items').select('id').eq('type', 'book')
       ]);
       
       // Calculate beta readers
@@ -331,6 +388,29 @@ router.post('/metrics/calculate', requireSupabase, async (req, res) => {
   } catch (error) {
     console.error('❌ Metrics calculation error:', error);
     res.status(500).json({ error: error.message || 'Failed to calculate metrics' });
+  }
+});
+
+// GET /api/homepage/quotes - Get active quotes only
+router.get('/quotes', requireSupabase, async (req, res) => {
+  try {
+    console.log('💬 GET /api/homepage/quotes - Fetching quotes...');
+    
+    const { data, error } = await supabase
+      .from('homepage_quotes')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order');
+
+    if (error) {
+      throw error;
+    }
+
+    console.log(`✅ Fetched ${data?.length || 0} active quotes`);
+    res.json(data || []);
+  } catch (error) {
+    console.error('❌ Quotes fetch error:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch quotes' });
   }
 });
 

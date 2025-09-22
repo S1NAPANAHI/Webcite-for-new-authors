@@ -1,181 +1,134 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Eye, Loader2, CheckCircle } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
-
-interface ProgressMetrics {
-  words_written: number;
-  beta_readers: number;
-  average_rating: number;
-  books_published: number;
-}
-
-interface HomepageContent {
-  id: string;
-  hero_title: string;
-  hero_subtitle: string;
-  hero_description: string;
-  cta_button_text: string;
-  cta_button_link: string;
-  progress_metrics: ProgressMetrics;
-  show_latest_news: boolean;
-  show_latest_releases: boolean;
-  show_artist_collaboration: boolean;
-  scrolling_quotes: string[];
-  updated_at: string;
-}
+import { Save, Eye, Loader2, CheckCircle, RefreshCw, Plus, X, BarChart3 } from 'lucide-react';
+import { useHomepageData, useHomepageAdmin, formatMetricValue, type HomepageContent, type HomepageQuote } from '../../hooks/useHomepageData';
 
 const HomepageManager: React.FC = () => {
-  const [content, setContent] = useState<HomepageContent>({
-    id: 'homepage',
-    hero_title: 'Happiness comes to them who bring happiness to others.',
-    hero_subtitle: '',
-    hero_description: 'Discover the ancient wisdom of Zarathustra and explore the timeless teachings of Zoroastrianism through our immersive storytelling experience.',
-    cta_button_text: 'Learn More',
-    cta_button_link: '/learn',
-    progress_metrics: {
-      words_written: 0,
-      beta_readers: 0,
-      average_rating: 0,
-      books_published: 0
-    },
-    show_latest_news: true,
-    show_latest_releases: true,
-    show_artist_collaboration: true,
-    scrolling_quotes: [
-      'Good thoughts, good words, good deeds.',
-      'Happiness comes to them who bring happiness to others.',
-      'Turn yourself not away from three best things: Good Thought, Good Word, and Good Deed.',
-      'He who sows the ground with care and diligence acquires a greater stock of religious merit than he could gain by the repetition of ten thousand prayers.'
-    ],
-    updated_at: new Date().toISOString()
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setSaving] = useState(false);
+  const { data, isLoading, error, refetch } = useHomepageData();
+  const { 
+    isLoading: isSaving, 
+    error: adminError,
+    updateContent, 
+    updateMetrics, 
+    calculateMetrics,
+    getAllQuotes,
+    addQuote: createQuote,
+    updateQuote,
+    deleteQuote
+  } = useHomepageAdmin();
+  
+  const [localContent, setLocalContent] = useState<HomepageContent | null>(null);
+  const [localQuotes, setLocalQuotes] = useState<HomepageQuote[]>([]);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
-  const [autoCalculateMetrics, setAutoCalculateMetrics] = useState(true);
+  const [activeTab, setActiveTab] = useState<'hero' | 'metrics' | 'quotes' | 'sections'>('hero');
+  const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
 
+  // Initialize local state when data is loaded
   useEffect(() => {
-    loadHomepageContent();
-    if (autoCalculateMetrics) {
-      calculateMetrics();
+    if (data?.content) {
+      setLocalContent(data.content);
     }
-  }, [autoCalculateMetrics]);
+    if (data?.quotes) {
+      setLocalQuotes(data.quotes);
+    }
+  }, [data]);
 
-  const loadHomepageContent = async () => {
+  // Load all quotes for admin management
+  const loadAllQuotes = async () => {
     try {
-      const { data, error } = await supabase
-        .from('homepage_content')
-        .select('*')
-        .eq('id', 'homepage')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error loading homepage content:', error);
-        return;
-      }
-
-      if (data) {
-        setContent(data);
-      }
+      setIsLoadingQuotes(true);
+      const allQuotes = await getAllQuotes();
+      setLocalQuotes(allQuotes);
     } catch (error) {
-      console.error('Error loading homepage content:', error);
+      console.error('Failed to load all quotes:', error);
     } finally {
-      setIsLoading(false);
+      setIsLoadingQuotes(false);
     }
   };
 
-  const calculateMetrics = async () => {
+  const handleSaveContent = async () => {
+    if (!localContent) return;
+    
     try {
-      // Calculate words written from chapters
-      const { data: chapters } = await supabase
-        .from('chapters')
-        .select('word_count')
-        .eq('published', true);
-      
-      const wordsWritten = chapters?.reduce((total, chapter) => 
-        total + (chapter.word_count || 0), 0) || 0;
-
-      // Calculate beta readers
-      const { data: betaReaders } = await supabase
-        .from('beta_applications')
-        .select('id')
-        .eq('status', 'approved');
-      
-      const betaReadersCount = betaReaders?.length || 0;
-
-      // Calculate average rating from reviews
-      const { data: reviews } = await supabase
-        .from('reviews')
-        .select('rating')
-        .not('rating', 'is', null);
-      
-      const averageRating = reviews?.length ? 
-        reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length : 0;
-
-      // Count published books
-      const { data: books } = await supabase
-        .from('books')
-        .select('id')
-        .eq('status', 'published');
-      
-      const booksPublished = books?.length || 0;
-
-      setContent(prev => ({
-        ...prev,
-        progress_metrics: {
-          words_written: wordsWritten,
-          beta_readers: betaReadersCount,
-          average_rating: parseFloat(averageRating.toFixed(1)),
-          books_published: booksPublished
-        }
-      }));
-    } catch (error) {
-      console.error('Error calculating metrics:', error);
-    }
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('homepage_content')
-        .upsert({
-          ...content,
-          updated_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
+      await updateContent({
+        hero_title: localContent.hero_title,
+        hero_subtitle: localContent.hero_subtitle,
+        hero_description: localContent.hero_description,
+        hero_quote: localContent.hero_quote,
+        cta_button_text: localContent.cta_button_text,
+        cta_button_link: localContent.cta_button_link,
+        show_latest_news: localContent.show_latest_news,
+        show_latest_releases: localContent.show_latest_releases,
+        show_artist_collaboration: localContent.show_artist_collaboration,
+        show_progress_metrics: localContent.show_progress_metrics
+      });
       
       setLastSaved(new Date());
+      await refetch(); // Refresh data from server
     } catch (error) {
-      console.error('Error saving homepage content:', error);
-    } finally {
-      setSaving(false);
+      console.error('Failed to save content:', error);
     }
   };
 
-  const addQuote = () => {
-    setContent(prev => ({
-      ...prev,
-      scrolling_quotes: [...prev.scrolling_quotes, '']
-    }));
+  const handleSaveMetrics = async () => {
+    if (!localContent) return;
+    
+    try {
+      await updateMetrics({
+        words_written: localContent.words_written,
+        beta_readers: localContent.beta_readers,
+        average_rating: localContent.average_rating,
+        books_published: localContent.books_published
+      });
+      
+      setLastSaved(new Date());
+      await refetch();
+    } catch (error) {
+      console.error('Failed to save metrics:', error);
+    }
   };
 
-  const updateQuote = (index: number, value: string) => {
-    setContent(prev => ({
-      ...prev,
-      scrolling_quotes: prev.scrolling_quotes.map((quote, i) => 
-        i === index ? value : quote
-      )
-    }));
+  const handleCalculateMetrics = async () => {
+    try {
+      const result = await calculateMetrics();
+      console.log('Metrics calculated:', result);
+      await refetch(); // Refresh data to show updated metrics
+    } catch (error) {
+      console.error('Failed to calculate metrics:', error);
+    }
   };
 
-  const removeQuote = (index: number) => {
-    setContent(prev => ({
-      ...prev,
-      scrolling_quotes: prev.scrolling_quotes.filter((_, i) => i !== index)
-    }));
+  const handleAddQuote = async () => {
+    try {
+      await createQuote({
+        quote_text: 'New inspiring quote...',
+        author: 'Zoroastrian Wisdom',
+        display_order: localQuotes.length + 1
+      });
+      await loadAllQuotes();
+    } catch (error) {
+      console.error('Failed to add quote:', error);
+    }
+  };
+
+  const handleUpdateQuote = async (id: number, updates: Partial<HomepageQuote>) => {
+    try {
+      await updateQuote(id, updates);
+      await loadAllQuotes();
+    } catch (error) {
+      console.error('Failed to update quote:', error);
+    }
+  };
+
+  const handleDeleteQuote = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this quote?')) return;
+    
+    try {
+      await deleteQuote(id);
+      await loadAllQuotes();
+    } catch (error) {
+      console.error('Failed to delete quote:', error);
+    }
   };
 
   if (isLoading) {
@@ -187,8 +140,26 @@ const HomepageManager: React.FC = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600 mb-4">Error loading homepage data: {error}</p>
+        <button 
+          onClick={refetch}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!localContent) {
+    return <div className="text-center py-8">No homepage content found.</div>;
+  }
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -208,244 +179,497 @@ const HomepageManager: React.FC = () => {
             {previewMode ? 'Edit Mode' : 'Preview'}
           </button>
           <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            onClick={refetch}
+            disabled={isLoading}
+            className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
-            )}
-            Save Changes
+            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
           </button>
         </div>
       </div>
 
+      {/* Status Messages */}
       {lastSaved && (
         <div className="flex items-center text-sm text-green-600 bg-green-50 px-4 py-2 rounded-md">
           <CheckCircle className="w-4 h-4 mr-2" />
           Last saved: {lastSaved.toLocaleTimeString()}
         </div>
       )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Hero Section */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Hero Section</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Main Title</label>
-              <textarea
-                value={content.hero_title}
-                onChange={(e) => setContent(prev => ({ ...prev, hero_title: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                rows={2}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Subtitle</label>
-              <input
-                type="text"
-                value={content.hero_subtitle}
-                onChange={(e) => setContent(prev => ({ ...prev, hero_subtitle: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
-              <textarea
-                value={content.hero_description}
-                onChange={(e) => setContent(prev => ({ ...prev, hero_description: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                rows={4}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">CTA Button Text</label>
-                <input
-                  type="text"
-                  value={content.cta_button_text}
-                  onChange={(e) => setContent(prev => ({ ...prev, cta_button_text: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">CTA Button Link</label>
-                <input
-                  type="text"
-                  value={content.cta_button_link}
-                  onChange={(e) => setContent(prev => ({ ...prev, cta_button_link: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-          </div>
+      
+      {(error || adminError) && (
+        <div className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-md">
+          Error: {error || adminError}
         </div>
+      )}
 
-        {/* Progress Metrics */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Progress Metrics</h2>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="autoCalculate"
-                checked={autoCalculateMetrics}
-                onChange={(e) => setAutoCalculateMetrics(e.target.checked)}
-                className="rounded focus:ring-blue-500"
-              />
-              <label htmlFor="autoCalculate" className="text-sm">Auto-calculate</label>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Words Written</label>
-              <input
-                type="number"
-                value={content.progress_metrics.words_written}
-                onChange={(e) => setContent(prev => ({
-                  ...prev,
-                  progress_metrics: {
-                    ...prev.progress_metrics,
-                    words_written: parseInt(e.target.value) || 0
-                  }
-                }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                disabled={autoCalculateMetrics}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Beta Readers</label>
-              <input
-                type="number"
-                value={content.progress_metrics.beta_readers}
-                onChange={(e) => setContent(prev => ({
-                  ...prev,
-                  progress_metrics: {
-                    ...prev.progress_metrics,
-                    beta_readers: parseInt(e.target.value) || 0
-                  }
-                }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                disabled={autoCalculateMetrics}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Average Rating</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="5"
-                value={content.progress_metrics.average_rating}
-                onChange={(e) => setContent(prev => ({
-                  ...prev,
-                  progress_metrics: {
-                    ...prev.progress_metrics,
-                    average_rating: parseFloat(e.target.value) || 0
-                  }
-                }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                disabled={autoCalculateMetrics}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Books Published</label>
-              <input
-                type="number"
-                value={content.progress_metrics.books_published}
-                onChange={(e) => setContent(prev => ({
-                  ...prev,
-                  progress_metrics: {
-                    ...prev.progress_metrics,
-                    books_published: parseInt(e.target.value) || 0
-                  }
-                }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                disabled={autoCalculateMetrics}
-              />
-            </div>
-          </div>
-          {autoCalculateMetrics && (
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          {[
+            { id: 'hero', name: 'Hero Section', icon: '🏠' },
+            { id: 'metrics', name: 'Progress Metrics', icon: '📊' },
+            { id: 'quotes', name: 'Scrolling Quotes', icon: '💬' },
+            { id: 'sections', name: 'Section Visibility', icon: '👁️' }
+          ].map(tab => (
             <button
-              onClick={calculateMetrics}
-              className="mt-4 px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
             >
-              Recalculate Metrics
+              <span className="mr-2">{tab.icon}</span>
+              {tab.name}
             </button>
-          )}
-        </div>
+          ))}
+        </nav>
+      </div>
 
-        {/* Content Sections Toggle */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Content Sections</h2>
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                id="showNews"
-                checked={content.show_latest_news}
-                onChange={(e) => setContent(prev => ({ ...prev, show_latest_news: e.target.checked }))}
-                className="rounded focus:ring-blue-500"
-              />
-              <label htmlFor="showNews" className="text-sm font-medium">Show Latest News</label>
+      {/* Tab Content */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        {/* Hero Section Tab */}
+        {activeTab === 'hero' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Hero Section Content</h2>
+              <button
+                onClick={handleSaveContent}
+                disabled={isSaving}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Hero Content
+              </button>
             </div>
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                id="showReleases"
-                checked={content.show_latest_releases}
-                onChange={(e) => setContent(prev => ({ ...prev, show_latest_releases: e.target.checked }))}
-                className="rounded focus:ring-blue-500"
-              />
-              <label htmlFor="showReleases" className="text-sm font-medium">Show Latest Releases</label>
-            </div>
-            <div className="flex items-center space-x-3">
-              <input
-                type="checkbox"
-                id="showArtist"
-                checked={content.show_artist_collaboration}
-                onChange={(e) => setContent(prev => ({ ...prev, show_artist_collaboration: e.target.checked }))}
-                className="rounded focus:ring-blue-500"
-              />
-              <label htmlFor="showArtist" className="text-sm font-medium">Show Artist Collaboration</label>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Hero Title</label>
+                  <textarea
+                    value={localContent.hero_title}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_title: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    rows={2}
+                    placeholder="Main homepage title..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Hero Subtitle (Optional)</label>
+                  <input
+                    type="text"
+                    value={localContent.hero_subtitle || ''}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_subtitle: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Optional subtitle..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Hero Description</label>
+                  <textarea
+                    value={localContent.hero_description}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_description: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    rows={4}
+                    placeholder="Describe your website or mission..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">Hero Quote</label>
+                  <textarea
+                    value={localContent.hero_quote}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_quote: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    rows={2}
+                    placeholder="Inspirational quote..."
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">CTA Button Text</label>
+                    <input
+                      type="text"
+                      value={localContent.cta_button_text}
+                      onChange={(e) => setLocalContent(prev => prev ? { ...prev, cta_button_text: e.target.value } : null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Learn More"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">CTA Button Link</label>
+                    <input
+                      type="text"
+                      value={localContent.cta_button_link}
+                      onChange={(e) => setLocalContent(prev => prev ? { ...prev, cta_button_link: e.target.value } : null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="/learn"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Preview */}
+              <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
+                <h3 className="text-lg font-medium mb-4">Live Preview</h3>
+                <div className="space-y-4 text-center">
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    {localContent.hero_title}
+                  </h1>
+                  {localContent.hero_subtitle && (
+                    <h2 className="text-xl text-gray-600 dark:text-gray-300">
+                      {localContent.hero_subtitle}
+                    </h2>
+                  )}
+                  <p className="text-gray-700 dark:text-gray-400 italic">
+                    {localContent.hero_quote}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {localContent.hero_description}
+                  </p>
+                  <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                    {localContent.cta_button_text}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Scrolling Quotes */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Scrolling Quotes</h2>
-            <button
-              onClick={addQuote}
-              className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200"
-            >
-              Add Quote
-            </button>
-          </div>
-          <div className="space-y-3">
-            {content.scrolling_quotes.map((quote, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={quote}
-                  onChange={(e) => updateQuote(index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter inspirational quote..."
-                />
+        {/* Metrics Tab */}
+        {activeTab === 'metrics' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Progress Metrics</h2>
+              <div className="flex space-x-2">
                 <button
-                  onClick={() => removeQuote(index)}
-                  className="px-2 py-2 text-red-600 hover:bg-red-50 rounded-md"
+                  onClick={handleCalculateMetrics}
+                  disabled={isSaving}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
                 >
-                  ×
+                  {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                  Auto-Calculate
+                </button>
+                <button
+                  onClick={handleSaveMetrics}
+                  disabled={isSaving}
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  Save Metrics
                 </button>
               </div>
-            ))}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                <label className="block text-sm font-medium mb-2">Words Written</label>
+                <input
+                  type="number"
+                  value={localContent.words_written}
+                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, words_written: parseInt(e.target.value) || 0 } : null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formatted: {formatMetricValue(localContent.words_written, 'words')}
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                <label className="block text-sm font-medium mb-2">Beta Readers</label>
+                <input
+                  type="number"
+                  value={localContent.beta_readers}
+                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, beta_readers: parseInt(e.target.value) || 0 } : null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formatted: {formatMetricValue(localContent.beta_readers, 'number')}
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                <label className="block text-sm font-medium mb-2">Average Rating</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  value={localContent.average_rating}
+                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, average_rating: parseFloat(e.target.value) || 0 } : null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formatted: {formatMetricValue(localContent.average_rating, 'rating')}
+                </p>
+              </div>
+              
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
+                <label className="block text-sm font-medium mb-2">Books Published</label>
+                <input
+                  type="number"
+                  value={localContent.books_published}
+                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, books_published: parseInt(e.target.value) || 0 } : null)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Formatted: {formatMetricValue(localContent.books_published, 'number')}
+                </p>
+              </div>
+            </div>
+
+            {/* Metrics Preview */}
+            <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
+              <h3 className="text-lg font-medium mb-4">Metrics Preview</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-3xl font-bold text-orange-600">
+                    {formatMetricValue(localContent.words_written, 'words')}
+                  </div>
+                  <div className="text-sm text-gray-600">Words Written</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-orange-600">
+                    {formatMetricValue(localContent.beta_readers, 'number')}
+                  </div>
+                  <div className="text-sm text-gray-600">Beta Readers</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-orange-600">
+                    {formatMetricValue(localContent.average_rating, 'rating')}
+                  </div>
+                  <div className="text-sm text-gray-600">Average Rating</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-orange-600">
+                    {formatMetricValue(localContent.books_published, 'number')}
+                  </div>
+                  <div className="text-sm text-gray-600">Books Published</div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Quotes Tab */}
+        {activeTab === 'quotes' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Scrolling Quotes Management</h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={loadAllQuotes}
+                  disabled={isLoadingQuotes}
+                  className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingQuotes ? 'animate-spin' : ''}`} />
+                  Refresh Quotes
+                </button>
+                <button
+                  onClick={handleAddQuote}
+                  disabled={isSaving}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Quote
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {localQuotes.map((quote, index) => (
+                <div key={quote.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
+                  <div className="flex-1 space-y-2">
+                    <textarea
+                      value={quote.quote_text}
+                      onChange={(e) => {
+                        const updatedQuotes = localQuotes.map(q => 
+                          q.id === quote.id ? { ...q, quote_text: e.target.value } : q
+                        );
+                        setLocalQuotes(updatedQuotes);
+                      }}
+                      onBlur={() => handleUpdateQuote(quote.id, { quote_text: quote.quote_text })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      rows={2}
+                      placeholder="Enter quote text..."
+                    />
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="text"
+                        value={quote.author}
+                        onChange={(e) => {
+                          const updatedQuotes = localQuotes.map(q => 
+                            q.id === quote.id ? { ...q, author: e.target.value } : q
+                          );
+                          setLocalQuotes(updatedQuotes);
+                        }}
+                        onBlur={() => handleUpdateQuote(quote.id, { author: quote.author })}
+                        className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Author..."
+                      />
+                      <input
+                        type="number"
+                        value={quote.display_order}
+                        onChange={(e) => {
+                          const updatedQuotes = localQuotes.map(q => 
+                            q.id === quote.id ? { ...q, display_order: parseInt(e.target.value) || 0 } : q
+                          );
+                          setLocalQuotes(updatedQuotes);
+                        }}
+                        onBlur={() => handleUpdateQuote(quote.id, { display_order: quote.display_order })}
+                        className="w-20 px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Order"
+                      />
+                      <label className="flex items-center text-sm">
+                        <input
+                          type="checkbox"
+                          checked={quote.is_active}
+                          onChange={(e) => {
+                            const updatedQuotes = localQuotes.map(q => 
+                              q.id === quote.id ? { ...q, is_active: e.target.checked } : q
+                            );
+                            setLocalQuotes(updatedQuotes);
+                            handleUpdateQuote(quote.id, { is_active: e.target.checked });
+                          }}
+                          className="mr-2 rounded focus:ring-blue-500"
+                        />
+                        Active
+                      </label>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteQuote(quote.id)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
+            {localQuotes.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No quotes found. Click "Add Quote" to create your first quote.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Sections Visibility Tab */}
+        {activeTab === 'sections' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Section Visibility</h2>
+              <button
+                onClick={handleSaveContent}
+                disabled={isSaving}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                Save Settings
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Latest News Section</h3>
+                    <p className="text-sm text-gray-600">Display recent blog posts and updates</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={localContent.show_latest_news}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_latest_news: e.target.checked } : null)}
+                    className="rounded focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Latest Releases Section</h3>
+                    <p className="text-sm text-gray-600">Show new book releases and products</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={localContent.show_latest_releases}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_latest_releases: e.target.checked } : null)}
+                    className="rounded focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Artist Collaboration Section</h3>
+                    <p className="text-sm text-gray-600">Display artist collaboration opportunities</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={localContent.show_artist_collaboration}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_artist_collaboration: e.target.checked } : null)}
+                    className="rounded focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                  <div>
+                    <h3 className="font-medium">Progress Metrics Section</h3>
+                    <p className="text-sm text-gray-600">Show writing progress statistics</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={localContent.show_progress_metrics}
+                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_progress_metrics: e.target.checked } : null)}
+                    className="rounded focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              {/* Preview of sections */}
+              <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
+                <h3 className="text-lg font-medium mb-4">Sections Preview</h3>
+                <div className="space-y-2 text-sm">
+                  <div className={`p-2 rounded ${localContent.show_latest_news ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                    📰 Latest News {localContent.show_latest_news ? '(Visible)' : '(Hidden)'}
+                  </div>
+                  <div className={`p-2 rounded ${localContent.show_latest_releases ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                    📚 Latest Releases {localContent.show_latest_releases ? '(Visible)' : '(Hidden)'}
+                  </div>
+                  <div className={`p-2 rounded ${localContent.show_artist_collaboration ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                    🎨 Artist Collaboration {localContent.show_artist_collaboration ? '(Visible)' : '(Hidden)'}
+                  </div>
+                  <div className={`p-2 rounded ${localContent.show_progress_metrics ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                    📊 Progress Metrics {localContent.show_progress_metrics ? '(Visible)' : '(Hidden)'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Global Save Button for Quick Access */}
+      <div className="fixed bottom-6 right-6">
+        <button
+          onClick={() => {
+            if (activeTab === 'metrics') {
+              handleSaveMetrics();
+            } else {
+              handleSaveContent();
+            }
+          }}
+          disabled={isSaving}
+          className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isSaving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
+          Save Changes
+        </button>
       </div>
     </div>
   );

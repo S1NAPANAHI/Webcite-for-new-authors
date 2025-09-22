@@ -25,6 +25,8 @@ import worldRoutes from './routes/world.js';
 import filesRoutes from './routes/files.js';
 // Import homepage routes (new)
 import homepageRoutes from './routes/homepage.js';
+// Import releases routes (NEW)
+import releasesRoutes from './routes/releases.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -141,7 +143,7 @@ async function startServer() {
 
   // Add debug logging middleware
   app.use((req, res, next) => {
-    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage')) {
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases')) {
       console.log('🔍 Request:', {
         method: req.method,
         path: req.path,
@@ -156,7 +158,8 @@ async function startServer() {
   // MOUNT ROUTE MODULES
   // ========================================
   app.use('/api/subscription', subscriptionRoutes); // Enhanced subscription API
-  app.use('/api/homepage', homepageRoutes); // NEW: Homepage management API
+  app.use('/api/homepage', homepageRoutes); // Homepage management API
+  app.use('/api/releases', releasesRoutes); // NEW: Releases management API
   app.use('/admin', adminRoutes);
   app.use('/content', contentRoutes);
   app.use('/beta', betaRoutes);
@@ -274,6 +277,8 @@ async function startServer() {
     console.log(`🏠 Homepage Management API: http://localhost:${PORT}/api/homepage`);
     console.log(`📈 Homepage Metrics: http://localhost:${PORT}/api/homepage/metrics`);
     console.log(`💬 Homepage Quotes: http://localhost:${PORT}/api/homepage/quotes`);
+    console.log(`📚 Releases API: http://localhost:${PORT}/api/releases`);
+    console.log(`🔄 Chapter Sync: http://localhost:${PORT}/api/releases/sync-from-chapters`);
   });
 }
 

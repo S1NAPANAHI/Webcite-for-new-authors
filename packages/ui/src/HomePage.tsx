@@ -3,6 +3,21 @@ import { Link } from 'react-router-dom';
 import styles from './HomePage.module.css';
 import { LatestPosts } from './components/LatestPosts';
 
+// Import the homepage hooks - create these if the path is different in your structure
+// You may need to adjust this import path based on your actual folder structure
+let useHomepageData, useHomepageQuotes, formatMetricValue, transformQuotesForProphecy;
+
+try {
+  // Try to import the homepage hooks
+  const homepageHooks = await import('../../../apps/frontend/src/hooks/useHomepageData');
+  useHomepageData = homepageHooks.useHomepageData;
+  useHomepageQuotes = homepageHooks.useHomepageQuotes;
+  formatMetricValue = homepageHooks.formatMetricValue;
+  transformQuotesForProphecy = homepageHooks.transformQuotesForProphecy;
+} catch (e) {
+  console.log('📋 HomePage: useHomepageData hooks not available, using fallback');
+}
+
 // --- TYPE DEFINITIONS ---
 export type HomepageContentItem = {
   id: number;
@@ -26,13 +41,25 @@ export type ReleaseItem = {
   link?: string;
 };
 
-// --- NEW DUAL SCROLLING TEXT PROPHECY COMPONENT ---
-const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, onSpin?: (spinCount: number) => Promise<void> }> = ({ spinsLeft, setSpinsLeft, onSpin }) => {
+// Prophecy quote interface
+interface ProphecyQuote {
+  english: string;
+  author?: string;
+}
+
+// --- ENHANCED DUAL SCROLLING TEXT PROPHECY COMPONENT ---
+const DualScrollingProphecy: React.FC<{ 
+  spinsLeft: number, 
+  setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, 
+  onSpin?: (spinCount: number) => Promise<void>,
+  quotes?: ProphecyQuote[]
+}> = ({ spinsLeft, setSpinsLeft, onSpin, quotes = [] }) => {
     const englishReelRef = useRef<HTMLDivElement>(null);
     const [isSpinning, setIsSpinning] = useState(false);
     const itemHeight = 150;
 
-    const fortunes = [
+    // Default fallback quotes (your original quotes)
+    const defaultFortunes = [
         { english: "Your heart is a compass that always points toward love—trust it, follow it, honor it." },
         { english: "You are not who you were yesterday unless you choose to be—each day offers the gift of becoming." },
         { english: "The friend of truth shall be the friend of my spirit, O Ahura Mazda. (Yasna 46.2)" },
@@ -45,6 +72,9 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
         { english: "The sacred fire burns brightest in the heart that chooses truth over comfort. Let your conscience be the altar where right intention dwells." }
     ];
 
+    // Use API quotes if available and properly formatted, otherwise use defaults
+    const fortunes = (quotes && quotes.length > 0) ? quotes : defaultFortunes;
+    
     const numRepeats = 5;
     const prePendCount = fortunes.length;
 
@@ -118,11 +148,30 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
     );
 }
 
-// --- UI COMPONENTS ---
-const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, onSpin?: (spinCount: number) => Promise<void> }> = ({ contentMap, spinsLeft, setSpinsLeft, onSpin }) => {
-    const title = contentMap.get('hero_title')?.content || 'Zoroasterverse';
-    const quote = contentMap.get('hero_quote')?.content || '"Happiness comes to them who bring happiness to others."';
-    const intro = contentMap.get('hero_description')?.content || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
+// --- ENHANCED UI COMPONENTS ---
+const HeroSection: React.FC<{ 
+  contentMap: Map<string, HomepageContentItem>, 
+  homepageApiData?: any,
+  spinsLeft: number, 
+  setSpinsLeft: React.Dispatch<React.SetStateAction<number>>, 
+  onSpin?: (spinCount: number) => Promise<void>,
+  quotes?: ProphecyQuote[]
+}> = ({ contentMap, homepageApiData, spinsLeft, setSpinsLeft, onSpin, quotes }) => {
+    // Use API data if available, otherwise fall back to old contentMap system
+    const apiContent = homepageApiData?.content;
+    
+    const title = apiContent?.hero_title || contentMap.get('hero_title')?.content || 'Zoroasterverse';
+    const quote = apiContent?.hero_quote || contentMap.get('hero_quote')?.content || '"Happiness comes to them who bring happiness to others."';
+    const intro = apiContent?.hero_description || contentMap.get('hero_description')?.content || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
+    const ctaText = apiContent?.cta_button_text || 'Learn More';
+    const ctaLink = apiContent?.cta_button_link || '/blog/about';
+
+    console.log('🏠 HeroSection: Using data from:', {
+      hasApiContent: !!apiContent,
+      hasContentMap: contentMap.size > 0,
+      title: title.substring(0, 30) + '...',
+      quotesCount: quotes?.length || 0
+    });
 
     return (
         <section id="home" className={styles.zrHero}>
@@ -130,8 +179,8 @@ const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spin
                 <h1 className={styles.zrTitle}>{title}</h1>
                 <p className={styles.zrQuote}>{quote}</p>
                 <p className={styles.zrIntro}>{intro}</p>
-                <Link className={styles.zrCta} to="/blog/about">
-                    Learn More
+                <Link className={styles.zrCta} to={ctaLink}>
+                    {ctaText}
                 </Link>
             </div>
             <figure className={styles.zrHeroArt} aria-labelledby="art-caption">
@@ -148,7 +197,12 @@ const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spin
                         <div key={i} className={`${styles.spinDot} ${i < spinsLeft ? styles.spinDotActive : ''}`}></div>
                     ))}
                 </div>
-                <DualScrollingProphecy spinsLeft={spinsLeft} setSpinsLeft={setSpinsLeft} onSpin={onSpin} />
+                <DualScrollingProphecy 
+                    spinsLeft={spinsLeft} 
+                    setSpinsLeft={setSpinsLeft} 
+                    onSpin={onSpin}
+                    quotes={quotes}
+                />
                 <figcaption id="art-caption" className="sr-only">
                     A stylized winged figure above a sacred fire.
                 </figcaption>
@@ -218,6 +272,42 @@ interface HomePageProps {
   supabaseClient?: any;
 }
 
+// Simple hook to fetch homepage data directly
+const useHomepageDataFallback = () => {
+  const [data, setData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [quotes, setQuotes] = useState([]);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Try the API first
+        const API_BASE = window.location.hostname === 'localhost' 
+          ? 'http://localhost:3001'
+          : 'https://webcite-for-new-authors.onrender.com';
+          
+        const response = await fetch(`${API_BASE}/api/homepage`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ HomePage: Fetched API data successfully', data);
+          setData(data);
+          setQuotes(data.quotes || []);
+        } else {
+          console.log('🔄 HomePage: API failed, using defaults');
+        }
+      } catch (error) {
+        console.log('🔄 HomePage: API unavailable, using defaults:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+  
+  return { data, isLoading, quotes };
+};
+
 // --- MAIN HOME PAGE COMPONENT ---
 export const HomePage: React.FC<HomePageProps> = ({ 
   homepageData = [], 
@@ -231,6 +321,18 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   const [currentSpinsLeft, setCurrentSpinsLeft] = useState(spinsLeft);
   const [isDark, setIsDark] = useState(false);
+  
+  // Use the new homepage data hooks if available, otherwise use fallback
+  const fallbackHook = useHomepageDataFallback();
+  const apiData = fallbackHook.data;
+  const apiQuotes = fallbackHook.quotes;
+  const apiLoading = fallbackHook.isLoading;
+  
+  // Transform quotes for prophecy wheel
+  const prophecyQuotes = apiQuotes.map(quote => ({
+    english: quote.quote_text,
+    author: quote.author
+  }));
 
   // Dark mode detection
   useEffect(() => {
@@ -258,22 +360,25 @@ export const HomePage: React.FC<HomePageProps> = ({
     };
   }, []);
 
-  if (isLoading) return <div className={`text-center py-8 ${
+  if (isLoading || apiLoading) return <div className={`text-center py-8 ${
     isDark ? 'text-gray-300' : 'text-gray-700'
   }`}>Loading homepage content...</div>;
   
   if (isError) return <div className="text-center py-8 text-red-400">Error loading homepage content.</div>;
 
+  // For backward compatibility with old contentMap system
   const contentMap = new Map(homepageData?.map(item => [item.section, item]));
+  
+  // Use API metrics if available
+  const metrics = apiData?.metrics;
+  const sections = apiData?.sections;
 
-  console.log('🏠 UI HomePage: Rendering with comprehensive debug info:', {
+  console.log('🏠 UI HomePage: Rendering with API integration:', {
     hasSupabaseClient: !!supabaseClient,
-    supabaseClientType: typeof supabaseClient,
-    supabaseClientKeys: supabaseClient ? Object.keys(supabaseClient).slice(0, 5) : [],
-    postsCount: latestPosts.length,
-    spinsLeft: currentSpinsLeft,
-    homepageDataLength: homepageData.length,
-    releaseDataLength: releaseData.length
+    hasApiData: !!apiData,
+    hasMetrics: !!metrics,
+    quotesCount: prophecyQuotes.length,
+    sectionsConfig: sections
   });
 
   // CRITICAL: Also set global window for backup
@@ -284,85 +389,116 @@ export const HomePage: React.FC<HomePageProps> = ({
     }
   }, [supabaseClient]);
 
+  const safeFormatMetric = (value, type) => {
+    if (typeof formatMetricValue === 'function') {
+      return formatMetricValue(value, type);
+    }
+    // Fallback formatting
+    if (type === 'words') {
+      return value >= 1000 ? `${Math.floor(value / 1000)}K` : value.toString();
+    }
+    if (type === 'rating') {
+      return Number(value).toFixed(1);
+    }
+    return value.toString();
+  };
+
   return (
     <div>
-      <HeroSection contentMap={contentMap} spinsLeft={currentSpinsLeft} setSpinsLeft={setCurrentSpinsLeft} onSpin={onSpin} />
+      <HeroSection 
+        contentMap={contentMap} 
+        homepageApiData={apiData}
+        spinsLeft={currentSpinsLeft} 
+        setSpinsLeft={setCurrentSpinsLeft} 
+        onSpin={onSpin}
+        quotes={prophecyQuotes}
+      />
 
-      {/* Statistics Section */}
-      <section className={styles.zrSection}>
-          <h2 className={styles.zrH2}>Our Progress</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className={`${styles.parchmentCard} ${
-                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
-              }`}>
-                  <h3 className={`text-4xl font-bold ${
-                    isDark ? 'text-orange-400' : 'text-orange-600'
-                  }`}>
-                      {contentMap.get('statistics_words_written')?.content || '0'}
-                  </h3>
-                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Words Written</p>
-              </div>
-              <div className={`${styles.parchmentCard} ${
-                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
-              }`}>
-                  <h3 className={`text-4xl font-bold ${
-                    isDark ? 'text-orange-400' : 'text-orange-600'
-                  }`}>
-                      {contentMap.get('statistics_beta_readers')?.content || '0'}
-                  </h3>
-                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Beta Readers</p>
-              </div>
-              <div className={`${styles.parchmentCard} ${
-                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
-              }`}>
-                  <h3 className={`text-4xl font-bold ${
-                    isDark ? 'text-orange-400' : 'text-orange-600'
-                  }`}>
-                      {contentMap.get('statistics_average_rating')?.content || '0'}
-                  </h3>
-                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Average Rating</p>
-              </div>
-              <div className={`${styles.parchmentCard} ${
-                isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
-              }`}>
-                  <h3 className={`text-4xl font-bold ${
-                    isDark ? 'text-orange-400' : 'text-orange-600'
-                  }`}>
-                      {contentMap.get('statistics_books_published')?.content || '0'}
-                  </h3>
-                  <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Books Published</p>
-              </div>
-          </div>
-      </section>
+      {/* Statistics Section - Use API metrics if available */}
+      {(sections?.show_progress_metrics !== false) && (
+        <section className={styles.zrSection}>
+            <h2 className={styles.zrH2}>Our Progress</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div className={`${styles.parchmentCard} ${
+                  isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+                }`}>
+                    <h3 className={`text-4xl font-bold ${
+                      isDark ? 'text-orange-400' : 'text-orange-600'
+                    }`}>
+                        {metrics ? safeFormatMetric(metrics.words_written, 'words') : (contentMap.get('statistics_words_written')?.content || '50K')}
+                    </h3>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Words Written</p>
+                </div>
+                <div className={`${styles.parchmentCard} ${
+                  isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+                }`}>
+                    <h3 className={`text-4xl font-bold ${
+                      isDark ? 'text-orange-400' : 'text-orange-600'
+                    }`}>
+                        {metrics ? safeFormatMetric(metrics.beta_readers, 'number') : (contentMap.get('statistics_beta_readers')?.content || '5')}
+                    </h3>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Beta Readers</p>
+                </div>
+                <div className={`${styles.parchmentCard} ${
+                  isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+                }`}>
+                    <h3 className={`text-4xl font-bold ${
+                      isDark ? 'text-orange-400' : 'text-orange-600'
+                    }`}>
+                        {metrics ? safeFormatMetric(metrics.average_rating, 'rating') : (contentMap.get('statistics_average_rating')?.content || '4.5')}
+                    </h3>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Average Rating</p>
+                </div>
+                <div className={`${styles.parchmentCard} ${
+                  isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'
+                }`}>
+                    <h3 className={`text-4xl font-bold ${
+                      isDark ? 'text-orange-400' : 'text-orange-600'
+                    }`}>
+                        {metrics ? safeFormatMetric(metrics.books_published, 'number') : (contentMap.get('statistics_books_published')?.content || '1')}
+                    </h3>
+                    <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Books Published</p>
+                </div>
+            </div>
+        </section>
+      )}
       
-      {/* 🔥 LATEST NEWS & UPDATES - Now using standalone component with guaranteed client passing */}
-      <section className={styles.zrSection}>
-        <h2 className={styles.zrH2}>Latest News & Updates</h2>
-        <LatestPosts 
-          supabaseClient={supabaseClient} 
-          limit={5}
-        />
-      </section>
+      {/* Latest News & Updates - Only show if enabled */}
+      {(sections?.show_latest_news !== false) && (
+        <section className={styles.zrSection}>
+          <h2 className={styles.zrH2}>Latest News & Updates</h2>
+          <LatestPosts 
+            supabaseClient={supabaseClient} 
+            limit={5}
+          />
+        </section>
+      )}
       
-      <LatestReleases releases={releaseData || []} />
+      {/* Latest Releases - Only show if enabled */}
+      {(sections?.show_latest_releases !== false) && (
+        <LatestReleases releases={releaseData || []} />
+      )}
 
-      <section className={styles.zrSection}>
-          <h2 className={styles.zrH2}>Artist Collaboration</h2>
-          <div className="relative rounded-lg shadow-lg overflow-hidden w-full">
-              <img src="/images/invite_to_Colab_card.png" alt="Artist Collaboration Invitation" className="w-full h-full object-contain" />
-              <div className={`absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-8 ${
-                isDark ? 'bg-opacity-70' : 'bg-opacity-50'
-              }`}>
-                  <h3 className="text-2xl font-bold text-white mb-4 text-shadow-md">Join Our Creative Team!</h3>
-                  <p className="text-white mb-6 text-shadow-sm">We're looking for talented artists to help shape the visual identity of the Zangar/Spandam Series. Explore revenue-share opportunities and bring your vision to life.</p>
-                  <Link to="/artist-collaboration" className={`inline-block font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 ${
-                    isDark ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-orange-600 hover:bg-orange-700 text-white'
-                  }`}>
-                      Apply Now
-                  </Link>
-              </div>
-          </div>
-      </section>
+      {/* Artist Collaboration - Only show if enabled */}
+      {(sections?.show_artist_collaboration !== false) && (
+        <section className={styles.zrSection}>
+            <h2 className={styles.zrH2}>Artist Collaboration</h2>
+            <div className="relative rounded-lg shadow-lg overflow-hidden w-full">
+                <img src="/images/invite_to_Colab_card.png" alt="Artist Collaboration Invitation" className="w-full h-full object-contain" />
+                <div className={`absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center p-8 ${
+                  isDark ? 'bg-opacity-70' : 'bg-opacity-50'
+                }`}>
+                    <h3 className="text-2xl font-bold text-white mb-4 text-shadow-md">Join Our Creative Team!</h3>
+                    <p className="text-white mb-6 text-shadow-sm">We're looking for talented artists to help shape the visual identity of the Zangar/Spandam Series. Explore revenue-share opportunities and bring your vision to life.</p>
+                    <Link to="/artist-collaboration" className={`inline-block font-bold py-3 px-6 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 ${
+                      isDark ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-orange-600 hover:bg-orange-700 text-white'
+                    }`}>
+                        Apply Now
+                    </Link>
+                </div>
+            </div>
+        </section>
+      )}
     </div>
   );
 };

@@ -218,27 +218,27 @@ router.put('/content', requireSupabase, async (req, res) => {
       console.warn('⚠️ Could not fetch existing content:', fetchError.message);
     }
 
-    // Prepare the updates object with explicit field mapping
+    // Map all possible fields from request body with proper handling
     const updates = {
       id: 'homepage', // Ensure ID is set
       updated_at: new Date().toISOString()
     };
-    
-    // Map all possible fields from request body
-    if (req.body.hero_title !== undefined) updates.hero_title = req.body.hero_title;
-    if (req.body.hero_subtitle !== undefined) updates.hero_subtitle = req.body.hero_subtitle;
-    if (req.body.hero_description !== undefined) updates.hero_description = req.body.hero_description;
-    if (req.body.hero_quote !== undefined) updates.hero_quote = req.body.hero_quote;
-    if (req.body.cta_button_text !== undefined) updates.cta_button_text = req.body.cta_button_text;
-    if (req.body.cta_button_link !== undefined) updates.cta_button_link = req.body.cta_button_link;
-    
+
+    // Hero section fields
+    if (req.body.hero_title !== undefined) updates.hero_title = String(req.body.hero_title);
+    if (req.body.hero_subtitle !== undefined) updates.hero_subtitle = String(req.body.hero_subtitle || '');
+    if (req.body.hero_description !== undefined) updates.hero_description = String(req.body.hero_description);
+    if (req.body.hero_quote !== undefined) updates.hero_quote = String(req.body.hero_quote);
+    if (req.body.cta_button_text !== undefined) updates.cta_button_text = String(req.body.cta_button_text);
+    if (req.body.cta_button_link !== undefined) updates.cta_button_link = String(req.body.cta_button_link);
+
     // Metrics fields
     if (req.body.words_written !== undefined) updates.words_written = parseInt(req.body.words_written) || 0;
     if (req.body.beta_readers !== undefined) updates.beta_readers = parseInt(req.body.beta_readers) || 0;
     if (req.body.average_rating !== undefined) updates.average_rating = parseFloat(req.body.average_rating) || 0.0;
     if (req.body.books_published !== undefined) updates.books_published = parseInt(req.body.books_published) || 0;
-    
-    // Section visibility fields - CRITICAL FOR THE ISSUE!
+
+    // Section visibility fields - CRITICAL FIX!
     if (req.body.show_latest_news !== undefined) updates.show_latest_news = Boolean(req.body.show_latest_news);
     if (req.body.show_latest_releases !== undefined) updates.show_latest_releases = Boolean(req.body.show_latest_releases);
     if (req.body.show_artist_collaboration !== undefined) updates.show_artist_collaboration = Boolean(req.body.show_artist_collaboration);
@@ -258,7 +258,7 @@ router.put('/content', requireSupabase, async (req, res) => {
       .from('homepage_content')
       .upsert(updates, { 
         onConflict: 'id',
-        returning: 'representation' // Ensure we get the updated data back
+        ignoreDuplicates: false  // This ensures updates actually happen
       })
       .select()
       .single();

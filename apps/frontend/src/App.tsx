@@ -55,6 +55,8 @@ import ChapterReaderPage from './pages/ChapterReaderPage';
 import FileManagerPage from './pages/FileManagerPage';
 // NEW: Homepage Manager Import
 import HomepageManager from './admin/components/HomepageManager';
+// CRITICAL: Homepage Context Import
+import { HomepageProvider } from './contexts/HomepageContext';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -237,12 +239,15 @@ const AppContent: React.FC = () => {
   );
 }
 
+// CRITICAL: Add HomepageProvider wrapper
 const App: React.FC = () => {
   return (
-    <CartProvider className="bg-red-500">
-      <Toaster />
-      <AppContent />
-    </CartProvider>
+    <HomepageProvider>
+      <CartProvider className="bg-red-500">
+        <Toaster />
+        <AppContent />
+      </CartProvider>
+    </HomepageProvider>
   );
 };
 

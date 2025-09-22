@@ -54,11 +54,6 @@ const HomepageManager: React.FC = () => {
       await updateContent(localContent);
       
       setLastSaved(new Date());
-
-      // Add a delay before refetching to see if it's a timing issue
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      await refetch(); // Refresh data from server
     } catch (error) {
       console.error('Failed to save content:', error);
     }

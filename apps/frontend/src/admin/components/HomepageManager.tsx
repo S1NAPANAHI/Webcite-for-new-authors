@@ -50,18 +50,7 @@ const HomepageManager: React.FC = () => {
     if (!localContent) return;
     
     try {
-      await updateContent({
-        hero_title: localContent.hero_title,
-        hero_subtitle: localContent.hero_subtitle,
-        hero_description: localContent.hero_description,
-        hero_quote: localContent.hero_quote,
-        cta_button_text: localContent.cta_button_text,
-        cta_button_link: localContent.cta_button_link,
-        show_latest_news: localContent.show_latest_news,
-        show_latest_releases: localContent.show_latest_releases,
-        show_artist_collaboration: localContent.show_artist_collaboration,
-        show_progress_metrics: localContent.show_progress_metrics
-      });
+      await updateContent(localContent);
       
       setLastSaved(new Date());
       await refetch(); // Refresh data from server

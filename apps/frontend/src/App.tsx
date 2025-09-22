@@ -53,6 +53,8 @@ import MyLibraryPage from './pages/account/MyLibraryPage';
 import ChapterReaderPage from './pages/ChapterReaderPage';
 // NEW: File Manager Import
 import FileManagerPage from './pages/FileManagerPage';
+// NEW: Homepage Manager Import
+import HomepageManager from './admin/components/HomepageManager';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -202,7 +204,9 @@ const AppContent: React.FC = () => {
         <Route path="content/chapters/new" element={<ChapterEditor />} />
         <Route path="content/chapters/:id/edit" element={<ChapterEditor />} />
         <Route path="content/chapters/issue/:issueId/new" element={<ChapterEditor />} />
-        <Route path="content/homepage" element={<PlaceholderPage title="Homepage" />} />
+        
+        {/* UPDATED: Homepage Manager Route */}
+        <Route path="content/homepage" element={<HomepageManager />} />
         <Route path="content/about" element={<PlaceholderPage title="About" />} />
 
         <Route path="world/wiki" element={<WikiManager />} />

@@ -28,6 +28,7 @@ const adminNavigation = [
   {
     name: 'Content Management',
     children: [
+      { name: 'Homepage', href: '/admin/content/homepage', icon: Home },
       { name: 'Blog Posts', href: '/admin/content/blog', icon: FileText },
       { name: 'Pages', href: '/admin/content/pages', icon: File },
       { name: 'Chapters', href: '/admin/content/chapters', icon: Book },
@@ -121,8 +122,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
         <div className="flex-1 overflow-y-auto p-6">
           <Outlet />
-        </header>
-        <div className="flex-1 overflow-y-auto p-6">
           {children}
         </div>
       </main>

@@ -317,7 +317,13 @@ export const HomePage: React.FC<HomePageProps> = ({
   
   // Use API data metrics if available
   const metrics = finalHomepageData?.metrics;
-  const sections = finalHomepageData?.sections;
+  const content = finalHomepageData?.content;
+
+  // FIXED: Get section visibility settings from the API content
+  const showLatestNews = content?.show_latest_news !== false;
+  const showLatestReleases = content?.show_latest_releases !== false;
+  const showArtistCollaboration = content?.show_artist_collaboration !== false;
+  const showProgressMetrics = content?.show_progress_metrics !== false;
 
   console.log('🏠 Enhanced HomePage: Rendering with API integration:', {
     hasSupabaseClient: !!supabaseClient,
@@ -325,7 +331,12 @@ export const HomePage: React.FC<HomePageProps> = ({
     apiQuotesCount: apiQuotes.length,
     transformedQuotesCount: prophecyQuotes.length,
     hasMetrics: !!metrics,
-    sectionsConfig: sections
+    sectionVisibility: {
+      showLatestNews,
+      showLatestReleases,
+      showArtistCollaboration,
+      showProgressMetrics
+    }
   });
 
   // CRITICAL: Also set global window for backup
@@ -347,7 +358,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       />
 
       {/* Statistics Section - Only show if enabled in API data */}
-      {(sections?.show_progress_metrics !== false) && (
+      {showProgressMetrics && (
         <section className="zr-section">
             <h2 className="zr-h2">Our Progress</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -396,7 +407,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       )}
       
       {/* 🔥 LATEST NEWS & UPDATES - Only show if enabled in API data */}
-      {(sections?.show_latest_news !== false) && (
+      {showLatestNews && (
         <section className="zr-section">
           <h2 className="zr-h2">Latest News & Updates</h2>
           <LatestPosts 
@@ -407,12 +418,12 @@ export const HomePage: React.FC<HomePageProps> = ({
       )}
       
       {/* Latest Releases - Only show if enabled in API data */}
-      {(sections?.show_latest_releases !== false) && (
+      {showLatestReleases && (
         <LatestReleases releases={releaseData || []} />
       )}
 
       {/* Artist Collaboration - Only show if enabled in API data */}
-      {(sections?.show_artist_collaboration !== false) && (
+      {showArtistCollaboration && (
         <section className="zr-section">
             <h2 className="zr-h2">Artist Collaboration</h2>
             <div className="relative rounded-lg shadow-lg overflow-hidden w-full">

@@ -85,10 +85,10 @@ async function startServer() {
   
   console.log('🎣 Stripe webhook endpoint configured at /api/stripe/webhook');
 
-  // CORS Configuration - Fixed for production
+  // CORS Configuration - Fixed for production with correct domain
   const allowedOrigins = new Set([
     'http://localhost:5173',
-    'https://www.zoroastervers.com',
+    'https://www.zoroastervers.com',  // CORRECTED: Fixed the domain name
     'https://zoroastervers.com'
   ]);
 

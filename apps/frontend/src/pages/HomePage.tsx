@@ -16,9 +16,38 @@ const fetchHomepageContent = async (): Promise<HomepageContentItem[]> => {
   return data as HomepageContentItem[];
 };
 
+// Enhanced release items fetching with API fallback
 const fetchReleaseItems = async (): Promise<ReleaseItem[]> => {
-  const { data, error } = await supabase.from('release_items').select('*').order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
+  try {
+    // First, try to get from the new API endpoint which fetches latest chapters
+    const API_BASE = window.location.hostname === 'localhost' 
+      ? 'http://localhost:3001'
+      : 'https://webcite-for-new-authors.onrender.com';
+      
+    const response = await fetch(`${API_BASE}/api/releases/latest`);
+    if (response.ok) {
+      const apiData = await response.json();
+      console.log('✅ Fetched release items from API:', apiData.length);
+      return apiData;
+    }
+    
+    console.log('🔄 API failed, falling back to direct Supabase query');
+  } catch (error) {
+    console.log('🔄 API unavailable, using direct Supabase query:', error);
+  }
+  
+  // Fallback to direct supabase query
+  const { data, error } = await supabase
+    .from('release_items')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(6);
+    
+  if (error) {
+    console.error('❌ Direct supabase query failed:', error);
+    throw new Error(error.message);
+  }
+  
   return data as ReleaseItem[];
 };
 
@@ -43,7 +72,9 @@ const HomePage: React.FC = () => {
   
   const { data: releaseData, isLoading: isLoadingReleases, isError: isErrorReleases } = useQuery<ReleaseItem[]>({ 
     queryKey: ['releaseItems'], 
-    queryFn: fetchReleaseItems 
+    queryFn: fetchReleaseItems,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 10 * 60 * 1000 // Refetch every 10 minutes
   });
 
   // Fetch user's spin count
@@ -125,6 +156,7 @@ const HomePage: React.FC = () => {
     homepageDataLength: homepageData?.length || 0,
     latestPostsLength: latestPosts?.length || 0,
     releaseDataLength: releaseData?.length || 0,
+    releaseDataSample: releaseData?.slice(0, 2),
     spinsLeft,
     isLoading,
     isError,
@@ -165,6 +197,16 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Debug info for releases */}
+      {!isLoading && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-center">
+          🔍 Debug: Found {releaseData?.length || 0} release items. 
+          {releaseData?.length === 0 && (
+            <span className="text-red-600">No releases found - check if chapters exist in library or sync needed.</span>
+          )}
+        </div>
+      )}
 
       {/* 🔥 UI HomePage Component - CRITICAL: This contains the "Latest News & Updates" section */}
       {!isLoading && !isError && (

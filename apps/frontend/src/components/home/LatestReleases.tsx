@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Book, Clock, ArrowRight, ExternalLink } from 'lucide-react';
-import { supabase } from '@zoroaster/shared';
+import { supabase } from '../../lib/supabase';
 import { Link } from 'react-router-dom';
-import '../../styles/releases.css';
 
 interface Release {
   id: string;
@@ -19,7 +18,7 @@ interface LatestReleasesProps {
   limit?: number;
 }
 
-export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => {
+export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 5 }) => {
   const [releases, setReleases] = useState<Release[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,28 +34,19 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => 
           const apiResponse = await fetch('https://webcite-for-new-authors.onrender.com/api/releases/latest');
           if (apiResponse.ok) {
             const apiData = await apiResponse.json();
-            if (apiData && apiData.length > 0) {
-              console.log('✅ API Strategy Success:', apiData.length, 'releases');
-              const transformedReleases = apiData.map((item: any) => ({
-                id: item.id,
-                title: item.title,
-                description: item.description || 'New release available',
-                releaseDate: item.release_date || item.created_at,
-                type: item.type?.toLowerCase() === 'chapter' ? 'chapter' : 'announcement',
-                url: item.link
-              }));
-              setReleases(transformedReleases);
+            if (apiData.success && apiData.data && apiData.data.length > 0) {
+              console.log('✅ API Strategy Success:', apiData.data);
+              setReleases(apiData.data);
               setLoading(false);
               return;
             }
           }
-          console.log('⚠️ API returned empty or invalid data');
         } catch (apiError) {
           console.log('⚠️ API Strategy Failed:', apiError);
         }
 
         // Strategy 2: Direct Supabase chapters query
-        console.log('📚 Strategy 2: Querying chapters directly from Supabase...');
+        console.log('📚 Strategy 2: Querying chapters directly...');
         const { data: chapters, error: chaptersError } = await supabase
           .from('chapters')
           .select(`
@@ -65,14 +55,12 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => 
             chapter_number,
             created_at,
             updated_at,
-            work_id,
-            works!inner (
-              id,
+            content_item:content_item_id (
               title,
               slug
             )
           `)
-          .not('work_id', 'is', null)
+          .not('content_item_id', 'is', null)
           .order('created_at', { ascending: false })
           .limit(limit);
 
@@ -80,21 +68,20 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => 
           console.error('❌ Chapters query error:', chaptersError);
         } else if (chapters && chapters.length > 0) {
           console.log(`🎯 Found ${chapters.length} chapters, transforming to releases...`);
-          console.log('📋 Raw chapters data:', chapters);
+          console.log('📋 Chapter releases:', chapters.map(c => c.title));
           
-          const transformedReleases = chapters.map((chapter: any) => ({
+          const transformedReleases = chapters.map(chapter => ({
             id: chapter.id,
-            title: `${chapter.works?.title || 'Unknown Work'} - Chapter ${chapter.chapter_number || '?'}: ${chapter.title}`,
-            description: `New chapter published in ${chapter.works?.title || 'your library'}`,
+            title: `${chapter.content_item?.title || 'Unknown Work'} - Chapter ${chapter.chapter_number || '?'}: ${chapter.title}`,
+            description: `New chapter published in ${chapter.content_item?.title || 'your library'}`,
             releaseDate: chapter.created_at || chapter.updated_at,
             type: 'chapter' as const,
-            workTitle: chapter.works?.title,
+            workTitle: chapter.content_item?.title,
             chapterNumber: chapter.chapter_number,
-            url: chapter.works?.slug ? `/library/${chapter.works.slug}#chapter-${chapter.chapter_number}` : '#'
+            url: chapter.content_item?.slug ? `/read/${chapter.content_item.slug}/chapter/${chapter.id}` : undefined
           }));
 
           console.log('✅ Chapters Strategy Success: Transformed', transformedReleases.length, 'chapters to releases');
-          console.log('📋 Transformed releases:', transformedReleases.map(r => r.title));
           setReleases(transformedReleases);
           setLoading(false);
           return;
@@ -111,22 +98,21 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => 
         if (releaseError) {
           console.error('❌ Release items query error:', releaseError);
         } else if (releaseItems && releaseItems.length > 0) {
-          console.log('✅ Release Items Strategy Success:', releaseItems.length, 'items');
-          const transformedReleases = releaseItems.map((item: any) => ({
+          console.log('✅ Release Items Strategy Success:', releaseItems);
+          setReleases(releaseItems.map(item => ({
             id: item.id,
             title: item.title,
             description: item.description || 'New release available',
-            releaseDate: item.release_date || item.created_at,
-            type: item.type?.toLowerCase() === 'chapter' ? 'chapter' : 'announcement',
-            url: item.link
-          }));
-          setReleases(transformedReleases);
+            releaseDate: item.created_at,
+            type: item.type || 'announcement',
+            url: item.url
+          })));
           setLoading(false);
           return;
         }
 
-        // Strategy 4: Show empty state
-        console.log('📭 No releases found from any strategy');
+        // Strategy 4: Demo content as fallback
+        console.log('🎨 Strategy 4: Using demo content...');
         setReleases([]);
         setLoading(false);
 
@@ -213,7 +199,7 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 6 }) => 
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {releases.map((release) => (
-            <div key={release.id} className="group release-card bg-gray-800/50 border border-gray-700 hover:border-orange-500/50 rounded-lg p-6 transition-all duration-300">
+            <div key={release.id} className="group bg-gray-800/50 border border-gray-700 hover:border-orange-500/50 rounded-lg p-6 transition-all duration-300 hover:transform hover:scale-105">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center text-orange-500">
                   {release.type === 'chapter' ? (

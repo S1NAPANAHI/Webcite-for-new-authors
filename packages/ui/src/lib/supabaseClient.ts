@@ -1,16 +1,34 @@
-// create once, re-use everywhere
-import { createClient } from '@supabase/supabase-js';
+// create once, re-use everywhere - Singleton Supabase Client
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-declare global {
-  /* eslint-disable no-var */
-  var __sbClient__: ReturnType<typeof createClient> | undefined;
-}
+// Ensure only one instance exists globally
+let supabaseInstance: SupabaseClient | null = null;
 
-if (!globalThis.__sbClient__) {
-  globalThis.__sbClient__ = createClient(
-    import.meta.env.VITE_SUPABASE_URL!,
-    import.meta.env.VITE_SUPABASE_ANON_KEY!
-  );
-}
+// Get or create the Supabase client instance
+export const getSupabaseClient = (): SupabaseClient => {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
 
-export const supabase = globalThis.__sbClient__;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables');
+    throw new Error('Missing required Supabase configuration');
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  console.log('✅ Supabase client created as singleton');
+  return supabaseInstance;
+};
+
+// Export the singleton instance
+export const supabase = getSupabaseClient();

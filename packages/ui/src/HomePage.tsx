@@ -7,16 +7,21 @@ import { LatestPosts } from './components/LatestPosts';
 // You may need to adjust this import path based on your actual folder structure
 let useHomepageData, useHomepageQuotes, formatMetricValue, transformQuotesForProphecy;
 
-try {
-  // Try to import the homepage hooks
-  const homepageHooks = await import('../../../apps/frontend/src/hooks/useHomepageData');
-  useHomepageData = homepageHooks.useHomepageData;
-  useHomepageQuotes = homepageHooks.useHomepageQuotes;
-  formatMetricValue = homepageHooks.formatMetricValue;
-  transformQuotesForProphecy = homepageHooks.transformQuotesForProphecy;
-} catch (e) {
-  console.log('📋 HomePage: useHomepageData hooks not available, using fallback');
-}
+// Remove top-level await and handle imports in useEffect
+const loadHomepageHooks = async () => {
+  try {
+    // Try to import the homepage hooks
+    const homepageHooks = await import('../../../apps/frontend/src/hooks/useHomepageData');
+    useHomepageData = homepageHooks.useHomepageData;
+    useHomepageQuotes = homepageHooks.useHomepageQuotes;
+    formatMetricValue = homepageHooks.formatMetricValue;
+    transformQuotesForProphecy = homepageHooks.transformQuotesForProphecy;
+    return true;
+  } catch (e) {
+    console.log('📋 HomePage: useHomepageData hooks not available, using fallback');
+    return false;
+  }
+};
 
 // --- TYPE DEFINITIONS ---
 export type HomepageContentItem = {
@@ -167,10 +172,10 @@ const HeroSection: React.FC<{
     const ctaLink = apiContent?.cta_button_link || '/blog/about';
 
     console.log('🏠 HeroSection: Using data from:', {
-      hasApiContent: !!apiContent,
-      hasContentMap: contentMap.size > 0,
-      title: title.substring(0, 30) + '...',
-      quotesCount: quotes?.length || 0
+        hasApiContent: !!apiContent,
+        hasContentMap: contentMap.size > 0,
+        title: title.substring(0, 30) + '...',
+        quotesCount: quotes?.length || 0
     });
 
     return (
@@ -321,6 +326,14 @@ export const HomePage: React.FC<HomePageProps> = ({
 }) => {
   const [currentSpinsLeft, setCurrentSpinsLeft] = useState(spinsLeft);
   const [isDark, setIsDark] = useState(false);
+  const [hooksLoaded, setHooksLoaded] = useState(false);
+  
+  // Load homepage hooks on component mount
+  useEffect(() => {
+    loadHomepageHooks().then(loaded => {
+      setHooksLoaded(loaded);
+    });
+  }, []);
   
   // Use the new homepage data hooks if available, otherwise use fallback
   const fallbackHook = useHomepageDataFallback();
@@ -378,7 +391,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     hasApiData: !!apiData,
     hasMetrics: !!metrics,
     quotesCount: prophecyQuotes.length,
-    sectionsConfig: sections
+    sectionsConfig: sections,
+    hooksLoaded
   });
 
   // CRITICAL: Also set global window for backup

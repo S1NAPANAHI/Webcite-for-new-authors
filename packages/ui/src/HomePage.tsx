@@ -24,6 +24,8 @@ export type ReleaseItem = {
   title: string;
   type: string;
   link?: string;
+  description?: string;
+  release_date?: string;
 };
 
 // Prophecy quote interface
@@ -218,6 +220,36 @@ const LatestReleases: React.FC<{ releases: ReleaseItem[] }> = ({ releases }) => 
         };
     }, []);
 
+    // Show empty state if no releases
+    if (!releases || releases.length === 0) {
+        return (
+            <section className={styles.zrSection}>
+                <h2 className={styles.zrH2}>Latest Releases</h2>
+                <div className="text-center py-12">
+                    <div className={`${styles.parchmentCard} ${isDark ? 'bg-gray-800 text-gray-100 border-gray-600' : 'bg-white text-gray-900'}`}>
+                        <div className="p-8">
+                            <div className="text-6xl mb-4 opacity-20">📚</div>
+                            <h3 className={`text-xl font-semibold mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                                No Releases Yet
+                            </h3>
+                            <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                New chapter releases will appear here automatically when you publish content in your library.
+                            </p>
+                            <Link 
+                                to="/library" 
+                                className={`mt-4 inline-block px-4 py-2 rounded-lg transition-colors ${
+                                    isDark ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-orange-600 hover:bg-orange-700 text-white'
+                                }`}
+                            >
+                                Browse Library
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
     return (
         <section className={styles.zrSection}>
             <h2 className={styles.zrH2}>Latest Releases</h2>
@@ -228,9 +260,19 @@ const LatestReleases: React.FC<{ releases: ReleaseItem[] }> = ({ releases }) => 
                     }`}>
                         <h3 className={isDark ? 'text-white' : 'text-gray-900'}>{release.title}</h3>
                         <p className={`mt-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Type: {release.type}</p>
+                        {release.description && (
+                            <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {release.description}
+                            </p>
+                        )}
+                        {release.release_date && (
+                            <p className={`mt-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Released: {new Date(release.release_date).toLocaleDateString()}
+                            </p>
+                        )}
                         <a href={release.link || '#'} className={`mt-4 inline-block ${
                             isDark ? 'text-orange-400 hover:text-orange-300' : 'text-orange-600 hover:text-orange-700'
-                        }`}>View Details / Purchase</a>
+                        }`}>View Details</a>
                     </div>
                 ))}
             </div>
@@ -391,7 +433,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     hasApiData: !!apiData,
     hasMetrics: !!metrics,
     quotesCount: prophecyQuotes.length,
-    sectionsConfig: sections
+    sectionsConfig: sections,
+    releaseDataCount: releaseData?.length || 0
   });
 
   return (

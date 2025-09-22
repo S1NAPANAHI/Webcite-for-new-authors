@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { useHomepageContextOptional } from '../contexts/HomepageContext';
+import { triggerHomepageUpdate, useHomepageUpdateListener, addCacheBuster, markHomepageRefreshed } from '../utils/homepageCache';
 
 // Create Supabase client as singleton
 let supabaseInstance: any = null;
@@ -105,10 +106,15 @@ const getApiBase = () => {
     : 'http://localhost:3001';
 };
 
-// Fetch functions with better error handling
+// Fetch functions with better error handling and cache busting
 async function fetchFromAPI(endpoint: string, options?: RequestInit) {
   const API_BASE = getApiBase();
-  const url = `${API_BASE}/api/homepage${endpoint}`;
+  let url = `${API_BASE}/api/homepage${endpoint}`;
+  
+  // Add cache busting for GET requests
+  if (!options?.method || options.method === 'GET') {
+    url = addCacheBuster(url);
+  }
   
   console.log(`📡 Fetching from: ${url}`);
   
@@ -221,12 +227,12 @@ export const useHomepageData = () => {
   // Get context for cache invalidation (optional)
   const homepageContext = useHomepageContextOptional();
 
-  const fetchHomepageData = useCallback(async () => {
+  const fetchHomepageData = useCallback(async (force = false) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      console.log('🏠 useHomepageData: Starting fetch...');
+      console.log('🏠 useHomepageData: Starting fetch...', { force });
       
       // Try API first, then fallback to direct Supabase
       let response;
@@ -240,10 +246,16 @@ export const useHomepageData = () => {
       console.log('✅ useHomepageData: Data fetched successfully:', {
         hasContent: !!response.content,
         quotesCount: response.quotes?.length || 0,
-        hasMetrics: !!response.metrics
+        hasMetrics: !!response.metrics,
+        sections: response.sections
       });
       
       setData(response);
+      
+      // Mark as refreshed if this was triggered by update
+      if (force) {
+        markHomepageRefreshed();
+      }
     } catch (err) {
       console.error('❌ useHomepageData: Error fetching data:', err);
       
@@ -311,13 +323,23 @@ export const useHomepageData = () => {
     }
   }, []);
 
-  // Register for cache invalidation
+  // Register for cache invalidation via context
   useEffect(() => {
     if (homepageContext) {
-      const cleanup = homepageContext.registerDataRefresh(fetchHomepageData);
+      const cleanup = homepageContext.registerDataRefresh(() => fetchHomepageData(true));
       return cleanup;
     }
   }, [homepageContext, fetchHomepageData]);
+
+  // Listen for homepage updates
+  useEffect(() => {
+    const cleanup = useHomepageUpdateListener(() => {
+      console.log('🔄 Homepage update listener triggered - refreshing data...');
+      fetchHomepageData(true);
+    });
+    
+    return cleanup;
+  }, [fetchHomepageData]);
 
   useEffect(() => {
     fetchHomepageData();
@@ -327,7 +349,7 @@ export const useHomepageData = () => {
     data,
     isLoading,
     error,
-    refetch: fetchHomepageData
+    refetch: () => fetchHomepageData(true)
   };
 };
 
@@ -553,7 +575,10 @@ export const useHomepageAdmin = () => {
       
       console.log('✅ useHomepageAdmin: Content updated successfully');
       
-      // Invalidate all caches after successful update
+      // CRITICAL: Trigger global cache invalidation
+      triggerHomepageUpdate();
+      
+      // Also use context if available
       if (homepageContext) {
         console.log('🔄 Invalidating homepage caches after content update...');
         homepageContext.invalidateAll();
@@ -606,7 +631,9 @@ export const useHomepageAdmin = () => {
       
       console.log('✅ useHomepageAdmin: Metrics updated successfully');
       
-      // Invalidate metrics cache after successful update
+      // Trigger cache invalidation
+      triggerHomepageUpdate();
+      
       if (homepageContext) {
         console.log('🔄 Invalidating metrics cache after update...');
         homepageContext.invalidateMetrics();
@@ -691,7 +718,9 @@ export const useHomepageAdmin = () => {
       
       console.log('✅ useHomepageAdmin: Metrics calculated successfully');
       
-      // Invalidate all caches after successful calculation
+      // Trigger cache invalidation
+      triggerHomepageUpdate();
+      
       if (homepageContext) {
         console.log('🔄 Invalidating caches after metrics calculation...');
         homepageContext.invalidateAll();
@@ -730,7 +759,9 @@ export const useHomepageAdmin = () => {
       
       console.log('✅ useHomepageAdmin: Quote added successfully');
       
-      // Invalidate quotes cache after successful add
+      // Trigger cache invalidation
+      triggerHomepageUpdate();
+      
       if (homepageContext) {
         console.log('🔄 Invalidating quotes cache after add...');
         homepageContext.invalidateQuotes();
@@ -767,7 +798,9 @@ export const useHomepageAdmin = () => {
       
       console.log('✅ useHomepageAdmin: Quote updated successfully');
       
-      // Invalidate quotes cache after successful update
+      // Trigger cache invalidation
+      triggerHomepageUpdate();
+      
       if (homepageContext) {
         console.log('🔄 Invalidating quotes cache after update...');
         homepageContext.invalidateQuotes();
@@ -799,7 +832,9 @@ export const useHomepageAdmin = () => {
       
       console.log('✅ useHomepageAdmin: Quote deleted successfully');
       
-      // Invalidate quotes cache after successful delete
+      // Trigger cache invalidation
+      triggerHomepageUpdate();
+      
       if (homepageContext) {
         console.log('🔄 Invalidating quotes cache after delete...');
         homepageContext.invalidateQuotes();

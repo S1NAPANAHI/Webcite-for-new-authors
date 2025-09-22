@@ -23,6 +23,8 @@ import subscriptionRoutes from './routes/subscription.js';
 import betaRoutes from './routes/beta.js';
 import worldRoutes from './routes/world.js';
 import filesRoutes from './routes/files.js';
+// Import homepage routes (new)
+import homepageRoutes from './routes/homepage.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -139,7 +141,7 @@ async function startServer() {
 
   // Add debug logging middleware
   app.use((req, res, next) => {
-    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription')) {
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage')) {
       console.log('🔍 Request:', {
         method: req.method,
         path: req.path,
@@ -153,7 +155,8 @@ async function startServer() {
   // ========================================
   // MOUNT ROUTE MODULES
   // ========================================
-  app.use('/api/subscription', subscriptionRoutes); // NEW: Enhanced subscription API
+  app.use('/api/subscription', subscriptionRoutes); // Enhanced subscription API
+  app.use('/api/homepage', homepageRoutes); // NEW: Homepage management API
   app.use('/admin', adminRoutes);
   app.use('/content', contentRoutes);
   app.use('/beta', betaRoutes);
@@ -268,6 +271,9 @@ async function startServer() {
     console.log(`📊 Enhanced Subscription API: http://localhost:${PORT}/api/subscription/status`);
     console.log(`🔄 Subscription refresh: http://localhost:${PORT}/api/subscription/refresh`);
     console.log(`💳 Billing info: http://localhost:${PORT}/api/subscription/billing`);
+    console.log(`🏠 Homepage Management API: http://localhost:${PORT}/api/homepage`);
+    console.log(`📈 Homepage Metrics: http://localhost:${PORT}/api/homepage/metrics`);
+    console.log(`💬 Homepage Quotes: http://localhost:${PORT}/api/homepage/quotes`);
   });
 }
 

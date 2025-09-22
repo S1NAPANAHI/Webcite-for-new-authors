@@ -3,26 +3,6 @@ import { Link } from 'react-router-dom';
 import styles from './HomePage.module.css';
 import { LatestPosts } from './components/LatestPosts';
 
-// Import the homepage hooks - create these if the path is different in your structure
-// You may need to adjust this import path based on your actual folder structure
-let useHomepageData, useHomepageQuotes, formatMetricValue, transformQuotesForProphecy;
-
-// Remove top-level await and handle imports in useEffect
-const loadHomepageHooks = async () => {
-  try {
-    // Try to import the homepage hooks
-    const homepageHooks = await import('../../../apps/frontend/src/hooks/useHomepageData');
-    useHomepageData = homepageHooks.useHomepageData;
-    useHomepageQuotes = homepageHooks.useHomepageQuotes;
-    formatMetricValue = homepageHooks.formatMetricValue;
-    transformQuotesForProphecy = homepageHooks.transformQuotesForProphecy;
-    return true;
-  } catch (e) {
-    console.log('📋 HomePage: useHomepageData hooks not available, using fallback');
-    return false;
-  }
-};
-
 // --- TYPE DEFINITIONS ---
 export type HomepageContentItem = {
   id: number;
@@ -171,13 +151,6 @@ const HeroSection: React.FC<{
     const ctaText = apiContent?.cta_button_text || 'Learn More';
     const ctaLink = apiContent?.cta_button_link || '/blog/about';
 
-    console.log('🏠 HeroSection: Using data from:', {
-        hasApiContent: !!apiContent,
-        hasContentMap: contentMap.size > 0,
-        title: title.substring(0, 30) + '...',
-        quotesCount: quotes?.length || 0
-    });
-
     return (
         <section id="home" className={styles.zrHero}>
             <div className={styles.zrHeroContent}>
@@ -313,6 +286,23 @@ const useHomepageDataFallback = () => {
   return { data, isLoading, quotes };
 };
 
+// Helper function to format numbers for display
+const formatMetricValue = (value: number, type: 'number' | 'rating' | 'words') => {
+  switch (type) {
+    case 'rating':
+      return Number(value).toFixed(1);
+    case 'words':
+      return value >= 1000000 
+        ? `${(value / 1000000).toFixed(1)}M`
+        : value >= 1000 
+          ? `${(value / 1000).toFixed(0)}K`
+          : value.toString();
+    case 'number':
+    default:
+      return value.toLocaleString();
+  }
+};
+
 // --- MAIN HOME PAGE COMPONENT ---
 export const HomePage: React.FC<HomePageProps> = ({ 
   homepageData = [], 
@@ -324,30 +314,23 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSpin,
   supabaseClient
 }) => {
+  // ALL HOOKS MUST BE CALLED IN THE SAME ORDER EVERY TIME
   const [currentSpinsLeft, setCurrentSpinsLeft] = useState(spinsLeft);
   const [isDark, setIsDark] = useState(false);
-  const [hooksLoaded, setHooksLoaded] = useState(false);
   
-  // Load homepage hooks on component mount
-  useEffect(() => {
-    loadHomepageHooks().then(loaded => {
-      setHooksLoaded(loaded);
-    });
-  }, []);
-  
-  // Use the new homepage data hooks if available, otherwise use fallback
+  // Use the fallback hook (always called in the same order)
   const fallbackHook = useHomepageDataFallback();
   const apiData = fallbackHook.data;
   const apiQuotes = fallbackHook.quotes;
   const apiLoading = fallbackHook.isLoading;
   
   // Transform quotes for prophecy wheel
-  const prophecyQuotes = apiQuotes.map(quote => ({
+  const prophecyQuotes = apiQuotes.map((quote: any) => ({
     english: quote.quote_text,
     author: quote.author
   }));
 
-  // Dark mode detection
+  // Dark mode detection - always called in the same order
   useEffect(() => {
     const checkDarkMode = () => {
       const isDarkMode = document.documentElement.classList.contains('dark') ||
@@ -373,11 +356,28 @@ export const HomePage: React.FC<HomePageProps> = ({
     };
   }, []);
 
-  if (isLoading || apiLoading) return <div className={`text-center py-8 ${
-    isDark ? 'text-gray-300' : 'text-gray-700'
-  }`}>Loading homepage content...</div>;
+  // Supabase client effect - always called in the same order
+  useEffect(() => {
+    if (supabaseClient && typeof window !== 'undefined') {
+      (window as any).__supabase = supabaseClient;
+      console.log('🔗 UI HomePage: Set supabase client on window object as backup');
+    }
+  }, [supabaseClient]);
+
+  // Early return after all hooks have been called
+  if (isLoading || apiLoading) {
+    return (
+      <div className={`text-center py-8 ${
+        isDark ? 'text-gray-300' : 'text-gray-700'
+      }`}>
+        Loading homepage content...
+      </div>
+    );
+  }
   
-  if (isError) return <div className="text-center py-8 text-red-400">Error loading homepage content.</div>;
+  if (isError) {
+    return <div className="text-center py-8 text-red-400">Error loading homepage content.</div>;
+  }
 
   // For backward compatibility with old contentMap system
   const contentMap = new Map(homepageData?.map(item => [item.section, item]));
@@ -391,31 +391,8 @@ export const HomePage: React.FC<HomePageProps> = ({
     hasApiData: !!apiData,
     hasMetrics: !!metrics,
     quotesCount: prophecyQuotes.length,
-    sectionsConfig: sections,
-    hooksLoaded
+    sectionsConfig: sections
   });
-
-  // CRITICAL: Also set global window for backup
-  useEffect(() => {
-    if (supabaseClient && typeof window !== 'undefined') {
-      (window as any).__supabase = supabaseClient;
-      console.log('🔗 UI HomePage: Set supabase client on window object as backup');
-    }
-  }, [supabaseClient]);
-
-  const safeFormatMetric = (value, type) => {
-    if (typeof formatMetricValue === 'function') {
-      return formatMetricValue(value, type);
-    }
-    // Fallback formatting
-    if (type === 'words') {
-      return value >= 1000 ? `${Math.floor(value / 1000)}K` : value.toString();
-    }
-    if (type === 'rating') {
-      return Number(value).toFixed(1);
-    }
-    return value.toString();
-  };
 
   return (
     <div>
@@ -439,7 +416,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className={`text-4xl font-bold ${
                       isDark ? 'text-orange-400' : 'text-orange-600'
                     }`}>
-                        {metrics ? safeFormatMetric(metrics.words_written, 'words') : (contentMap.get('statistics_words_written')?.content || '50K')}
+                        {metrics ? formatMetricValue(metrics.words_written, 'words') : (contentMap.get('statistics_words_written')?.content || '50K')}
                     </h3>
                     <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Words Written</p>
                 </div>
@@ -449,7 +426,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className={`text-4xl font-bold ${
                       isDark ? 'text-orange-400' : 'text-orange-600'
                     }`}>
-                        {metrics ? safeFormatMetric(metrics.beta_readers, 'number') : (contentMap.get('statistics_beta_readers')?.content || '5')}
+                        {metrics ? formatMetricValue(metrics.beta_readers, 'number') : (contentMap.get('statistics_beta_readers')?.content || '5')}
                     </h3>
                     <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Beta Readers</p>
                 </div>
@@ -459,7 +436,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className={`text-4xl font-bold ${
                       isDark ? 'text-orange-400' : 'text-orange-600'
                     }`}>
-                        {metrics ? safeFormatMetric(metrics.average_rating, 'rating') : (contentMap.get('statistics_average_rating')?.content || '4.5')}
+                        {metrics ? formatMetricValue(metrics.average_rating, 'rating') : (contentMap.get('statistics_average_rating')?.content || '4.5')}
                     </h3>
                     <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Average Rating</p>
                 </div>
@@ -469,7 +446,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <h3 className={`text-4xl font-bold ${
                       isDark ? 'text-orange-400' : 'text-orange-600'
                     }`}>
-                        {metrics ? safeFormatMetric(metrics.books_published, 'number') : (contentMap.get('statistics_books_published')?.content || '1')}
+                        {metrics ? formatMetricValue(metrics.books_published, 'number') : (contentMap.get('statistics_books_published')?.content || '1')}
                     </h3>
                     <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>Books Published</p>
                 </div>

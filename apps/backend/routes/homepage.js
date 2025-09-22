@@ -3,16 +3,54 @@ import { createClient } from '@supabase/supabase-js';
 
 const router = express.Router();
 
-// Initialize Supabase client with service key for admin operations
-const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY // Fallback to anon key if service key not available
-);
+// Environment variables validation and fallbacks
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('🏠 Homepage routes initialized with Supabase URL:', process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL);
+console.log('🔧 Environment check:', {
+  hasSupabaseUrl: !!SUPABASE_URL,
+  hasSupabaseKey: !!SUPABASE_KEY,
+  urlPreview: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 20)}...` : 'MISSING',
+  keyPreview: SUPABASE_KEY ? `${SUPABASE_KEY.substring(0, 10)}...` : 'MISSING'
+});
+
+// Initialize Supabase client with better error handling
+let supabase = null;
+
+try {
+  if (!SUPABASE_URL) {
+    throw new Error('Missing SUPABASE_URL or VITE_SUPABASE_URL environment variable');
+  }
+  if (!SUPABASE_KEY) {
+    throw new Error('Missing SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY environment variable');
+  }
+
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('✅ Supabase client initialized successfully');
+} catch (error) {
+  console.error('❌ Supabase client initialization failed:', error.message);
+  console.error('📋 Required environment variables:');
+  console.error('   - SUPABASE_URL or VITE_SUPABASE_URL');
+  console.error('   - SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY');
+}
+
+// Middleware to check if Supabase is available
+const requireSupabase = (req, res, next) => {
+  if (!supabase) {
+    return res.status(500).json({
+      error: 'Database connection not available',
+      message: 'Supabase client not initialized. Check environment variables.',
+      requiredEnvVars: [
+        'SUPABASE_URL or VITE_SUPABASE_URL',
+        'SUPABASE_SERVICE_KEY, SUPABASE_ANON_KEY, or VITE_SUPABASE_ANON_KEY'
+      ]
+    });
+  }
+  next();
+};
 
 // GET /api/homepage - Public homepage data
-router.get('/', async (req, res) => {
+router.get('/', requireSupabase, async (req, res) => {
   try {
     console.log('📡 GET /api/homepage - Fetching homepage data...');
     
@@ -82,7 +120,7 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/homepage/metrics - Get metrics only
-router.get('/metrics', async (req, res) => {
+router.get('/metrics', requireSupabase, async (req, res) => {
   try {
     console.log('📊 GET /api/homepage/metrics - Fetching metrics...');
     
@@ -119,7 +157,7 @@ router.get('/metrics', async (req, res) => {
 });
 
 // GET /api/homepage/quotes - Get active quotes only
-router.get('/quotes', async (req, res) => {
+router.get('/quotes', requireSupabase, async (req, res) => {
   try {
     console.log('💬 GET /api/homepage/quotes - Fetching quotes...');
     
@@ -142,7 +180,7 @@ router.get('/quotes', async (req, res) => {
 });
 
 // PUT /api/homepage/content - Update homepage content
-router.put('/content', async (req, res) => {
+router.put('/content', requireSupabase, async (req, res) => {
   try {
     console.log('📝 PUT /api/homepage/content - Updating content...');
     console.log('📋 Request body keys:', Object.keys(req.body));
@@ -173,7 +211,7 @@ router.put('/content', async (req, res) => {
 });
 
 // PUT /api/homepage/metrics - Update metrics only
-router.put('/metrics', async (req, res) => {
+router.put('/metrics', requireSupabase, async (req, res) => {
   try {
     console.log('📊 PUT /api/homepage/metrics - Updating metrics...');
     
@@ -209,7 +247,7 @@ router.put('/metrics', async (req, res) => {
 });
 
 // POST /api/homepage/metrics/calculate - Auto-calculate metrics
-router.post('/metrics/calculate', async (req, res) => {
+router.post('/metrics/calculate', requireSupabase, async (req, res) => {
   try {
     console.log('🔄 POST /api/homepage/metrics/calculate - Auto-calculating metrics...');
     
@@ -297,7 +335,7 @@ router.post('/metrics/calculate', async (req, res) => {
 });
 
 // GET /api/homepage/quotes/all - Get all quotes (including inactive) - Admin only
-router.get('/quotes/all', async (req, res) => {
+router.get('/quotes/all', requireSupabase, async (req, res) => {
   try {
     console.log('💬 GET /api/homepage/quotes/all - Fetching all quotes...');
     
@@ -319,7 +357,7 @@ router.get('/quotes/all', async (req, res) => {
 });
 
 // POST /api/homepage/quotes - Add new quote
-router.post('/quotes', async (req, res) => {
+router.post('/quotes', requireSupabase, async (req, res) => {
   try {
     console.log('➕ POST /api/homepage/quotes - Adding new quote...');
     
@@ -356,7 +394,7 @@ router.post('/quotes', async (req, res) => {
 });
 
 // PUT /api/homepage/quotes/:id - Update quote
-router.put('/quotes/:id', async (req, res) => {
+router.put('/quotes/:id', requireSupabase, async (req, res) => {
   try {
     const { id } = req.params;
     console.log(`📝 PUT /api/homepage/quotes/${id} - Updating quote...`);
@@ -387,7 +425,7 @@ router.put('/quotes/:id', async (req, res) => {
 });
 
 // DELETE /api/homepage/quotes/:id - Delete quote
-router.delete('/quotes/:id', async (req, res) => {
+router.delete('/quotes/:id', requireSupabase, async (req, res) => {
   try {
     const { id } = req.params;
     console.log(`🗑️ DELETE /api/homepage/quotes/${id} - Deleting quote...`);
@@ -410,12 +448,13 @@ router.delete('/quotes/:id', async (req, res) => {
   }
 });
 
-// Health check endpoint
+// Health check endpoint - Works even without Supabase
 router.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Homepage API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    supabaseConnected: !!supabase
   });
 });
 

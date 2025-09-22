@@ -11,7 +11,11 @@ console.log('🔧 Homepage API - Environment check:', {
   hasSupabaseUrl: !!SUPABASE_URL,
   hasSupabaseKey: !!SUPABASE_KEY,
   urlPreview: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 30)}...` : 'MISSING',
-  keyPreview: SUPABASE_KEY ? `${SUPABASE_KEY.substring(0, 15)}...` : 'MISSING'
+  keyPreview: SUPABASE_KEY ? `${SUPABASE_KEY.substring(0, 15)}...` : 'MISSING',
+  keyType: SUPABASE_KEY ? (
+    SUPABASE_KEY.includes('service_role') ? 'SERVICE_ROLE' :
+    SUPABASE_KEY.includes('anon') ? 'ANON' : 'UNKNOWN'
+  ) : 'MISSING'
 });
 
 // Initialize Supabase client with better error handling
@@ -27,6 +31,16 @@ try {
 
   supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
   console.log('✅ Homepage API - Supabase client initialized successfully');
+  
+  // Test the connection
+  supabase.from('homepage_content').select('id').limit(1).then(({ data, error }) => {
+    if (error) {
+      console.error('❌ Homepage API - Database connection test failed:', error);
+    } else {
+      console.log('✅ Homepage API - Database connection test successful');
+    }
+  });
+  
 } catch (error) {
   console.error('❌ Homepage API - Supabase client initialization failed:', error.message);
   console.error('📋 Required environment variables:');
@@ -165,67 +179,145 @@ router.get('/content', requireSupabase, async (req, res) => {
   }
 });
 
-// PUT /api/homepage/content - Update homepage content (FIXED FOR SECTION VISIBILITY)
+// PUT /api/homepage/content - Update homepage content (ENHANCED WITH DEBUGGING)
 router.put('/content', requireSupabase, async (req, res) => {
   try {
-    console.log('📝 PUT /api/homepage/content - Updating content...');
+    console.log('📝 PUT /api/homepage/content - Starting update process...');
     console.log('📋 Request body keys:', Object.keys(req.body));
-    console.log('🔧 Request body:', req.body);
+    console.log('🔧 Full request body:', JSON.stringify(req.body, null, 2));
     
-    // First, try to get existing content to merge with
-    const { data: existingContent, error: fetchError } = await supabase
+    // Test database connection first
+    const connectionTest = await supabase.from('homepage_content').select('id').limit(1);
+    console.log('🔌 Database connection test:', connectionTest.error ? 'FAILED' : 'SUCCESS');
+    if (connectionTest.error) {
+      console.error('❌ Connection test error:', connectionTest.error);
+    }
+    
+    // First, check what's currently in the database
+    console.log('🔍 Checking current database state...');
+    const { data: currentData, error: fetchError } = await supabase
       .from('homepage_content')
       .select('*')
       .eq('id', 'homepage')
       .single();
 
+    console.log('📋 Current database state:', {
+      hasData: !!currentData,
+      fetchError: fetchError?.message || 'none',
+      currentData: currentData ? {
+        hero_title: currentData.hero_title,
+        show_latest_news: currentData.show_latest_news,
+        show_latest_releases: currentData.show_latest_releases,
+        show_artist_collaboration: currentData.show_artist_collaboration,
+        show_progress_metrics: currentData.show_progress_metrics,
+        updated_at: currentData.updated_at
+      } : 'NO_DATA'
+    });
+
     if (fetchError && fetchError.code !== 'PGRST116') {
       console.warn('⚠️ Could not fetch existing content:', fetchError.message);
     }
 
-    // Prepare the updates object
+    // Prepare the updates object with explicit field mapping
     const updates = {
       id: 'homepage', // Ensure ID is set
-      ...existingContent, // Merge with existing data
-      ...req.body, // Apply new updates
       updated_at: new Date().toISOString()
     };
     
-    // Remove any undefined values
-    Object.keys(updates).forEach(key => {
-      if (updates[key] === undefined) {
-        delete updates[key];
-      }
-    });
-
-    console.log('💾 Final updates object keys:', Object.keys(updates));
+    // Map all possible fields from request body
+    if (req.body.hero_title !== undefined) updates.hero_title = req.body.hero_title;
+    if (req.body.hero_subtitle !== undefined) updates.hero_subtitle = req.body.hero_subtitle;
+    if (req.body.hero_description !== undefined) updates.hero_description = req.body.hero_description;
+    if (req.body.hero_quote !== undefined) updates.hero_quote = req.body.hero_quote;
+    if (req.body.cta_button_text !== undefined) updates.cta_button_text = req.body.cta_button_text;
+    if (req.body.cta_button_link !== undefined) updates.cta_button_link = req.body.cta_button_link;
     
+    // Metrics fields
+    if (req.body.words_written !== undefined) updates.words_written = parseInt(req.body.words_written) || 0;
+    if (req.body.beta_readers !== undefined) updates.beta_readers = parseInt(req.body.beta_readers) || 0;
+    if (req.body.average_rating !== undefined) updates.average_rating = parseFloat(req.body.average_rating) || 0.0;
+    if (req.body.books_published !== undefined) updates.books_published = parseInt(req.body.books_published) || 0;
+    
+    // Section visibility fields - CRITICAL FOR THE ISSUE!
+    if (req.body.show_latest_news !== undefined) updates.show_latest_news = Boolean(req.body.show_latest_news);
+    if (req.body.show_latest_releases !== undefined) updates.show_latest_releases = Boolean(req.body.show_latest_releases);
+    if (req.body.show_artist_collaboration !== undefined) updates.show_artist_collaboration = Boolean(req.body.show_artist_collaboration);
+    if (req.body.show_progress_metrics !== undefined) updates.show_progress_metrics = Boolean(req.body.show_progress_metrics);
+
+    console.log('💾 Final updates object:', JSON.stringify(updates, null, 2));
+    console.log('📊 Section visibility in updates:', {
+      show_latest_news: updates.show_latest_news,
+      show_latest_releases: updates.show_latest_releases,
+      show_artist_collaboration: updates.show_artist_collaboration,
+      show_progress_metrics: updates.show_progress_metrics
+    });
+    
+    // Perform the database update with enhanced logging
+    console.log('🚀 Executing database upsert...');
     const { data, error } = await supabase
       .from('homepage_content')
-      .upsert(updates, { onConflict: 'id' })
+      .upsert(updates, { 
+        onConflict: 'id',
+        returning: 'representation' // Ensure we get the updated data back
+      })
       .select()
       .single();
 
+    console.log('📈 Database operation result:', {
+      hasData: !!data,
+      hasError: !!error,
+      errorCode: error?.code || 'none',
+      errorMessage: error?.message || 'none'
+    });
+
     if (error) {
-      console.error('❌ Content update error:', error);
-      console.error('❌ Error details:', {
+      console.error('❌ CRITICAL: Content update error details:', {
         message: error.message,
         details: error.details,
         hint: error.hint,
-        code: error.code
+        code: error.code,
+        updates: updates
       });
       throw error;
     }
     
-    console.log('✅ Content updated successfully');
-    res.json({ success: true, data });
+    // Verify the update worked by immediately reading back
+    console.log('🔍 Verification: Reading back updated data...');
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .eq('id', 'homepage')
+      .single();
+      
+    console.log('🔍 Verification result:', {
+      hasData: !!verifyData,
+      hasError: !!verifyError,
+      verifyData: verifyData ? {
+        hero_title: verifyData.hero_title,
+        show_latest_news: verifyData.show_latest_news,
+        show_latest_releases: verifyData.show_latest_releases,
+        show_artist_collaboration: verifyData.show_artist_collaboration,
+        show_progress_metrics: verifyData.show_progress_metrics,
+        updated_at: verifyData.updated_at
+      } : 'NO_DATA'
+    });
+    
+    const responseData = data || verifyData;
+    console.log('✅ Content updated successfully - final response data keys:', Object.keys(responseData || {}));
+    res.json({ success: true, data: responseData });
   } catch (error) {
-    console.error('❌ Content update error:', error);
+    console.error('❌ CRITICAL: Content update failed:', {
+      error: error.message,
+      stack: error.stack,
+      supabaseError: error.details || error.hint,
+      requestBody: req.body
+    });
     res.status(500).json({ 
       success: false,
       error: error.message || 'Failed to update content',
       details: error.details || null,
-      hint: error.hint || null
+      hint: error.hint || null,
+      code: error.code || null
     });
   }
 });
@@ -271,6 +363,7 @@ router.get('/metrics', requireSupabase, async (req, res) => {
 router.put('/metrics', requireSupabase, async (req, res) => {
   try {
     console.log('📊 PUT /api/homepage/metrics - Updating metrics...');
+    console.log('📊 Metrics request body:', req.body);
     
     const { words_written, beta_readers, average_rating, books_published } = req.body;
     
@@ -282,6 +375,8 @@ router.put('/metrics', requireSupabase, async (req, res) => {
     if (beta_readers !== undefined) updates.beta_readers = parseInt(beta_readers);
     if (average_rating !== undefined) updates.average_rating = parseFloat(average_rating);
     if (books_published !== undefined) updates.books_published = parseInt(books_published);
+    
+    console.log('📊 Metrics updates object:', updates);
     
     const { data, error } = await supabase
       .from('homepage_content')
@@ -528,13 +623,59 @@ router.delete('/quotes/:id', requireSupabase, async (req, res) => {
   }
 });
 
+// DEBUG endpoint - Check database state (TEMPORARY FOR DEBUGGING)
+router.get('/debug/database-state', requireSupabase, async (req, res) => {
+  try {
+    console.log('🔍 DEBUG: Checking database state...');
+    
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .select('*')
+      .eq('id', 'homepage')
+      .single();
+      
+    const response = {
+      timestamp: new Date().toISOString(),
+      databaseState: {
+        hasData: !!data,
+        hasError: !!error,
+        errorDetails: error || null,
+        data: data || null
+      },
+      supabaseInfo: {
+        hasClient: !!supabase,
+        url: SUPABASE_URL ? `${SUPABASE_URL.substring(0, 30)}...` : 'MISSING',
+        keyType: SUPABASE_KEY ? (
+          SUPABASE_KEY.includes('service_role') ? 'SERVICE_ROLE' :
+          SUPABASE_KEY.includes('anon') ? 'ANON' : 'UNKNOWN'
+        ) : 'MISSING'
+      }
+    };
+    
+    console.log('🔍 DEBUG: Database state response:', response);
+    res.json(response);
+  } catch (error) {
+    console.error('❌ DEBUG: Error checking database state:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health check endpoint - Works even without Supabase
 router.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     message: 'Homepage API is running',
     timestamp: new Date().toISOString(),
-    supabaseConnected: !!supabase
+    supabaseConnected: !!supabase,
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      hasSupabaseUrl: !!SUPABASE_URL,
+      hasSupabaseKey: !!SUPABASE_KEY,
+      keyType: SUPABASE_KEY ? (
+        SUPABASE_KEY.includes('service_role') ? 'SERVICE_ROLE' :
+        SUPABASE_KEY.includes('anon') ? 'ANON' : 'UNKNOWN'
+      ) : 'MISSING'
+    }
   });
 });
 

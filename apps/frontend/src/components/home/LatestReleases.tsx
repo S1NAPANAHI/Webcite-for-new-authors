@@ -28,10 +28,19 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 5 }) => 
       console.log('🚀 LatestReleases: Starting comprehensive releases fetch...');
       
       try {
+        setLoading(true);
+        setError(null);
+
         // Strategy 1: Try API endpoint first
         console.log('📡 Strategy 1: Trying API endpoint...');
         try {
-          const apiResponse = await fetch('https://webcite-for-new-authors.onrender.com/api/releases/latest');
+          const apiResponse = await fetch('https://webcite-for-new-authors.onrender.com/api/releases/latest', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
           if (apiResponse.ok) {
             const apiData = await apiResponse.json();
             if (apiData.success && apiData.data && apiData.data.length > 0) {
@@ -45,7 +54,7 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 5 }) => 
           console.log('⚠️ API Strategy Failed:', apiError);
         }
 
-        // Strategy 2: Direct Supabase chapters query
+        // Strategy 2: Direct Supabase chapters query with improved error handling
         console.log('📚 Strategy 2: Querying chapters directly...');
         const { data: chapters, error: chaptersError } = await supabase
           .from('chapters')
@@ -87,32 +96,57 @@ export const LatestReleases: React.FC<LatestReleasesProps> = ({ limit = 5 }) => 
           return;
         }
 
-        // Strategy 3: Try release_items table
-        console.log('📋 Strategy 3: Querying release_items table...');
-        const { data: releaseItems, error: releaseError } = await supabase
-          .from('release_items')
+        // Strategy 3: Try content_items table for books/works
+        console.log('📖 Strategy 3: Querying content_items table...');
+        const { data: contentItems, error: contentError } = await supabase
+          .from('content_items')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(limit);
 
-        if (releaseError) {
-          console.error('❌ Release items query error:', releaseError);
-        } else if (releaseItems && releaseItems.length > 0) {
-          console.log('✅ Release Items Strategy Success:', releaseItems);
-          setReleases(releaseItems.map(item => ({
+        if (contentError) {
+          console.error('❌ Content items query error:', contentError);
+        } else if (contentItems && contentItems.length > 0) {
+          console.log('📚 Content Items Strategy: Found', contentItems.length, 'content items');
+          setReleases(contentItems.map(item => ({
             id: item.id,
-            title: item.title,
-            description: item.description || 'New release available',
+            title: item.title || 'Untitled Work',
+            description: item.description || `New ${item.type || 'content'} published`,
             releaseDate: item.created_at,
-            type: item.type || 'announcement',
-            url: item.url
+            type: 'announcement' as const,
+            url: item.slug ? `/read/${item.slug}` : undefined
           })));
           setLoading(false);
           return;
         }
 
-        // Strategy 4: Demo content as fallback
-        console.log('🎨 Strategy 4: Using demo content...');
+        // Strategy 4: Try blog_posts table as fallback
+        console.log('📝 Strategy 4: Querying blog_posts table...');
+        const { data: blogPosts, error: blogError } = await supabase
+          .from('blog_posts')
+          .select('*')
+          .eq('status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(limit);
+
+        if (blogError) {
+          console.error('❌ Blog posts query error:', blogError);
+        } else if (blogPosts && blogPosts.length > 0) {
+          console.log('📰 Blog Posts Strategy: Found', blogPosts.length, 'blog posts');
+          setReleases(blogPosts.map(post => ({
+            id: post.id,
+            title: post.title,
+            description: post.excerpt || 'New blog post published',
+            releaseDate: post.published_at,
+            type: 'announcement' as const,
+            url: `/blog/${post.slug}`
+          })));
+          setLoading(false);
+          return;
+        }
+
+        // Strategy 5: No content found
+        console.log('📋 Strategy 5: No content found, showing empty state...');
         setReleases([]);
         setLoading(false);
 

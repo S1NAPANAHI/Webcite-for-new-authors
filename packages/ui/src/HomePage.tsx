@@ -345,6 +345,16 @@ const formatMetricValue = (value: number, type: 'number' | 'rating' | 'words') =
   }
 };
 
+// Helper function to check if a section should be visible
+const isSectionVisible = (sectionFlag: boolean | undefined, defaultValue: boolean = true): boolean => {
+  // If sectionFlag is explicitly false, hide the section
+  if (sectionFlag === false) {
+    return false;
+  }
+  // If sectionFlag is true or undefined, use the default (which is true for all sections)
+  return sectionFlag === true || (sectionFlag === undefined && defaultValue);
+};
+
 // --- MAIN HOME PAGE COMPONENT ---
 export const HomePage: React.FC<HomePageProps> = ({ 
   homepageData = [], 
@@ -428,6 +438,19 @@ export const HomePage: React.FC<HomePageProps> = ({
   const metrics = apiData?.metrics;
   const sections = apiData?.sections;
 
+  // Debug section visibility
+  console.log('🏠 UI HomePage: Section visibility check:', {
+    sections,
+    show_progress_metrics: sections?.show_progress_metrics,
+    show_latest_news: sections?.show_latest_news,
+    show_latest_releases: sections?.show_latest_releases,
+    show_artist_collaboration: sections?.show_artist_collaboration,
+    progressVisible: isSectionVisible(sections?.show_progress_metrics),
+    newsVisible: isSectionVisible(sections?.show_latest_news),
+    releasesVisible: isSectionVisible(sections?.show_latest_releases),
+    artistVisible: isSectionVisible(sections?.show_artist_collaboration)
+  });
+
   console.log('🏠 UI HomePage: Rendering with API integration:', {
     hasSupabaseClient: !!supabaseClient,
     hasApiData: !!apiData,
@@ -449,7 +472,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       />
 
       {/* Statistics Section - Use API metrics if available */}
-      {(sections?.show_progress_metrics !== false) && (
+      {isSectionVisible(sections?.show_progress_metrics) && (
         <section className={styles.zrSection}>
             <h2 className={styles.zrH2}>Our Progress</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
@@ -498,7 +521,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       )}
       
       {/* Latest News & Updates - Only show if enabled */}
-      {(sections?.show_latest_news !== false) && (
+      {isSectionVisible(sections?.show_latest_news) && (
         <section className={styles.zrSection}>
           <h2 className={styles.zrH2}>Latest News & Updates</h2>
           <LatestPosts 
@@ -509,12 +532,12 @@ export const HomePage: React.FC<HomePageProps> = ({
       )}
       
       {/* Latest Releases - Only show if enabled */}
-      {(sections?.show_latest_releases !== false) && (
+      {isSectionVisible(sections?.show_latest_releases) && (
         <LatestReleases releases={releaseData || []} />
       )}
 
       {/* Artist Collaboration - Only show if enabled */}
-      {(sections?.show_artist_collaboration !== false) && (
+      {isSectionVisible(sections?.show_artist_collaboration) && (
         <section className={styles.zrSection}>
             <h2 className={styles.zrH2}>Artist Collaboration</h2>
             <div className="relative rounded-lg shadow-lg overflow-hidden w-full">

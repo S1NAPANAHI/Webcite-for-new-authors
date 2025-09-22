@@ -4,21 +4,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
-// Create Supabase client directly
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || '',
-  {
+// Create Supabase client as singleton
+let supabaseInstance: any = null;
+const getSupabaseClient = () => {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+  
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables in useHomepageData');
+    return null;
+  }
+  
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
     },
-  }
-);
+  });
+  
+  return supabaseInstance;
+};
+
+const supabase = getSupabaseClient();
 
 // Types
 export interface HomepageContent {
@@ -123,6 +135,10 @@ async function fetchFromAPI(endpoint: string, options?: RequestInit) {
 
 // Direct Supabase fallback functions
 async function fetchFromSupabase() {
+  if (!supabase) {
+    throw new Error('Supabase client not available');
+  }
+  
   try {
     console.log('🔄 Falling back to direct Supabase queries...');
     
@@ -316,6 +332,8 @@ export const useHomepageMetrics = (autoRefresh = false, intervalMs = 60000) => {
       try {
         response = await fetchFromAPI('/metrics');
       } catch (apiError) {
+        if (!supabase) throw new Error('No Supabase client available');
+        
         // Fallback to Supabase
         const { data, error: supabaseError } = await supabase
           .from('homepage_content')
@@ -383,6 +401,8 @@ export const useHomepageQuotes = () => {
       try {
         response = await fetchFromAPI('/quotes');
       } catch (apiError) {
+        if (!supabase) throw new Error('No Supabase client available');
+        
         // Fallback to Supabase
         const { data, error: supabaseError } = await supabase
           .from('homepage_quotes')
@@ -447,6 +467,8 @@ export const useHomepageAdmin = () => {
   const [error, setError] = useState<string | null>(null);
 
   const getAuthToken = async () => {
+    if (!supabase) throw new Error('Supabase client not available');
+    
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
       throw new Error('No authentication token available');
@@ -472,6 +494,8 @@ export const useHomepageAdmin = () => {
           body: JSON.stringify(contentData),
         });
       } catch (apiError) {
+        if (!supabase) throw new Error('Supabase client not available');
+        
         // Fallback to direct Supabase
         const { data, error } = await supabase
           .from('homepage_content')
@@ -516,6 +540,8 @@ export const useHomepageAdmin = () => {
           body: JSON.stringify(metricsData),
         });
       } catch (apiError) {
+        if (!supabase) throw new Error('Supabase client not available');
+        
         // Fallback to direct Supabase
         const { data, error } = await supabase
           .from('homepage_content')
@@ -559,6 +585,8 @@ export const useHomepageAdmin = () => {
           },
         });
       } catch (apiError) {
+        if (!supabase) throw new Error('Supabase client not available');
+        
         // Fallback: calculate basic metrics from Supabase
         console.log('🔄 API unavailable, calculating metrics via Supabase...');
         
@@ -624,6 +652,8 @@ export const useHomepageAdmin = () => {
       setIsLoading(true);
       setError(null);
       
+      if (!supabase) throw new Error('Supabase client not available');
+      
       const { data, error } = await supabase
         .from('homepage_quotes')
         .insert({
@@ -653,6 +683,8 @@ export const useHomepageAdmin = () => {
       setIsLoading(true);
       setError(null);
       
+      if (!supabase) throw new Error('Supabase client not available');
+      
       const { data, error } = await supabase
         .from('homepage_quotes')
         .update({
@@ -681,6 +713,8 @@ export const useHomepageAdmin = () => {
       setIsLoading(true);
       setError(null);
       
+      if (!supabase) throw new Error('Supabase client not available');
+      
       const { error } = await supabase
         .from('homepage_quotes')
         .delete()
@@ -702,6 +736,8 @@ export const useHomepageAdmin = () => {
   const getAllQuotes = useCallback(async () => {
     try {
       setError(null);
+      
+      if (!supabase) throw new Error('Supabase client not available');
       
       const { data, error } = await supabase
         .from('homepage_quotes')

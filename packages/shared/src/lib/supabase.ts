@@ -4,27 +4,51 @@ import { Database } from '../database.types';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Singleton pattern to prevent multiple GoTrueClient instances
+// Global singleton instance
 let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
-export const supabase = (() => {
-  if (!supabaseInstance) {
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('Supabase URL or anonymous key is missing');
-      throw new Error('Supabase configuration is incomplete');
-    }
+// Create singleton Supabase client to prevent multiple GoTrueClient instances
+export const createSupabaseClient = () => {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
 
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ Supabase URL or anonymous key is missing');
+    console.error('VITE_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
+    console.error('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
+    throw new Error('Supabase configuration is incomplete');
+  }
+
+  try {
     supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
       auth: {
-        // Ensure single auth instance
+        // Single auth instance configuration
         persistSession: true,
         storage: typeof window !== 'undefined' ? window.localStorage : undefined,
         autoRefreshToken: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        // Use a unique storage key to avoid conflicts
+        storageKey: 'zoroaster-auth-token'
+      },
+      // Additional client options for stability
+      global: {
+        headers: {
+          'X-Client-Info': 'zoroaster-web-client'
+        }
       }
     });
+    
+    console.log('✅ Supabase client created as singleton');
+    return supabaseInstance;
+  } catch (error) {
+    console.error('❌ Error creating Supabase client:', error);
+    throw error;
   }
-  return supabaseInstance;
-})();
+};
 
+// Export the singleton instance
+export const supabase = createSupabaseClient();
+
+// Default export
 export default supabase;

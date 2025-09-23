@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Save,
   X,
@@ -95,15 +95,15 @@ interface CharacterFormData {
   color_theme: string;
 }
 
-// 🔧 ENHANCED SLUG NORMALIZATION FUNCTION
+// SLUG NORMALIZATION FUNCTION
 const normalizeSlug = (slug: string): string => {
   return slug
-    .trim()                           // Remove leading/trailing whitespace
-    .toLowerCase()                    // Convert to lowercase
-    .replace(/[^a-z0-9-\s]/g, '')    // Remove invalid characters (keep spaces temporarily)
-    .replace(/\s+/g, '-')            // Replace spaces with hyphens
-    .replace(/-+/g, '-')             // Replace multiple hyphens with single
-    .replace(/^-+|-+$/g, '');        // Remove leading/trailing hyphens
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-\s]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
 };
 
 const CharacterForm: React.FC<CharacterFormProps> = ({
@@ -158,14 +158,17 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSlugManual, setIsSlugManual] = useState(false);
   const [slugPreview, setSlugPreview] = useState('');
-  const [slugNormalized, setSlugNormalized] = useState(false); // Track if slug was auto-normalized
+  const [slugNormalized, setSlugNormalized] = useState(false);
+
+  // Refs to prevent re-rendering issues
+  const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>>({});
 
   // Initialize form with character data
   useEffect(() => {
     if (character) {
       setFormData({
         name: character.name || '',
-        slug: character.slug ? normalizeSlug(character.slug) : '', // 🔧 Normalize existing slug
+        slug: character.slug ? normalizeSlug(character.slug) : '',
         title: character.title || '',
         aliases: character.aliases || [],
         description: character.description || '',
@@ -204,7 +207,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         portrait_url: character.portrait_url || '',
         color_theme: character.color_theme || CHARACTER_TYPE_CONFIG[character.character_type || 'minor'].color
       });
-      // If editing an existing character and they have a slug, consider it manually set
       setIsSlugManual(!!character.slug);
     }
   }, [character]);
@@ -215,7 +217,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       const newSlug = generateCharacterSlug(formData.name);
       setFormData(prev => ({
         ...prev,
-        slug: normalizeSlug(newSlug) // 🔧 Always normalize
+        slug: normalizeSlug(newSlug)
       }));
     }
   }, [formData.name, isSlugManual]);
@@ -233,79 +235,67 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   }, [formData.character_type]);
 
-  // 🚀 COMPLETELY NEW INPUT CHANGE HANDLER USING useCallback
-  const handleInputChange = useCallback((field: keyof CharacterFormData, value: any) => {
-    console.log(`🔧 Setting ${field} to:`, value); // Debug log
+  // ✅ ULTRA-SIMPLE INPUT CHANGE HANDLER TO FIX CURSOR JUMPING
+  const handleInputChange = (field: string, value: any) => {
+    console.log(`🎯 DIRECT UPDATE: ${field} = "${value}"`);
     
-    setFormData(currentFormData => {
-      // Create a completely new object to avoid any reference issues
-      const newFormData = JSON.parse(JSON.stringify(currentFormData));
-      // Set the specific field to the exact value
-      newFormData[field] = value;
-      console.log(`✅ Updated ${field} in form data:`, newFormData[field]); // Debug log
-      return newFormData;
+    setFormData(prev => {
+      console.log(`📝 Previous ${field}: "${prev[field as keyof CharacterFormData]}"`);
+      const updated = { ...prev, [field]: value };
+      console.log(`✅ New ${field}: "${updated[field as keyof CharacterFormData]}"`);
+      return updated;
     });
     
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
+        const { [field]: removed, ...rest } = prev;
+        return rest;
       });
     }
-  }, [errors]);
+  };
 
-  // 🔧 ENHANCED SLUG CHANGE HANDLER WITH NORMALIZATION
-  const handleSlugChange = useCallback((value: string) => {
-    console.log('🔧 Slug changing to:', value); // Debug log
-    // Use the general input change handler
+  // SLUG-SPECIFIC HANDLERS
+  const handleSlugChange = (value: string) => {
     handleInputChange('slug', value);
     setIsSlugManual(true);
     setSlugNormalized(false);
-  }, [handleInputChange]);
+  };
 
-  // 🔧 NEW: SLUG BLUR HANDLER FOR NORMALIZATION
-  const handleSlugBlur = useCallback(() => {
+  const handleSlugBlur = () => {
     const currentSlug = formData.slug;
     const normalizedSlug = normalizeSlug(currentSlug);
     
     if (currentSlug !== normalizedSlug) {
       handleInputChange('slug', normalizedSlug);
       setSlugNormalized(true);
-      
-      // Show temporary feedback that slug was normalized
       setTimeout(() => setSlugNormalized(false), 2000);
     }
-  }, [formData.slug, handleInputChange]);
+  };
 
-  const handleRegenerateSlug = useCallback(() => {
+  const handleRegenerateSlug = () => {
     if (formData.name) {
       const newSlug = generateCharacterSlug(formData.name);
-      handleInputChange('slug', normalizeSlug(newSlug)); // 🔧 Always normalize
+      handleInputChange('slug', normalizeSlug(newSlug));
       setIsSlugManual(false);
     }
-  }, [formData.name, handleInputChange]);
+  };
 
   const copySlugToClipboard = async () => {
     if (formData.slug) {
       try {
         await navigator.clipboard.writeText(slugPreview);
-        // You could add a toast notification here
       } catch (err) {
         console.error('Failed to copy URL:', err);
       }
     }
   };
 
-  // 🚀 COMPLETELY NEW ARRAY INPUT CHANGE HANDLER
-  const handleArrayInputChange = useCallback((field: keyof CharacterFormData, value: string) => {
-    console.log(`🔧 Array field ${field} changing to:`, value); // Debug log
+  // ARRAY FIELD HANDLER
+  const handleArrayChange = (field: string, value: string) => {
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
-    console.log(`✅ Parsed array for ${field}:`, array); // Debug log
-    // Use the general input change handler to ensure consistency
     handleInputChange(field, array);
-  }, [handleInputChange]);
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -314,7 +304,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       newErrors.name = 'Character name is required';
     }
     
-    // 🔧 ENHANCED SLUG VALIDATION
     const normalizedSlug = normalizeSlug(formData.slug);
     if (!normalizedSlug) {
       newErrors.slug = 'Character slug is required';
@@ -344,13 +333,13 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       
       if (error) {
         console.error('Error checking slug uniqueness:', error);
-        return true; // Allow save if we can't check
+        return true;
       }
       
       return data.length === 0;
     } catch (error) {
       console.error('Error checking slug uniqueness:', error);
-      return true; // Allow save if we can't check
+      return true;
     }
   };
 
@@ -364,10 +353,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     setLoading(true);
     
     try {
-      // 🔧 ENSURE SLUG IS NORMALIZED BEFORE SAVING
       const finalSlug = normalizeSlug(formData.slug);
       
-      // Check slug uniqueness
       const isSlugUnique = await checkSlugUniqueness(finalSlug);
       if (!isSlugUnique) {
         setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
@@ -377,7 +364,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       
       const characterData = {
         ...formData,
-        slug: finalSlug, // 🔧 Use normalized slug
+        slug: finalSlug,
         age: formData.age || null,
         meta_description: formData.meta_description || formData.description.substring(0, 160)
       };
@@ -385,7 +372,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       let result;
       
       if (character) {
-        // Update existing character
         const { data, error } = await supabase
           .from('characters')
           .update(characterData)
@@ -396,7 +382,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         if (error) throw error;
         result = data;
       } else {
-        // Create new character
         const { data, error } = await supabase
           .from('characters')
           .insert([characterData])
@@ -430,7 +415,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
   ];
 
-  // 🚀 COMPLETELY REWRITTEN INPUT FIELD COMPONENT WITH useCallback
+  // ✅ COMPLETELY SIMPLIFIED INPUT FIELD COMPONENT
   const InputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -442,25 +427,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   }> = ({ label, field, type = 'text', options, placeholder, required, rows = 3 }) => {
     const value = formData[field];
     const error = errors[field];
-    
-    // Memoized change handlers to prevent recreation on every render
-    const handleTextChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const newValue = e.target.value;
-      console.log(`📝 ${field} input changed to: "${newValue}"`); // Debug log
-      handleInputChange(field, newValue);
-    }, [field, handleInputChange]);
-    
-    const handleSelectChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-      const newValue = e.target.value;
-      console.log(`📝 ${field} select changed to: "${newValue}"`); // Debug log
-      handleInputChange(field, newValue);
-    }, [field, handleInputChange]);
-    
-    const handleNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = parseInt(e.target.value) || 0;
-      console.log(`📝 ${field} number changed to: ${newValue}`); // Debug log
-      handleInputChange(field, newValue);
-    }, [field, handleInputChange]);
+    const fieldKey = field as string;
     
     return (
       <div>
@@ -470,8 +437,12 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         
         {type === 'textarea' ? (
           <textarea
+            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             value={value as string || ''}
-            onChange={handleTextChange}
+            onChange={(e) => {
+              console.log(`🔵 TEXTAREA ${fieldKey}: "${e.target.value}"`);
+              handleInputChange(fieldKey, e.target.value);
+            }}
             placeholder={placeholder}
             rows={rows}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
@@ -480,8 +451,12 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           />
         ) : type === 'select' ? (
           <select
+            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             value={value as string || ''}
-            onChange={handleSelectChange}
+            onChange={(e) => {
+              console.log(`🔵 SELECT ${fieldKey}: "${e.target.value}"`);
+              handleInputChange(fieldKey, e.target.value);
+            }}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
             }`}
@@ -494,9 +469,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           </select>
         ) : type === 'number' ? (
           <input
+            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             type="number"
             value={value as number || 0}
-            onChange={handleNumberChange}
+            onChange={(e) => {
+              const numValue = parseInt(e.target.value) || 0;
+              console.log(`🔵 NUMBER ${fieldKey}: ${numValue}`);
+              handleInputChange(fieldKey, numValue);
+            }}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -504,9 +484,13 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           />
         ) : (
           <input
+            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             type="text"
             value={value as string || ''}
-            onChange={handleTextChange}
+            onChange={(e) => {
+              console.log(`🔵 TEXT ${fieldKey}: "${e.target.value}"`);
+              handleInputChange(fieldKey, e.target.value);
+            }}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -521,19 +505,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     );
   };
 
-  // 🚀 COMPLETELY REWRITTEN ARRAY INPUT FIELD COMPONENT
+  // ✅ SIMPLIFIED ARRAY INPUT FIELD
   const ArrayInputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
     placeholder?: string;
   }> = ({ label, field, placeholder }) => {
     const value = (formData[field] as string[]) || [];
-    
-    const handleArrayChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-      const inputValue = e.target.value;
-      console.log(`📝 ${field} array input changed to: "${inputValue}"`); // Debug log
-      handleArrayInputChange(field, inputValue);
-    }, [field, handleArrayInputChange]);
+    const fieldKey = field as string;
     
     return (
       <div>
@@ -541,9 +520,13 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           {label}
         </label>
         <input
+          ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
           type="text"
           value={value.join(', ')}
-          onChange={handleArrayChange}
+          onChange={(e) => {
+            console.log(`🔵 ARRAY ${fieldKey}: "${e.target.value}"`);
+            handleArrayChange(fieldKey, e.target.value);
+          }}
           placeholder={placeholder}
           className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
         />
@@ -619,7 +602,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   required
                 />
                 
-                {/* 🔧 ENHANCED SLUG FIELD WITH AUTO-NORMALIZATION */}
+                {/* ENHANCED SLUG FIELD */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Slug <span className="text-red-500">*</span>
@@ -631,10 +614,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <input
+                        ref={(el) => { if (el) inputRefs.current['slug'] = el; }}
                         type="text"
                         value={formData.slug}
-                        onChange={(e) => handleSlugChange(e.target.value)}
-                        onBlur={handleSlugBlur} // 🔧 Normalize on blur
+                        onChange={(e) => {
+                          console.log(`🔵 SLUG: "${e.target.value}"`);
+                          handleSlugChange(e.target.value);
+                        }}
+                        onBlur={handleSlugBlur}
                         placeholder="character-slug"
                         className={`flex-1 px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
                           errors.slug ? 'border-red-500' : slugNormalized ? 'border-green-500' : 'border-border'
@@ -662,7 +649,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       )}
                     </div>
                     
-                    {/* 🔧 NORMALIZATION FEEDBACK */}
                     {slugNormalized && (
                       <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
                         <Shield className="w-4 h-4" />
@@ -670,7 +656,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       </div>
                     )}
                     
-                    {/* URL Preview */}
                     {slugPreview && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded text-sm text-muted-foreground">
                         <ExternalLink className="w-4 h-4" />
@@ -684,8 +669,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     
                     <p className="text-xs text-muted-foreground">
                       This creates the URL for the character's profile page. 
-                      Auto-generates from name, but you can customize it. 
-                      <strong>Automatically cleaned on blur.</strong>
+                      Auto-generates from name, but you can customize it.
                     </p>
                   </div>
                 </div>
@@ -753,7 +737,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     min="0"
                     max="100"
                     value={formData.importance_score}
-                    onChange={(e) => handleInputChange('importance_score', parseInt(e.target.value))}
+                    onChange={(e) => {
+                      const numValue = parseInt(e.target.value);
+                      console.log(`🔵 RANGE importance_score: ${numValue}`);
+                      handleInputChange('importance_score', numValue);
+                    }}
                     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -768,7 +756,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     <input
                       type="checkbox"
                       checked={formData.is_major_character}
-                      onChange={(e) => handleInputChange('is_major_character', e.target.checked)}
+                      onChange={(e) => {
+                        console.log(`🔵 CHECKBOX is_major_character: ${e.target.checked}`);
+                        handleInputChange('is_major_character', e.target.checked);
+                      }}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
                     <Crown className="w-4 h-4 text-yellow-500" />
@@ -779,7 +770,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     <input
                       type="checkbox"
                       checked={formData.is_pov_character}
-                      onChange={(e) => handleInputChange('is_pov_character', e.target.checked)}
+                      onChange={(e) => {
+                        console.log(`🔵 CHECKBOX is_pov_character: ${e.target.checked}`);
+                        handleInputChange('is_pov_character', e.target.checked);
+                      }}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
                     <Eye className="w-4 h-4 text-blue-500" />
@@ -953,7 +947,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <input
                     type="checkbox"
                     checked={formData.is_spoiler_sensitive}
-                    onChange={(e) => handleInputChange('is_spoiler_sensitive', e.target.checked)}
+                    onChange={(e) => {
+                      console.log(`🔵 CHECKBOX is_spoiler_sensitive: ${e.target.checked}`);
+                      handleInputChange('is_spoiler_sensitive', e.target.checked);
+                    }}
                     className="rounded border-border focus:ring-primary/20 text-primary"
                   />
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />

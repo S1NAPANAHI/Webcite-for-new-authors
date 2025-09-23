@@ -46,16 +46,44 @@ const HomepageManager: React.FC = () => {
     }
   };
 
+  // CRITICAL FIX: Explicitly construct payload with all boolean values
   const handleSaveContent = async () => {
     if (!localContent) return;
-    console.log('🔍 Preparing to save content:', JSON.stringify(localContent, null, 2));
+    
+    // Explicitly construct the update payload to ensure all values are properly serialized
+    const updatePayload = {
+      id: localContent.id,
+      hero_title: localContent.hero_title,
+      hero_subtitle: localContent.hero_subtitle || '',
+      hero_description: localContent.hero_description,
+      hero_quote: localContent.hero_quote,
+      cta_button_text: localContent.cta_button_text,
+      cta_button_link: localContent.cta_button_link,
+      words_written: localContent.words_written,
+      beta_readers: localContent.beta_readers,
+      average_rating: localContent.average_rating,
+      books_published: localContent.books_published,
+      // CRITICAL: Explicitly include boolean values to fix checkbox saving issue
+      show_latest_news: Boolean(localContent.show_latest_news),
+      show_latest_releases: Boolean(localContent.show_latest_releases),
+      show_artist_collaboration: Boolean(localContent.show_artist_collaboration),
+      show_progress_metrics: Boolean(localContent.show_progress_metrics)
+    };
+    
+    console.log('🔍 FIXED: Sending explicit payload with all boolean values:', JSON.stringify(updatePayload, null, 2));
+    console.log('🎯 Section visibility values:', {
+      show_latest_news: updatePayload.show_latest_news,
+      show_latest_releases: updatePayload.show_latest_releases,
+      show_artist_collaboration: updatePayload.show_artist_collaboration,
+      show_progress_metrics: updatePayload.show_progress_metrics
+    });
     
     try {
-      await updateContent(localContent);
-      
+      await updateContent(updatePayload);
       setLastSaved(new Date());
+      console.log('✅ Content saved successfully with explicit boolean values!');
     } catch (error) {
-      console.error('Failed to save content:', error);
+      console.error('❌ Failed to save content:', error);
     }
   };
 
@@ -550,7 +578,7 @@ const HomepageManager: React.FC = () => {
           </div>
         )}
 
-        {/* Sections Visibility Tab */}
+        {/* Sections Visibility Tab - CRITICAL FIX APPLIED */}
         {activeTab === 'sections' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -565,6 +593,17 @@ const HomepageManager: React.FC = () => {
               </button>
             </div>
             
+            {/* DEBUG INFO */}
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
+              <h4 className="font-medium text-yellow-800 mb-2">🔍 Debug Info (Current Values):</h4>
+              <div className="text-yellow-700">
+                <div>show_latest_news: <strong>{String(localContent.show_latest_news)}</strong></div>
+                <div>show_latest_releases: <strong>{String(localContent.show_latest_releases)}</strong></div>
+                <div>show_artist_collaboration: <strong>{String(localContent.show_artist_collaboration)}</strong></div>
+                <div>show_progress_metrics: <strong>{String(localContent.show_progress_metrics)}</strong></div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
@@ -575,7 +614,10 @@ const HomepageManager: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={localContent.show_latest_news}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_latest_news: e.target.checked } : null)}
+                    onChange={(e) => {
+                      console.log('🎯 Toggling Latest News:', e.target.checked);
+                      setLocalContent(prev => prev ? { ...prev, show_latest_news: e.target.checked } : null);
+                    }}
                     className="rounded focus:ring-blue-500"
                   />
                 </div>
@@ -588,7 +630,10 @@ const HomepageManager: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={localContent.show_latest_releases}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_latest_releases: e.target.checked } : null)}
+                    onChange={(e) => {
+                      console.log('🎯 Toggling Latest Releases:', e.target.checked);
+                      setLocalContent(prev => prev ? { ...prev, show_latest_releases: e.target.checked } : null);
+                    }}
                     className="rounded focus:ring-blue-500"
                   />
                 </div>
@@ -601,7 +646,10 @@ const HomepageManager: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={localContent.show_artist_collaboration}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_artist_collaboration: e.target.checked } : null)}
+                    onChange={(e) => {
+                      console.log('🎯 Toggling Artist Collaboration:', e.target.checked);
+                      setLocalContent(prev => prev ? { ...prev, show_artist_collaboration: e.target.checked } : null);
+                    }}
                     className="rounded focus:ring-blue-500"
                   />
                 </div>
@@ -614,7 +662,10 @@ const HomepageManager: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={localContent.show_progress_metrics}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, show_progress_metrics: e.target.checked } : null)}
+                    onChange={(e) => {
+                      console.log('🎯 Toggling Progress Metrics:', e.target.checked);
+                      setLocalContent(prev => prev ? { ...prev, show_progress_metrics: e.target.checked } : null);
+                    }}
                     className="rounded focus:ring-blue-500"
                   />
                 </div>

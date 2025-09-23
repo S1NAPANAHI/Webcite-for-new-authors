@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Save,
   X,
@@ -233,55 +233,59 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   }, [formData.character_type]);
 
-  // 🔧 FIXED INPUT CHANGE HANDLER - PREVENTS VALUE CONCATENATION
-  const handleInputChange = (field: keyof CharacterFormData, value: any) => {
-    // Clear the field first, then set the new value to prevent concatenation
-    setFormData(prev => {
-      const newFormData = { ...prev };
-      // Explicitly set the field to the new value (no concatenation)
+  // 🚀 COMPLETELY NEW INPUT CHANGE HANDLER USING useCallback
+  const handleInputChange = useCallback((field: keyof CharacterFormData, value: any) => {
+    console.log(`🔧 Setting ${field} to:`, value); // Debug log
+    
+    setFormData(currentFormData => {
+      // Create a completely new object to avoid any reference issues
+      const newFormData = JSON.parse(JSON.stringify(currentFormData));
+      // Set the specific field to the exact value
       newFormData[field] = value;
+      console.log(`✅ Updated ${field} in form data:`, newFormData[field]); // Debug log
       return newFormData;
     });
     
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
-  };
+  }, [errors]);
 
   // 🔧 ENHANCED SLUG CHANGE HANDLER WITH NORMALIZATION
-  const handleSlugChange = (value: string) => {
-    // Clear the slug field and set new value to prevent concatenation
-    setFormData(prev => ({ ...prev, slug: value }));
+  const handleSlugChange = useCallback((value: string) => {
+    console.log('🔧 Slug changing to:', value); // Debug log
+    // Use the general input change handler
+    handleInputChange('slug', value);
     setIsSlugManual(true);
     setSlugNormalized(false);
-    
-    if (errors.slug) {
-      setErrors(prev => ({ ...prev, slug: '' }));
-    }
-  };
+  }, [handleInputChange]);
 
   // 🔧 NEW: SLUG BLUR HANDLER FOR NORMALIZATION
-  const handleSlugBlur = () => {
+  const handleSlugBlur = useCallback(() => {
     const currentSlug = formData.slug;
     const normalizedSlug = normalizeSlug(currentSlug);
     
     if (currentSlug !== normalizedSlug) {
-      setFormData(prev => ({ ...prev, slug: normalizedSlug }));
+      handleInputChange('slug', normalizedSlug);
       setSlugNormalized(true);
       
       // Show temporary feedback that slug was normalized
       setTimeout(() => setSlugNormalized(false), 2000);
     }
-  };
+  }, [formData.slug, handleInputChange]);
 
-  const handleRegenerateSlug = () => {
+  const handleRegenerateSlug = useCallback(() => {
     if (formData.name) {
       const newSlug = generateCharacterSlug(formData.name);
-      setFormData(prev => ({ ...prev, slug: normalizeSlug(newSlug) })); // 🔧 Always normalize
+      handleInputChange('slug', normalizeSlug(newSlug)); // 🔧 Always normalize
       setIsSlugManual(false);
     }
-  };
+  }, [formData.name, handleInputChange]);
 
   const copySlugToClipboard = async () => {
     if (formData.slug) {
@@ -294,12 +298,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }
   };
 
-  // 🔧 FIXED ARRAY INPUT CHANGE HANDLER
-  const handleArrayInputChange = (field: keyof CharacterFormData, value: string) => {
+  // 🚀 COMPLETELY NEW ARRAY INPUT CHANGE HANDLER
+  const handleArrayInputChange = useCallback((field: keyof CharacterFormData, value: string) => {
+    console.log(`🔧 Array field ${field} changing to:`, value); // Debug log
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
-    // Use the fixed handleInputChange to prevent concatenation
+    console.log(`✅ Parsed array for ${field}:`, array); // Debug log
+    // Use the general input change handler to ensure consistency
     handleInputChange(field, array);
-  };
+  }, [handleInputChange]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -424,7 +430,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
   ];
 
-  // 🔧 FIXED INPUT FIELD COMPONENT
+  // 🚀 COMPLETELY REWRITTEN INPUT FIELD COMPONENT WITH useCallback
   const InputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -437,6 +443,25 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     const value = formData[field];
     const error = errors[field];
     
+    // Memoized change handlers to prevent recreation on every render
+    const handleTextChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const newValue = e.target.value;
+      console.log(`📝 ${field} input changed to: "${newValue}"`); // Debug log
+      handleInputChange(field, newValue);
+    }, [field, handleInputChange]);
+    
+    const handleSelectChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newValue = e.target.value;
+      console.log(`📝 ${field} select changed to: "${newValue}"`); // Debug log
+      handleInputChange(field, newValue);
+    }, [field, handleInputChange]);
+    
+    const handleNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      const newValue = parseInt(e.target.value) || 0;
+      console.log(`📝 ${field} number changed to: ${newValue}`); // Debug log
+      handleInputChange(field, newValue);
+    }, [field, handleInputChange]);
+    
     return (
       <div>
         <label className="block text-sm font-medium text-foreground mb-2">
@@ -446,11 +471,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         {type === 'textarea' ? (
           <textarea
             value={value as string || ''}
-            onChange={(e) => {
-              // 🔧 FIXED: Direct value assignment, no concatenation
-              const newValue = e.target.value;
-              handleInputChange(field, newValue);
-            }}
+            onChange={handleTextChange}
             placeholder={placeholder}
             rows={rows}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
@@ -460,11 +481,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         ) : type === 'select' ? (
           <select
             value={value as string || ''}
-            onChange={(e) => {
-              // 🔧 FIXED: Direct value assignment, no concatenation
-              const newValue = e.target.value;
-              handleInputChange(field, newValue);
-            }}
+            onChange={handleSelectChange}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
             }`}
@@ -475,15 +492,21 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               </option>
             ))}
           </select>
+        ) : type === 'number' ? (
+          <input
+            type="number"
+            value={value as number || 0}
+            onChange={handleNumberChange}
+            placeholder={placeholder}
+            className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
+              error ? 'border-red-500' : 'border-border'
+            }`}
+          />
         ) : (
           <input
-            type={type}
-            value={value as string | number || ''}
-            onChange={(e) => {
-              // 🔧 FIXED: Direct value assignment, no concatenation
-              const newValue = type === 'number' ? parseInt(e.target.value) || 0 : e.target.value;
-              handleInputChange(field, newValue);
-            }}
+            type="text"
+            value={value as string || ''}
+            onChange={handleTextChange}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -498,13 +521,19 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     );
   };
 
-  // 🔧 FIXED ARRAY INPUT FIELD COMPONENT
+  // 🚀 COMPLETELY REWRITTEN ARRAY INPUT FIELD COMPONENT
   const ArrayInputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
     placeholder?: string;
   }> = ({ label, field, placeholder }) => {
     const value = (formData[field] as string[]) || [];
+    
+    const handleArrayChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      console.log(`📝 ${field} array input changed to: "${inputValue}"`); // Debug log
+      handleArrayInputChange(field, inputValue);
+    }, [field, handleArrayInputChange]);
     
     return (
       <div>
@@ -514,11 +543,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         <input
           type="text"
           value={value.join(', ')}
-          onChange={(e) => {
-            // 🔧 FIXED: Use the fixed array input handler
-            const newValue = e.target.value;
-            handleArrayInputChange(field, newValue);
-          }}
+          onChange={handleArrayChange}
           placeholder={placeholder}
           className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
         />

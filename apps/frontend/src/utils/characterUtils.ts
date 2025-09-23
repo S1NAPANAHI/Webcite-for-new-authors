@@ -253,6 +253,15 @@ export const getCharacterImportanceTier = (importanceScore: number): {
   }
 };
 
+// Generate character color theme
+export const generateCharacterColorTheme = (character: Character): string => {
+  if (character.color_theme) return character.color_theme;
+  
+  // Generate color based on character properties
+  const typeConfig = getCharacterTypeConfig(character.character_type);
+  return typeConfig.color;
+};
+
 // Sort characters by different criteria
 export const sortCharacters = (characters: Character[], sortBy: string, direction: 'asc' | 'desc' = 'asc'): Character[] => {
   const sorted = [...characters].sort((a, b) => {
@@ -399,15 +408,6 @@ export const searchCharacters = (characters: Character[], query: string, limit: 
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(item => item.character);
-};
-
-// Generate character color theme
-export const generateCharacterColorTheme = (character: Character): string => {
-  if (character.color_theme) return character.color_theme;
-  
-  // Generate color based on character properties
-  const typeConfig = getCharacterTypeConfig(character.character_type);
-  return typeConfig.color;
 };
 
 // Get character statistics

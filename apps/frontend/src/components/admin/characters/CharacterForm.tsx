@@ -160,7 +160,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [slugPreview, setSlugPreview] = useState('');
   const [slugNormalized, setSlugNormalized] = useState(false);
 
-  // 🚨 NEW: Debounced auto-save state
+  // ✅ FIXED: Simplified state management - no auto-save on keystroke
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -177,14 +177,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     };
   }, []);
 
-  // 🚨 NEW: Debounced auto-save function
+  // ✅ FIXED: Debounced auto-save only on blur, not on keystroke
   const debouncedAutoSave = useCallback(async (updatedData: CharacterFormData) => {
     // Clear existing timer
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
     }
 
-    // Set new timer for 2 seconds
+    // Set new timer for 3 seconds (longer delay)
     saveTimerRef.current = setTimeout(async () => {
       console.log('💾 Auto-saving character data...');
       setIsAutoSaving(true);
@@ -223,7 +223,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       } finally {
         setIsAutoSaving(false);
       }
-    }, 2000); // 2 second delay
+    }, 3000); // 3 second delay
   }, [character]);
 
   // Initialize form with character data
@@ -301,17 +301,15 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   }, [formData.character_type]);
 
-  // 🚨 UPDATED: Input change handler with debounced auto-save
-  const handleInputChange = (field: string, value: any) => {
+  // ✅ FIXED: Input change handler WITHOUT auto-save on keystroke
+  const handleInputChange = useCallback((field: string, value: any) => {
     console.log(`🎯 INPUT UPDATE: ${field} = "${value}"`);
     
-    const updatedData = {
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [field]: value
-    };
-
-    // Update form state immediately (for UI responsiveness)
-    setFormData(updatedData);
+    }));
+    
     setHasUnsavedChanges(true);
     
     // Clear error when user starts typing
@@ -322,11 +320,18 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       });
     }
     
-    // Trigger debounced auto-save (only for existing characters)
-    if (character) {
-      debouncedAutoSave(updatedData);
+    // ✅ NO AUTO-SAVE ON KEYSTROKE - This was causing focus loss!
+    // Users will save manually or we'll save onBlur
+  }, [errors]);
+
+  // ✅ NEW: onBlur handler for auto-save
+  const handleInputBlur = useCallback((field: string) => {
+    console.log(`🔄 INPUT BLUR: ${field}`);
+    // Only auto-save on blur for existing characters
+    if (character && hasUnsavedChanges) {
+      debouncedAutoSave(formData);
     }
-  };
+  }, [character, hasUnsavedChanges, formData, debouncedAutoSave]);
 
   // SLUG-SPECIFIC HANDLERS
   const handleSlugChange = (value: string) => {
@@ -344,6 +349,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       setSlugNormalized(true);
       setTimeout(() => setSlugNormalized(false), 2000);
     }
+    
+    // Trigger auto-save on slug blur
+    handleInputBlur('slug');
   };
 
   const handleRegenerateSlug = () => {
@@ -370,7 +378,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     handleInputChange(field, array);
   };
 
-  // 🚨 NEW: Manual save function
+  // Manual save function
   const handleManualSave = async () => {
     // Clear any pending auto-save
     if (saveTimerRef.current) {
@@ -498,7 +506,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
   ];
 
-  // ✅ SIMPLIFIED INPUT FIELD COMPONENT
+  // ✅ SIMPLIFIED INPUT FIELD COMPONENT with onBlur
   const InputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -526,6 +534,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               console.log(`🔵 TEXTAREA ${fieldKey}: "${e.target.value}"`);
               handleInputChange(fieldKey, e.target.value);
             }}
+            onBlur={() => handleInputBlur(fieldKey)}
             placeholder={placeholder}
             rows={rows}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
@@ -539,6 +548,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
             onChange={(e) => {
               console.log(`🔵 SELECT ${fieldKey}: "${e.target.value}"`);
               handleInputChange(fieldKey, e.target.value);
+              // Auto-save immediately for select changes (they don't have blur)
+              handleInputBlur(fieldKey);
             }}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -560,6 +571,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               console.log(`🔵 NUMBER ${fieldKey}: ${numValue}`);
               handleInputChange(fieldKey, numValue);
             }}
+            onBlur={() => handleInputBlur(fieldKey)}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -574,6 +586,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               console.log(`🔵 TEXT ${fieldKey}: "${e.target.value}"`);
               handleInputChange(fieldKey, e.target.value);
             }}
+            onBlur={() => handleInputBlur(fieldKey)}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -588,7 +601,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     );
   };
 
-  // ✅ SIMPLIFIED ARRAY INPUT FIELD
+  // ✅ SIMPLIFIED ARRAY INPUT FIELD with onBlur
   const ArrayInputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -610,6 +623,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
             console.log(`🔵 ARRAY ${fieldKey}: "${e.target.value}"`);
             handleArrayChange(fieldKey, e.target.value);
           }}
+          onBlur={() => handleInputBlur(fieldKey)}
           placeholder={placeholder}
           className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
         />
@@ -633,7 +647,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           </p>
         </div>
         
-        {/* 🚨 NEW: Save Status and Manual Save Button */}
+        {/* Save Status and Manual Save Button */}
         <div className="flex items-center space-x-4">
           {/* Auto-save status indicator */}
           {isAutoSaving && (
@@ -859,6 +873,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       console.log(`🔵 RANGE importance_score: ${numValue}`);
                       handleInputChange('importance_score', numValue);
                     }}
+                    onMouseUp={() => handleInputBlur('importance_score')}
                     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -877,6 +892,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                         console.log(`🔵 CHECKBOX is_major_character: ${e.target.checked}`);
                         handleInputChange('is_major_character', e.target.checked);
                       }}
+                      onBlur={() => handleInputBlur('is_major_character')}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
                     <Crown className="w-4 h-4 text-yellow-500" />
@@ -891,6 +907,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                         console.log(`🔵 CHECKBOX is_pov_character: ${e.target.checked}`);
                         handleInputChange('is_pov_character', e.target.checked);
                       }}
+                      onBlur={() => handleInputBlur('is_pov_character')}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
                     <Eye className="w-4 h-4 text-blue-500" />
@@ -1068,6 +1085,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       console.log(`🔵 CHECKBOX is_spoiler_sensitive: ${e.target.checked}`);
                       handleInputChange('is_spoiler_sensitive', e.target.checked);
                     }}
+                    onBlur={() => handleInputBlur('is_spoiler_sensitive')}
                     className="rounded border-border focus:ring-primary/20 text-primary"
                   />
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />

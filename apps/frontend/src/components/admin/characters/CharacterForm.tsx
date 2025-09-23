@@ -620,7 +620,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 <InputField
                   label="Height"
                   field="height"
-                  placeholder="6'2\", Tall, Short, etc."
+                  placeholder="6 feet 2 inches, Tall, Short, etc."
                 />
                 <InputField
                   label="Build"

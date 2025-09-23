@@ -84,11 +84,8 @@ const CharacterDetailPage: React.FC = () => {
         
         console.log(`🔍 Fetching character data for slug: ${slug}`);
         
-        // Determine API base URL
-        const isProduction = window.location.hostname === 'www.zoroastervers.com' || window.location.hostname === 'zoroastervers.com';
-        const API_BASE = isProduction 
-          ? 'https://www.zoroastervers.com' // Use your production backend URL
-          : 'http://localhost:3001';
+        // FIXED: Use the correct backend API URL
+        const API_BASE = 'https://webcite-for-new-authors.onrender.com';
         
         console.log(`🌐 Using API base: ${API_BASE}`);
         

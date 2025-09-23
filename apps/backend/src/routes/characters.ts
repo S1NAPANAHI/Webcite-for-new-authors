@@ -127,24 +127,17 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/characters/:slug - Get individual character by slug
+// GET /api/characters/:slug - Get single character by slug
+// 🔧 ENHANCED CHARACTER LOOKUP WITH ROBUST FALLBACK STRATEGY
 router.get('/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const cleanSlug = slug.trim(); // Clean the input slug
-    console.log(`🔍 Fetching character with slug: "${slug}" (cleaned: "${cleanSlug}")`);
+    const cleanSlug = slug.trim().toLowerCase();
     
-    if (!cleanSlug) {
-      return res.status(400).json({ error: 'Character slug is required' });
-    }
+    console.log(`🔍 Looking for character with slug: "${cleanSlug}"`);
     
-    // FIXED: Try multiple lookup strategies to handle whitespace issues
-    let character = null;
-    let characterError = null;
-    
-    // Strategy 1: Exact match with cleaned slug
-    console.log('🎯 Strategy 1: Exact match with cleaned slug');
-    const { data: exactMatch, error: exactError } = await supabase
+    // Try exact match first
+    let { data: character, error } = await supabase
       .from('characters')
       .select(`
         id,
@@ -194,13 +187,10 @@ router.get('/:slug', async (req, res) => {
       .eq('slug', cleanSlug)
       .single();
     
-    if (exactMatch) {
-      character = exactMatch;
-      console.log(`✅ Found character via exact match: ${character.name}`);
-    } else {
-      console.log('❌ Exact match failed, trying trimmed match...');
+    if (error && error.code === 'PGRST116') {
+      console.log('📋 Exact match failed, trying fallback with all characters...');
       
-      // Strategy 2: Search for characters and match after trimming
+      // Fallback: Get all characters and match with trimmed slugs
       const { data: allCharacters, error: allError } = await supabase
         .from('characters')
         .select(`
@@ -249,33 +239,38 @@ router.get('/:slug', async (req, res) => {
           updated_at
         `);
       
-      if (allCharacters && allCharacters.length > 0) {
-        console.log(`🔍 Searching through ${allCharacters.length} characters for trimmed match`);
-        character = allCharacters.find(c => c.slug && c.slug.trim() === cleanSlug);
-        
-        if (character) {
-          console.log(`✅ Found character via trimmed match: ${character.name} (original slug: "${character.slug}")`);
-          // Clean up the slug in the response
-          character.slug = character.slug.trim();
-        } else {
-          console.log('❌ No trimmed match found');
-          console.log('Available slugs:', allCharacters.map(c => `"${c.slug}"`));
-        }
+      if (allError) {
+        console.error('❌ Error fetching all characters:', allError);
+        return res.status(500).json({ error: 'Database error', details: allError.message });
       }
       
-      characterError = exactError;
+      // Find character with matching trimmed slug
+      character = allCharacters.find(c => 
+        c.slug && c.slug.trim().toLowerCase() === cleanSlug
+      );
+      
+      if (!character) {
+        console.log(`❌ Character not found for slug: "${cleanSlug}"`);
+        console.log(`📋 Available slugs:`, allCharacters.map(c => `"${c.slug}"`));
+        return res.status(404).json({ 
+          error: 'Character not found', 
+          slug: cleanSlug,
+          availableSlugs: allCharacters.map(c => c.slug?.trim())
+        });
+      }
     }
     
-    if (!character) {
-      console.log(`❌ Character not found with slug: "${cleanSlug}"`);
-      return res.status(404).json({ 
-        error: 'Character not found', 
-        slug: cleanSlug,
-        originalSlug: slug
-      });
+    if (error) {
+      console.error('❌ Database error:', error);
+      return res.status(500).json({ error: 'Database error', details: error.message });
     }
     
-    console.log(`✅ Found character: ${character.name}`);
+    // Clean the character data
+    if (character.slug) {
+      character.slug = character.slug.trim();
+    }
+    
+    console.log(`✅ Found character: ${character.name} (slug: "${character.slug}")`);
     
     // Get character abilities
     let abilities = [];
@@ -358,11 +353,8 @@ router.get('/:slug', async (req, res) => {
     res.json(fullCharacterData);
     
   } catch (error: any) {
-    console.error('💥 Unexpected error fetching character:', error);
-    res.status(500).json({ 
-      error: 'Internal server error', 
-      details: error.message 
-    });
+    console.error('❌ Server error in character lookup:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Save,
   X,
@@ -12,7 +12,13 @@ import {
   Copy,
   ExternalLink,
   RefreshCw,
-  Shield
+  Shield,
+  Search,
+  Image as ImageIcon,
+  Upload,
+  FolderOpen,
+  Filter,
+  Check
 } from 'lucide-react';
 import { Character, CharacterType, CharacterStatus, PowerLevel } from '../../../types/character';
 import {
@@ -22,13 +28,12 @@ import {
   generateCharacterSlug
 } from '../../../utils/characterUtils';
 import { supabase } from '@zoroaster/shared';
-import MediaPicker from '../MediaPicker'; // Fixed import path
 
 /* 
-🎯 CHARACTER FORM WITH MEDIA PICKER v2.0
-- Replaced Portrait URL with MediaPicker
+🎯 CHARACTER FORM WITH INLINE MEDIA PICKER v3.0 - Sep 23, 2025
+- Embedded MediaPicker directly to avoid import issues
+- Replaced Portrait URL with media bucket integration
 - Added portrait_file_id support
-- Integrated with media bucket system
 */
 
 interface CharacterFormProps {
@@ -76,10 +81,27 @@ interface CharacterFormData {
   spoiler_tags: string[];
   meta_description: string;
   meta_keywords: string[];
-  portrait_url: string; // Backward compatibility
-  portrait_file_id?: string; // New field for media bucket integration
+  portrait_url: string;
+  portrait_file_id?: string;
   color_theme: string;
 }
+
+interface FileRecord {
+  id: string;
+  name: string;
+  original_name: string;
+  mime_type: string;
+  size: number;
+  width?: number;
+  height?: number;
+  alt_text?: string;
+  folder: string;
+  path: string;
+  bucket: string;
+  created_at: string;
+}
+
+const FOLDERS = ['backgrounds', 'characters', 'banners', 'covers', 'heroes', 'misc'] as const;
 
 const normalizeSlug = (slug: string): string => {
   return slug
@@ -91,15 +113,328 @@ const normalizeSlug = (slug: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
+// 🖼️ INLINE MEDIA PICKER COMPONENT
+const InlineMediaPicker: React.FC<{
+  selectedFileId?: string;
+  onSelect: (fileId: string, fileUrl: string) => void;
+  onClear: () => void;
+}> = ({ selectedFileId, onSelect, onClear }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [files, setFiles] = useState<FileRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [folderFilter, setFolderFilter] = useState<'all' | typeof FOLDERS[number]>('characters');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedFile, setSelectedFile] = useState<FileRecord | null>(null);
+  const [selectedUrl, setSelectedUrl] = useState<string>('');
+
+  // Load selected file info
+  useEffect(() => {
+    if (selectedFileId) {
+      loadSelectedFile(selectedFileId);
+    }
+  }, [selectedFileId]);
+
+  const loadSelectedFile = async (fileId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('files')
+        .select('*')
+        .eq('id', fileId)
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setSelectedFile(data);
+        const url = getFileUrl(data);
+        setSelectedUrl(url);
+        console.log('🖼️ LOADED SELECTED FILE:', data.name, url);
+      }
+    } catch (err) {
+      console.error('Error loading selected file:', err);
+    }
+  };
+
+  const loadFiles = useCallback(async () => {
+    if (!isOpen) return;
+    
+    try {
+      setLoading(true);
+      console.log('📏 Loading files from media bucket...');
+
+      let query = supabase
+        .from('files')
+        .select('*')
+        .like('mime_type', 'image%')
+        .order('created_at', { ascending: false });
+
+      if (folderFilter !== 'all') {
+        query = query.eq('folder', folderFilter);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      setFiles(data || []);
+      console.log(`📏 Loaded ${data?.length || 0} files`);
+    } catch (err) {
+      console.error('Error loading files:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [isOpen, folderFilter]);
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  const getFileUrl = (file: FileRecord): string => {
+    const { data } = supabase.storage.from(file.bucket).getPublicUrl(file.path);
+    return data.publicUrl;
+  };
+
+  const filteredFiles = files.filter(file => {
+    if (!searchQuery) return true;
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      file.name?.toLowerCase().includes(searchLower) ||
+      file.original_name?.toLowerCase().includes(searchLower) ||
+      file.alt_text?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const handleFileSelect = (file: FileRecord) => {
+    const url = getFileUrl(file);
+    console.log('🖼️ FILE SELECTED:', file.name, url);
+    onSelect(file.id, url);
+    setSelectedFile(file);
+    setSelectedUrl(url);
+    setIsOpen(false);
+  };
+
+  const handleClear = () => {
+    console.log('🗑️ CLEARING SELECTION');
+    onClear();
+    setSelectedFile(null);
+    setSelectedUrl('');
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    const mb = bytes / 1024 / 1024;
+    return mb < 1 
+      ? `${Math.round(bytes / 1024)} KB`
+      : `${mb.toFixed(1)} MB`;
+  };
+
+  return (
+    <div className="w-full">
+      {/* Selected File Preview */}
+      {selectedFile && selectedUrl ? (
+        <div className="space-y-3">
+          <div className="relative bg-gray-50 dark:bg-gray-800 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 overflow-hidden">
+            <img 
+              src={selectedUrl} 
+              alt={selectedFile.alt_text || selectedFile.name}
+              className="w-full h-48 object-cover"
+            />
+            <div className="absolute top-2 right-2 flex gap-2">
+              <a
+                href={selectedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="View full size"
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+              <button
+                type="button"
+                onClick={handleClear}
+                className="p-2 bg-white dark:bg-gray-800 rounded-full shadow-md hover:bg-red-100 dark:hover:bg-red-900/20 hover:text-red-600 transition-colors"
+                title="Remove image"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="font-medium">{selectedFile.name}</div>
+            <div className="flex items-center gap-4 text-xs">
+              <span>{formatFileSize(selectedFile.size)}</span>
+              {selectedFile.width && selectedFile.height && (
+                <span>{selectedFile.width} × {selectedFile.height}px</span>
+              )}
+              <span className="capitalize">{selectedFile.folder}</span>
+            </div>
+          </div>
+          
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="w-full px-3 py-2 text-sm border border-border rounded-lg hover:bg-muted transition-colors"
+          >
+            Change Portrait
+          </button>
+        </div>
+      ) : (
+        /* Select Image Button */
+        <button
+          type="button"
+          onClick={() => setIsOpen(true)}
+          className="w-full h-48 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
+        >
+          <ImageIcon className="w-8 h-8" />
+          <span className="font-medium">Select Character Portrait</span>
+          <span className="text-sm">Choose from your media library</span>
+        </button>
+      )}
+
+      {/* Media Picker Modal */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] mx-4 flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                <FolderOpen className="w-5 h-5" />
+                Select Character Portrait
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="p-6 border-b border-border">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <select
+                    value={folderFilter}
+                    onChange={e => setFolderFilter(e.target.value as any)}
+                    className="px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background"
+                  >
+                    <option value="all">All Folders</option>
+                    {FOLDERS.map(f => (
+                      <option key={f} value={f}>
+                        {f.charAt(0).toUpperCase() + f.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Search images..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background"
+                  />
+                </div>
+
+                <div className="text-sm text-muted-foreground flex items-center">
+                  {filteredFiles.length} image{filteredFiles.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 p-6 overflow-y-auto">
+              {loading && (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-3 text-muted-foreground">Loading images...</span>
+                </div>
+              )}
+
+              {!loading && filteredFiles.length === 0 && (
+                <div className="text-center py-12">
+                  <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-foreground text-lg mb-2">No images found</p>
+                  <p className="text-muted-foreground text-sm">Upload images in the File Manager first</p>
+                </div>
+              )}
+
+              {!loading && filteredFiles.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredFiles.map(file => {
+                    const fileUrl = getFileUrl(file);
+                    const isSelected = selectedFileId === file.id;
+                    
+                    return (
+                      <div
+                        key={file.id}
+                        className={`relative group cursor-pointer bg-card rounded-lg border-2 transition-all ${
+                          isSelected 
+                            ? 'border-primary ring-2 ring-primary/20' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                        onClick={() => handleFileSelect(file)}
+                      >
+                        <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
+                          <img
+                            src={fileUrl}
+                            alt={file.alt_text || file.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                            loading="lazy"
+                          />
+                        </div>
+
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                            <Check className="w-4 h-4" />
+                          </div>
+                        )}
+
+                        <div className="p-3">
+                          <div className="text-sm font-medium text-foreground truncate">
+                            {file.name}
+                          </div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
+                            <span>{formatFileSize(file.size)}</span>
+                            {file.width && file.height && (
+                              <span>{file.width}×{file.height}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-border flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-4 py-2 text-muted-foreground border border-border rounded-lg hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const CharacterForm: React.FC<CharacterFormProps> = ({
   character,
   onSave,
   onCancel,
   className = ''
 }) => {
-  console.log('🎨 MEDIA PICKER VERSION: Character Form v2.0 with MediaPicker');
+  console.log('🎨 CHARACTER FORM v3.0: With inline MediaPicker - Build timestamp:', new Date().toISOString());
   
-  // 🔥 NUCLEAR APPROACH: Initialize state once and NEVER change the structure
   const [formData, setFormData] = useState<CharacterFormData>(() => {
     const initialData = {
       name: character?.name || '',
@@ -144,8 +479,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       color_theme: character?.color_theme || CHARACTER_TYPE_CONFIG.minor.color
     };
     
-    console.log('🔥 NUCLEAR INIT: Form initialized with data:', initialData);
-    console.log('🖼️ PORTRAIT DATA: file_id =', initialData.portrait_file_id, ', url =', initialData.portrait_url);
+    console.log('🔥 NUCLEAR INIT: Form initialized with portrait data:', {
+      portrait_file_id: initialData.portrait_file_id,
+      portrait_url: initialData.portrait_url
+    });
     return initialData;
   });
 
@@ -156,13 +493,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [isSlugManual, setIsSlugManual] = useState(!!character?.slug);
   const [slugNormalized, setSlugNormalized] = useState(false);
 
-  // 🔥 NUCLEAR: Static refs that NEVER change
   const nameInputRef = useRef<HTMLInputElement>(null);
   const slugInputRef = useRef<HTMLInputElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // 🔥 NUCLEAR: Direct state update function that does NOTHING else
   const updateField = useCallback((field: keyof CharacterFormData, value: any) => {
     console.log(`🔥 NUCLEAR UPDATE: ${field} = "${value}"`);
     
@@ -173,7 +508,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     
     setHasUnsavedChanges(true);
     
-    // Clear errors
     if (errors[field]) {
       setErrors(current => {
         const { [field]: _, ...rest } = current;
@@ -182,7 +516,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }
   }, [errors]);
 
-  // 🔥 NUCLEAR: Handle slug changes
   const handleSlugChange = useCallback((value: string) => {
     updateField('slug', value);
     setIsSlugManual(true);
@@ -206,30 +539,25 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }
   }, [formData.name, updateField]);
 
-  // 🔥 NUCLEAR: Array field handler
   const handleArrayField = useCallback((field: keyof CharacterFormData, value: string) => {
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
     updateField(field, array);
   }, [updateField]);
 
-  // 🔥 NUCLEAR: Auto-generate slug from name (but without useEffect)
   const handleNameChange = useCallback((value: string) => {
     updateField('name', value);
     
-    // Auto-generate slug if not manually set
     if (!isSlugManual && value) {
       const newSlug = generateCharacterSlug(value);
       updateField('slug', normalizeSlug(newSlug));
     }
   }, [updateField, isSlugManual]);
 
-  // Character type change handler
   const handleCharacterTypeChange = useCallback((value: string) => {
     updateField('character_type', value);
     updateField('color_theme', CHARACTER_TYPE_CONFIG[value as CharacterType].color);
   }, [updateField]);
 
-  // 🎨 NUCLEAR: Handle portrait selection from MediaPicker
   const handlePortraitSelect = useCallback((fileId: string, fileUrl: string) => {
     console.log(`🖼️ PORTRAIT SELECTED: File ID = ${fileId}, URL = ${fileUrl}`);
     updateField('portrait_file_id', fileId);
@@ -242,11 +570,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     updateField('portrait_url', '');
   }, [updateField]);
 
-  // 🔥 NUCLEAR: Manual save function - ONLY way to save
   const handleSave = useCallback(async () => {
     console.log('🔥 NUCLEAR SAVE: Starting manual save');
     
-    // Validate
     const newErrors: Record<string, string> = {};
     
     if (!formData.name.trim()) {
@@ -271,7 +597,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     try {
       const finalSlug = normalizeSlug(formData.slug);
       
-      // Check slug uniqueness
       const { data: existingChar } = await supabase
         .from('characters')
         .select('id')
@@ -319,7 +644,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         result = data;
       }
       
-      console.log('🔥 NUCLEAR SAVE: Success');
+      console.log('🔥 NUCLEAR SAVE: Success with portrait data');
       setHasUnsavedChanges(false);
       onSave(result);
       
@@ -409,6 +734,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 type="button"
                 onClick={() => {
                   console.log(`🎯 TAB CHANGE: Switching to ${tab.id}`);
+                  if (tab.id === 'meta') {
+                    console.log('🎨 SWITCHING TO METADATA TAB - MediaPicker should appear!');
+                  }
                   setActiveTab(tab.id as any);
                 }}
                 className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
@@ -437,7 +765,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           {activeTab === 'basic' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 🔥 NUCLEAR: Static input components */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Character Name <span className="text-red-500">*</span>
@@ -458,7 +785,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                 </div>
                 
-                {/* Slug Field */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Slug <span className="text-red-500">*</span>
@@ -833,10 +1159,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 <input
                   type="text"
                   value={formData.personality_traits.join(', ')}
-                  onChange={(e) => {
-                    console.log(`🔥 NUCLEAR: PERSONALITY_TRAITS = "${e.target.value}"`);
-                    handleArrayField('personality_traits', e.target.value);
-                  }}
+                  onChange={(e) => handleArrayField('personality_traits', e.target.value)}
                   placeholder="Wise, Brave, Cunning, Compassionate"
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
@@ -872,53 +1195,12 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <input
                     type="text"
                     value={formData.fears.join(', ')}
-                    onChange={(e) => {
-                      console.log(`🔥 NUCLEAR: FEARS = "${e.target.value}"`);
-                      handleArrayField('fears', e.target.value);
-                    }}
+                    onChange={(e) => handleArrayField('fears', e.target.value)}
                     placeholder="What they're afraid of"
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Goals</label>
-                  <input
-                    type="text"
-                    value={formData.goals.join(', ')}
-                    onChange={(e) => handleArrayField('goals', e.target.value)}
-                    placeholder="Character's objectives and aspirations"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Skills</label>
-                  <input
-                    type="text"
-                    value={formData.skills.join(', ')}
-                    onChange={(e) => handleArrayField('skills', e.target.value)}
-                    placeholder="Combat, Magic, Diplomacy, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Weaknesses</label>
-                <input
-                  type="text"
-                  value={formData.weaknesses.join(', ')}
-                  onChange={(e) => handleArrayField('weaknesses', e.target.value)}
-                  placeholder="Character flaws and vulnerabilities"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                />
-                <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
               </div>
             </div>
           )}
@@ -937,31 +1219,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Primary Faction</label>
-                  <input
-                    type="text"
-                    value={formData.primary_faction}
-                    onChange={(e) => updateField('primary_faction', e.target.value)}
-                    placeholder="Which group/faction they belong to"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Allegiances</label>
-                  <input
-                    type="text"
-                    value={formData.allegiances.join(', ')}
-                    onChange={(e) => handleArrayField('allegiances', e.target.value)}
-                    placeholder="Groups, people, or causes they support"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
-                </div>
-              </div>
-              
               <div className="space-y-3">
                 <label className="flex items-center gap-2">
                   <input
@@ -973,51 +1230,29 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />
                   <span className="text-sm text-foreground">Contains Spoilers</span>
                 </label>
-                
-                {formData.is_spoiler_sensitive && (
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">Spoiler Tags</label>
-                    <input
-                      type="text"
-                      value={formData.spoiler_tags.join(', ')}
-                      onChange={(e) => handleArrayField('spoiler_tags', e.target.value)}
-                      placeholder="death, betrayal, secret identity, etc."
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                    />
-                    <p className="mt-1 text-xs text-muted-foreground">Separate multiple tags with commas</p>
-                  </div>
-                )}
               </div>
             </div>
           )}
 
-          {/* Metadata Tab - WITH MEDIA PICKER! */}
+          {/* 🖼️ NEW METADATA TAB WITH MEDIA PICKER */}
           {activeTab === 'meta' && (
             <div className="space-y-6">
-              {/* 🖼️ MediaPicker for Character Portrait */}
+              {/* Character Portrait with Inline MediaPicker */}
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Character Portrait
+                <label className="block text-sm font-medium text-foreground mb-3">
+                  🖼️ Character Portrait
                 </label>
-                {/* DEBUG: Show when MediaPicker is being rendered */}
-                {console.log('🎨 RENDERING MEDIA PICKER IN META TAB')}
-                
-                <MediaPicker 
-                  selectedFileId={formData.portrait_file_id}
-                  onSelect={(fileId, fileUrl) => {
-                    console.log(`🖼️ MEDIA PICKER: Selected ${fileId} with URL ${fileUrl}`);
-                    handlePortraitSelect(fileId, fileUrl);
-                  }}
-                  onClear={() => {
-                    console.log('🗑️ MEDIA PICKER: Cleared selection');
-                    handlePortraitClear();
-                  }}
-                  preferredFolder="characters"
-                  className="w-full"
-                />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Select an image from your media library or upload a new one
-                </p>
+                <div className="bg-muted/20 p-4 rounded-lg border">
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Choose from your media library or upload new images in the File Manager
+                  </p>
+                  
+                  <InlineMediaPicker 
+                    selectedFileId={formData.portrait_file_id}
+                    onSelect={handlePortraitSelect}
+                    onClear={handlePortraitClear}
+                  />
+                </div>
               </div>
               
               <div>
@@ -1029,18 +1264,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   rows={3}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Meta Keywords</label>
-                <input
-                  type="text"
-                  value={formData.meta_keywords.join(', ')}
-                  onChange={(e) => handleArrayField('meta_keywords', e.target.value)}
-                  placeholder="SEO keywords, separated by commas"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                />
-                <p className="mt-1 text-xs text-muted-foreground">Separate multiple keywords with commas</p>
               </div>
             </div>
           )}

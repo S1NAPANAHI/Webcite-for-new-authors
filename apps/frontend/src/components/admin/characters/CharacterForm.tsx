@@ -22,6 +22,7 @@ import {
   generateCharacterSlug
 } from '../../../utils/characterUtils';
 import { supabase } from '@zoroaster/shared';
+import MediaPicker from '../MediaPicker';
 
 interface CharacterFormProps {
   character?: Character | null;
@@ -69,6 +70,7 @@ interface CharacterFormData {
   meta_description: string;
   meta_keywords: string[];
   portrait_url: string;
+  portrait_file_id?: string; // New field for media bucket integration
   color_theme: string;
 }
 
@@ -129,6 +131,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       meta_description: character?.meta_description || '',
       meta_keywords: character?.meta_keywords || [],
       portrait_url: character?.portrait_url || '',
+      portrait_file_id: (character as any)?.portrait_file_id || '',
       color_theme: character?.color_theme || CHARACTER_TYPE_CONFIG.minor.color
     };
     
@@ -214,6 +217,19 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const handleCharacterTypeChange = useCallback((value: string) => {
     updateField('character_type', value);
     updateField('color_theme', CHARACTER_TYPE_CONFIG[value as CharacterType].color);
+  }, [updateField]);
+
+  // 🎨 NUCLEAR: Handle portrait selection from MediaPicker
+  const handlePortraitSelect = useCallback((fileId: string, fileUrl: string) => {
+    console.log(`🖼️ PORTRAIT SELECTED: File ID = ${fileId}, URL = ${fileUrl}`);
+    updateField('portrait_file_id', fileId);
+    updateField('portrait_url', fileUrl);
+  }, [updateField]);
+
+  const handlePortraitClear = useCallback(() => {
+    console.log('🗑️ PORTRAIT CLEARED');
+    updateField('portrait_file_id', '');
+    updateField('portrait_url', '');
   }, [updateField]);
 
   // 🔥 NUCLEAR: Manual save function - ONLY way to save
@@ -875,15 +891,21 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
 
           {activeTab === 'meta' && (
             <div className="space-y-6">
+              {/* 🖼️ MediaPicker for Character Portrait */}
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Portrait URL</label>
-                <input
-                  type="text"
-                  value={formData.portrait_url}
-                  onChange={(e) => updateField('portrait_url', e.target.value)}
-                  placeholder="https://example.com/character-portrait.jpg"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Character Portrait
+                </label>
+                <MediaPicker 
+                  selectedFileId={formData.portrait_file_id}
+                  onSelect={handlePortraitSelect}
+                  onClear={handlePortraitClear}
+                  preferredFolder="characters"
+                  className="w-full"
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Select an image from your media library or upload a new one
+                </p>
               </div>
               
               <div>

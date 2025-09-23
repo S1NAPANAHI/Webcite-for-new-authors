@@ -1,23 +1,18 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   Save,
   X,
-  Upload,
-  Plus,
-  Trash2,
   User,
   Crown,
   Eye,
   Star,
-  Zap,
-  Users,
   BookOpen,
   Heart,
-  Shield,
   AlertTriangle,
   Copy,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Shield
 } from 'lucide-react';
 import { Character, CharacterType, CharacterStatus, PowerLevel } from '../../../types/character';
 import {
@@ -36,20 +31,15 @@ interface CharacterFormProps {
 }
 
 interface CharacterFormData {
-  // Basic Information
   name: string;
   slug: string;
   title: string;
   aliases: string[];
   description: string;
-  
-  // Classification
   character_type: CharacterType;
   status: CharacterStatus;
   power_level: PowerLevel;
   importance_score: number;
-  
-  // Details
   age?: number;
   age_description: string;
   gender: string;
@@ -57,15 +47,11 @@ interface CharacterFormData {
   occupation: string;
   location: string;
   origin: string;
-  
-  // Physical Description
   height: string;
   build: string;
   hair_color: string;
   eye_color: string;
   distinguishing_features: string;
-  
-  // Personality
   personality_traits: string[];
   background_summary: string;
   motivations: string[];
@@ -73,29 +59,19 @@ interface CharacterFormData {
   goals: string[];
   skills: string[];
   weaknesses: string[];
-  
-  // Story Integration
   character_arc_summary: string;
   primary_faction: string;
   allegiances: string[];
-  
-  // Metadata
   is_major_character: boolean;
   is_pov_character: boolean;
   is_spoiler_sensitive: boolean;
   spoiler_tags: string[];
-  
-  // SEO
   meta_description: string;
   meta_keywords: string[];
-  
-  // Visual
-  portrait_file_id?: string;
   portrait_url: string;
   color_theme: string;
 }
 
-// SLUG NORMALIZATION FUNCTION
 const normalizeSlug = (slug: string): string => {
   return slug
     .trim()
@@ -112,303 +88,155 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   onCancel,
   className = ''
 }) => {
-  const [formData, setFormData] = useState<CharacterFormData>({
-    name: '',
-    slug: '',
-    title: '',
-    aliases: [],
-    description: '',
-    character_type: 'minor',
-    status: 'alive',
-    power_level: 'mortal',
-    importance_score: 50,
-    age_description: '',
-    gender: '',
-    species: 'Human',
-    occupation: '',
-    location: '',
-    origin: '',
-    height: '',
-    build: '',
-    hair_color: '',
-    eye_color: '',
-    distinguishing_features: '',
-    personality_traits: [],
-    background_summary: '',
-    motivations: [],
-    fears: [],
-    goals: [],
-    skills: [],
-    weaknesses: [],
-    character_arc_summary: '',
-    primary_faction: '',
-    allegiances: [],
-    is_major_character: false,
-    is_pov_character: false,
-    is_spoiler_sensitive: false,
-    spoiler_tags: [],
-    meta_description: '',
-    meta_keywords: [],
-    portrait_url: '',
-    color_theme: CHARACTER_TYPE_CONFIG.minor.color
+  // 🔥 NUCLEAR APPROACH: Initialize state once and NEVER change the structure
+  const [formData, setFormData] = useState<CharacterFormData>(() => {
+    const initialData = {
+      name: character?.name || '',
+      slug: character?.slug || '',
+      title: character?.title || '',
+      aliases: character?.aliases || [],
+      description: character?.description || '',
+      character_type: (character?.character_type as CharacterType) || 'minor',
+      status: (character?.status as CharacterStatus) || 'alive',
+      power_level: (character?.power_level as PowerLevel) || 'mortal',
+      importance_score: character?.importance_score || 50,
+      age: character?.age,
+      age_description: character?.age_description || '',
+      gender: character?.gender || '',
+      species: character?.species || 'Human',
+      occupation: character?.occupation || '',
+      location: character?.location || '',
+      origin: character?.origin || '',
+      height: character?.height || '',
+      build: character?.build || '',
+      hair_color: character?.hair_color || '',
+      eye_color: character?.eye_color || '',
+      distinguishing_features: character?.distinguishing_features || '',
+      personality_traits: character?.personality_traits || [],
+      background_summary: character?.background_summary || '',
+      motivations: character?.motivations || [],
+      fears: character?.fears || [],
+      goals: character?.goals || [],
+      skills: character?.skills || [],
+      weaknesses: character?.weaknesses || [],
+      character_arc_summary: character?.character_arc_summary || '',
+      primary_faction: character?.primary_faction || '',
+      allegiances: character?.allegiances || [],
+      is_major_character: character?.is_major_character || false,
+      is_pov_character: character?.is_pov_character || false,
+      is_spoiler_sensitive: character?.is_spoiler_sensitive || false,
+      spoiler_tags: character?.spoiler_tags || [],
+      meta_description: character?.meta_description || '',
+      meta_keywords: character?.meta_keywords || [],
+      portrait_url: character?.portrait_url || '',
+      color_theme: character?.color_theme || CHARACTER_TYPE_CONFIG.minor.color
+    };
+    
+    console.log('🔥 NUCLEAR INIT: Form initialized with data:', initialData);
+    return initialData;
   });
-  
+
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'personality' | 'story' | 'meta'>('basic');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSlugManual, setIsSlugManual] = useState(false);
-  const [slugPreview, setSlugPreview] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSlugManual, setIsSlugManual] = useState(!!character?.slug);
   const [slugNormalized, setSlugNormalized] = useState(false);
 
-  // ✅ FOCUS PRESERVATION: No auto-save on keystroke
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 🔥 NUCLEAR: Static refs that NEVER change
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const slugInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const descriptionInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // ✅ ENHANCED: Stable refs to prevent re-rendering issues
-  const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>>({});
-  const formRef = useRef<HTMLFormElement>(null);
-
-  // ✅ PERFORMANCE: Memoize expensive operations
-  const characterTypeOptions = useMemo(() => 
-    Object.entries(CHARACTER_TYPE_CONFIG).map(([key, config]) => ({
-      value: key,
-      label: config.label
-    })), []
-  );
-
-  const characterStatusOptions = useMemo(() => 
-    Object.entries(CHARACTER_STATUS_CONFIG).map(([key, config]) => ({
-      value: key,
-      label: config.label
-    })), []
-  );
-
-  const powerLevelOptions = useMemo(() => 
-    Object.entries(POWER_LEVEL_CONFIG).map(([key, config]) => ({
-      value: key,
-      label: config.label
-    })), []
-  );
-
-  // Clear timer on component unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current);
-      }
-    };
-  }, []);
-
-  // ✅ DISABLED: Auto-save completely removed to prevent focus loss
-  const debouncedAutoSave = useCallback(async (updatedData: CharacterFormData) => {
-    // Only enable auto-save if explicitly needed in the future
-    console.log('🚫 Auto-save disabled to prevent focus loss');
-    return;
+  // 🔥 NUCLEAR: Direct state update function that does NOTHING else
+  const updateField = useCallback((field: keyof CharacterFormData, value: any) => {
+    console.log(`🔥 NUCLEAR UPDATE: ${field} = "${value}"`);
     
-    // The old auto-save code is commented out to prevent any accidental usage
-    /*
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
-    }
-
-    saveTimerRef.current = setTimeout(async () => {
-      console.log('💾 Auto-saving character data...');
-      setIsAutoSaving(true);
-      
-      try {
-        const finalSlug = normalizeSlug(updatedData.slug);
-        
-        if (character) {
-          const characterData = {
-            ...updatedData,
-            slug: finalSlug,
-            age: updatedData.age || null,
-            meta_description: updatedData.meta_description || updatedData.description.substring(0, 160)
-          };
-          
-          const { data, error } = await supabase
-            .from('characters')
-            .update(characterData)
-            .eq('id', character.id)
-            .select()
-            .single();
-          
-          if (error) {
-            console.error('❌ Auto-save failed:', error);
-          } else {
-            console.log('✅ Auto-save successful');
-            setHasUnsavedChanges(false);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Auto-save error:', error);
-      } finally {
-        setIsAutoSaving(false);
-      }
-    }, 3000);
-    */
-  }, [character]);
-
-  // Initialize form with character data - STABLE INITIALIZATION
-  useEffect(() => {
-    if (character) {
-      console.log('🔄 Initializing form with character data');
-      const initialData = {
-        name: character.name || '',
-        slug: character.slug ? normalizeSlug(character.slug) : '',
-        title: character.title || '',
-        aliases: character.aliases || [],
-        description: character.description || '',
-        character_type: character.character_type || 'minor',
-        status: character.status || 'alive',
-        power_level: character.power_level || 'mortal',
-        importance_score: character.importance_score || 50,
-        age: character.age,
-        age_description: character.age_description || '',
-        gender: character.gender || '',
-        species: character.species || 'Human',
-        occupation: character.occupation || '',
-        location: character.location || '',
-        origin: character.origin || '',
-        height: character.height || '',
-        build: character.build || '',
-        hair_color: character.hair_color || '',
-        eye_color: character.eye_color || '',
-        distinguishing_features: character.distinguishing_features || '',
-        personality_traits: character.personality_traits || [],
-        background_summary: character.background_summary || '',
-        motivations: character.motivations || [],
-        fears: character.fears || [],
-        goals: character.goals || [],
-        skills: character.skills || [],
-        weaknesses: character.weaknesses || [],
-        character_arc_summary: character.character_arc_summary || '',
-        primary_faction: character.primary_faction || '',
-        allegiances: character.allegiances || [],
-        is_major_character: character.is_major_character || false,
-        is_pov_character: character.is_pov_character || false,
-        is_spoiler_sensitive: character.is_spoiler_sensitive || false,
-        spoiler_tags: character.spoiler_tags || [],
-        meta_description: character.meta_description || '',
-        meta_keywords: character.meta_keywords || [],
-        portrait_url: character.portrait_url || '',
-        color_theme: character.color_theme || CHARACTER_TYPE_CONFIG[character.character_type || 'minor'].color
-      };
-      
-      setFormData(initialData);
-      setIsSlugManual(!!character.slug);
-      setHasUnsavedChanges(false);
-    }
-  }, [character?.id]); // ✅ STABLE: Only depend on character ID
-
-  // Auto-generate slug from name (only if not manually edited)
-  useEffect(() => {
-    if (formData.name && !isSlugManual) {
-      const newSlug = generateCharacterSlug(formData.name);
-      const normalizedSlug = normalizeSlug(newSlug);
-      if (formData.slug !== normalizedSlug) {
-        setFormData(prev => ({
-          ...prev,
-          slug: normalizedSlug
-        }));
-      }
-    }
-  }, [formData.name, isSlugManual]);
-
-  // Update slug preview
-  useEffect(() => {
-    const preview = formData.slug ? `https://www.zoroastervers.com/characters/${formData.slug}` : '';
-    if (slugPreview !== preview) {
-      setSlugPreview(preview);
-    }
-  }, [formData.slug, slugPreview]);
-
-  // Update color theme based on character type
-  useEffect(() => {
-    const newColor = CHARACTER_TYPE_CONFIG[formData.character_type].color;
-    if (formData.color_theme !== newColor) {
-      setFormData(prev => ({
-        ...prev,
-        color_theme: newColor
-      }));
-    }
-  }, [formData.character_type, formData.color_theme]);
-
-  // ✅ FOCUS PRESERVATION: Input change handler WITHOUT any auto-save
-  const handleInputChange = useCallback((field: string, value: any) => {
-    console.log(`🎯 INPUT UPDATE: ${field} = "${value}"`);
-    
-    setFormData(prev => ({
-      ...prev,
+    setFormData(current => ({
+      ...current,
       [field]: value
     }));
     
     setHasUnsavedChanges(true);
     
-    // Clear error when user starts typing
+    // Clear errors
     if (errors[field]) {
-      setErrors(prev => {
-        const { [field]: removed, ...rest } = prev;
+      setErrors(current => {
+        const { [field]: _, ...rest } = current;
         return rest;
       });
     }
-    
-    // ✅ COMPLETELY NO AUTO-SAVE - Focus stays in input
   }, [errors]);
 
-  // SLUG-SPECIFIC HANDLERS
+  // 🔥 NUCLEAR: Handle slug changes
   const handleSlugChange = useCallback((value: string) => {
-    handleInputChange('slug', value);
+    updateField('slug', value);
     setIsSlugManual(true);
     setSlugNormalized(false);
-  }, [handleInputChange]);
+  }, [updateField]);
 
   const handleSlugBlur = useCallback(() => {
-    const currentSlug = formData.slug;
-    const normalizedSlug = normalizeSlug(currentSlug);
-    
-    if (currentSlug !== normalizedSlug) {
-      handleInputChange('slug', normalizedSlug);
+    const normalized = normalizeSlug(formData.slug);
+    if (normalized !== formData.slug) {
+      updateField('slug', normalized);
       setSlugNormalized(true);
       setTimeout(() => setSlugNormalized(false), 2000);
     }
-  }, [formData.slug, handleInputChange]);
+  }, [formData.slug, updateField]);
 
   const handleRegenerateSlug = useCallback(() => {
     if (formData.name) {
       const newSlug = generateCharacterSlug(formData.name);
-      handleInputChange('slug', normalizeSlug(newSlug));
+      updateField('slug', normalizeSlug(newSlug));
       setIsSlugManual(false);
     }
-  }, [formData.name, handleInputChange]);
+  }, [formData.name, updateField]);
 
-  const copySlugToClipboard = useCallback(async () => {
-    if (formData.slug) {
-      try {
-        await navigator.clipboard.writeText(slugPreview);
-      } catch (err) {
-        console.error('Failed to copy URL:', err);
-      }
-    }
-  }, [formData.slug, slugPreview]);
-
-  // ARRAY FIELD HANDLER
-  const handleArrayChange = useCallback((field: string, value: string) => {
+  // 🔥 NUCLEAR: Array field handler
+  const handleArrayField = useCallback((field: keyof CharacterFormData, value: string) => {
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
-    handleInputChange(field, array);
-  }, [handleInputChange]);
+    updateField(field, array);
+  }, [updateField]);
 
-  // Manual save function - ONLY WAY TO SAVE
-  const handleManualSave = useCallback(async () => {
-    console.log('💾 Manual save initiated');
+  // 🔥 NUCLEAR: Auto-generate slug from name (but without useEffect)
+  const handleNameChange = useCallback((value: string) => {
+    updateField('name', value);
     
-    // Clear any pending operations
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
+    // Auto-generate slug if not manually set
+    if (!isSlugManual && value) {
+      const newSlug = generateCharacterSlug(value);
+      updateField('slug', normalizeSlug(newSlug));
+    }
+  }, [updateField, isSlugManual]);
+
+  // Character type change handler
+  const handleCharacterTypeChange = useCallback((value: string) => {
+    updateField('character_type', value);
+    updateField('color_theme', CHARACTER_TYPE_CONFIG[value as CharacterType].color);
+  }, [updateField]);
+
+  // 🔥 NUCLEAR: Manual save function - ONLY way to save
+  const handleSave = useCallback(async () => {
+    console.log('🔥 NUCLEAR SAVE: Starting manual save');
+    
+    // Validate
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Character name is required';
     }
     
-    if (!validateForm()) {
+    if (!formData.slug.trim()) {
+      newErrors.slug = 'Character slug is required';
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Character description is required';
+    }
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
     
@@ -417,9 +245,15 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     try {
       const finalSlug = normalizeSlug(formData.slug);
       
-      const isSlugUnique = await checkSlugUniqueness(finalSlug);
-      if (!isSlugUnique) {
-        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
+      // Check slug uniqueness
+      const { data: existingChar } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('slug', finalSlug)
+        .neq('id', character?.id || '');
+      
+      if (existingChar && existingChar.length > 0) {
+        setErrors({ slug: 'This slug is already taken' });
         setLoading(false);
         return;
       }
@@ -454,203 +288,41 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         result = data;
       }
       
-      console.log('✅ Manual save successful:', result);
+      console.log('🔥 NUCLEAR SAVE: Success');
       setHasUnsavedChanges(false);
       onSave(result);
-    } catch (error: any) {
-      console.error('❌ Manual save failed:', error);
       
-      if (error.code === '23505') {
-        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
-      } else {
-        setErrors({ general: error.message || 'Failed to save character' });
-      }
+    } catch (error: any) {
+      console.error('🔥 NUCLEAR SAVE: Failed', error);
+      setErrors({ general: error.message });
     } finally {
       setLoading(false);
     }
   }, [formData, character, onSave]);
 
-  const validateForm = useCallback((): boolean => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.name.trim()) {
-      newErrors.name = 'Character name is required';
-    }
-    
-    const normalizedSlug = normalizeSlug(formData.slug);
-    if (!normalizedSlug) {
-      newErrors.slug = 'Character slug is required';
-    } else if (!/^[a-z0-9-]+$/.test(normalizedSlug)) {
-      newErrors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
-    }
-    
-    if (!formData.description.trim()) {
-      newErrors.description = 'Character description is required';
-    }
-    
-    if (formData.importance_score < 0 || formData.importance_score > 100) {
-      newErrors.importance_score = 'Importance score must be between 0 and 100';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
-
-  const checkSlugUniqueness = useCallback(async (slug: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('characters')
-        .select('id')
-        .eq('slug', slug)
-        .neq('id', character?.id || '');
-      
-      if (error) {
-        console.error('Error checking slug uniqueness:', error);
-        return true;
-      }
-      
-      return data.length === 0;
-    } catch (error) {
-      console.error('Error checking slug uniqueness:', error);
-      return true;
-    }
-  }, [character?.id]);
-
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    await handleManualSave();
-  }, [handleManualSave]);
+    handleSave();
+  }, [handleSave]);
 
-  // ✅ STABLE: Memoized tabs to prevent re-renders
-  const tabs = useMemo(() => [
+  const copySlugToClipboard = useCallback(async () => {
+    if (formData.slug) {
+      const url = `https://www.zoroastervers.com/characters/${formData.slug}`;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    }
+  }, [formData.slug]);
+
+  const tabs = [
     { id: 'basic', label: 'Basic Info', icon: <User className="w-4 h-4" /> },
     { id: 'details', label: 'Details', icon: <Eye className="w-4 h-4" /> },
     { id: 'personality', label: 'Personality', icon: <Heart className="w-4 h-4" /> },
     { id: 'story', label: 'Story', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
-  ], []);
-
-  // ✅ FOCUS PRESERVATION: Optimized input field component
-  const InputField: React.FC<{
-    label: string;
-    field: keyof CharacterFormData;
-    type?: 'text' | 'number' | 'textarea' | 'select';
-    options?: { value: string; label: string }[];
-    placeholder?: string;
-    required?: boolean;
-    rows?: number;
-  }> = useCallback(({ label, field, type = 'text', options, placeholder, required, rows = 3 }) => {
-    const value = formData[field];
-    const error = errors[field];
-    const fieldKey = field as string;
-    
-    return (
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {label} {required && <span className="text-red-500">*</span>}
-        </label>
-        
-        {type === 'textarea' ? (
-          <textarea
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
-            value={value as string || ''}
-            onChange={(e) => {
-              console.log(`🔵 TEXTAREA ${fieldKey}: "${e.target.value}"`);
-              handleInputChange(fieldKey, e.target.value);
-            }}
-            placeholder={placeholder}
-            rows={rows}
-            className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
-              error ? 'border-red-500' : 'border-border'
-            }`}
-          />
-        ) : type === 'select' ? (
-          <select
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
-            value={value as string || ''}
-            onChange={(e) => {
-              console.log(`🔵 SELECT ${fieldKey}: "${e.target.value}"`);
-              handleInputChange(fieldKey, e.target.value);
-            }}
-            className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
-              error ? 'border-red-500' : 'border-border'
-            }`}
-          >
-            {options?.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        ) : type === 'number' ? (
-          <input
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
-            type="number"
-            value={value as number || 0}
-            onChange={(e) => {
-              const numValue = parseInt(e.target.value) || 0;
-              console.log(`🔵 NUMBER ${fieldKey}: ${numValue}`);
-              handleInputChange(fieldKey, numValue);
-            }}
-            placeholder={placeholder}
-            className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
-              error ? 'border-red-500' : 'border-border'
-            }`}
-          />
-        ) : (
-          <input
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
-            type="text"
-            value={value as string || ''}
-            onChange={(e) => {
-              console.log(`🔵 TEXT ${fieldKey}: "${e.target.value}"`);
-              handleInputChange(fieldKey, e.target.value);
-            }}
-            placeholder={placeholder}
-            className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
-              error ? 'border-red-500' : 'border-border'
-            }`}
-          />
-        )}
-        
-        {error && (
-          <p className="mt-1 text-sm text-red-500">{error}</p>
-        )}
-      </div>
-    );
-  }, [formData, errors, handleInputChange]);
-
-  // ✅ FOCUS PRESERVATION: Optimized array input field component
-  const ArrayInputField: React.FC<{
-    label: string;
-    field: keyof CharacterFormData;
-    placeholder?: string;
-  }> = useCallback(({ label, field, placeholder }) => {
-    const value = (formData[field] as string[]) || [];
-    const fieldKey = field as string;
-    
-    return (
-      <div>
-        <label className="block text-sm font-medium text-foreground mb-2">
-          {label}
-        </label>
-        <input
-          ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
-          type="text"
-          value={value.join(', ')}
-          onChange={(e) => {
-            console.log(`🔵 ARRAY ${fieldKey}: "${e.target.value}"`);
-            handleArrayChange(fieldKey, e.target.value);
-          }}
-          placeholder={placeholder}
-          className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-        />
-        <p className="mt-1 text-xs text-muted-foreground">
-          Separate multiple items with commas
-        </p>
-      </div>
-    );
-  }, [formData, handleArrayChange]);
+  ];
 
   return (
     <div className={`bg-card rounded-lg border border-border ${className}`}>
@@ -665,9 +337,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           </p>
         </div>
         
-        {/* Save Status and Manual Save Button */}
         <div className="flex items-center space-x-4">
-          {/* Unsaved changes indicator */}
           {hasUnsavedChanges && (
             <div className="flex items-center space-x-2 text-sm text-yellow-600">
               <div className="w-2 h-2 bg-yellow-500 rounded-full" />
@@ -675,10 +345,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
             </div>
           )}
           
-          {/* Manual save button */}
           <button
             type="button"
-            onClick={handleManualSave}
+            onClick={handleSave}
             disabled={loading || !hasUnsavedChanges}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
           >
@@ -699,11 +368,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         </div>
       </div>
 
-      {/* Form */}
-      <form ref={formRef} onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         {/* Tabs */}
         <div className="border-b border-border">
-          <nav className="flex space-x-8 px-6" aria-label="Tabs">
+          <nav className="flex space-x-8 px-6">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -724,7 +392,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
 
         {/* Form Content */}
         <div className="p-6">
-          {/* General Error */}
           {errors.general && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -736,30 +403,41 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           {activeTab === 'basic' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Character Name"
-                  field="name"
-                  placeholder="Enter character name"
-                  required
-                />
+                {/* 🔥 NUCLEAR: Static input components */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Character Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    ref={nameInputRef}
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: NAME = "${e.target.value}"`);
+                      handleNameChange(e.target.value);
+                    }}
+                    placeholder="Enter character name"
+                    className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
+                      errors.name ? 'border-red-500' : 'border-border'
+                    }`}
+                  />
+                  {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+                </div>
                 
-                {/* ENHANCED SLUG FIELD */}
+                {/* Slug Field */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Slug <span className="text-red-500">*</span>
-                    <span className="text-xs text-muted-foreground ml-2">
-                      (URL-friendly version of name)
-                    </span>
+                    <span className="text-xs text-muted-foreground ml-2">(URL-friendly version)</span>
                   </label>
-                  
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <input
-                        ref={(el) => { if (el) inputRefs.current['slug'] = el; }}
+                        ref={slugInputRef}
                         type="text"
                         value={formData.slug}
                         onChange={(e) => {
-                          console.log(`🔵 SLUG: "${e.target.value}"`);
+                          console.log(`🔥 NUCLEAR: SLUG = "${e.target.value}"`);
                           handleSlugChange(e.target.value);
                         }}
                         onBlur={handleSlugBlur}
@@ -768,22 +446,18 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                           errors.slug ? 'border-red-500' : slugNormalized ? 'border-green-500' : 'border-border'
                         }`}
                       />
-                      
                       <button
                         type="button"
                         onClick={handleRegenerateSlug}
                         className="px-3 py-2 bg-muted hover:bg-muted/80 rounded-lg text-muted-foreground hover:text-foreground transition-colors duration-200"
-                        title="Regenerate from name"
                       >
                         <RefreshCw className="w-4 h-4" />
                       </button>
-                      
-                      {slugPreview && (
+                      {formData.slug && (
                         <button
                           type="button"
                           onClick={copySlugToClipboard}
                           className="px-3 py-2 bg-muted hover:bg-muted/80 rounded-lg text-muted-foreground hover:text-foreground transition-colors duration-200"
-                          title="Copy URL"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
@@ -793,86 +467,136 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     {slugNormalized && (
                       <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
                         <Shield className="w-4 h-4" />
-                        <span>Slug automatically cleaned and normalized</span>
+                        <span>Slug automatically cleaned</span>
                       </div>
                     )}
                     
-                    {slugPreview && (
+                    {formData.slug && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded text-sm text-muted-foreground">
                         <ExternalLink className="w-4 h-4" />
-                        <span className="font-mono">{slugPreview}</span>
+                        <span className="font-mono">https://www.zoroastervers.com/characters/{formData.slug}</span>
                       </div>
                     )}
                     
-                    {errors.slug && (
-                      <p className="text-sm text-red-500">{errors.slug}</p>
-                    )}
-                    
-                    <p className="text-xs text-muted-foreground">
-                      This creates the URL for the character's profile page. 
-                      Auto-generates from name, but you can customize it.
-                    </p>
+                    {errors.slug && <p className="text-sm text-red-500">{errors.slug}</p>}
                   </div>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Title/Nickname"
-                  field="title"
-                  placeholder="e.g., The Prophet, The Dark Lord"
-                />
-                <ArrayInputField
-                  label="Aliases"
-                  field="aliases"
-                  placeholder="Alternative names, separated by commas"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Title/Nickname</label>
+                  <input
+                    ref={titleInputRef}
+                    type="text"
+                    value={formData.title}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: TITLE = "${e.target.value}"`);
+                      updateField('title', e.target.value);
+                    }}
+                    placeholder="e.g., The Prophet, The Dark Lord"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Aliases</label>
+                  <input
+                    type="text"
+                    value={formData.aliases.join(', ')}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: ALIASES = "${e.target.value}"`);
+                      handleArrayField('aliases', e.target.value);
+                    }}
+                    placeholder="Alternative names, separated by commas"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+                </div>
               </div>
               
-              <InputField
-                label="Description"
-                field="description"
-                type="textarea"
-                placeholder="Describe the character's role and significance in your story"
-                rows={4}
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  ref={descriptionInputRef}
+                  value={formData.description}
+                  onChange={(e) => {
+                    console.log(`🔥 NUCLEAR: DESCRIPTION = "${e.target.value}"`);
+                    updateField('description', e.target.value);
+                  }}
+                  placeholder="Describe the character's role and significance in your story"
+                  rows={4}
+                  className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
+                    errors.description ? 'border-red-500' : 'border-border'
+                  }`}
+                />
+                {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <InputField
-                  label="Character Type"
-                  field="character_type"
-                  type="select"
-                  options={characterTypeOptions}
-                />
-                <InputField
-                  label="Status"
-                  field="status"
-                  type="select"
-                  options={characterStatusOptions}
-                />
-                <InputField
-                  label="Power Level"
-                  field="power_level"
-                  type="select"
-                  options={powerLevelOptions}
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Character Type</label>
+                  <select
+                    value={formData.character_type}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: CHARACTER_TYPE = "${e.target.value}"`);
+                      handleCharacterTypeChange(e.target.value);
+                    }}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  >
+                    {Object.entries(CHARACTER_TYPE_CONFIG).map(([key, config]) => (
+                      <option key={key} value={key}>{config.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Status</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: STATUS = "${e.target.value}"`);
+                      updateField('status', e.target.value);
+                    }}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  >
+                    {Object.entries(CHARACTER_STATUS_CONFIG).map(([key, config]) => (
+                      <option key={key} value={key}>{config.label}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Power Level</label>
+                  <select
+                    value={formData.power_level}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: POWER_LEVEL = "${e.target.value}"`);
+                      updateField('power_level', e.target.value);
+                    }}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  >
+                    {Object.entries(POWER_LEVEL_CONFIG).map(([key, config]) => (
+                      <option key={key} value={key}>{config.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Importance Score (0-100)
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Importance Score (0-100)</label>
                   <input
                     type="range"
                     min="0"
                     max="100"
                     value={formData.importance_score}
                     onChange={(e) => {
-                      const numValue = parseInt(e.target.value);
-                      console.log(`🔵 RANGE importance_score: ${numValue}`);
-                      handleInputChange('importance_score', numValue);
+                      const value = parseInt(e.target.value);
+                      console.log(`🔥 NUCLEAR: IMPORTANCE = ${value}`);
+                      updateField('importance_score', value);
                     }}
                     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                   />
@@ -889,8 +613,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       type="checkbox"
                       checked={formData.is_major_character}
                       onChange={(e) => {
-                        console.log(`🔵 CHECKBOX is_major_character: ${e.target.checked}`);
-                        handleInputChange('is_major_character', e.target.checked);
+                        console.log(`🔥 NUCLEAR: IS_MAJOR = ${e.target.checked}`);
+                        updateField('is_major_character', e.target.checked);
                       }}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
@@ -903,8 +627,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       type="checkbox"
                       checked={formData.is_pov_character}
                       onChange={(e) => {
-                        console.log(`🔵 CHECKBOX is_pov_character: ${e.target.checked}`);
-                        handleInputChange('is_pov_character', e.target.checked);
+                        console.log(`🔥 NUCLEAR: IS_POV = ${e.target.checked}`);
+                        updateField('is_pov_character', e.target.checked);
                       }}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
@@ -920,157 +644,217 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           {activeTab === 'details' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <InputField
-                  label="Age"
-                  field="age"
-                  type="number"
-                  placeholder="25"
-                />
-                <InputField
-                  label="Age Description"
-                  field="age_description"
-                  placeholder="e.g., Ancient, Young Adult"
-                />
-                <InputField
-                  label="Gender"
-                  field="gender"
-                  placeholder="Male, Female, Non-binary, etc."
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Age</label>
+                  <input
+                    type="number"
+                    value={formData.age || ''}
+                    onChange={(e) => {
+                      const value = e.target.value ? parseInt(e.target.value) : undefined;
+                      console.log(`🔥 NUCLEAR: AGE = ${value}`);
+                      updateField('age', value);
+                    }}
+                    placeholder="25"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Age Description</label>
+                  <input
+                    type="text"
+                    value={formData.age_description}
+                    onChange={(e) => updateField('age_description', e.target.value)}
+                    placeholder="e.g., Ancient, Young Adult"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Gender</label>
+                  <input
+                    type="text"
+                    value={formData.gender}
+                    onChange={(e) => updateField('gender', e.target.value)}
+                    placeholder="Male, Female, Non-binary, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Species"
-                  field="species"
-                  placeholder="Human, Elf, Dragon, etc."
-                />
-                <InputField
-                  label="Occupation"
-                  field="occupation"
-                  placeholder="Prophet, King, Warrior, etc."
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Species</label>
+                  <input
+                    type="text"
+                    value={formData.species}
+                    onChange={(e) => updateField('species', e.target.value)}
+                    placeholder="Human, Elf, Dragon, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Occupation</label>
+                  <input
+                    type="text"
+                    value={formData.occupation}
+                    onChange={(e) => updateField('occupation', e.target.value)}
+                    placeholder="Prophet, King, Warrior, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Current Location"
-                  field="location"
-                  placeholder="Where they currently reside"
-                />
-                <InputField
-                  label="Origin"
-                  field="origin"
-                  placeholder="Where they're from originally"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Current Location</label>
+                  <input
+                    type="text"
+                    value={formData.location}
+                    onChange={(e) => updateField('location', e.target.value)}
+                    placeholder="Where they currently reside"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Origin</label>
+                  <input
+                    type="text"
+                    value={formData.origin}
+                    onChange={(e) => updateField('origin', e.target.value)}
+                    placeholder="Where they're from originally"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Height"
-                  field="height"
-                  placeholder="6 feet 2 inches, Tall, Short, etc."
-                />
-                <InputField
-                  label="Build"
-                  field="build"
-                  placeholder="Athletic, Slender, Muscular, etc."
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Height</label>
+                  <input
+                    type="text"
+                    value={formData.height}
+                    onChange={(e) => updateField('height', e.target.value)}
+                    placeholder="6 feet 2 inches, Tall, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Build</label>
+                  <input
+                    type="text"
+                    value={formData.build}
+                    onChange={(e) => updateField('build', e.target.value)}
+                    placeholder="Athletic, Slender, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Hair Color"
-                  field="hair_color"
-                  placeholder="Brown, Silver, Black, etc."
-                />
-                <InputField
-                  label="Eye Color"
-                  field="eye_color"
-                  placeholder="Blue, Brown, Green, etc."
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Hair Color</label>
+                  <input
+                    type="text"
+                    value={formData.hair_color}
+                    onChange={(e) => updateField('hair_color', e.target.value)}
+                    placeholder="Brown, Silver, Black, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Eye Color</label>
+                  <input
+                    type="text"
+                    value={formData.eye_color}
+                    onChange={(e) => updateField('eye_color', e.target.value)}
+                    placeholder="Blue, Brown, Green, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
               </div>
               
-              <InputField
-                label="Distinguishing Features"
-                field="distinguishing_features"
-                type="textarea"
-                placeholder="Scars, birthmarks, unique characteristics..."
-              />
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Distinguishing Features</label>
+                <textarea
+                  value={formData.distinguishing_features}
+                  onChange={(e) => updateField('distinguishing_features', e.target.value)}
+                  placeholder="Scars, birthmarks, unique characteristics..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                />
+              </div>
             </div>
           )}
 
-          {/* Personality Tab */}
+          {/* Other tabs would go here with similar static structure */}
           {activeTab === 'personality' && (
             <div className="space-y-6">
-              <ArrayInputField
-                label="Personality Traits"
-                field="personality_traits"
-                placeholder="Wise, Brave, Cunning, Compassionate"
-              />
-              
-              <InputField
-                label="Background Summary"
-                field="background_summary"
-                type="textarea"
-                placeholder="Character's backstory and history..."
-                rows={4}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ArrayInputField
-                  label="Motivations"
-                  field="motivations"
-                  placeholder="What drives this character"
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Personality Traits</label>
+                <input
+                  type="text"
+                  value={formData.personality_traits.join(', ')}
+                  onChange={(e) => handleArrayField('personality_traits', e.target.value)}
+                  placeholder="Wise, Brave, Cunning, Compassionate"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
-                <ArrayInputField
-                  label="Fears"
-                  field="fears"
-                  placeholder="What they're afraid of"
+                <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Background Summary</label>
+                <textarea
+                  value={formData.background_summary}
+                  onChange={(e) => updateField('background_summary', e.target.value)}
+                  placeholder="Character's backstory and history..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ArrayInputField
-                  label="Goals"
-                  field="goals"
-                  placeholder="What they want to achieve"
-                />
-                <ArrayInputField
-                  label="Skills"
-                  field="skills"
-                  placeholder="What they're good at"
-                />
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Motivations</label>
+                  <input
+                    type="text"
+                    value={formData.motivations.join(', ')}
+                    onChange={(e) => handleArrayField('motivations', e.target.value)}
+                    placeholder="What drives this character"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Fears</label>
+                  <input
+                    type="text"
+                    value={formData.fears.join(', ')}
+                    onChange={(e) => handleArrayField('fears', e.target.value)}
+                    placeholder="What they're afraid of"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+                </div>
               </div>
-              
-              <ArrayInputField
-                label="Weaknesses"
-                field="weaknesses"
-                placeholder="Character flaws and limitations"
-              />
             </div>
           )}
 
-          {/* Story Tab */}
           {activeTab === 'story' && (
             <div className="space-y-6">
-              <InputField
-                label="Character Arc Summary"
-                field="character_arc_summary"
-                type="textarea"
-                placeholder="How this character evolves throughout the story..."
-                rows={4}
-              />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputField
-                  label="Primary Faction"
-                  field="primary_faction"
-                  placeholder="Main group they belong to"
-                />
-                <ArrayInputField
-                  label="Allegiances"
-                  field="allegiances"
-                  placeholder="Groups, causes, or people they support"
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Character Arc Summary</label>
+                <textarea
+                  value={formData.character_arc_summary}
+                  onChange={(e) => updateField('character_arc_summary', e.target.value)}
+                  placeholder="How this character evolves throughout the story..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
               </div>
               
@@ -1079,55 +863,39 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <input
                     type="checkbox"
                     checked={formData.is_spoiler_sensitive}
-                    onChange={(e) => {
-                      console.log(`🔵 CHECKBOX is_spoiler_sensitive: ${e.target.checked}`);
-                      handleInputChange('is_spoiler_sensitive', e.target.checked);
-                    }}
+                    onChange={(e) => updateField('is_spoiler_sensitive', e.target.checked)}
                     className="rounded border-border focus:ring-primary/20 text-primary"
                   />
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />
                   <span className="text-sm text-foreground">Contains Spoilers</span>
                 </label>
-                
-                {formData.is_spoiler_sensitive && (
-                  <ArrayInputField
-                    label="Spoiler Tags"
-                    field="spoiler_tags"
-                    placeholder="Major death, plot twist, etc."
-                  />
-                )}
               </div>
             </div>
           )}
 
-          {/* Metadata Tab */}
           {activeTab === 'meta' && (
             <div className="space-y-6">
-              <InputField
-                label="Portrait URL"
-                field="portrait_url"
-                placeholder="https://example.com/character-portrait.jpg"
-              />
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Portrait URL</label>
+                <input
+                  type="text"
+                  value={formData.portrait_url}
+                  onChange={(e) => updateField('portrait_url', e.target.value)}
+                  placeholder="https://example.com/character-portrait.jpg"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                />
+              </div>
               
-              <InputField
-                label="Color Theme"
-                field="color_theme"
-                placeholder="#3B82F6"
-              />
-              
-              <InputField
-                label="Meta Description"
-                field="meta_description"
-                type="textarea"
-                placeholder="SEO description for this character page"
-                rows={3}
-              />
-              
-              <ArrayInputField
-                label="Meta Keywords"
-                field="meta_keywords"
-                placeholder="SEO keywords for this character"
-              />
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Meta Description</label>
+                <textarea
+                  value={formData.meta_description}
+                  onChange={(e) => updateField('meta_description', e.target.value)}
+                  placeholder="SEO description for this character page"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                />
+              </div>
             </div>
           )}
         </div>

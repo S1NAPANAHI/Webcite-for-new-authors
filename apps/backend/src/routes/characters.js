@@ -1,3 +1,6 @@
+// Enhanced Characters API Route - JavaScript Version
+// 🔧 ROBUST CHARACTER LOOKUP WITH COMPREHENSIVE FALLBACK STRATEGY
+
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
 
@@ -55,10 +58,6 @@ router.get('/', async (req, res) => {
     }
     
     console.log(`✅ Successfully fetched ${characters.length} characters`);
-    console.log('📝 Character details:');
-    characters.forEach(c => {
-      console.log(`   - Name: "${c.name}", Slug: "${c.slug}" (length: ${c.slug ? c.slug.length : 0})`);
-    });
     
     // Get relationship and appearance counts for each character
     const characterIds = characters.map(c => c.id);
@@ -131,24 +130,17 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/characters/:slug - Get individual character by slug
+// GET /api/characters/:slug - Get single character by slug
+// 🔧 ENHANCED CHARACTER LOOKUP WITH ROBUST FALLBACK STRATEGY
 router.get('/:slug', async (req, res) => {
   try {
     const { slug } = req.params;
-    const cleanSlug = slug.trim(); // Clean the input slug
-    console.log(`🔍 ENHANCED: Fetching character with slug: "${slug}" (cleaned: "${cleanSlug}")`);
+    const cleanSlug = slug.trim().toLowerCase();
     
-    if (!cleanSlug) {
-      return res.status(400).json({ error: 'Character slug is required' });
-    }
+    console.log(`🔍 Looking for character with slug: "${cleanSlug}"`);
     
-    // FIXED: Try multiple lookup strategies to handle whitespace issues
-    let character = null;
-    let characterError = null;
-    
-    // Strategy 1: Exact match with cleaned slug
-    console.log('🎯 Strategy 1: Exact match with cleaned slug');
-    const { data: exactMatch, error: exactError } = await supabase
+    // Try exact match first
+    let { data: character, error } = await supabase
       .from('characters')
       .select(`
         id,
@@ -198,13 +190,10 @@ router.get('/:slug', async (req, res) => {
       .eq('slug', cleanSlug)
       .single();
     
-    if (exactMatch) {
-      character = exactMatch;
-      console.log(`✅ Found character via exact match: ${character.name}`);
-    } else {
-      console.log('❌ Exact match failed, trying trimmed match...');
+    if (error && error.code === 'PGRST116') {
+      console.log('📋 Exact match failed, trying fallback with all characters...');
       
-      // Strategy 2: Search for characters and match after trimming
+      // Fallback: Get all characters and match with trimmed slugs
       const { data: allCharacters, error: allError } = await supabase
         .from('characters')
         .select(`
@@ -253,40 +242,38 @@ router.get('/:slug', async (req, res) => {
           updated_at
         `);
       
-      if (allCharacters && allCharacters.length > 0) {
-        console.log(`🔍 Searching through ${allCharacters.length} characters for trimmed match`);
-        console.log('Available slugs with lengths:');
-        allCharacters.forEach(c => {
-          console.log(`   - "${c.slug}" (length: ${c.slug ? c.slug.length : 0}, trimmed: "${c.slug ? c.slug.trim() : ''}")`);
-        });
-        
-        character = allCharacters.find(c => c.slug && c.slug.trim().toLowerCase() === cleanSlug.toLowerCase());
-        
-        if (character) {
-          console.log(`✅ Found character via trimmed match: ${character.name} (original slug: "${character.slug}")`);
-          // Clean up the slug in the response
-          character.slug = character.slug.trim();
-        } else {
-          console.log('❌ No trimmed match found for:', cleanSlug);
-          console.log('Searched slugs (trimmed):', allCharacters.map(c => `"${c.slug ? c.slug.trim() : ''}"`));
-        }
-      } else {
-        console.log('⚠️ No characters found in database at all');
+      if (allError) {
+        console.error('❌ Error fetching all characters:', allError);
+        return res.status(500).json({ error: 'Database error', details: allError.message });
       }
       
-      characterError = exactError;
+      // Find character with matching trimmed slug
+      character = allCharacters.find(c => 
+        c.slug && c.slug.trim().toLowerCase() === cleanSlug
+      );
+      
+      if (!character) {
+        console.log(`❌ Character not found for slug: "${cleanSlug}"`);
+        console.log(`📋 Available slugs:`, allCharacters.map(c => `"${c.slug}"`));
+        return res.status(404).json({ 
+          error: 'Character not found', 
+          slug: cleanSlug,
+          availableSlugs: allCharacters.map(c => c.slug?.trim())
+        });
+      }
     }
     
-    if (!character) {
-      console.log(`❌ Character not found with slug: "${cleanSlug}"`);
-      return res.status(404).json({ 
-        error: 'Character not found', 
-        slug: cleanSlug,
-        originalSlug: slug
-      });
+    if (error) {
+      console.error('❌ Database error:', error);
+      return res.status(500).json({ error: 'Database error', details: error.message });
     }
     
-    console.log(`✅ Found character: ${character.name}`);
+    // Clean the character data
+    if (character.slug) {
+      character.slug = character.slug.trim();
+    }
+    
+    console.log(`✅ Found character: ${character.name} (slug: "${character.slug}")`);
     
     // Get character abilities
     let abilities = [];
@@ -369,11 +356,8 @@ router.get('/:slug', async (req, res) => {
     res.json(fullCharacterData);
     
   } catch (error) {
-    console.error('💥 Unexpected error fetching character:', error);
-    res.status(500).json({ 
-      error: 'Internal server error', 
-      details: error.message 
-    });
+    console.error('❌ Server error in character lookup:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -383,7 +367,7 @@ router.get('/:slug/relationships', async (req, res) => {
     const { slug } = req.params;
     const cleanSlug = slug.trim();
     
-    // FIXED: Use the same lookup strategy as the main endpoint
+    // Use the same lookup strategy as the main endpoint
     let character = null;
     
     // Try exact match first
@@ -402,7 +386,7 @@ router.get('/:slug/relationships', async (req, res) => {
         .select('id, name, slug');
       
       if (allCharacters) {
-        character = allCharacters.find(c => c.slug && c.slug.trim().toLowerCase() === cleanSlug.toLowerCase());
+        character = allCharacters.find(c => c.slug && c.slug.trim() === cleanSlug);
       }
     }
     
@@ -448,7 +432,7 @@ router.get('/:slug/abilities', async (req, res) => {
     const { slug } = req.params;
     const cleanSlug = slug.trim();
     
-    // FIXED: Use the same lookup strategy as the main endpoint
+    // Use the same lookup strategy as the main endpoint
     let character = null;
     
     // Try exact match first
@@ -467,7 +451,7 @@ router.get('/:slug/abilities', async (req, res) => {
         .select('id, name, slug');
       
       if (allCharacters) {
-        character = allCharacters.find(c => c.slug && c.slug.trim().toLowerCase() === cleanSlug.toLowerCase());
+        character = allCharacters.find(c => c.slug && c.slug.trim() === cleanSlug);
       }
     }
     

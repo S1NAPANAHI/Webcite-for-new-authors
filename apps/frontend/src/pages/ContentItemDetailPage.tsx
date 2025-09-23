@@ -19,7 +19,11 @@ import {
   Download,
   Loader,
   Lock,
-  Crown
+  Crown,
+  Book,
+  Bookmark,
+  Layers,
+  Archive
 } from 'lucide-react';
 import { useAuth, supabase } from '@zoroaster/shared';
 import {
@@ -170,6 +174,257 @@ function RatingDisplay({ rating, reviewCount, userRating, onRate }: RatingDispla
   );
 }
 
+// Get appropriate icon for content type
+function getContentTypeIcon(type: ContentItemType) {
+  switch (type) {
+    case 'book': return Book;
+    case 'volume': return Bookmark;
+    case 'saga': return Layers;
+    case 'arc': return Archive;
+    case 'issue': return FileText;
+    default: return BookOpen;
+  }
+}
+
+// Enhanced Child Items Display Component
+interface ChildItemsGridProps {
+  item: ContentItemWithChildren;
+  childType: ContentItemType;
+}
+
+function ChildItemsGrid({ item, childType }: ChildItemsGridProps) {
+  const [childItems, setChildItems] = useState<ContentItemWithChildren[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  
+  const childLevel = HIERARCHY_LEVELS[childType];
+  const IconComponent = getContentTypeIcon(childType);
+  
+  useEffect(() => {
+    loadChildItems();
+  }, [item.id, childType]);
+  
+  const loadChildItems = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log(`\n🔍 Loading child items of type '${childType}' for parent:`, item.id);
+      
+      const { data, error } = await supabase
+        .from('content_items')
+        .select(`
+          *,
+          chapters:chapters(count)
+        `)
+        .eq('parent_id', item.id)
+        .eq('type', childType)
+        .eq('status', 'published')
+        .order('order_index', { ascending: true });
+      
+      if (error) {
+        console.error(`❌ Error loading ${childType}s:`, error);
+        setError(`Failed to load ${childLevel.label.toLowerCase()}s`);
+        return;
+      }
+      
+      console.log(`✅ Loaded ${data?.length || 0} ${childType}s:`, data);
+      setChildItems(data || []);
+    } catch (err) {
+      console.error(`💥 Error loading ${childType}s:`, err);
+      setError(`Failed to load ${childLevel.label.toLowerCase()}s`);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  if (loading) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader className="w-6 h-6 text-primary animate-spin" />
+          <span className="ml-2 text-muted-foreground">Loading {childLevel.label.toLowerCase()}s...</span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-6">
+        <div className="text-center py-12">
+          <div className="text-red-500 mb-2">{error}</div>
+          <button 
+            onClick={loadChildItems}
+            className="text-sm text-primary hover:underline"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+  
+  if (childItems.length === 0) {
+    return (
+      <div className="bg-card rounded-lg border border-border p-6">
+        <div className="text-center py-12">
+          <IconComponent className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
+            No {childLevel.label.toLowerCase()}s yet
+          </h3>
+          <p className="text-muted-foreground">
+            This {HIERARCHY_LEVELS[item.type].label.toLowerCase()} doesn't have any {childLevel.label.toLowerCase()}s published yet.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="bg-card rounded-lg border border-border">
+      <div className="px-6 py-4 border-b border-border">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <IconComponent className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">
+              {childLevel.label}s in this {HIERARCHY_LEVELS[item.type].label}
+            </h3>
+          </div>
+          <span className="text-sm text-muted-foreground">
+            {childItems.length} {childItems.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Browse all {childLevel.label.toLowerCase()}s contained within "{item.title}"
+        </p>
+      </div>
+      
+      <div className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {childItems.map((child) => {
+            const coverUrl = child.cover_image_url || (child.cover_file_id ? `/api/files/${child.cover_file_id}` : null);
+            const chapterCount = Array.isArray(child.chapters) ? child.chapters.length : (child.chapters as any)?.count || 0;
+            
+            return (
+              <Link
+                key={child.id}
+                to={`/library/${child.type}/${child.slug}`}
+                className="group block bg-background rounded-lg border border-border hover:border-primary/50 hover:shadow-lg transition-all duration-200 overflow-hidden"
+              >
+                {/* Cover Image */}
+                <div className="aspect-[4/3] bg-muted overflow-hidden">
+                  {coverUrl ? (
+                    <img 
+                      src={coverUrl} 
+                      alt={child.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                      loading="lazy"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const container = target.parentElement;
+                        if (container) {
+                          const iconSvg = childType === 'book' ? 
+                            '<svg class="w-12 h-12 text-muted-foreground mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>' :
+                            childType === 'volume' ?
+                            '<svg class="w-12 h-12 text-muted-foreground mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>' :
+                            childType === 'saga' ?
+                            '<svg class="w-12 h-12 text-muted-foreground mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>' :
+                            childType === 'arc' ?
+                            '<svg class="w-12 h-12 text-muted-foreground mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M20.54 5.23l-1.39-1.68C18.88 3.21 18.47 3 18 3H6c-.47 0-.88.21-1.16.55L3.46 5.23C3.17 5.57 3 6.02 3 6.5V19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6.5c0-.48-.17-.93-.46-1.27zM12 17.5L6.5 15l-1.5 2.5V9.5l7-2 7 2v8L17.5 15 12 17.5z"/></svg>' :
+                            '<svg class="w-12 h-12 text-muted-foreground mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>';
+                          
+                          container.innerHTML = `
+                            <div class="w-full h-full flex items-center justify-center bg-muted">
+                              <div class="text-center">
+                                ${iconSvg}
+                                <div class="text-xs text-muted-foreground">${childLevel.label}</div>
+                              </div>
+                            </div>
+                          `;
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-muted">
+                      <div className="text-center">
+                        <IconComponent className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                        <div className="text-xs text-muted-foreground">{childLevel.label}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Content Info */}
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors duration-200 line-clamp-2 flex-1">
+                      {child.title}
+                    </h4>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 ml-2 mt-1" />
+                  </div>
+                  
+                  {child.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {child.description}
+                    </p>
+                  )}
+                  
+                  {/* Stats */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center space-x-3">
+                      {/* Rating */}
+                      <div className="flex items-center space-x-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                        <span>{child.average_rating.toFixed(1)}</span>
+                      </div>
+                      
+                      {/* Completion */}
+                      <div className="flex items-center space-x-1">
+                        <BarChart3 className="w-3 h-3" />
+                        <span>{child.completion_percentage}%</span>
+                      </div>
+                      
+                      {/* Chapter count for issues */}
+                      {child.type === 'issue' && chapterCount > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <FileText className="w-3 h-3" />
+                          <span>{chapterCount} ch</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Published date */}
+                    {child.published_at && (
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(child.published_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Progress bar for completion */}
+                  {child.completion_percentage > 0 && (
+                    <div className="mt-3">
+                      <div className="w-full bg-muted rounded-full h-1.5">
+                        <div 
+                          className="bg-primary h-1.5 rounded-full transition-all duration-200" 
+                          style={{ width: `${child.completion_percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Function to build breadcrumbs from hierarchy
 async function buildBreadcrumbs(item: ContentItemWithChildren): Promise<BreadcrumbItem[]> {
   const breadcrumbs: BreadcrumbItem[] = [
@@ -239,6 +494,21 @@ export default function ContentItemDetailPage() {
     return coverUrlFromFile || item?.cover_image_url || null;
   }, [coverUrlFromFile, item?.cover_image_url]);
   
+  // Determine what type of children this item should have
+  const childType = useMemo(() => {
+    if (!item) return null;
+    
+    const currentOrder = HIERARCHY_LEVELS[item.type as ContentItemType]?.order;
+    if (currentOrder === undefined) return null;
+    
+    // Find the next level in the hierarchy
+    const nextLevel = Object.entries(HIERARCHY_LEVELS).find(
+      ([_, level]) => level.order === currentOrder + 1
+    );
+    
+    return nextLevel ? (nextLevel[0] as ContentItemType) : null;
+  }, [item?.type]);
+  
   // Only run this effect when the route parameters change or user changes
   useEffect(() => {
     if (type && slug) {
@@ -303,6 +573,7 @@ export default function ContentItemDetailPage() {
       console.log('✅ CONTENT ITEM DETAIL - Item loaded:', {
         id: itemData.id,
         title: itemData.title,
+        type: itemData.type,
         cover_image_url: itemData.cover_image_url,
         cover_file_id: itemData.cover_file_id,
         chaptersCount: itemData.chapters?.length || 0
@@ -641,7 +912,8 @@ export default function ContentItemDetailPage() {
     publishedChapters: publishedChapters.length,
     totalChapters,
     completedChapters,
-    overallProgress
+    overallProgress,
+    childType
   });
   
   console.log('🎨 COVER IMAGE DEBUG:', {
@@ -778,10 +1050,12 @@ export default function ContentItemDetailPage() {
                     <span className="text-muted-foreground">Completion</span>
                     <span className="font-medium text-foreground">{item.completion_percentage}%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Chapters</span>
-                    <span className="font-medium text-foreground">{publishedChapters.length}/{totalChapters}</span>
-                  </div>
+                  {item.type === 'issue' && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Chapters</span>
+                      <span className="font-medium text-foreground">{publishedChapters.length}/{totalChapters}</span>
+                    </div>
+                  )}
                   {item.metadata?.total_words && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Word Count</span>
@@ -838,7 +1112,7 @@ export default function ContentItemDetailPage() {
               />
             </div>
             
-            {/* Chapters List */}
+            {/* Chapters List (for issues only) */}
             {item.type === 'issue' && item.chapters && (
               <div className="bg-card rounded-lg border border-border">
                 <div className="px-6 py-4 border-b border-border">
@@ -889,66 +1163,12 @@ export default function ContentItemDetailPage() {
               </div>
             )}
             
-            {/* Child Items (for non-issue types) */}
-            {item.type !== 'issue' && item.children && item.children.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {HIERARCHY_LEVELS[item.children[0].type]?.label}s in this {HIERARCHY_LEVELS[item.type].label}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {item.children.length} items available
-                  </p>
-                </div>
-                
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.id}
-                      to={`/library/${child.type}/${child.slug}`}
-                      className="block p-4 border border-gray-200 rounded-lg hover:border-indigo-200 hover:shadow-sm transition-all duration-200"
-                    >
-                      <div className="flex items-start space-x-3">
-                        <div className="w-12 h-16 bg-gray-200 rounded overflow-hidden flex-shrink-0">
-                          {child.cover_image_url ? (
-                            <img 
-                              src={child.cover_image_url} 
-                              alt={child.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <BookOpen className="w-4 h-4 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-medium text-gray-900 line-clamp-1 mb-1">
-                            {child.title}
-                          </h4>
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-                            {child.description}
-                          </p>
-                          
-                          <div className="flex items-center space-x-3 text-xs text-gray-500">
-                            <div className="flex items-center space-x-1">
-                              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                              <span>{child.average_rating.toFixed(1)}</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <BarChart3 className="w-3 h-3" />
-                              <span>{child.completion_percentage}%</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+            {/* Child Items - Enhanced hierarchical display */}
+            {childType && (
+              <ChildItemsGrid 
+                item={item} 
+                childType={childType}
+              />
             )}
           </div>
         </div>

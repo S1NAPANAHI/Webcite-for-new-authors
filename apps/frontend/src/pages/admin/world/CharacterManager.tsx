@@ -76,51 +76,120 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
     loadCharacters();
   }, []);
 
+  // FIXED: Simple query without complex relationships to avoid PostgREST issues
   const loadCharacters = async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('\ud83d\udd0d Loading characters from database...');
       
-      console.log('🔍 Loading characters from database...');
-      
-      const { data, error } = await supabase
+      // Simple query without complex relationships
+      const { data: charactersData, error: charactersError } = await supabase
         .from('characters')
         .select(`
-          *,
-          abilities:character_abilities(
-            id, name, description, power_level, category, mastery_level, is_signature_ability
-          ),
-          relationships:character_relationships(
-            id, relationship_type, description, strength, is_mutual,
-            related_character:characters!character_relationships_related_character_id_fkey(
-              id, name, slug, character_type, portrait_url
-            )
-          ),
-          appearances:character_appearances(
-            id, importance, description,
-            content_item:content_items(id, title, type, slug)
-          )
+          id,
+          name,
+          slug,
+          title,
+          description,
+          character_type,
+          status,
+          power_level,
+          importance_score,
+          is_major_character,
+          is_pov_character,
+          portrait_url,
+          color_theme,
+          primary_faction,
+          species,
+          occupation,
+          location,
+          personality_traits,
+          allegiances,
+          created_at,
+          updated_at
         `)
         .order('importance_score', { ascending: false });
       
-      if (error) {
-        console.error('❌ Error loading characters:', error);
-        setError('Failed to load characters');
+      if (charactersError) {
+        console.error('\u274c Error loading characters:', charactersError);
+        setError(`Failed to load characters: ${charactersError.message}`);
         return;
       }
       
-      // Process the data to add computed fields
-      const processedCharacters = (data || []).map(character => ({
+      if (!charactersData) {
+        console.log('\u26a0\ufe0f No characters data returned');
+        setCharacters([]);
+        return;
+      }
+      
+      console.log(`\u2705 Successfully loaded ${charactersData.length} characters`);
+      
+      // Load counts separately to avoid relationship issues
+      const characterIds = charactersData.map(c => c.id);
+      
+      let abilityCounts: { [key: string]: number } = {};
+      let relationshipCounts: { [key: string]: number } = {};
+      let appearanceCounts: { [key: string]: number } = {};
+      
+      if (characterIds.length > 0) {
+        // Get ability counts
+        try {
+          const { data: abilities } = await supabase
+            .from('character_abilities')
+            .select('character_id')
+            .in('character_id', characterIds);
+          
+          abilities?.forEach(ability => {
+            abilityCounts[ability.character_id] = (abilityCounts[ability.character_id] || 0) + 1;
+          });
+        } catch (err) {
+          console.log('\u26a0\ufe0f Abilities table may not exist yet');
+        }
+        
+        // Get relationship counts
+        try {
+          const { data: relationships } = await supabase
+            .from('character_relationships')
+            .select('character_id')
+            .in('character_id', characterIds);
+            
+          relationships?.forEach(rel => {
+            relationshipCounts[rel.character_id] = (relationshipCounts[rel.character_id] || 0) + 1;
+          });
+        } catch (err) {
+          console.log('\u26a0\ufe0f Relationships table may not exist yet');
+        }
+        
+        // Get appearance counts
+        try {
+          const { data: appearances } = await supabase
+            .from('character_appearances')
+            .select('character_id')
+            .in('character_id', characterIds);
+            
+          appearances?.forEach(app => {
+            appearanceCounts[app.character_id] = (appearanceCounts[app.character_id] || 0) + 1;
+          });
+        } catch (err) {
+          console.log('\u26a0\ufe0f Appearances table may not exist yet');
+        }
+      }
+      
+      // Combine the data
+      const charactersWithStats = charactersData.map(character => ({
         ...character,
-        appearance_count: character.appearances?.length || 0,
-        relationship_count: character.relationships?.length || 0
+        appearance_count: appearanceCounts[character.id] || 0,
+        relationship_count: relationshipCounts[character.id] || 0,
+        abilities_count: abilityCounts[character.id] || 0
       }));
       
-      console.log(`✅ Loaded ${processedCharacters.length} characters`);
-      setCharacters(processedCharacters);
-    } catch (error) {
-      console.error('💥 Error loading characters:', error);
-      setError('Failed to load characters');
+      console.log(`\u2705 Characters with stats processed: ${charactersWithStats.length}`);
+      setCharacters(charactersWithStats);
+      
+    } catch (error: any) {
+      console.error('\ud83d\udca5 Error loading characters:', error);
+      setError(`Failed to load characters: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -148,21 +217,21 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         .eq('id', character.id);
       
       if (error) {
-        console.error('❌ Error deleting character:', error);
+        console.error('\u274c Error deleting character:', error);
         alert('Failed to delete character');
         return;
       }
       
-      console.log('✅ Character deleted successfully');
+      console.log('\u2705 Character deleted successfully');
       await loadCharacters(); // Refresh the list
     } catch (error) {
-      console.error('💥 Error deleting character:', error);
+      console.error('\ud83d\udca5 Error deleting character:', error);
       alert('Failed to delete character');
     }
   };
 
   const handleSaveCharacter = async (character: Character) => {
-    console.log('🎉 Character saved:', character);
+    console.log('\ud83c\udf89 Character saved:', character);
     setShowCreateModal(false);
     setShowEditModal(false);
     setSelectedCharacter(null);
@@ -343,9 +412,9 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
               <Edit className="w-4 h-4" />
             </button>
             <button
-              onClick={() => window.open(`/characters/${character.slug}`, '_blank')}
+              onClick={() => window.open(`/characters`, '_blank')}
               className="p-1 text-muted-foreground hover:text-primary transition-colors duration-200"
-              title="View Character"
+              title="View Characters Page"
             >
               <ExternalLink className="w-4 h-4" />
             </button>
@@ -383,12 +452,18 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
           <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Failed to Load Characters</h2>
           <p className="text-muted-foreground mb-4">{error}</p>
-          <button
-            onClick={loadCharacters}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200"
-          >
-            <span>Try Again</span>
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={loadCharacters}
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors duration-200"
+            >
+              <span>Try Again</span>
+            </button>
+            <div className="text-xs text-muted-foreground">
+              If this persists, the characters table may not exist in your database.
+              <br />Check the database setup guide in the docs folder.
+            </div>
+          </div>
         </div>
       </div>
     );

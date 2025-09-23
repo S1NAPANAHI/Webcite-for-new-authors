@@ -76,12 +76,12 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
     loadCharacters();
   }, []);
 
-  // FIXED: Simple query without complex relationships to avoid PostgREST issues
+  // Simple query without complex relationships to avoid PostgREST issues
   const loadCharacters = async () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('\ud83d\udd0d Loading characters from database...');
+      console.log('🔍 Loading characters from database...');
       
       // Simple query without complex relationships
       const { data: charactersData, error: charactersError } = await supabase
@@ -112,18 +112,18 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         .order('importance_score', { ascending: false });
       
       if (charactersError) {
-        console.error('\u274c Error loading characters:', charactersError);
+        console.error('❌ Error loading characters:', charactersError);
         setError(`Failed to load characters: ${charactersError.message}`);
         return;
       }
       
       if (!charactersData) {
-        console.log('\u26a0\ufe0f No characters data returned');
+        console.log('⚠️ No characters data returned');
         setCharacters([]);
         return;
       }
       
-      console.log(`\u2705 Successfully loaded ${charactersData.length} characters`);
+      console.log(`✅ Successfully loaded ${charactersData.length} characters`);
       
       // Load counts separately to avoid relationship issues
       const characterIds = charactersData.map(c => c.id);
@@ -144,7 +144,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
             abilityCounts[ability.character_id] = (abilityCounts[ability.character_id] || 0) + 1;
           });
         } catch (err) {
-          console.log('\u26a0\ufe0f Abilities table may not exist yet');
+          console.log('⚠️ Abilities table may not exist yet');
         }
         
         // Get relationship counts
@@ -158,7 +158,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
             relationshipCounts[rel.character_id] = (relationshipCounts[rel.character_id] || 0) + 1;
           });
         } catch (err) {
-          console.log('\u26a0\ufe0f Relationships table may not exist yet');
+          console.log('⚠️ Relationships table may not exist yet');
         }
         
         // Get appearance counts
@@ -172,7 +172,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
             appearanceCounts[app.character_id] = (appearanceCounts[app.character_id] || 0) + 1;
           });
         } catch (err) {
-          console.log('\u26a0\ufe0f Appearances table may not exist yet');
+          console.log('⚠️ Appearances table may not exist yet');
         }
       }
       
@@ -184,11 +184,11 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         abilities_count: abilityCounts[character.id] || 0
       }));
       
-      console.log(`\u2705 Characters with stats processed: ${charactersWithStats.length}`);
+      console.log(`✅ Characters with stats processed: ${charactersWithStats.length}`);
       setCharacters(charactersWithStats);
       
     } catch (error: any) {
-      console.error('\ud83d\udca5 Error loading characters:', error);
+      console.error('💥 Error loading characters:', error);
       setError(`Failed to load characters: ${error.message || 'Unknown error'}`);
     } finally {
       setLoading(false);
@@ -217,25 +217,54 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         .eq('id', character.id);
       
       if (error) {
-        console.error('\u274c Error deleting character:', error);
+        console.error('❌ Error deleting character:', error);
         alert('Failed to delete character');
         return;
       }
       
-      console.log('\u2705 Character deleted successfully');
-      await loadCharacters(); // Refresh the list
+      console.log('✅ Character deleted successfully');
+      
+      // ✅ IMPROVED: Update local state instead of refetching
+      setCharacters(prev => prev.filter(c => c.id !== character.id));
     } catch (error) {
-      console.error('\ud83d\udca5 Error deleting character:', error);
+      console.error('💥 Error deleting character:', error);
       alert('Failed to delete character');
     }
   };
 
+  // ✅ FIXED: Update local state instead of refetching to prevent re-renders
   const handleSaveCharacter = async (character: Character) => {
-    console.log('\ud83c\udf89 Character saved:', character);
+    console.log('🎉 Character saved:', character);
     setShowCreateModal(false);
     setShowEditModal(false);
     setSelectedCharacter(null);
-    await loadCharacters(); // Refresh the list
+    
+    // ✅ FIXED: Merge update locally instead of refetching from database
+    setCharacters(prev => {
+      const existingIndex = prev.findIndex(c => c.id === character.id);
+      if (existingIndex >= 0) {
+        // Update existing character
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...character,
+          // Preserve existing stats that might not be in the saved character
+          appearance_count: prev[existingIndex].appearance_count || 0,
+          relationship_count: prev[existingIndex].relationship_count || 0,
+          abilities_count: prev[existingIndex].abilities_count || 0
+        };
+        return updated;
+      } else {
+        // Add new character with default stats
+        return [...prev, {
+          ...character,
+          appearance_count: 0,
+          relationship_count: 0,
+          abilities_count: 0
+        }];
+      }
+    });
+    
+    // ✅ REMOVED: await loadCharacters(); - This was causing re-renders and focus loss
   };
 
   const handleCancelForm = () => {
@@ -263,7 +292,9 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
             if (error) throw error;
             
             setBulkSelected(new Set());
-            await loadCharacters();
+            
+            // ✅ IMPROVED: Update local state instead of refetching
+            setCharacters(prev => prev.filter(c => !selectedIds.includes(c.id)));
           } catch (error) {
             console.error('Bulk delete error:', error);
             alert('Failed to delete characters');
@@ -318,6 +349,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
     </div>
   );
 
+  // ✅ ENSURED: Stable key usage to prevent component remounts
   const CharacterTableRow: React.FC<{ character: Character }> = ({ character }) => {
     const typeConfig = getCharacterTypeConfig(character.character_type);
     const statusConfig = getCharacterStatusConfig(character.status);

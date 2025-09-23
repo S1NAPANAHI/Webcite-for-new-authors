@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users,
   TrendingUp,
@@ -21,6 +21,7 @@ import CharacterGrid from '../components/characters/CharacterGrid';
 
 const CharactersPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,7 +93,7 @@ const CharactersPage: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      console.log('\ud83d\udd0d Loading characters for public page...');
+      console.log('🔍 Loading characters for public page...');
       
       // Try to load from database first
       const { data, error } = await supabase
@@ -128,20 +129,20 @@ const CharactersPage: React.FC = () => {
         .order('importance_score', { ascending: false });
       
       if (error) {
-        console.error('\u274c Error loading characters from database:', error);
+        console.error('❌ Error loading characters from database:', error);
         // Fall back to sample data
-        console.log('\ud83d\udd04 Using sample characters as fallback');
+        console.log('🔄 Using sample characters as fallback');
         loadSampleCharacters();
         return;
       }
       
       if (!data || data.length === 0) {
-        console.log('\u26a0\ufe0f No characters found in database, using sample data');
+        console.log('⚠️ No characters found in database, using sample data');
         loadSampleCharacters();
         return;
       }
       
-      console.log(`\u2705 Loaded ${data.length} characters from database`);
+      console.log(`✅ Loaded ${data.length} characters from database`);
       
       // Add default counts for display
       const charactersWithStats = data.map(character => ({
@@ -153,8 +154,8 @@ const CharactersPage: React.FC = () => {
       setCharacters(charactersWithStats);
       
     } catch (error: any) {
-      console.error('\ud83d\udca5 Error loading characters:', error);
-      console.log('\ud83d\udd04 Using sample characters as fallback');
+      console.error('💥 Error loading characters:', error);
+      console.log('🔄 Using sample characters as fallback');
       loadSampleCharacters();
     } finally {
       setLoading(false);
@@ -323,13 +324,14 @@ const CharactersPage: React.FC = () => {
       }
     ];
     
-    console.log('\u2705 Using sample character data');
+    console.log('✅ Using sample character data');
     setCharacters(sampleCharacters);
   };
 
+  // FIXED: Navigate to character detail page
   const handleCharacterClick = (character: Character) => {
-    // TODO: Navigate to character detail page
-    console.log('\ud83d\udd0d Clicked character:', character.name);
+    console.log('🔍 Navigating to character:', character.name, '(slug:', character.slug, ')');
+    navigate(`/characters/${character.slug}`);
   };
 
   const StatCard: React.FC<{

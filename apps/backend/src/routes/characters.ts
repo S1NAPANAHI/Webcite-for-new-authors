@@ -131,227 +131,157 @@ router.get('/', async (req, res) => {
 // 🔧 ENHANCED CHARACTER LOOKUP WITH ROBUST FALLBACK STRATEGY
 router.get('/:slug', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const cleanSlug = slug.trim().toLowerCase();
-    
+      const cleanSlug = (req.params.slug ?? '').trim().toLowerCase();    
     console.log(`🔍 Looking for character with slug: "${cleanSlug}"`);
     
-    // Try exact match first
-    let { data: character, error } = await supabase
-      .from('characters')
-      .select(`
-        id,
-        name,
-        slug,
-        title,
-        aliases,
-        description,
-        character_type,
-        status,
-        power_level,
-        importance_score,
-        age,
-        age_description,
-        gender,
-        species,
-        occupation,
-        location,
-        origin,
-        height,
-        build,
-        hair_color,
-        eye_color,
-        distinguishing_features,
-        personality_traits,
-        background_summary,
-        motivations,
-        fears,
-        goals,
-        skills,
-        weaknesses,
-        character_arc_summary,
-        primary_faction,
-        allegiances,
-        is_major_character,
-        is_pov_character,
-        is_spoiler_sensitive,
-        spoiler_tags,
-        meta_description,
-        meta_keywords,
-        portrait_url,
-        color_theme,
-        quote,
-        created_at,
-        updated_at
-      `)
-      .eq('slug', cleanSlug)
-      .single();
+        // fast path – trigger already normalised slugs in DB, so use eq()
+        const { data: character, error } = await supabase
+          .from('characters')
+          .select(`
+            id,
+            name,
+            slug,
+            title,
+            aliases,
+            description,
+            character_type,
+            status,
+            power_level,
+            importance_score,
+            age,
+            age_description,
+            gender,
+            species,
+            occupation,
+            location,
+            origin,
+            height,
+            build,
+            hair_color,
+            eye_color,
+            distinguishing_features,
+            personality_traits,
+            background_summary,
+            motivations,
+            fears,
+            goals,
+            skills,
+            weaknesses,
+            character_arc_summary,
+            primary_faction,
+            allegiances,
+            is_major_character,
+            is_pov_character,
+            is_spoiler_sensitive,
+            spoiler_tags,
+            meta_description,
+            meta_keywords,
+            portrait_url,
+            color_theme,
+            quote,
+            created_at,
+            updated_at
+          `)
+          .eq('slug', cleanSlug)
+          .maybeSingle();                 // returns null instead of throwing    
+        if (error) {
+          console.error('❌ Database error:', error);
+          return res.status(500).json({ error: 'Database error', details: error.message });
+        }
     
-    if (error && error.code === 'PGRST116') {
-      console.log('📋 Exact match failed, trying fallback with all characters...');
-      
-      // Fallback: Get all characters and match with trimmed slugs
-      const { data: allCharacters, error: allError } = await supabase
-        .from('characters')
-        .select(`
-          id,
-          name,
-          slug,
-          title,
-          aliases,
-          description,
-          character_type,
-          status,
-          power_level,
-          importance_score,
-          age,
-          age_description,
-          gender,
-          species,
-          occupation,
-          location,
-          origin,
-          height,
-          build,
-          hair_color,
-          eye_color,
-          distinguishing_features,
-          personality_traits,
-          background_summary,
-          motivations,
-          fears,
-          goals,
-          skills,
-          weaknesses,
-          character_arc_summary,
-          primary_faction,
-          allegiances,
-          is_major_character,
-          is_pov_character,
-          is_spoiler_sensitive,
-          spoiler_tags,
-          meta_description,
-          meta_keywords,
-          portrait_url,
-          color_theme,
-          quote,
-          created_at,
-          updated_at
-        `);
-      
-      if (allError) {
-        console.error('❌ Error fetching all characters:', allError);
-        return res.status(500).json({ error: 'Database error', details: allError.message });
-      }
-      
-      // Find character with matching trimmed slug
-      character = allCharacters.find(c => 
-        c.slug && c.slug.trim().toLowerCase() === cleanSlug
-      );
-      
-      if (!character) {
-        console.log(`❌ Character not found for slug: "${cleanSlug}"`);
-        console.log(`📋 Available slugs:`, allCharacters.map(c => `"${c.slug}"`));
-        return res.status(404).json({ 
-          error: 'Character not found', 
-          slug: cleanSlug,
-          availableSlugs: allCharacters.map(c => c.slug?.trim())
-        });
-      }
-    }
+        if (character) {
+          // Clean the character data
+          if (character.slug) {
+            character.slug = character.slug.trim();
+          }
     
-    if (error) {
-      console.error('❌ Database error:', error);
-      return res.status(500).json({ error: 'Database error', details: error.message });
-    }
+          console.log(`✅ Found character: ${character.name} (slug: "${character.slug}")`);
     
-    // Clean the character data
-    if (character.slug) {
-      character.slug = character.slug.trim();
-    }
+          // Get character abilities
+          let abilities = [];
+          try {
+            const { data: abilitiesData, error: abilitiesError } = await supabase
+              .from('character_abilities')
+              .select(`
+                id,
+                name,
+                description,
+                category,
+                mastery_level
+              `)
+              .eq('character_id', character.id)
+              .order('mastery_level', { ascending: false });
     
-    console.log(`✅ Found character: ${character.name} (slug: "${character.slug}")`);
+            if (!abilitiesError && abilitiesData) {
+              abilities = abilitiesData;
+              console.log(`📋 Loaded ${abilities.length} abilities`);
+            }
+          } catch (err) {
+            console.log('ℹ️ Abilities table not available yet');
+          }
     
-    // Get character abilities
-    let abilities = [];
-    try {
-      const { data: abilitiesData, error: abilitiesError } = await supabase
-        .from('character_abilities')
-        .select(`
-          id,
-          name,
-          description,
-          category,
-          mastery_level
-        `)
-        .eq('character_id', character.id)
-        .order('mastery_level', { ascending: false });
-      
-      if (!abilitiesError && abilitiesData) {
-        abilities = abilitiesData;
-        console.log(`📋 Loaded ${abilities.length} abilities`);
-      }
-    } catch (err) {
-      console.log('ℹ️ Abilities table not available yet');
-    }
+          // Get character relationships
+          let relationships = [];
+          try {
+            const { data: relationshipsData, error: relationshipsError } = await supabase
+              .from('character_relationships')
+              .select(`
+                id,
+                related_character_name,
+                relationship_type,
+                strength,
+                description
+              `)
+              .eq('character_id', character.id)
+              .order('strength', { ascending: false });
     
-    // Get character relationships
-    let relationships = [];
-    try {
-      const { data: relationshipsData, error: relationshipsError } = await supabase
-        .from('character_relationships')
-        .select(`
-          id,
-          related_character_name,
-          relationship_type,
-          strength,
-          description
-        `)
-        .eq('character_id', character.id)
-        .order('strength', { ascending: false });
-      
-      if (!relationshipsError && relationshipsData) {
-        relationships = relationshipsData;
-        console.log(`👥 Loaded ${relationships.length} relationships`);
-      }
-    } catch (err) {
-      console.log('ℹ️ Relationships table not available yet');
-    }
+            if (!relationshipsError && relationshipsData) {
+              relationships = relationshipsData;
+              console.log(`👥 Loaded ${relationships.length} relationships`);
+            }
+          } catch (err) {
+            console.log('ℹ️ Relationships table not available yet');
+          }
     
-    // Get character appearances
-    let appearances = [];
-    try {
-      const { data: appearancesData, error: appearancesError } = await supabase
-        .from('character_appearances')
-        .select(`
-          id,
-          content_title,
-          content_type,
-          significance,
-          is_major_appearance
-        `)
-        .eq('character_id', character.id)
-        .order('is_major_appearance', { ascending: false });
-      
-      if (!appearancesError && appearancesData) {
-        appearances = appearancesData;
-        console.log(`📚 Loaded ${appearances.length} appearances`);
-      }
-    } catch (err) {
-      console.log('ℹ️ Appearances table not available yet');
-    }
+          // Get character appearances
+          let appearances = [];
+          try {
+            const { data: appearancesData, error: appearancesError } = await supabase
+              .from('character_appearances')
+              .select(`
+                id,
+                content_title,
+                content_type,
+                significance,
+                is_major_appearance
+              `)
+              .eq('character_id', character.id)
+              .order('is_major_appearance', { ascending: false });
     
-    // Combine all character data
-    const fullCharacterData = {
-      ...character,
-      abilities,
-      relationships,
-      appearances
-    };
+            if (!appearancesError && appearancesData) {
+              appearances = appearancesData;
+              console.log(`📚 Loaded ${appearances.length} appearances`);
+            }
+          } catch (err) {
+            console.log('ℹ️ Appearances table not available yet');
+          }
     
-    console.log(`🎉 Successfully compiled full character data for: ${character.name}`);
-    res.json(fullCharacterData);
+          // Combine all character data
+          const fullCharacterData = {
+            ...character,
+            abilities,
+            relationships,
+            appearances
+          };
     
+          console.log(`🎉 Successfully compiled full character data for: ${character.name}`);
+          return res.json(fullCharacterData);     // ✅ 200
+        } else { // If character is null, it means no character was found
+          return res.status(404).json({
+            error: 'Character not found',
+            slug: cleanSlug,
+          });
+        }    
   } catch (error: any) {
     console.error('❌ Server error in character lookup:', error);
     res.status(500).json({ error: 'Server error' });

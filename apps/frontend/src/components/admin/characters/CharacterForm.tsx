@@ -14,7 +14,10 @@ import {
   BookOpen,
   Heart,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  Copy,
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import { Character, CharacterType, CharacterStatus, PowerLevel } from '../../../types/character';
 import {
@@ -142,7 +145,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'personality' | 'story' | 'meta'>('basic');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [availableFiles, setAvailableFiles] = useState<any[]>([]);
+  const [isSlugManual, setIsSlugManual] = useState(false);
+  const [slugPreview, setSlugPreview] = useState('');
 
   // Initialize form with character data
   useEffect(() => {
@@ -188,18 +192,26 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         portrait_url: character.portrait_url || '',
         color_theme: character.color_theme || CHARACTER_TYPE_CONFIG[character.character_type || 'minor'].color
       });
+      // If editing an existing character and they have a slug, consider it manually set
+      setIsSlugManual(!!character.slug);
     }
   }, [character]);
 
-  // Auto-generate slug from name
+  // Auto-generate slug from name (only if not manually edited)
   useEffect(() => {
-    if (formData.name && (!character || character.slug === generateCharacterSlug(character.name))) {
+    if (formData.name && !isSlugManual) {
+      const newSlug = generateCharacterSlug(formData.name);
       setFormData(prev => ({
         ...prev,
-        slug: generateCharacterSlug(formData.name)
+        slug: newSlug
       }));
     }
-  }, [formData.name, character]);
+  }, [formData.name, isSlugManual]);
+
+  // Update slug preview
+  useEffect(() => {
+    setSlugPreview(formData.slug ? `https://www.zoroastervers.com/characters/${formData.slug}` : '');
+  }, [formData.slug]);
 
   // Update color theme based on character type
   useEffect(() => {
@@ -218,6 +230,35 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }
   };
 
+  const handleSlugChange = (value: string) => {
+    const sanitizedSlug = value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+    setFormData(prev => ({ ...prev, slug: sanitizedSlug }));
+    setIsSlugManual(true);
+    
+    if (errors.slug) {
+      setErrors(prev => ({ ...prev, slug: '' }));
+    }
+  };
+
+  const handleRegenerateSlug = () => {
+    if (formData.name) {
+      const newSlug = generateCharacterSlug(formData.name);
+      setFormData(prev => ({ ...prev, slug: newSlug }));
+      setIsSlugManual(false);
+    }
+  };
+
+  const copySlugToClipboard = async () => {
+    if (formData.slug) {
+      try {
+        await navigator.clipboard.writeText(slugPreview);
+        // You could add a toast notification here
+      } catch (err) {
+        console.error('Failed to copy URL:', err);
+      }
+    }
+  };
+
   const handleArrayInputChange = (field: keyof CharacterFormData, value: string) => {
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
     handleInputChange(field, array);
@@ -232,6 +273,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     
     if (!formData.slug.trim()) {
       newErrors.slug = 'Character slug is required';
+    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      newErrors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
     
     if (!formData.description.trim()) {
@@ -246,6 +289,26 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const checkSlugUniqueness = async (slug: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('characters')
+        .select('id')
+        .eq('slug', slug)
+        .neq('id', character?.id || '');
+      
+      if (error) {
+        console.error('Error checking slug uniqueness:', error);
+        return true; // Allow save if we can't check
+      }
+      
+      return data.length === 0;
+    } catch (error) {
+      console.error('Error checking slug uniqueness:', error);
+      return true; // Allow save if we can't check
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -256,6 +319,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     setLoading(true);
     
     try {
+      // Check slug uniqueness
+      const isSlugUnique = await checkSlugUniqueness(formData.slug);
+      if (!isSlugUnique) {
+        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
+        setLoading(false);
+        return;
+      }
+      
       const characterData = {
         ...formData,
         age: formData.age || null,
@@ -461,12 +532,67 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   placeholder="Enter character name"
                   required
                 />
-                <InputField
-                  label="Slug"
-                  field="slug"
-                  placeholder="character-slug"
-                  required
-                />
+                
+                {/* Enhanced Slug Field */}
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Slug <span className="text-red-500">*</span>
+                    <span className="text-xs text-muted-foreground ml-2">
+                      (URL-friendly version of name)
+                    </span>
+                  </label>
+                  
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={formData.slug}
+                        onChange={(e) => handleSlugChange(e.target.value)}
+                        placeholder="character-slug"
+                        className={`flex-1 px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
+                          errors.slug ? 'border-red-500' : 'border-border'
+                        }`}
+                      />
+                      
+                      <button
+                        type="button"
+                        onClick={handleRegenerateSlug}
+                        className="px-3 py-2 bg-muted hover:bg-muted/80 rounded-lg text-muted-foreground hover:text-foreground transition-colors duration-200"
+                        title="Regenerate from name"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                      
+                      {slugPreview && (
+                        <button
+                          type="button"
+                          onClick={copySlugToClipboard}
+                          className="px-3 py-2 bg-muted hover:bg-muted/80 rounded-lg text-muted-foreground hover:text-foreground transition-colors duration-200"
+                          title="Copy URL"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* URL Preview */}
+                    {slugPreview && (
+                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded text-sm text-muted-foreground">
+                        <ExternalLink className="w-4 h-4" />
+                        <span className="font-mono">{slugPreview}</span>
+                      </div>
+                    )}
+                    
+                    {errors.slug && (
+                      <p className="text-sm text-red-500">{errors.slug}</p>
+                    )}
+                    
+                    <p className="text-xs text-muted-foreground">
+                      This creates the URL for the character's profile page. 
+                      Auto-generates from name, but you can customize it.
+                    </p>
+                  </div>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

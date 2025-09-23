@@ -28,7 +28,7 @@ import homepageRoutes from './routes/homepage.js';
 // Import releases routes (NEW)
 import releasesRoutes from './routes/releases.js';
 // Import characters routes (NEW FOR CHARACTER PROFILE PAGES)
-import charactersRoutes from './src/routes/characters.js';
+import charactersRoutesFactory from './src/routes/characters.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -194,7 +194,7 @@ async function startServer() {
   app.use('/api/subscription', subscriptionRoutes); // Enhanced subscription API
   app.use('/api/homepage', homepageRoutes); // Homepage management API
   app.use('/api/releases', releasesRoutes); // NEW: Releases management API
-  app.use('/api/characters', charactersRoutes); // NEW: Characters API for profile pages
+  app.use('/api/characters', charactersRoutesFactory(supabase)); // NEW: Characters API for profile pages
   app.use('/admin', adminRoutes);
   app.use('/content', contentRoutes);
   app.use('/beta', betaRoutes);

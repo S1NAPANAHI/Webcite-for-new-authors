@@ -95,6 +95,17 @@ interface CharacterFormData {
   color_theme: string;
 }
 
+// 🔧 ENHANCED SLUG NORMALIZATION FUNCTION
+const normalizeSlug = (slug: string): string => {
+  return slug
+    .trim()                           // Remove leading/trailing whitespace
+    .toLowerCase()                    // Convert to lowercase
+    .replace(/[^a-z0-9-\s]/g, '')    // Remove invalid characters (keep spaces temporarily)
+    .replace(/\s+/g, '-')            // Replace spaces with hyphens
+    .replace(/-+/g, '-')             // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, '');        // Remove leading/trailing hyphens
+};
+
 const CharacterForm: React.FC<CharacterFormProps> = ({
   character,
   onSave,
@@ -147,13 +158,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSlugManual, setIsSlugManual] = useState(false);
   const [slugPreview, setSlugPreview] = useState('');
+  const [slugNormalized, setSlugNormalized] = useState(false); // Track if slug was auto-normalized
 
   // Initialize form with character data
   useEffect(() => {
     if (character) {
       setFormData({
         name: character.name || '',
-        slug: character.slug || '',
+        slug: character.slug ? normalizeSlug(character.slug) : '', // 🔧 Normalize existing slug
         title: character.title || '',
         aliases: character.aliases || [],
         description: character.description || '',
@@ -203,7 +215,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       const newSlug = generateCharacterSlug(formData.name);
       setFormData(prev => ({
         ...prev,
-        slug: newSlug
+        slug: normalizeSlug(newSlug) // 🔧 Always normalize
       }));
     }
   }, [formData.name, isSlugManual]);
@@ -230,20 +242,36 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }
   };
 
+  // 🔧 ENHANCED SLUG CHANGE HANDLER WITH NORMALIZATION
   const handleSlugChange = (value: string) => {
-    const sanitizedSlug = value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-    setFormData(prev => ({ ...prev, slug: sanitizedSlug }));
+    // Allow typing but don't normalize yet
+    setFormData(prev => ({ ...prev, slug: value }));
     setIsSlugManual(true);
+    setSlugNormalized(false);
     
     if (errors.slug) {
       setErrors(prev => ({ ...prev, slug: '' }));
     }
   };
 
+  // 🔧 NEW: SLUG BLUR HANDLER FOR NORMALIZATION
+  const handleSlugBlur = () => {
+    const currentSlug = formData.slug;
+    const normalizedSlug = normalizeSlug(currentSlug);
+    
+    if (currentSlug !== normalizedSlug) {
+      setFormData(prev => ({ ...prev, slug: normalizedSlug }));
+      setSlugNormalized(true);
+      
+      // Show temporary feedback that slug was normalized
+      setTimeout(() => setSlugNormalized(false), 2000);
+    }
+  };
+
   const handleRegenerateSlug = () => {
     if (formData.name) {
       const newSlug = generateCharacterSlug(formData.name);
-      setFormData(prev => ({ ...prev, slug: newSlug }));
+      setFormData(prev => ({ ...prev, slug: normalizeSlug(newSlug) })); // 🔧 Always normalize
       setIsSlugManual(false);
     }
   };
@@ -271,9 +299,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       newErrors.name = 'Character name is required';
     }
     
-    if (!formData.slug.trim()) {
+    // 🔧 ENHANCED SLUG VALIDATION
+    const normalizedSlug = normalizeSlug(formData.slug);
+    if (!normalizedSlug) {
       newErrors.slug = 'Character slug is required';
-    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+    } else if (!/^[a-z0-9-]+$/.test(normalizedSlug)) {
       newErrors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
     
@@ -319,8 +349,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     setLoading(true);
     
     try {
+      // 🔧 ENSURE SLUG IS NORMALIZED BEFORE SAVING
+      const finalSlug = normalizeSlug(formData.slug);
+      
       // Check slug uniqueness
-      const isSlugUnique = await checkSlugUniqueness(formData.slug);
+      const isSlugUnique = await checkSlugUniqueness(finalSlug);
       if (!isSlugUnique) {
         setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
         setLoading(false);
@@ -329,6 +362,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       
       const characterData = {
         ...formData,
+        slug: finalSlug, // 🔧 Use normalized slug
         age: formData.age || null,
         meta_description: formData.meta_description || formData.description.substring(0, 160)
       };
@@ -533,7 +567,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   required
                 />
                 
-                {/* Enhanced Slug Field */}
+                {/* 🔧 ENHANCED SLUG FIELD WITH AUTO-NORMALIZATION */}
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Slug <span className="text-red-500">*</span>
@@ -548,9 +582,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                         type="text"
                         value={formData.slug}
                         onChange={(e) => handleSlugChange(e.target.value)}
+                        onBlur={handleSlugBlur} // 🔧 Normalize on blur
                         placeholder="character-slug"
                         className={`flex-1 px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
-                          errors.slug ? 'border-red-500' : 'border-border'
+                          errors.slug ? 'border-red-500' : slugNormalized ? 'border-green-500' : 'border-border'
                         }`}
                       />
                       
@@ -575,6 +610,14 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                       )}
                     </div>
                     
+                    {/* 🔧 NORMALIZATION FEEDBACK */}
+                    {slugNormalized && (
+                      <div className="flex items-center gap-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+                        <Shield className="w-4 h-4" />
+                        <span>Slug automatically cleaned and normalized</span>
+                      </div>
+                    )}
+                    
                     {/* URL Preview */}
                     {slugPreview && (
                       <div className="flex items-center gap-2 p-2 bg-muted/50 rounded text-sm text-muted-foreground">
@@ -589,7 +632,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     
                     <p className="text-xs text-muted-foreground">
                       This creates the URL for the character's profile page. 
-                      Auto-generates from name, but you can customize it.
+                      Auto-generates from name, but you can customize it. 
+                      <strong>Automatically cleaned on blur.</strong>
                     </p>
                   </div>
                 </div>

@@ -55,8 +55,8 @@ const CustomerManagementPage = () => {
       const { data } = await axios.get('/api/commerce/customers');
       console.log('Received customers data:', data);
       
-      // Ensure we have a valid array
-      const customerData = data?.customers || [];
+      // Ensure we have a valid array - this is the key fix for the original error
+      const customerData = Array.isArray(data?.customers) ? data.customers : [];
       setCustomers(customerData);
       
       if (customerData.length === 0) {
@@ -65,7 +65,16 @@ const CustomerManagementPage = () => {
     } catch (err) {
       console.error('Error fetching customers:', err);
       const errorMessage = err.response?.data?.error || err.message || 'Failed to fetch customers.';
-      setError(errorMessage);
+      
+      // If API endpoint doesn't exist yet, show helpful message
+      if (err.response?.status === 404 || errorMessage.includes('Cannot GET')) {
+        setError('The customer management API is not available yet. The backend needs to be redeployed with the new commerce routes.');
+      } else {
+        setError(errorMessage);
+      }
+      
+      // Set empty array to prevent map errors
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
@@ -100,8 +109,8 @@ const CustomerManagementPage = () => {
     }
   };
 
-  // Filter customers based on search and filters
-  const filteredCustomers = customers.filter(customer => {
+  // Filter customers based on search and filters - Added safety check
+  const filteredCustomers = Array.isArray(customers) ? customers.filter(customer => {
     const matchesSearch = !searchTerm || 
       customer.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       customer.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,7 +120,7 @@ const CustomerManagementPage = () => {
     const matchesSubscription = filterSubscription === 'all' || customer.subscription_status === filterSubscription;
     
     return matchesSearch && matchesRole && matchesSubscription;
-  });
+  }) : [];
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -143,17 +152,31 @@ const CustomerManagementPage = () => {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <div className="flex">
-          <div className="text-red-500">
-            <h3 className="text-sm font-medium">Error</h3>
-            <p className="mt-1 text-sm">{error}</p>
-            <button 
-              onClick={fetchCustomers}
-              className="mt-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
-            >
-              Try Again
-            </button>
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <div className="flex">
+            <div className="text-red-500">
+              <h3 className="text-sm font-medium">Error Loading Customers</h3>
+              <p className="mt-1 text-sm">{error}</p>
+              <div className="mt-4 space-x-2">
+                <button 
+                  onClick={fetchCustomers}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm"
+                >
+                  Try Again
+                </button>
+                {error.includes('backend needs to be redeployed') && (
+                  <a 
+                    href="https://dashboard.render.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm"
+                  >
+                    Go to Render Dashboard
+                  </a>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -229,119 +252,122 @@ const CustomerManagementPage = () => {
 
       {/* Customer Table */}
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Customer
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Role
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Subscription
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Activity
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Member Since
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredCustomers.map((customer) => (
-              <tr key={customer.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      {customer.full_name || customer.username || 'N/A'}
-                    </div>
-                    <div className="text-sm text-gray-500">{customer.email}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {editingRole?.id === customer.id ? (
-                    <div className="flex items-center space-x-2">
-                      <select
-                        value={editingRole.role}
-                        onChange={(e) => setEditingRole({...editingRole, role: e.target.value})}
-                        className="text-sm border border-gray-300 rounded px-2 py-1"
-                      >
-                        <option value="user">User</option>
-                        <option value="beta_user">Beta User</option>
-                        <option value="moderator">Moderator</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                      <button
-                        onClick={() => updateCustomerRole(customer.id, editingRole.role)}
-                        className="text-green-600 hover:text-green-800 text-sm"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setEditingRole(null)}
-                        className="text-gray-600 hover:text-gray-800 text-sm"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(customer.role)}`}>
-                        {customer.role}
-                      </span>
-                      <button
-                        onClick={() => setEditingRole({id: customer.id, role: customer.role})}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex flex-col space-y-1">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionStatusColor(customer.subscription_status)}`}>
-                      {customer.subscription_status || 'inactive'}
-                    </span>
-                    {customer.subscription_type && (
-                      <span className="text-xs text-gray-500">
-                        {customer.subscription_type}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  <div className="flex flex-col space-y-1">
-                    <span>{customer.chapters_read || 0} chapters read</span>
-                    <span className="text-xs text-gray-500">
-                      {customer.recent_activity_count || 0} recent activities
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(customer.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    onClick={() => openViewModal(customer.id)}
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md mr-2 transition-colors"
-                  >
-                    View Details
-                  </button>
-                </td>
+        {filteredCustomers.length > 0 ? (
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Subscription
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Activity
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Member Since
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        
-        {filteredCustomers.length === 0 && !loading && (
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredCustomers.map((customer) => (
+                <tr key={customer.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {customer.full_name || customer.username || 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-500">{customer.email}</div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {editingRole?.id === customer.id ? (
+                      <div className="flex items-center space-x-2">
+                        <select
+                          value={editingRole.role}
+                          onChange={(e) => setEditingRole({...editingRole, role: e.target.value})}
+                          className="text-sm border border-gray-300 rounded px-2 py-1"
+                        >
+                          <option value="user">User</option>
+                          <option value="beta_user">Beta User</option>
+                          <option value="moderator">Moderator</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                        <button
+                          onClick={() => updateCustomerRole(customer.id, editingRole.role)}
+                          className="text-green-600 hover:text-green-800 text-sm"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingRole(null)}
+                          className="text-gray-600 hover:text-gray-800 text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(customer.role)}`}>
+                          {customer.role}
+                        </span>
+                        <button
+                          onClick={() => setEditingRole({id: customer.id, role: customer.role})}
+                          className="text-blue-600 hover:text-blue-800 text-sm"
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex flex-col space-y-1">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSubscriptionStatusColor(customer.subscription_status)}`}>
+                        {customer.subscription_status || 'inactive'}
+                      </span>
+                      {customer.subscription_type && (
+                        <span className="text-xs text-gray-500">
+                          {customer.subscription_type}
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex flex-col space-y-1">
+                      <span>{customer.chapters_read || 0} chapters read</span>
+                      <span className="text-xs text-gray-500">
+                        {customer.recent_activity_count || 0} recent activities
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {new Date(customer.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => openViewModal(customer.id)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md mr-2 transition-colors"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
           <div className="text-center py-8">
-            <p className="text-gray-500">No customers found matching your criteria.</p>
+            <div className="text-gray-500">
+              <h3 className="text-lg font-medium mb-2">No customers found</h3>
+              <p>No customers match your current search criteria, or the customer data hasn't loaded yet.</p>
+            </div>
           </div>
         )}
       </div>

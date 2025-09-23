@@ -160,13 +160,76 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [slugPreview, setSlugPreview] = useState('');
   const [slugNormalized, setSlugNormalized] = useState(false);
 
+  // 🚨 NEW: Debounced auto-save state
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Refs to prevent re-rendering issues
   const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>>({});
+
+  // Clear timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, []);
+
+  // 🚨 NEW: Debounced auto-save function
+  const debouncedAutoSave = useCallback(async (updatedData: CharacterFormData) => {
+    // Clear existing timer
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+
+    // Set new timer for 2 seconds
+    saveTimerRef.current = setTimeout(async () => {
+      console.log('💾 Auto-saving character data...');
+      setIsAutoSaving(true);
+      
+      try {
+        const finalSlug = normalizeSlug(updatedData.slug);
+        
+        // Only auto-save if we have a character (editing mode)
+        if (character) {
+          const characterData = {
+            ...updatedData,
+            slug: finalSlug,
+            age: updatedData.age || null,
+            meta_description: updatedData.meta_description || updatedData.description.substring(0, 160)
+          };
+          
+          const { data, error } = await supabase
+            .from('characters')
+            .update(characterData)
+            .eq('id', character.id)
+            .select()
+            .single();
+          
+          if (error) {
+            console.error('❌ Auto-save failed:', error);
+          } else {
+            console.log('✅ Auto-save successful');
+            setHasUnsavedChanges(false);
+          }
+        } else {
+          // For new characters, just mark as having unsaved changes
+          console.log('📝 New character - auto-save disabled, use manual save');
+        }
+      } catch (error) {
+        console.error('❌ Auto-save error:', error);
+      } finally {
+        setIsAutoSaving(false);
+      }
+    }, 2000); // 2 second delay
+  }, [character]);
 
   // Initialize form with character data
   useEffect(() => {
     if (character) {
-      setFormData({
+      const initialData = {
         name: character.name || '',
         slug: character.slug ? normalizeSlug(character.slug) : '',
         title: character.title || '',
@@ -206,8 +269,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         meta_keywords: character.meta_keywords || [],
         portrait_url: character.portrait_url || '',
         color_theme: character.color_theme || CHARACTER_TYPE_CONFIG[character.character_type || 'minor'].color
-      });
+      };
+      
+      setFormData(initialData);
       setIsSlugManual(!!character.slug);
+      setHasUnsavedChanges(false); // Reset unsaved changes when loading character
     }
   }, [character]);
 
@@ -235,16 +301,18 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   }, [formData.character_type]);
 
-  // ✅ ULTRA-SIMPLE INPUT CHANGE HANDLER TO FIX CURSOR JUMPING
+  // 🚨 UPDATED: Input change handler with debounced auto-save
   const handleInputChange = (field: string, value: any) => {
-    console.log(`🎯 DIRECT UPDATE: ${field} = "${value}"`);
+    console.log(`🎯 INPUT UPDATE: ${field} = "${value}"`);
     
-    setFormData(prev => {
-      console.log(`📝 Previous ${field}: "${prev[field as keyof CharacterFormData]}"`);
-      const updated = { ...prev, [field]: value };
-      console.log(`✅ New ${field}: "${updated[field as keyof CharacterFormData]}"`);
-      return updated;
-    });
+    const updatedData = {
+      ...formData,
+      [field]: value
+    };
+
+    // Update form state immediately (for UI responsiveness)
+    setFormData(updatedData);
+    setHasUnsavedChanges(true);
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -252,6 +320,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         const { [field]: removed, ...rest } = prev;
         return rest;
       });
+    }
+    
+    // Trigger debounced auto-save (only for existing characters)
+    if (character) {
+      debouncedAutoSave(updatedData);
     }
   };
 
@@ -295,6 +368,75 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const handleArrayChange = (field: string, value: string) => {
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
     handleInputChange(field, array);
+  };
+
+  // 🚨 NEW: Manual save function
+  const handleManualSave = async () => {
+    // Clear any pending auto-save
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      const finalSlug = normalizeSlug(formData.slug);
+      
+      const isSlugUnique = await checkSlugUniqueness(finalSlug);
+      if (!isSlugUnique) {
+        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
+        setLoading(false);
+        return;
+      }
+      
+      const characterData = {
+        ...formData,
+        slug: finalSlug,
+        age: formData.age || null,
+        meta_description: formData.meta_description || formData.description.substring(0, 160)
+      };
+      
+      let result;
+      
+      if (character) {
+        const { data, error } = await supabase
+          .from('characters')
+          .update(characterData)
+          .eq('id', character.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+      } else {
+        const { data, error } = await supabase
+          .from('characters')
+          .insert([characterData])
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = data;
+      }
+      
+      console.log('✅ Manual save successful:', result);
+      setHasUnsavedChanges(false);
+      onSave(result);
+    } catch (error: any) {
+      console.error('❌ Manual save failed:', error);
+      
+      if (error.code === '23505') {
+        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
+      } else {
+        setErrors({ general: error.message || 'Failed to save character' });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -345,66 +487,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      const finalSlug = normalizeSlug(formData.slug);
-      
-      const isSlugUnique = await checkSlugUniqueness(finalSlug);
-      if (!isSlugUnique) {
-        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
-        setLoading(false);
-        return;
-      }
-      
-      const characterData = {
-        ...formData,
-        slug: finalSlug,
-        age: formData.age || null,
-        meta_description: formData.meta_description || formData.description.substring(0, 160)
-      };
-      
-      let result;
-      
-      if (character) {
-        const { data, error } = await supabase
-          .from('characters')
-          .update(characterData)
-          .eq('id', character.id)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        result = data;
-      } else {
-        const { data, error } = await supabase
-          .from('characters')
-          .insert([characterData])
-          .select()
-          .single();
-        
-        if (error) throw error;
-        result = data;
-      }
-      
-      console.log('✅ Character saved successfully:', result);
-      onSave(result);
-    } catch (error: any) {
-      console.error('❌ Error saving character:', error);
-      
-      if (error.code === '23505') {
-        setErrors({ slug: 'This slug is already taken. Please choose a different one.' });
-      } else {
-        setErrors({ general: error.message || 'Failed to save character' });
-      }
-    } finally {
-      setLoading(false);
-    }
+    await handleManualSave();
   };
 
   const tabs = [
@@ -415,7 +498,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
   ];
 
-  // ✅ COMPLETELY SIMPLIFIED INPUT FIELD COMPONENT
+  // ✅ SIMPLIFIED INPUT FIELD COMPONENT
   const InputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -550,12 +633,46 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           </p>
         </div>
         
-        <button
-          onClick={onCancel}
-          className="p-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* 🚨 NEW: Save Status and Manual Save Button */}
+        <div className="flex items-center space-x-4">
+          {/* Auto-save status indicator */}
+          {isAutoSaving && (
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <span>Auto-saving...</span>
+            </div>
+          )}
+          
+          {/* Unsaved changes indicator */}
+          {hasUnsavedChanges && !isAutoSaving && (
+            <div className="flex items-center space-x-2 text-sm text-yellow-600">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+              <span>Unsaved changes</span>
+            </div>
+          )}
+          
+          {/* Manual save button */}
+          <button
+            type="button"
+            onClick={handleManualSave}
+            disabled={loading || !hasUnsavedChanges}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
+          >
+            {loading ? (
+              <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {loading ? 'Saving...' : 'Save Now'}
+          </button>
+          
+          <button
+            onClick={onCancel}
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Form */}

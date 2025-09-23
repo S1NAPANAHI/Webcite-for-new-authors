@@ -106,7 +106,7 @@ const getApiBase = () => {
     : 'http://localhost:3001';
 };
 
-// Fetch functions with better error handling and cache busting
+// CRITICAL FIX: Fetch functions with proper request body handling
 async function fetchFromAPI(endpoint: string, options?: RequestInit) {
   const API_BASE = getApiBase();
   let url = `${API_BASE}/api/homepage${endpoint}`;
@@ -116,18 +116,30 @@ async function fetchFromAPI(endpoint: string, options?: RequestInit) {
     url = addCacheBuster(url);
   }
   
-  console.log(`📡 Fetching from: ${url}`);
+  console.log(`📡 FIXED: Fetching from: ${url}`);
+  console.log(`📦 FIXED: Request options:`, {
+    method: options?.method || 'GET',
+    headers: options?.headers,
+    hasBody: !!options?.body,
+    bodyType: typeof options?.body,
+    bodyContent: options?.body ? options.body.toString().substring(0, 200) + '...' : 'none'
+  });
   
   try {
     const response = await fetch(url, {
+      method: options?.method || 'GET',
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
+      // CRITICAL: Ensure body is properly passed
+      ...(options?.body && { body: options.body }),
       ...options,
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ API Response Error: ${response.status} ${response.statusText} - ${errorText}`);
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
@@ -535,26 +547,36 @@ export const useHomepageAdmin = () => {
     return session.access_token;
   };
 
-  // Update homepage content
+  // CRITICAL FIX: Update homepage content with proper request body
   const updateContent = useCallback(async (contentData: Partial<HomepageContent>) => {
     try {
       setIsLoading(true);
       setError(null);
       
-      console.log('🔄 useHomepageAdmin: Updating content with data:', contentData);
+      console.log('🔄 FIXED: useHomepageAdmin - Updating content with data:', contentData);
       
       const token = await getAuthToken();
       let response;
+      
+      // CRITICAL FIX: Ensure JSON body is properly constructed and sent
+      const requestBody = JSON.stringify(contentData);
+      console.log('📦 FIXED: Request body being sent:', requestBody);
+      console.log('📏 FIXED: Request body length:', requestBody.length);
       
       try {
         response = await fetchFromAPI('/content', {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(contentData),
+          body: requestBody, // CRITICAL: Explicitly pass the stringified JSON
         });
+        
+        console.log('✅ FIXED: API request successful with body:', requestBody.substring(0, 100) + '...');
       } catch (apiError) {
+        console.error('❌ FIXED: API failed, trying Supabase fallback:', apiError);
+        
         if (!supabase) throw new Error('Supabase client not available');
         
         console.log('🔄 API failed, using Supabase fallback for content update');
@@ -603,13 +625,18 @@ export const useHomepageAdmin = () => {
       const token = await getAuthToken();
       let response;
       
+      // CRITICAL FIX: Proper request body handling
+      const requestBody = JSON.stringify(metricsData);
+      console.log('📦 FIXED: Metrics request body:', requestBody);
+      
       try {
         response = await fetchFromAPI('/metrics', {
           method: 'PUT',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
-          body: JSON.stringify(metricsData),
+          body: requestBody,
         });
       } catch (apiError) {
         if (!supabase) throw new Error('Supabase client not available');
@@ -663,6 +690,7 @@ export const useHomepageAdmin = () => {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
         });
       } catch (apiError) {

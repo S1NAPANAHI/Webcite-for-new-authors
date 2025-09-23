@@ -1,5 +1,5 @@
 // GET /api/characters/:slug - Get single character by slug
-// 🔧 ENHANCED CHARACTER LOOKUP WITH ROBUST FALLBACK STRATEGY
+// 🔧 TOLERANT CHARACTER LOOKUP WITH ILIKE (VERCEL SERVERLESS)
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -28,13 +28,17 @@ export default async function handler(req, res) {
   }
   
   try {
-    const { slug } = req.query;
-    const cleanSlug = slug.trim().toLowerCase();
+    const rawSlug = req.query.slug || '';
+    const cleanSlug = rawSlug.trim().toLowerCase();
     
-    console.log(`🔍 Looking for character with slug: "${cleanSlug}"`);
+    console.log(`🔍 Looking for character with slug: "${cleanSlug}" (original: "${rawSlug}")`);
     
-    // Try exact match first
-    let { data: character, error } = await supabase
+    if (!cleanSlug) {
+      return res.status(400).json({ error: 'Character slug is required' });
+    }
+    
+    // Use ILIKE for case-insensitive tolerant matching
+    const { data: rows, error } = await supabase
       .from('characters')
       .select(`
         id,
@@ -81,86 +85,35 @@ export default async function handler(req, res) {
         created_at,
         updated_at
       `)
-      .eq('slug', cleanSlug)
-      .single();
-    
-    if (error && error.code === 'PGRST116') {
-      console.log('📋 Exact match failed, trying fallback with all characters...');
-      
-      // Fallback: Get all characters and match with trimmed slugs
-      const { data: allCharacters, error: allError } = await supabase
-        .from('characters')
-        .select(`
-          id,
-          name,
-          slug,
-          title,
-          aliases,
-          description,
-          character_type,
-          status,
-          power_level,
-          importance_score,
-          age,
-          age_description,
-          gender,
-          species,
-          occupation,
-          location,
-          origin,
-          height,
-          build,
-          hair_color,
-          eye_color,
-          distinguishing_features,
-          personality_traits,
-          background_summary,
-          motivations,
-          fears,
-          goals,
-          skills,
-          weaknesses,
-          character_arc_summary,
-          primary_faction,
-          allegiances,
-          is_major_character,
-          is_pov_character,
-          is_spoiler_sensitive,
-          spoiler_tags,
-          meta_description,
-          meta_keywords,
-          portrait_url,
-          color_theme,
-          quote,
-          created_at,
-          updated_at
-        `);
-      
-      if (allError) {
-        console.error('❌ Error fetching all characters:', allError);
-        return res.status(500).json({ error: 'Database error', details: allError.message });
-      }
-      
-      // Find character with matching trimmed slug
-      character = allCharacters.find(c => 
-        c.slug && c.slug.trim().toLowerCase() === cleanSlug
-      );
-      
-      if (!character) {
-        console.log(`❌ Character not found for slug: "${cleanSlug}"`);
-        console.log(`📋 Available slugs:`, allCharacters.map(c => `"${c.slug}"`));
-        return res.status(404).json({ 
-          error: 'Character not found', 
-          slug: cleanSlug,
-          availableSlugs: allCharacters.map(c => c.slug?.trim())
-        });
-      }
-    }
+      .ilike('slug', cleanSlug)
+      .limit(1);
     
     if (error) {
       console.error('❌ Database error:', error);
       return res.status(500).json({ error: 'Database error', details: error.message });
     }
+    
+    if (!rows || rows.length === 0) {
+      console.log(`❌ Character not found for slug: "${cleanSlug}"`);
+      
+      // Get all available slugs for debugging
+      const { data: allChars } = await supabase
+        .from('characters')
+        .select('name, slug');
+      
+      console.log(`📋 Available characters:`, allChars?.map(c => `${c.name} (slug: "${c.slug}")`));
+      
+      return res.status(404).json({
+        error: 'Character not found',
+        slug: cleanSlug,
+        availableCharacters: allChars?.map(c => ({
+          name: c.name,
+          slug: c.slug?.trim()
+        })).filter(c => c.slug) || []
+      });
+    }
+    
+    const character = rows[0];
     
     // Clean the character data
     if (character.slug) {
@@ -179,7 +132,9 @@ export default async function handler(req, res) {
           name,
           description,
           category,
-          mastery_level
+          mastery_level,
+          power_source,
+          limitations
         `)
         .eq('character_id', character.id)
         .order('mastery_level', { ascending: false });
@@ -251,6 +206,6 @@ export default async function handler(req, res) {
     
   } catch (error) {
     console.error('❌ Server error in character lookup:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 }

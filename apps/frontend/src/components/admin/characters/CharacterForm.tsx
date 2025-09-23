@@ -30,10 +30,10 @@ import {
 import { supabase } from '@zoroaster/shared';
 
 /* 
-🎯 CHARACTER FORM WITH INLINE MEDIA PICKER v3.0 - Sep 23, 2025
+🎯 CHARACTER FORM WITH INLINE MEDIA PICKER v3.1 - Sep 24, 2025
+- Fixed null path error in MediaPicker
+- Added defensive programming for file URL generation
 - Embedded MediaPicker directly to avoid import issues
-- Replaced Portrait URL with media bucket integration
-- Added portrait_file_id support
 */
 
 interface CharacterFormProps {
@@ -96,7 +96,7 @@ interface FileRecord {
   height?: number;
   alt_text?: string;
   folder: string;
-  path: string;
+  path: string | null;
   bucket: string;
   created_at: string;
 }
@@ -113,7 +113,25 @@ const normalizeSlug = (slug: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
-// 🖼️ INLINE MEDIA PICKER COMPONENT
+// 🖼️ SAFE FILE URL GENERATOR - Handles null paths
+const getFileUrl = (file: FileRecord): string | null => {
+  try {
+    // Check if file has required data
+    if (!file || !file.path || !file.bucket) {
+      console.warn('⚠️ Invalid file record:', file);
+      return null;
+    }
+    
+    // Generate public URL safely
+    const { data } = supabase.storage.from(file.bucket).getPublicUrl(file.path);
+    return data.publicUrl;
+  } catch (error) {
+    console.error('❌ Error generating file URL:', error, file);
+    return null;
+  }
+};
+
+// 🖼️ INLINE MEDIA PICKER COMPONENT WITH ERROR HANDLING
 const InlineMediaPicker: React.FC<{
   selectedFileId?: string;
   onSelect: (fileId: string, fileUrl: string) => void;
@@ -122,6 +140,7 @@ const InlineMediaPicker: React.FC<{
   const [isOpen, setIsOpen] = useState(false);
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [folderFilter, setFolderFilter] = useState<'all' | typeof FOLDERS[number]>('characters');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState<FileRecord | null>(null);
@@ -146,8 +165,10 @@ const InlineMediaPicker: React.FC<{
       if (data) {
         setSelectedFile(data);
         const url = getFileUrl(data);
-        setSelectedUrl(url);
-        console.log('🖼️ LOADED SELECTED FILE:', data.name, url);
+        if (url) {
+          setSelectedUrl(url);
+          console.log('🖼️ LOADED SELECTED FILE:', data.name, url);
+        }
       }
     } catch (err) {
       console.error('Error loading selected file:', err);
@@ -159,25 +180,37 @@ const InlineMediaPicker: React.FC<{
     
     try {
       setLoading(true);
-      console.log('📏 Loading files from media bucket...');
+      setError(null);
+      console.log('📂 Loading files from media bucket...');
 
       let query = supabase
         .from('files')
         .select('*')
         .like('mime_type', 'image%')
+        .not('path', 'is', null) // 🛡️ Filter out files with null paths
         .order('created_at', { ascending: false });
 
       if (folderFilter !== 'all') {
         query = query.eq('folder', folderFilter);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
+      const { data, error: queryError } = await query;
+      if (queryError) throw queryError;
 
-      setFiles(data || []);
-      console.log(`📏 Loaded ${data?.length || 0} files`);
-    } catch (err) {
+      // 🛡️ Additional filtering for valid files
+      const validFiles = (data || []).filter(file => {
+        return file && file.path && file.bucket && file.name;
+      });
+
+      setFiles(validFiles);
+      console.log(`📂 Loaded ${validFiles.length} valid files (filtered from ${data?.length || 0})`);
+      
+      if (validFiles.length === 0 && data && data.length > 0) {
+        setError(`Found ${data.length} files but none have valid paths. Please check your file uploads.`);
+      }
+    } catch (err: any) {
       console.error('Error loading files:', err);
+      setError('Failed to load images: ' + err.message);
     } finally {
       setLoading(false);
     }
@@ -186,11 +219,6 @@ const InlineMediaPicker: React.FC<{
   useEffect(() => {
     loadFiles();
   }, [loadFiles]);
-
-  const getFileUrl = (file: FileRecord): string => {
-    const { data } = supabase.storage.from(file.bucket).getPublicUrl(file.path);
-    return data.publicUrl;
-  };
 
   const filteredFiles = files.filter(file => {
     if (!searchQuery) return true;
@@ -204,6 +232,11 @@ const InlineMediaPicker: React.FC<{
 
   const handleFileSelect = (file: FileRecord) => {
     const url = getFileUrl(file);
+    if (!url) {
+      console.error('❌ Cannot generate URL for file:', file);
+      return;
+    }
+    
     console.log('🖼️ FILE SELECTED:', file.name, url);
     onSelect(file.id, url);
     setSelectedFile(file);
@@ -235,6 +268,9 @@ const InlineMediaPicker: React.FC<{
               src={selectedUrl} 
               alt={selectedFile.alt_text || selectedFile.name}
               className="w-full h-48 object-cover"
+              onError={() => {
+                console.error('❌ Failed to load image:', selectedUrl);
+              }}
             />
             <div className="absolute top-2 right-2 flex gap-2">
               <a
@@ -280,7 +316,10 @@ const InlineMediaPicker: React.FC<{
         /* Select Image Button */
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            console.log('🎯 OPENING MEDIA PICKER MODAL');
+            setIsOpen(true);
+          }}
           className="w-full h-48 border-2 border-dashed border-border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
         >
           <ImageIcon className="w-8 h-8" />
@@ -301,7 +340,10 @@ const InlineMediaPicker: React.FC<{
               </h2>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  console.log('❌ CLOSING MEDIA PICKER MODAL');
+                  setIsOpen(false);
+                }}
                 className="p-2 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -315,7 +357,10 @@ const InlineMediaPicker: React.FC<{
                   <Filter className="w-4 h-4 text-muted-foreground" />
                   <select
                     value={folderFilter}
-                    onChange={e => setFolderFilter(e.target.value as any)}
+                    onChange={e => {
+                      console.log('📂 FOLDER FILTER CHANGED:', e.target.value);
+                      setFolderFilter(e.target.value as any);
+                    }}
                     className="px-3 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary bg-background"
                   >
                     <option value="all">All Folders</option>
@@ -346,6 +391,7 @@ const InlineMediaPicker: React.FC<{
 
             {/* Content */}
             <div className="flex-1 p-6 overflow-y-auto">
+              {/* Loading State */}
               {loading && (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -353,45 +399,94 @@ const InlineMediaPicker: React.FC<{
                 </div>
               )}
 
-              {!loading && filteredFiles.length === 0 && (
-                <div className="text-center py-12">
-                  <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-foreground text-lg mb-2">No images found</p>
-                  <p className="text-muted-foreground text-sm">Upload images in the File Manager first</p>
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                    <span className="font-medium text-red-700 dark:text-red-300">Error Loading Images</span>
+                  </div>
+                  <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+                  <button 
+                    onClick={() => {
+                      setError(null);
+                      loadFiles();
+                    }}
+                    className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
 
-              {!loading && filteredFiles.length > 0 && (
+              {/* No Images State */}
+              {!loading && !error && filteredFiles.length === 0 && (
+                <div className="text-center py-12">
+                  <ImageIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-foreground text-lg mb-2">No images found</p>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {files.length === 0 
+                      ? 'No images uploaded yet in the media bucket'
+                      : 'No images match your search criteria'
+                    }
+                  </p>
+                  <a
+                    href="/admin/content/files"
+                    target="_blank"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Open File Manager
+                  </a>
+                </div>
+              )}
+
+              {/* Images Grid */}
+              {!loading && !error && filteredFiles.length > 0 && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {filteredFiles.map(file => {
                     const fileUrl = getFileUrl(file);
                     const isSelected = selectedFileId === file.id;
                     
+                    // Skip files that can't generate URLs
+                    if (!fileUrl) {
+                      console.warn('⚠️ Skipping file with invalid URL:', file.name);
+                      return null;
+                    }
+                    
                     return (
                       <div
                         key={file.id}
-                        className={`relative group cursor-pointer bg-card rounded-lg border-2 transition-all ${
+                        className={`relative group cursor-pointer bg-card rounded-lg border-2 transition-all hover:shadow-md ${
                           isSelected 
                             ? 'border-primary ring-2 ring-primary/20' 
                             : 'border-border hover:border-primary/50'
                         }`}
                         onClick={() => handleFileSelect(file)}
                       >
+                        {/* Image Preview */}
                         <div className="aspect-square bg-muted rounded-t-lg overflow-hidden">
                           <img
                             src={fileUrl}
                             alt={file.alt_text || file.name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                             loading="lazy"
+                            onError={(e) => {
+                              console.error('❌ Failed to load image:', fileUrl, file);
+                              // Hide broken images
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
                           />
                         </div>
 
+                        {/* Selection Indicator */}
                         {isSelected && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                          <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-md">
                             <Check className="w-4 h-4" />
                           </div>
                         )}
 
+                        {/* File Info */}
                         <div className="p-3">
                           <div className="text-sm font-medium text-foreground truncate">
                             {file.name}
@@ -401,6 +496,9 @@ const InlineMediaPicker: React.FC<{
                             {file.width && file.height && (
                               <span>{file.width}×{file.height}</span>
                             )}
+                          </div>
+                          <div className="text-xs text-muted-foreground capitalize mt-1">
+                            {file.folder}
                           </div>
                         </div>
                       </div>
@@ -433,7 +531,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   onCancel,
   className = ''
 }) => {
-  console.log('🎨 CHARACTER FORM v3.0: With inline MediaPicker - Build timestamp:', new Date().toISOString());
+  console.log('🎨 CHARACTER FORM v3.1: With fixed MediaPicker - Build:', new Date().toISOString());
   
   const [formData, setFormData] = useState<CharacterFormData>(() => {
     const initialData = {
@@ -1234,9 +1332,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
             </div>
           )}
 
-          {/* 🖼️ NEW METADATA TAB WITH MEDIA PICKER */}
+          {/* 🖼️ METADATA TAB WITH FIXED MEDIA PICKER */}
           {activeTab === 'meta' && (
             <div className="space-y-6">
+              {console.log('🎨 RENDERING METADATA TAB WITH MEDIA PICKER v3.1')}
+              
               {/* Character Portrait with Inline MediaPicker */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-3">
@@ -1244,7 +1344,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 </label>
                 <div className="bg-muted/20 p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground mb-4">
-                    Choose from your media library or upload new images in the File Manager
+                    Choose from your media library. If you see errors, check the File Manager for invalid uploads.
                   </p>
                   
                   <InlineMediaPicker 

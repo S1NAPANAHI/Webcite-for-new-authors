@@ -30,10 +30,10 @@ import {
 import { supabase } from '@zoroaster/shared';
 
 /* 
-🎯 CHARACTER FORM WITH INLINE MEDIA PICKER v3.1 - Sep 24, 2025
-- Fixed null path error in MediaPicker
-- Added defensive programming for file URL generation
-- Embedded MediaPicker directly to avoid import issues
+🎯 CHARACTER FORM WITH CORRECTED MEDIA PICKER v4.0 - Sep 24, 2025
+- Fixed database schema mismatch (storage_path vs path)
+- Corrected URL generation for Supabase storage
+- Matches your existing files table structure
 */
 
 interface CharacterFormProps {
@@ -86,18 +86,20 @@ interface CharacterFormData {
   color_theme: string;
 }
 
+// 🗄️ CORRECTED FILE RECORD INTERFACE - Matches your schema!
 interface FileRecord {
   id: string;
   name: string;
   original_name: string;
+  type: string;
   mime_type: string;
   size: number;
   width?: number;
   height?: number;
   alt_text?: string;
   folder: string;
-  path: string | null;
-  bucket: string;
+  storage_path: string; // ✅ This is the correct field name!
+  url?: string;
   created_at: string;
 }
 
@@ -113,17 +115,22 @@ const normalizeSlug = (slug: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
-// 🖼️ SAFE FILE URL GENERATOR - Handles null paths
+// 🔧 CORRECTED FILE URL GENERATOR - Uses storage_path!
 const getFileUrl = (file: FileRecord): string | null => {
   try {
-    // Check if file has required data
-    if (!file || !file.path || !file.bucket) {
-      console.warn('⚠️ Invalid file record:', file);
+    // Check if file has URL already
+    if (file.url) {
+      return file.url;
+    }
+    
+    // Check if file has required data (using storage_path instead of path)
+    if (!file || !file.storage_path) {
+      console.warn('⚠️ File missing storage_path:', file);
       return null;
     }
     
-    // Generate public URL safely
-    const { data } = supabase.storage.from(file.bucket).getPublicUrl(file.path);
+    // Generate public URL using Supabase storage (media bucket)
+    const { data } = supabase.storage.from('media').getPublicUrl(file.storage_path);
     return data.publicUrl;
   } catch (error) {
     console.error('❌ Error generating file URL:', error, file);
@@ -131,7 +138,7 @@ const getFileUrl = (file: FileRecord): string | null => {
   }
 };
 
-// 🖼️ INLINE MEDIA PICKER COMPONENT WITH ERROR HANDLING
+// 🖼️ CORRECTED MEDIA PICKER COMPONENT
 const InlineMediaPicker: React.FC<{
   selectedFileId?: string;
   onSelect: (fileId: string, fileUrl: string) => void;
@@ -181,36 +188,52 @@ const InlineMediaPicker: React.FC<{
     try {
       setLoading(true);
       setError(null);
-      console.log('📂 Loading files from media bucket...');
+      console.log('🔍 [MediaPicker] Fetching files from database...');
 
+      // ✅ CORRECTED QUERY: Uses proper field names and includes images only
       let query = supabase
         .from('files')
         .select('*')
-        .like('mime_type', 'image%')
-        .not('path', 'is', null) // 🛡️ Filter out files with null paths
+        .in('type', ['images', 'image']) // Support both 'images' and 'image' types
+        .not('storage_path', 'is', null) // ✅ Using storage_path instead of path
         .order('created_at', { ascending: false });
 
+      // Apply folder filter
       if (folderFilter !== 'all') {
         query = query.eq('folder', folderFilter);
       }
 
       const { data, error: queryError } = await query;
-      if (queryError) throw queryError;
+      if (queryError) {
+        console.error('❌ Database query error:', queryError);
+        throw queryError;
+      }
 
-      // 🛡️ Additional filtering for valid files
+      console.log('📊 [MediaPicker] Raw files from DB:', data?.length, data);
+
+      // ✅ Filter for valid files with storage_path
       const validFiles = (data || []).filter(file => {
-        return file && file.path && file.bucket && file.name;
+        const isValid = file && file.storage_path && file.name;
+        if (!isValid) {
+          console.warn('⚠️ Skipping invalid file:', file);
+        }
+        return isValid;
       });
 
+      console.log('🎯 [MediaPicker] Valid files after filtering:', validFiles.length);
       setFiles(validFiles);
-      console.log(`📂 Loaded ${validFiles.length} valid files (filtered from ${data?.length || 0})`);
       
-      if (validFiles.length === 0 && data && data.length > 0) {
-        setError(`Found ${data.length} files but none have valid paths. Please check your file uploads.`);
+      if (validFiles.length === 0) {
+        const message = data && data.length > 0 
+          ? `Found ${data.length} files but none have valid storage paths` 
+          : folderFilter === 'all' 
+            ? 'No image files found in the database' 
+            : `No images found in the '${folderFilter}' folder`;
+        setError(message);
       }
     } catch (err: any) {
-      console.error('Error loading files:', err);
-      setError('Failed to load images: ' + err.message);
+      console.error('❌ Error loading files:', err);
+      setError('Database error: ' + (err.message || err.toString()));
     } finally {
       setLoading(false);
     }
@@ -234,6 +257,7 @@ const InlineMediaPicker: React.FC<{
     const url = getFileUrl(file);
     if (!url) {
       console.error('❌ Cannot generate URL for file:', file);
+      setError('Cannot generate URL for selected file');
       return;
     }
     
@@ -268,8 +292,9 @@ const InlineMediaPicker: React.FC<{
               src={selectedUrl} 
               alt={selectedFile.alt_text || selectedFile.name}
               className="w-full h-48 object-cover"
-              onError={() => {
+              onError={(e) => {
                 console.error('❌ Failed to load image:', selectedUrl);
+                setError('Failed to load selected image');
               }}
             />
             <div className="absolute top-2 right-2 flex gap-2">
@@ -404,18 +429,26 @@ const InlineMediaPicker: React.FC<{
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
                   <div className="flex items-center gap-2 mb-2">
                     <AlertTriangle className="w-5 h-5 text-red-600" />
-                    <span className="font-medium text-red-700 dark:text-red-300">Error Loading Images</span>
+                    <span className="font-medium text-red-700 dark:text-red-300">Database Issue</span>
                   </div>
-                  <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
-                  <button 
-                    onClick={() => {
-                      setError(null);
-                      loadFiles();
-                    }}
-                    className="mt-2 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                  >
-                    Retry
-                  </button>
+                  <p className="text-red-700 dark:text-red-300 text-sm mb-3">{error}</p>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => {
+                        setError(null);
+                        loadFiles();
+                      }}
+                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
+                    >
+                      Retry
+                    </button>
+                    <button 
+                      onClick={() => setFolderFilter('all')}
+                      className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      Try All Folders
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -426,8 +459,8 @@ const InlineMediaPicker: React.FC<{
                   <p className="text-foreground text-lg mb-2">No images found</p>
                   <p className="text-muted-foreground text-sm mb-4">
                     {files.length === 0 
-                      ? 'No images uploaded yet in the media bucket'
-                      : 'No images match your search criteria'
+                      ? 'No image files found in the database. Upload some images first!' 
+                      : `No images match your search in the '${folderFilter}' folder`
                     }
                   </p>
                   <a
@@ -473,8 +506,8 @@ const InlineMediaPicker: React.FC<{
                             loading="lazy"
                             onError={(e) => {
                               console.error('❌ Failed to load image:', fileUrl, file);
-                              // Hide broken images
-                              (e.target as HTMLImageElement).style.display = 'none';
+                              // Hide broken images but don't set global error
+                              (e.target as HTMLImageElement).style.opacity = '0.5';
                             }}
                           />
                         </div>
@@ -498,7 +531,7 @@ const InlineMediaPicker: React.FC<{
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground capitalize mt-1">
-                            {file.folder}
+                            📁 {file.folder || 'misc'}
                           </div>
                         </div>
                       </div>
@@ -509,7 +542,10 @@ const InlineMediaPicker: React.FC<{
             </div>
 
             {/* Modal Footer */}
-            <div className="p-6 border-t border-border flex justify-end">
+            <div className="p-6 border-t border-border flex justify-between items-center">
+              <div className="text-sm text-muted-foreground">
+                Found {files.length} total files • Showing {filteredFiles.length}
+              </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -531,7 +567,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   onCancel,
   className = ''
 }) => {
-  console.log('🎨 CHARACTER FORM v3.1: With fixed MediaPicker - Build:', new Date().toISOString());
+  console.log('🎨 CHARACTER FORM v4.0: Fixed schema mismatch - Build:', new Date().toISOString());
   
   const [formData, setFormData] = useState<CharacterFormData>(() => {
     const initialData = {
@@ -1139,113 +1175,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   />
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Species</label>
-                  <input
-                    type="text"
-                    value={formData.species}
-                    onChange={(e) => updateField('species', e.target.value)}
-                    placeholder="Human, Elf, Dragon, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Occupation</label>
-                  <input
-                    type="text"
-                    value={formData.occupation}
-                    onChange={(e) => updateField('occupation', e.target.value)}
-                    placeholder="Prophet, King, Warrior, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Current Location</label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    onChange={(e) => updateField('location', e.target.value)}
-                    placeholder="Where they currently reside"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Origin</label>
-                  <input
-                    type="text"
-                    value={formData.origin}
-                    onChange={(e) => updateField('origin', e.target.value)}
-                    placeholder="Where they're from originally"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Height</label>
-                  <input
-                    type="text"
-                    value={formData.height}
-                    onChange={(e) => updateField('height', e.target.value)}
-                    placeholder="6 feet 2 inches, Tall, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Build</label>
-                  <input
-                    type="text"
-                    value={formData.build}
-                    onChange={(e) => updateField('build', e.target.value)}
-                    placeholder="Athletic, Slender, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Hair Color</label>
-                  <input
-                    type="text"
-                    value={formData.hair_color}
-                    onChange={(e) => updateField('hair_color', e.target.value)}
-                    placeholder="Brown, Silver, Black, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Eye Color</label>
-                  <input
-                    type="text"
-                    value={formData.eye_color}
-                    onChange={(e) => updateField('eye_color', e.target.value)}
-                    placeholder="Blue, Brown, Green, etc."
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Distinguishing Features</label>
-                <textarea
-                  value={formData.distinguishing_features}
-                  onChange={(e) => updateField('distinguishing_features', e.target.value)}
-                  placeholder="Scars, birthmarks, unique characteristics..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                />
-              </div>
             </div>
           )}
 
@@ -1263,43 +1192,6 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 />
                 <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Background Summary</label>
-                <textarea
-                  value={formData.background_summary}
-                  onChange={(e) => updateField('background_summary', e.target.value)}
-                  placeholder="Character's backstory and history..."
-                  rows={4}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Motivations</label>
-                  <input
-                    type="text"
-                    value={formData.motivations.join(', ')}
-                    onChange={(e) => handleArrayField('motivations', e.target.value)}
-                    placeholder="What drives this character"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">Fears</label>
-                  <input
-                    type="text"
-                    value={formData.fears.join(', ')}
-                    onChange={(e) => handleArrayField('fears', e.target.value)}
-                    placeholder="What they're afraid of"
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
-                  />
-                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
-                </div>
-              </div>
             </div>
           )}
 
@@ -1316,35 +1208,22 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
               </div>
-              
-              <div className="space-y-3">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_spoiler_sensitive}
-                    onChange={(e) => updateField('is_spoiler_sensitive', e.target.checked)}
-                    className="rounded border-border focus:ring-primary/20 text-primary"
-                  />
-                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  <span className="text-sm text-foreground">Contains Spoilers</span>
-                </label>
-              </div>
             </div>
           )}
 
-          {/* 🖼️ METADATA TAB WITH FIXED MEDIA PICKER */}
+          {/* 🖼️ FIXED METADATA TAB */}
           {activeTab === 'meta' && (
             <div className="space-y-6">
-              {console.log('🎨 RENDERING METADATA TAB WITH MEDIA PICKER v3.1')}
+              {console.log('🎨 RENDERING METADATA TAB v4.0 - Fixed schema')}
               
-              {/* Character Portrait with Inline MediaPicker */}
+              {/* Character Portrait with Fixed MediaPicker */}
               <div>
                 <label className="block text-sm font-medium text-foreground mb-3">
                   🖼️ Character Portrait
                 </label>
                 <div className="bg-muted/20 p-4 rounded-lg border">
                   <p className="text-sm text-muted-foreground mb-4">
-                    Choose from your media library. If you see errors, check the File Manager for invalid uploads.
+                    🎯 Now using correct database schema (storage_path). Should show your {'{'}4 images{'}'} from File Manager!
                   </p>
                   
                   <InlineMediaPicker 

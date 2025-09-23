@@ -22,7 +22,14 @@ import {
   generateCharacterSlug
 } from '../../../utils/characterUtils';
 import { supabase } from '@zoroaster/shared';
-import MediaPicker from '../MediaPicker';
+import MediaPicker from '../MediaPicker'; // Fixed import path
+
+/* 
+🎯 CHARACTER FORM WITH MEDIA PICKER v2.0
+- Replaced Portrait URL with MediaPicker
+- Added portrait_file_id support
+- Integrated with media bucket system
+*/
 
 interface CharacterFormProps {
   character?: Character | null;
@@ -69,7 +76,7 @@ interface CharacterFormData {
   spoiler_tags: string[];
   meta_description: string;
   meta_keywords: string[];
-  portrait_url: string;
+  portrait_url: string; // Backward compatibility
   portrait_file_id?: string; // New field for media bucket integration
   color_theme: string;
 }
@@ -90,6 +97,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   onCancel,
   className = ''
 }) => {
+  console.log('🎨 MEDIA PICKER VERSION: Character Form v2.0 with MediaPicker');
+  
   // 🔥 NUCLEAR APPROACH: Initialize state once and NEVER change the structure
   const [formData, setFormData] = useState<CharacterFormData>(() => {
     const initialData = {
@@ -136,6 +145,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     };
     
     console.log('🔥 NUCLEAR INIT: Form initialized with data:', initialData);
+    console.log('🖼️ PORTRAIT DATA: file_id =', initialData.portrait_file_id, ', url =', initialData.portrait_url);
     return initialData;
   });
 
@@ -281,6 +291,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         meta_description: formData.meta_description || formData.description.substring(0, 160)
       };
       
+      console.log('🎨 SAVING CHARACTER WITH PORTRAIT:', {
+        portrait_file_id: characterData.portrait_file_id,
+        portrait_url: characterData.portrait_url
+      });
+      
       let result;
       
       if (character) {
@@ -392,7 +407,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => {
+                  console.log(`🎯 TAB CHANGE: Switching to ${tab.id}`);
+                  setActiveTab(tab.id as any);
+                }}
                 className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors duration-200 ${
                   activeTab === tab.id
                     ? 'border-primary text-primary'
@@ -807,7 +825,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
             </div>
           )}
 
-          {/* Other tabs would go here with similar static structure */}
+          {/* Personality Tab */}
           {activeTab === 'personality' && (
             <div className="space-y-6">
               <div>
@@ -815,7 +833,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 <input
                   type="text"
                   value={formData.personality_traits.join(', ')}
-                  onChange={(e) => handleArrayField('personality_traits', e.target.value)}
+                  onChange={(e) => {
+                    console.log(`🔥 NUCLEAR: PERSONALITY_TRAITS = "${e.target.value}"`);
+                    handleArrayField('personality_traits', e.target.value);
+                  }}
                   placeholder="Wise, Brave, Cunning, Compassionate"
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
@@ -851,16 +872,58 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <input
                     type="text"
                     value={formData.fears.join(', ')}
-                    onChange={(e) => handleArrayField('fears', e.target.value)}
+                    onChange={(e) => {
+                      console.log(`🔥 NUCLEAR: FEARS = "${e.target.value}"`);
+                      handleArrayField('fears', e.target.value);
+                    }}
                     placeholder="What they're afraid of"
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
                 </div>
               </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Goals</label>
+                  <input
+                    type="text"
+                    value={formData.goals.join(', ')}
+                    onChange={(e) => handleArrayField('goals', e.target.value)}
+                    placeholder="Character's objectives and aspirations"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Skills</label>
+                  <input
+                    type="text"
+                    value={formData.skills.join(', ')}
+                    onChange={(e) => handleArrayField('skills', e.target.value)}
+                    placeholder="Combat, Magic, Diplomacy, etc."
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Weaknesses</label>
+                <input
+                  type="text"
+                  value={formData.weaknesses.join(', ')}
+                  onChange={(e) => handleArrayField('weaknesses', e.target.value)}
+                  placeholder="Character flaws and vulnerabilities"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+              </div>
             </div>
           )}
 
+          {/* Story Tab */}
           {activeTab === 'story' && (
             <div className="space-y-6">
               <div>
@@ -874,6 +937,31 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 />
               </div>
               
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Primary Faction</label>
+                  <input
+                    type="text"
+                    value={formData.primary_faction}
+                    onChange={(e) => updateField('primary_faction', e.target.value)}
+                    placeholder="Which group/faction they belong to"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Allegiances</label>
+                  <input
+                    type="text"
+                    value={formData.allegiances.join(', ')}
+                    onChange={(e) => handleArrayField('allegiances', e.target.value)}
+                    placeholder="Groups, people, or causes they support"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">Separate multiple items with commas</p>
+                </div>
+              </div>
+              
               <div className="space-y-3">
                 <label className="flex items-center gap-2">
                   <input
@@ -885,10 +973,25 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />
                   <span className="text-sm text-foreground">Contains Spoilers</span>
                 </label>
+                
+                {formData.is_spoiler_sensitive && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">Spoiler Tags</label>
+                    <input
+                      type="text"
+                      value={formData.spoiler_tags.join(', ')}
+                      onChange={(e) => handleArrayField('spoiler_tags', e.target.value)}
+                      placeholder="death, betrayal, secret identity, etc."
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">Separate multiple tags with commas</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
+          {/* Metadata Tab - WITH MEDIA PICKER! */}
           {activeTab === 'meta' && (
             <div className="space-y-6">
               {/* 🖼️ MediaPicker for Character Portrait */}
@@ -896,10 +999,19 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Character Portrait
                 </label>
+                {/* DEBUG: Show when MediaPicker is being rendered */}
+                {console.log('🎨 RENDERING MEDIA PICKER IN META TAB')}
+                
                 <MediaPicker 
                   selectedFileId={formData.portrait_file_id}
-                  onSelect={handlePortraitSelect}
-                  onClear={handlePortraitClear}
+                  onSelect={(fileId, fileUrl) => {
+                    console.log(`🖼️ MEDIA PICKER: Selected ${fileId} with URL ${fileUrl}`);
+                    handlePortraitSelect(fileId, fileUrl);
+                  }}
+                  onClear={() => {
+                    console.log('🗑️ MEDIA PICKER: Cleared selection');
+                    handlePortraitClear();
+                  }}
                   preferredFolder="characters"
                   className="w-full"
                 />
@@ -917,6 +1029,18 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   rows={3}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Meta Keywords</label>
+                <input
+                  type="text"
+                  value={formData.meta_keywords.join(', ')}
+                  onChange={(e) => handleArrayField('meta_keywords', e.target.value)}
+                  placeholder="SEO keywords, separated by commas"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">Separate multiple keywords with commas</p>
               </div>
             </div>
           )}

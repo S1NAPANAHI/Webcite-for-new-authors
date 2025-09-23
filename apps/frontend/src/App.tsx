@@ -59,6 +59,8 @@ import HomepageManager from './admin/components/HomepageManager';
 import { HomepageProvider } from './contexts/HomepageContext';
 // NEW: Characters Page Import
 import CharactersPage from './pages/CharactersPage';
+// NEW: Individual Character Detail Page Import
+import CharacterDetailPage from './pages/CharacterDetailPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -153,6 +155,7 @@ const AppContent: React.FC = () => {
         <Route path="/wiki/:folderSlug/:pageSlug" element={<WikiViewer />} />
         <Route path="/timelines" element={<TimelinesPage />} />
         <Route path="/characters" element={<CharactersPage />} />
+        <Route path="/characters/:slug" element={<CharacterDetailPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />

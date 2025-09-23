@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay, A11y, EffectCoverflow } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay, A11y } from 'swiper/modules';
 import { supabase } from '../lib/supabaseClient';
 
 // Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import 'swiper/css/effect-coverflow';
 
 // Blog post interface
 interface BlogPost {
@@ -33,7 +32,7 @@ interface LatestPostsProps {
   supabaseClient?: any;
 }
 
-// Professional fallback posts
+// Professional fallback posts with high-quality images
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: 'sample-1',
@@ -41,7 +40,7 @@ const FALLBACK_POSTS: BlogPost[] = [
     slug: 'welcome-to-zoroasterverse',
     excerpt: 'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
     content: 'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding.',
-    featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=500&fit=crop',
+    featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=800&fit=crop&crop=center',
     author: 'Zoroasterverse Team',
     category: 'Philosophy',
     published_at: new Date().toISOString(),
@@ -54,7 +53,7 @@ const FALLBACK_POSTS: BlogPost[] = [
     slug: 'sacred-fire-divine-light',
     excerpt: 'Fire holds a central place in Zoroastrian worship as a symbol of Ahura Mazda\'s light and the path to truth.',
     content: 'In Zoroastrian tradition, fire serves as a symbol of purity and divine presence.',
-    featured_image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=500&fit=crop',
+    featured_image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1200&h=800&fit=crop&crop=center',
     author: 'Dr. Farah Kermani',
     category: 'Religion',
     published_at: new Date(Date.now() - 86400000).toISOString(),
@@ -67,7 +66,7 @@ const FALLBACK_POSTS: BlogPost[] = [
     slug: 'good-thoughts-words-deeds',
     excerpt: 'The threefold path of righteousness in Zoroastrianism emphasizes the importance of aligning our thoughts, words, and actions with truth.',
     content: 'Humata, Hukhta, Hvarshta - the foundation of Zoroastrian ethics.',
-    featured_image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=500&fit=crop',
+    featured_image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&h=800&fit=crop&crop=center',
     author: 'Prof. Jamshid Rostami',
     category: 'Philosophy',
     published_at: new Date(Date.now() - 172800000).toISOString(),
@@ -80,7 +79,7 @@ const FALLBACK_POSTS: BlogPost[] = [
     slug: 'modern-applications-ancient-wisdom',
     excerpt: 'How Zoroastrian principles can guide us in contemporary challenges and ethical decision-making.',
     content: 'Ancient wisdom for modern times.',
-    featured_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=500&fit=crop',
+    featured_image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center',
     author: 'Sarah Mitchell',
     category: 'Modern Life',
     published_at: new Date(Date.now() - 259200000).toISOString(),
@@ -93,7 +92,7 @@ const FALLBACK_POSTS: BlogPost[] = [
     slug: 'history-of-zoroastrianism',
     excerpt: 'Tracing the origins and evolution of one of the world\'s oldest monotheistic religions.',
     content: 'A journey through time exploring Zoroastrian history.',
-    featured_image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=800&h=500&fit=crop',
+    featured_image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?w=1200&h=800&fit=crop&crop=center',
     author: 'Dr. Rostam Yazdi',
     category: 'History',
     published_at: new Date(Date.now() - 345600000).toISOString(),
@@ -307,7 +306,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         </div>
       )}
       
-      {/* Single-Card Carousel Container - Similar to Salesforce Design */}
+      {/* Single-Card Carousel Container - FIXED IMAGE SIZING */}
       <div className="relative max-w-4xl mx-auto">
         <div className={`rounded-xl shadow-2xl overflow-hidden ${
           isDark ? 'bg-gray-800' : 'bg-white'
@@ -343,28 +342,51 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
               
               return (
                 <SwiperSlide key={post.id}>
-                  <div className="flex flex-col md:flex-row min-h-[400px]">
-                    {/* Image Section - Left side */}
-                    <div className="relative md:w-1/2 h-64 md:h-auto bg-gradient-to-br from-orange-400 to-red-500">
+                  <div className="flex flex-col md:flex-row">
+                    {/* FIXED: Image Section - Left side with proper sizing */}
+                    <div className="relative md:w-1/2 h-64 md:h-96 overflow-hidden">
                       {imageUrl ? (
-                        <img
-                          src={imageUrl}
-                          alt={post.title}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            // Show gradient fallback on image error
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
+                        <>
+                          {/* Main image with full coverage */}
+                          <img
+                            src={imageUrl}
+                            alt={post.title}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                            style={{
+                              minWidth: '100%',
+                              minHeight: '100%',
+                              objectFit: 'cover',
+                              objectPosition: 'center'
+                            }}
+                            onError={(e) => {
+                              // Replace with gradient fallback on image error
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              // Show the fallback div instead
+                              const fallback = target.nextElementSibling as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          {/* Fallback gradient (hidden by default) */}
+                          <div 
+                            className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center"
+                            style={{ display: 'none' }}
+                          >
+                            <div className="text-white text-6xl opacity-30">📰</div>
+                          </div>
+                        </>
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
                           <div className="text-white text-6xl opacity-30">📰</div>
                         </div>
                       )}
                       
+                      {/* Overlay gradient for better text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/40"></div>
+                      
                       {/* Category Badge */}
                       {post.category && (
-                        <div className="absolute top-4 left-4 bg-black bg-opacity-80 text-white px-3 py-1.5 rounded-full text-sm font-semibold">
+                        <div className="absolute top-4 left-4 bg-black bg-opacity-90 text-white px-3 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm">
                           {post.category}
                         </div>
                       )}
@@ -378,7 +400,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                     </div>
 
                     {/* Content Section - Right side */}
-                    <div className="md:w-1/2 p-8 flex flex-col justify-center">
+                    <div className="md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
                       {/* Title */}
                       <h3 className={`text-2xl md:text-3xl font-bold mb-4 leading-tight ${
                         isDark ? 'text-white' : 'text-gray-900'
@@ -387,7 +409,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                       </h3>
 
                       {/* Excerpt */}
-                      <p className={`text-base mb-6 leading-relaxed ${
+                      <p className={`text-base md:text-lg mb-6 leading-relaxed ${
                         isDark ? 'text-gray-300' : 'text-gray-600'
                       }`}>
                         {post.excerpt || (post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content)}
@@ -421,7 +443,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                       {/* Read More Button */}
                       <Link 
                         to={usingFallback ? '/blog' : `/blog/${post.slug}`}
-                        className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                        className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg self-start ${
                           isDark 
                             ? 'bg-orange-600 hover:bg-orange-700 text-white' 
                             : 'bg-orange-600 hover:bg-orange-700 text-white'
@@ -437,21 +459,21 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
             })}
           </Swiper>
 
-          {/* Custom Navigation Buttons - Inside the card */}
-          <button className={`custom-prev-btn absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+          {/* ENHANCED Navigation Buttons - Larger and more visible */}
+          <button className={`custom-prev-btn absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
             isDark 
-              ? 'bg-gray-900/80 hover:bg-gray-900 text-white border border-gray-600' 
-              : 'bg-white/90 hover:bg-white text-gray-700 shadow-lg'
+              ? 'bg-gray-900/90 hover:bg-gray-900 text-white border-2 border-gray-600 hover:border-orange-500' 
+              : 'bg-white/95 hover:bg-white text-gray-700 shadow-xl border-2 border-gray-200 hover:border-orange-500'
           } ${currentSlide === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}>
-            <span className="text-lg font-bold">‹</span>
+            <span className="text-xl font-bold">‹</span>
           </button>
           
-          <button className={`custom-next-btn absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+          <button className={`custom-next-btn absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
             isDark 
-              ? 'bg-gray-900/80 hover:bg-gray-900 text-white border border-gray-600' 
-              : 'bg-white/90 hover:bg-white text-gray-700 shadow-lg'
+              ? 'bg-gray-900/90 hover:bg-gray-900 text-white border-2 border-gray-600 hover:border-orange-500' 
+              : 'bg-white/95 hover:bg-white text-gray-700 shadow-xl border-2 border-gray-200 hover:border-orange-500'
           } ${currentSlide === posts.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}>
-            <span className="text-lg font-bold">›</span>
+            <span className="text-xl font-bold">›</span>
           </button>
         </div>
 
@@ -491,6 +513,67 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           )}
         </p>
       </div>
+
+      {/* CRITICAL: Custom CSS to ensure proper image sizing */}
+      <style jsx>{`
+        /* Ensure Swiper slides maintain proper height */
+        .single-card-slider .swiper-slide {
+          height: auto !important;
+        }
+        
+        /* Custom pagination styling */
+        .custom-pagination .swiper-pagination-bullet {
+          width: 8px;
+          height: 8px;
+          margin: 0 4px;
+          opacity: 0.4;
+          transition: all 0.3s ease;
+        }
+        
+        .custom-pagination .swiper-pagination-bullet-active {
+          opacity: 1;
+          transform: scale(1.3);
+          width: 24px;
+          border-radius: 4px;
+        }
+        
+        /* Dark mode pagination */
+        ${isDark ? `
+          .custom-pagination .swiper-pagination-bullet {
+            background: #6B7280 !important;
+          }
+          .custom-pagination .swiper-pagination-bullet-active {
+            background: #F97316 !important;
+          }
+        ` : `
+          .custom-pagination .swiper-pagination-bullet {
+            background: #D1D5DB !important;
+          }
+          .custom-pagination .swiper-pagination-bullet-active {
+            background: #EA580C !important;
+          }
+        `}
+        
+        /* CRITICAL FIX: Ensure images always fill their container */
+        .single-card-slider img {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          object-position: center !important;
+          display: block !important;
+        }
+        
+        /* Prevent image container from shrinking */
+        .single-card-slider .swiper-slide > div {
+          min-height: 400px;
+        }
+        
+        @media (max-width: 768px) {
+          .single-card-slider .swiper-slide > div {
+            min-height: auto;
+          }
+        }
+      `}</style>
     </div>
   );
 };

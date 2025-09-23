@@ -27,6 +27,8 @@ import filesRoutes from './routes/files.js';
 import homepageRoutes from './routes/homepage.js';
 // Import releases routes (NEW)
 import releasesRoutes from './routes/releases.js';
+// Import characters routes (NEW FOR CHARACTER PROFILE PAGES)
+import charactersRoutes from './src/routes/characters.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -174,7 +176,7 @@ async function startServer() {
 
   // Add enhanced debug logging middleware
   app.use((req, res, next) => {
-    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases')) {
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases') || req.path.startsWith('/api/characters')) {
       console.log('🔍 Request:', {
         method: req.method,
         path: req.path,
@@ -192,6 +194,7 @@ async function startServer() {
   app.use('/api/subscription', subscriptionRoutes); // Enhanced subscription API
   app.use('/api/homepage', homepageRoutes); // Homepage management API
   app.use('/api/releases', releasesRoutes); // NEW: Releases management API
+  app.use('/api/characters', charactersRoutes); // NEW: Characters API for profile pages
   app.use('/admin', adminRoutes);
   app.use('/content', contentRoutes);
   app.use('/beta', betaRoutes);
@@ -345,6 +348,8 @@ async function startServer() {
     console.log(`💬 Homepage Quotes: http://localhost:${PORT}/api/homepage/quotes`);
     console.log(`📚 Releases API: http://localhost:${PORT}/api/releases`);
     console.log(`🔄 Chapter Sync: http://localhost:${PORT}/api/releases/sync-from-chapters`);
+    console.log(`👥 Characters API: http://localhost:${PORT}/api/characters`);
+    console.log(`🔍 Character Profile: http://localhost:${PORT}/api/characters/:slug`);
     
     // Log environment variables for debugging
     console.log('🔧 Environment Check:');

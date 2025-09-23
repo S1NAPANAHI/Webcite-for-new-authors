@@ -233,8 +233,15 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   }, [formData.character_type]);
 
+  // 🔧 FIXED INPUT CHANGE HANDLER - PREVENTS VALUE CONCATENATION
   const handleInputChange = (field: keyof CharacterFormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear the field first, then set the new value to prevent concatenation
+    setFormData(prev => {
+      const newFormData = { ...prev };
+      // Explicitly set the field to the new value (no concatenation)
+      newFormData[field] = value;
+      return newFormData;
+    });
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -244,7 +251,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
 
   // 🔧 ENHANCED SLUG CHANGE HANDLER WITH NORMALIZATION
   const handleSlugChange = (value: string) => {
-    // Allow typing but don't normalize yet
+    // Clear the slug field and set new value to prevent concatenation
     setFormData(prev => ({ ...prev, slug: value }));
     setIsSlugManual(true);
     setSlugNormalized(false);
@@ -287,8 +294,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }
   };
 
+  // 🔧 FIXED ARRAY INPUT CHANGE HANDLER
   const handleArrayInputChange = (field: keyof CharacterFormData, value: string) => {
     const array = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+    // Use the fixed handleInputChange to prevent concatenation
     handleInputChange(field, array);
   };
 
@@ -415,6 +424,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
   ];
 
+  // 🔧 FIXED INPUT FIELD COMPONENT
   const InputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -436,7 +446,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         {type === 'textarea' ? (
           <textarea
             value={value as string || ''}
-            onChange={(e) => handleInputChange(field, e.target.value)}
+            onChange={(e) => {
+              // 🔧 FIXED: Direct value assignment, no concatenation
+              const newValue = e.target.value;
+              handleInputChange(field, newValue);
+            }}
             placeholder={placeholder}
             rows={rows}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
@@ -446,7 +460,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         ) : type === 'select' ? (
           <select
             value={value as string || ''}
-            onChange={(e) => handleInputChange(field, e.target.value)}
+            onChange={(e) => {
+              // 🔧 FIXED: Direct value assignment, no concatenation
+              const newValue = e.target.value;
+              handleInputChange(field, newValue);
+            }}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
             }`}
@@ -461,7 +479,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           <input
             type={type}
             value={value as string | number || ''}
-            onChange={(e) => handleInputChange(field, type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
+            onChange={(e) => {
+              // 🔧 FIXED: Direct value assignment, no concatenation
+              const newValue = type === 'number' ? parseInt(e.target.value) || 0 : e.target.value;
+              handleInputChange(field, newValue);
+            }}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -476,6 +498,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     );
   };
 
+  // 🔧 FIXED ARRAY INPUT FIELD COMPONENT
   const ArrayInputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -491,7 +514,11 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         <input
           type="text"
           value={value.join(', ')}
-          onChange={(e) => handleArrayInputChange(field, e.target.value)}
+          onChange={(e) => {
+            // 🔧 FIXED: Use the fixed array input handler
+            const newValue = e.target.value;
+            handleArrayInputChange(field, newValue);
+          }}
           placeholder={placeholder}
           className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
         />

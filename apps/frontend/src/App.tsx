@@ -57,6 +57,8 @@ import FileManagerPage from './pages/FileManagerPage';
 import HomepageManager from './admin/components/HomepageManager';
 // CRITICAL: Homepage Context Import
 import { HomepageProvider } from './contexts/HomepageContext';
+// NEW: Characters Page Import
+import CharactersPage from './pages/CharactersPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -150,6 +152,7 @@ const AppContent: React.FC = () => {
         <Route path="/wiki/:folderSlug" element={<WikiViewer />} />
         <Route path="/wiki/:folderSlug/:pageSlug" element={<WikiViewer />} />
         <Route path="/timelines" element={<TimelinesPage />} />
+        <Route path="/characters" element={<CharactersPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
@@ -190,8 +193,7 @@ const AppContent: React.FC = () => {
       </Route>
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><div className="min-h-screen bg-background text-foreground transition-colors duration-300"><AdminLayout /></div></ProtectedRoute>}>
-        <Route index element={<AdminDashboard />} />
+      <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><div className="min-h-screen bg-background text-foreground transition-colors duration-300"><AdminLayout /></div></ProtectedRoute>}>        <Route index element={<AdminDashboard />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         
         <Route path="content/pages" element={<PagesManager />} />

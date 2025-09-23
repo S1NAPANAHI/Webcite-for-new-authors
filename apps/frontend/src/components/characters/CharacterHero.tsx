@@ -1,10 +1,12 @@
 import React from 'react';
 import { Crown, Shield, Users, User, MessageCircle, BookOpen, Zap, Heart, Sword } from 'lucide-react';
 import CharacterSymbol from './CharacterSymbol';
+import { getCharacterQuote } from '../../utils/characterQuotes';
 
 interface Character {
   id: string;
   name: string;
+  slug: string;
   title?: string;
   description: string;
   character_type: 'protagonist' | 'antagonist' | 'supporting' | 'minor' | 'cameo' | 'narrator' | 'mentor' | 'villain' | 'anti-hero';
@@ -95,6 +97,14 @@ const CharacterHero: React.FC<CharacterHeroProps> = ({ character }) => {
   const powerInfo = getPowerLevelInfo(character.power_level);
   const importanceInfo = getImportanceTier(character.importance_score);
   const TypeIcon = typeInfo.icon;
+  
+  // Get character quote using the utility function
+  const characterQuote = getCharacterQuote({
+    slug: character.slug,
+    character_type: character.character_type,
+    power_level: character.power_level,
+    quote: character.quote
+  });
 
   return (
     <div className="relative overflow-hidden">
@@ -174,11 +184,9 @@ const CharacterHero: React.FC<CharacterHeroProps> = ({ character }) => {
             </div>
 
             {/* Quote */}
-            {character.quote && (
-              <blockquote className="text-lg md:text-xl text-gray-300 italic border-l-4 border-yellow-400 pl-4 max-w-2xl">
-                "{character.quote}"
-              </blockquote>
-            )}
+            <blockquote className="text-lg md:text-xl text-gray-300 italic border-l-4 border-yellow-400 pl-4 max-w-2xl">
+              "{characterQuote}"
+            </blockquote>
 
             {/* Character Badges */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-3">

@@ -1,5 +1,5 @@
 // Enhanced Characters API Route - JavaScript Version
-// 🔧 ROBUST CHARACTER LOOKUP WITH COMPREHENSIVE FALLBACK STRATEGY
+// 🔧 TOLERANT CHARACTER LOOKUP WITH ROBUST ERROR HANDLING
 
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
@@ -110,10 +110,10 @@ router.get('/', async (req, res) => {
       }
     }
     
-    // FIXED: Clean up slugs in response and ensure consistency
+    // Clean up slugs in response and ensure consistency
     const charactersWithCounts = characters.map(character => ({
       ...character,
-      slug: character.slug ? character.slug.trim() : character.slug, // Clean up slug
+      slug: character.slug ? character.slug.trim() : character.slug,
       relationship_count: relationshipCounts[character.id] || 0,
       appearance_count: appearanceCounts[character.id] || 0,
       abilities_count: abilitiesCounts[character.id] || 0
@@ -131,16 +131,20 @@ router.get('/', async (req, res) => {
 });
 
 // GET /api/characters/:slug - Get single character by slug
-// 🔧 ENHANCED CHARACTER LOOKUP WITH ROBUST FALLBACK STRATEGY
+// 🔧 TOLERANT CHARACTER LOOKUP WITH ILIKE
 router.get('/:slug', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const cleanSlug = slug.trim().toLowerCase();
+    const rawSlug = req.params.slug || '';
+    const cleanSlug = rawSlug.trim().toLowerCase();
     
-    console.log(`🔍 Looking for character with slug: "${cleanSlug}"`);
+    console.log(`🔍 Looking for character with slug: "${cleanSlug}" (original: "${rawSlug}")`);
     
-    // Try exact match first
-    let { data: character, error } = await supabase
+    if (!cleanSlug) {
+      return res.status(400).json({ error: 'Character slug is required' });
+    }
+    
+    // Use ILIKE for case-insensitive tolerant matching
+    const { data: rows, error } = await supabase
       .from('characters')
       .select(`
         id,
@@ -187,86 +191,35 @@ router.get('/:slug', async (req, res) => {
         created_at,
         updated_at
       `)
-      .eq('slug', cleanSlug)
-      .single();
-    
-    if (error && error.code === 'PGRST116') {
-      console.log('📋 Exact match failed, trying fallback with all characters...');
-      
-      // Fallback: Get all characters and match with trimmed slugs
-      const { data: allCharacters, error: allError } = await supabase
-        .from('characters')
-        .select(`
-          id,
-          name,
-          slug,
-          title,
-          aliases,
-          description,
-          character_type,
-          status,
-          power_level,
-          importance_score,
-          age,
-          age_description,
-          gender,
-          species,
-          occupation,
-          location,
-          origin,
-          height,
-          build,
-          hair_color,
-          eye_color,
-          distinguishing_features,
-          personality_traits,
-          background_summary,
-          motivations,
-          fears,
-          goals,
-          skills,
-          weaknesses,
-          character_arc_summary,
-          primary_faction,
-          allegiances,
-          is_major_character,
-          is_pov_character,
-          is_spoiler_sensitive,
-          spoiler_tags,
-          meta_description,
-          meta_keywords,
-          portrait_url,
-          color_theme,
-          quote,
-          created_at,
-          updated_at
-        `);
-      
-      if (allError) {
-        console.error('❌ Error fetching all characters:', allError);
-        return res.status(500).json({ error: 'Database error', details: allError.message });
-      }
-      
-      // Find character with matching trimmed slug
-      character = allCharacters.find(c => 
-        c.slug && c.slug.trim().toLowerCase() === cleanSlug
-      );
-      
-      if (!character) {
-        console.log(`❌ Character not found for slug: "${cleanSlug}"`);
-        console.log(`📋 Available slugs:`, allCharacters.map(c => `"${c.slug}"`));
-        return res.status(404).json({ 
-          error: 'Character not found', 
-          slug: cleanSlug,
-          availableSlugs: allCharacters.map(c => c.slug?.trim())
-        });
-      }
-    }
+      .ilike('slug', cleanSlug)
+      .limit(1);
     
     if (error) {
       console.error('❌ Database error:', error);
       return res.status(500).json({ error: 'Database error', details: error.message });
     }
+    
+    if (!rows || rows.length === 0) {
+      console.log(`❌ Character not found for slug: "${cleanSlug}"`);
+      
+      // Get all available slugs for debugging
+      const { data: allChars } = await supabase
+        .from('characters')
+        .select('name, slug');
+      
+      console.log(`📋 Available characters:`, allChars?.map(c => `${c.name} (slug: "${c.slug}")`));
+      
+      return res.status(404).json({
+        error: 'Character not found',
+        slug: cleanSlug,
+        availableCharacters: allChars?.map(c => ({
+          name: c.name,
+          slug: c.slug?.trim()
+        })).filter(c => c.slug) || []
+      });
+    }
+    
+    const character = rows[0];
     
     // Clean the character data
     if (character.slug) {
@@ -285,7 +238,9 @@ router.get('/:slug', async (req, res) => {
           name,
           description,
           category,
-          mastery_level
+          mastery_level,
+          power_source,
+          limitations
         `)
         .eq('character_id', character.id)
         .order('mastery_level', { ascending: false });
@@ -357,42 +312,28 @@ router.get('/:slug', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Server error in character lookup:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
 // GET /api/characters/:slug/relationships - Get character relationships
 router.get('/:slug/relationships', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const cleanSlug = slug.trim();
+    const rawSlug = req.params.slug || '';
+    const cleanSlug = rawSlug.trim().toLowerCase();
     
-    // Use the same lookup strategy as the main endpoint
-    let character = null;
-    
-    // Try exact match first
-    const { data: exactMatch } = await supabase
+    // Use ILIKE for tolerant character lookup
+    const { data: rows, error: charError } = await supabase
       .from('characters')
       .select('id, name, slug')
-      .eq('slug', cleanSlug)
-      .single();
+      .ilike('slug', cleanSlug)
+      .limit(1);
     
-    if (exactMatch) {
-      character = exactMatch;
-    } else {
-      // Try trimmed match
-      const { data: allCharacters } = await supabase
-        .from('characters')
-        .select('id, name, slug');
-      
-      if (allCharacters) {
-        character = allCharacters.find(c => c.slug && c.slug.trim() === cleanSlug);
-      }
-    }
-    
-    if (!character) {
+    if (charError || !rows || rows.length === 0) {
       return res.status(404).json({ error: 'Character not found' });
     }
+    
+    const character = rows[0];
     
     // Get relationships
     const { data: relationships, error } = await supabase
@@ -429,35 +370,21 @@ router.get('/:slug/relationships', async (req, res) => {
 // GET /api/characters/:slug/abilities - Get character abilities
 router.get('/:slug/abilities', async (req, res) => {
   try {
-    const { slug } = req.params;
-    const cleanSlug = slug.trim();
+    const rawSlug = req.params.slug || '';
+    const cleanSlug = rawSlug.trim().toLowerCase();
     
-    // Use the same lookup strategy as the main endpoint
-    let character = null;
-    
-    // Try exact match first
-    const { data: exactMatch } = await supabase
+    // Use ILIKE for tolerant character lookup
+    const { data: rows, error: charError } = await supabase
       .from('characters')
       .select('id, name, slug')
-      .eq('slug', cleanSlug)
-      .single();
+      .ilike('slug', cleanSlug)
+      .limit(1);
     
-    if (exactMatch) {
-      character = exactMatch;
-    } else {
-      // Try trimmed match
-      const { data: allCharacters } = await supabase
-        .from('characters')
-        .select('id, name, slug');
-      
-      if (allCharacters) {
-        character = allCharacters.find(c => c.slug && c.slug.trim() === cleanSlug);
-      }
-    }
-    
-    if (!character) {
+    if (charError || !rows || rows.length === 0) {
       return res.status(404).json({ error: 'Character not found' });
     }
+    
+    const character = rows[0];
     
     // Get abilities
     const { data: abilities, error } = await supabase

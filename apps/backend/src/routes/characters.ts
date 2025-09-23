@@ -178,8 +178,7 @@ router.get('/:slug', async (req, res) => {
             meta_keywords,
             portrait_url,
             color_theme,
-            quote,
-            created_at,
+                        created_at,
             updated_at
           `)
           .eq('slug', cleanSlug)

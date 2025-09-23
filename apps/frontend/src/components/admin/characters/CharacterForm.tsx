@@ -160,71 +160,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
   const [slugPreview, setSlugPreview] = useState('');
   const [slugNormalized, setSlugNormalized] = useState(false);
 
-  // 🚨 NEW: Debounced auto-save state
+  // Save state tracking
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Refs to prevent re-rendering issues
-  const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>>({});
-
-  // Clear timer on component unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current);
-      }
-    };
-  }, []);
-
-  // 🚨 NEW: Debounced auto-save function
-  const debouncedAutoSave = useCallback(async (updatedData: CharacterFormData) => {
-    // Clear existing timer
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
-    }
-
-    // Set new timer for 2 seconds
-    saveTimerRef.current = setTimeout(async () => {
-      console.log('💾 Auto-saving character data...');
-      setIsAutoSaving(true);
-      
-      try {
-        const finalSlug = normalizeSlug(updatedData.slug);
-        
-        // Only auto-save if we have a character (editing mode)
-        if (character) {
-          const characterData = {
-            ...updatedData,
-            slug: finalSlug,
-            age: updatedData.age || null,
-            meta_description: updatedData.meta_description || updatedData.description.substring(0, 160)
-          };
-          
-          const { data, error } = await supabase
-            .from('characters')
-            .update(characterData)
-            .eq('id', character.id)
-            .select()
-            .single();
-          
-          if (error) {
-            console.error('❌ Auto-save failed:', error);
-          } else {
-            console.log('✅ Auto-save successful');
-            setHasUnsavedChanges(false);
-          }
-        } else {
-          // For new characters, just mark as having unsaved changes
-          console.log('📝 New character - auto-save disabled, use manual save');
-        }
-      } catch (error) {
-        console.error('❌ Auto-save error:', error);
-      } finally {
-        setIsAutoSaving(false);
-      }
-    }, 2000); // 2 second delay
-  }, [character]);
 
   // Initialize form with character data
   useEffect(() => {
@@ -273,7 +210,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       
       setFormData(initialData);
       setIsSlugManual(!!character.slug);
-      setHasUnsavedChanges(false); // Reset unsaved changes when loading character
+      setHasUnsavedChanges(false);
     }
   }, [character]);
 
@@ -301,17 +238,15 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     }));
   }, [formData.character_type]);
 
-  // 🚨 UPDATED: Input change handler with debounced auto-save
+  // 🚨 FIXED: Input change handler WITHOUT auto-save (this was causing focus loss)
   const handleInputChange = (field: string, value: any) => {
     console.log(`🎯 INPUT UPDATE: ${field} = "${value}"`);
     
-    const updatedData = {
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [field]: value
-    };
-
-    // Update form state immediately (for UI responsiveness)
-    setFormData(updatedData);
+    }));
+    
     setHasUnsavedChanges(true);
     
     // Clear error when user starts typing
@@ -322,10 +257,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
       });
     }
     
-    // Trigger debounced auto-save (only for existing characters)
-    if (character) {
-      debouncedAutoSave(updatedData);
-    }
+    // 🚨 REMOVED: Auto-save that was causing focus loss on every keystroke!
+    // The aggressive auto-save was triggering React re-renders that made inputs lose focus
+    // Now users can type normally without losing focus after each character
   };
 
   // SLUG-SPECIFIC HANDLERS
@@ -370,13 +304,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     handleInputChange(field, array);
   };
 
-  // 🚨 NEW: Manual save function
+  // Manual save function
   const handleManualSave = async () => {
-    // Clear any pending auto-save
-    if (saveTimerRef.current) {
-      clearTimeout(saveTimerRef.current);
-    }
-    
     if (!validateForm()) {
       return;
     }
@@ -498,7 +427,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     { id: 'meta', label: 'Metadata', icon: <Star className="w-4 h-4" /> }
   ];
 
-  // ✅ SIMPLIFIED INPUT FIELD COMPONENT
+  // ✅ FIXED: Simplified input components that don't cause re-render issues
   const InputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -520,12 +449,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
         
         {type === 'textarea' ? (
           <textarea
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             value={value as string || ''}
-            onChange={(e) => {
-              console.log(`🔵 TEXTAREA ${fieldKey}: "${e.target.value}"`);
-              handleInputChange(fieldKey, e.target.value);
-            }}
+            onChange={(e) => handleInputChange(fieldKey, e.target.value)}
             placeholder={placeholder}
             rows={rows}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
@@ -534,12 +459,8 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           />
         ) : type === 'select' ? (
           <select
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             value={value as string || ''}
-            onChange={(e) => {
-              console.log(`🔵 SELECT ${fieldKey}: "${e.target.value}"`);
-              handleInputChange(fieldKey, e.target.value);
-            }}
+            onChange={(e) => handleInputChange(fieldKey, e.target.value)}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
             }`}
@@ -552,14 +473,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           </select>
         ) : type === 'number' ? (
           <input
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             type="number"
             value={value as number || 0}
-            onChange={(e) => {
-              const numValue = parseInt(e.target.value) || 0;
-              console.log(`🔵 NUMBER ${fieldKey}: ${numValue}`);
-              handleInputChange(fieldKey, numValue);
-            }}
+            onChange={(e) => handleInputChange(fieldKey, parseInt(e.target.value) || 0)}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -567,13 +483,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           />
         ) : (
           <input
-            ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
             type="text"
             value={value as string || ''}
-            onChange={(e) => {
-              console.log(`🔵 TEXT ${fieldKey}: "${e.target.value}"`);
-              handleInputChange(fieldKey, e.target.value);
-            }}
+            onChange={(e) => handleInputChange(fieldKey, e.target.value)}
             placeholder={placeholder}
             className={`w-full px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
               error ? 'border-red-500' : 'border-border'
@@ -588,7 +500,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
     );
   };
 
-  // ✅ SIMPLIFIED ARRAY INPUT FIELD
+  // ✅ FIXED: Simplified array input component
   const ArrayInputField: React.FC<{
     label: string;
     field: keyof CharacterFormData;
@@ -603,13 +515,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           {label}
         </label>
         <input
-          ref={(el) => { if (el) inputRefs.current[fieldKey] = el; }}
           type="text"
           value={value.join(', ')}
-          onChange={(e) => {
-            console.log(`🔵 ARRAY ${fieldKey}: "${e.target.value}"`);
-            handleArrayChange(fieldKey, e.target.value);
-          }}
+          onChange={(e) => handleArrayChange(fieldKey, e.target.value)}
           placeholder={placeholder}
           className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200"
         />
@@ -633,18 +541,10 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           </p>
         </div>
         
-        {/* 🚨 NEW: Save Status and Manual Save Button */}
+        {/* Save Status and Manual Save Button */}
         <div className="flex items-center space-x-4">
-          {/* Auto-save status indicator */}
-          {isAutoSaving && (
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              <span>Auto-saving...</span>
-            </div>
-          )}
-          
           {/* Unsaved changes indicator */}
-          {hasUnsavedChanges && !isAutoSaving && (
+          {hasUnsavedChanges && (
             <div className="flex items-center space-x-2 text-sm text-yellow-600">
               <div className="w-2 h-2 bg-yellow-500 rounded-full" />
               <span>Unsaved changes</span>
@@ -655,7 +555,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
           <button
             type="button"
             onClick={handleManualSave}
-            disabled={loading || !hasUnsavedChanges}
+            disabled={loading}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
           >
             {loading ? (
@@ -731,13 +631,9 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <div className="space-y-2">
                     <div className="flex gap-2">
                       <input
-                        ref={(el) => { if (el) inputRefs.current['slug'] = el; }}
                         type="text"
                         value={formData.slug}
-                        onChange={(e) => {
-                          console.log(`🔵 SLUG: "${e.target.value}"`);
-                          handleSlugChange(e.target.value);
-                        }}
+                        onChange={(e) => handleSlugChange(e.target.value)}
                         onBlur={handleSlugBlur}
                         placeholder="character-slug"
                         className={`flex-1 px-3 py-2 border rounded-lg bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors duration-200 ${
@@ -854,11 +750,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     min="0"
                     max="100"
                     value={formData.importance_score}
-                    onChange={(e) => {
-                      const numValue = parseInt(e.target.value);
-                      console.log(`🔵 RANGE importance_score: ${numValue}`);
-                      handleInputChange('importance_score', numValue);
-                    }}
+                    onChange={(e) => handleInputChange('importance_score', parseInt(e.target.value))}
                     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                   />
                   <div className="flex justify-between text-xs text-muted-foreground mt-1">
@@ -873,10 +765,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     <input
                       type="checkbox"
                       checked={formData.is_major_character}
-                      onChange={(e) => {
-                        console.log(`🔵 CHECKBOX is_major_character: ${e.target.checked}`);
-                        handleInputChange('is_major_character', e.target.checked);
-                      }}
+                      onChange={(e) => handleInputChange('is_major_character', e.target.checked)}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
                     <Crown className="w-4 h-4 text-yellow-500" />
@@ -887,10 +776,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                     <input
                       type="checkbox"
                       checked={formData.is_pov_character}
-                      onChange={(e) => {
-                        console.log(`🔵 CHECKBOX is_pov_character: ${e.target.checked}`);
-                        handleInputChange('is_pov_character', e.target.checked);
-                      }}
+                      onChange={(e) => handleInputChange('is_pov_character', e.target.checked)}
                       className="rounded border-border focus:ring-primary/20 text-primary"
                     />
                     <Eye className="w-4 h-4 text-blue-500" />
@@ -1064,10 +950,7 @@ const CharacterForm: React.FC<CharacterFormProps> = ({
                   <input
                     type="checkbox"
                     checked={formData.is_spoiler_sensitive}
-                    onChange={(e) => {
-                      console.log(`🔵 CHECKBOX is_spoiler_sensitive: ${e.target.checked}`);
-                      handleInputChange('is_spoiler_sensitive', e.target.checked);
-                    }}
+                    onChange={(e) => handleInputChange('is_spoiler_sensitive', e.target.checked)}
                     className="rounded border-border focus:ring-primary/20 text-primary"
                   />
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />

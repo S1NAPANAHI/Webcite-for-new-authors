@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import CharacterHero from '../components/characters/CharacterHero';
 import CharacterTabs from '../components/characters/CharacterTabs';
-import Footer from '../components/Footer';
 
 interface Character {
   id: string;
@@ -285,8 +284,6 @@ const CharacterDetailPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      <Footer />
     </div>
   );
 };

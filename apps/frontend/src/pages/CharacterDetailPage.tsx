@@ -80,22 +80,71 @@ const CharacterDetailPage: React.FC = () => {
       
       try {
         setLoading(true);
-        const response = await fetch(`/api/characters/${slug}`);
+        setError(null);
+        
+        console.log(`🔍 Fetching character data for slug: ${slug}`);
+        
+        // Determine API base URL
+        const isProduction = window.location.hostname === 'www.zoroastervers.com' || window.location.hostname === 'zoroastervers.com';
+        const API_BASE = isProduction 
+          ? 'https://www.zoroastervers.com' // Use your production backend URL
+          : 'http://localhost:3001';
+        
+        console.log(`🌐 Using API base: ${API_BASE}`);
+        
+        const response = await fetch(`${API_BASE}/api/characters/${slug}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
+        
+        console.log(`📡 API Response status: ${response.status}`);
         
         if (!response.ok) {
-          throw new Error('Character not found');
+          if (response.status === 404) {
+            throw new Error('Character not found');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('❌ Response is not JSON:', contentType);
+          const text = await response.text();
+          console.error('📄 Response body:', text.substring(0, 200) + '...');
+          throw new Error('Invalid response format - expected JSON');
         }
         
         const data = await response.json();
+        console.log(`✅ Character data loaded:`, data.name);
         setCharacter(data);
         
         // Also fetch all characters for navigation
-        const allResponse = await fetch('/api/characters');
-        if (allResponse.ok) {
-          const allData = await allResponse.json();
-          setAllCharacters(allData.characters || []);
+        try {
+          const allResponse = await fetch(`${API_BASE}/api/characters`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+          });
+          
+          if (allResponse.ok) {
+            const allData = await allResponse.json();
+            if (allData.characters && Array.isArray(allData.characters)) {
+              setAllCharacters(allData.characters);
+              console.log(`📚 Loaded ${allData.characters.length} characters for navigation`);
+            }
+          }
+        } catch (navError) {
+          console.warn('⚠️ Failed to load characters for navigation:', navError);
+          // Don't fail the main request if navigation data fails
         }
+        
       } catch (err) {
+        console.error('❌ Error fetching character:', err);
         setError(err instanceof Error ? err.message : 'Failed to load character');
       } finally {
         setLoading(false);
@@ -154,6 +203,7 @@ const CharacterDetailPage: React.FC = () => {
         <div className="flex flex-col items-center space-y-4">
           <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-gray-300">Loading character...</p>
+          <p className="text-gray-500 text-sm">Fetching data for: {slug}</p>
         </div>
       </div>
     );
@@ -162,19 +212,24 @@ const CharacterDetailPage: React.FC = () => {
   if (error || !character) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-4 max-w-md">
           <div className="text-6xl text-gray-600 mb-4">404</div>
           <h1 className="text-2xl font-bold text-white mb-2">Character Not Found</h1>
           <p className="text-gray-400 mb-6">
             {error || 'The character you\'re looking for doesn\'t exist.'}
           </p>
-          <button
-            onClick={() => navigate('/characters')}
-            className="inline-flex items-center px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Characters
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => navigate('/characters')}
+              className="inline-flex items-center px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Characters
+            </button>
+            <div className="text-xs text-gray-500 mt-2">
+              Slug: {slug}
+            </div>
+          </div>
         </div>
       </div>
     );

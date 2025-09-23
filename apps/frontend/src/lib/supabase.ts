@@ -25,13 +25,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(errorMessage);
   supabaseInstance = {} as any; // Dummy object
 } else {
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-});
+  // Ensure createClient is called only once
+  if (!supabaseInstance) { // Add this check
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+    },
+  });
+  }
 } // Close the else block
 
 export const supabase = supabaseInstance; // Export at top level

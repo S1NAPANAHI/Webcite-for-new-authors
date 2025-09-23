@@ -37,6 +37,7 @@ import {
 } from '../../../utils/characterUtils';
 import CharacterCard from '../../../components/characters/CharacterCard';
 import CharacterFilters from '../../../components/characters/CharacterFilters';
+import CharacterForm from '../../../components/admin/characters/CharacterForm';
 
 interface CharacterManagerProps {
   className?: string;
@@ -80,7 +81,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
       setLoading(true);
       setError(null);
       
-      console.log('\ud83d\udd0d Loading characters from database...');
+      console.log('🔍 Loading characters from database...');
       
       const { data, error } = await supabase
         .from('characters')
@@ -103,7 +104,7 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         .order('importance_score', { ascending: false });
       
       if (error) {
-        console.error('\u274c Error loading characters:', error);
+        console.error('❌ Error loading characters:', error);
         setError('Failed to load characters');
         return;
       }
@@ -115,10 +116,10 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         relationship_count: character.relationships?.length || 0
       }));
       
-      console.log(`\u2705 Loaded ${processedCharacters.length} characters`);
+      console.log(`✅ Loaded ${processedCharacters.length} characters`);
       setCharacters(processedCharacters);
     } catch (error) {
-      console.error('\ud83d\udca5 Error loading characters:', error);
+      console.error('💥 Error loading characters:', error);
       setError('Failed to load characters');
     } finally {
       setLoading(false);
@@ -147,17 +148,31 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         .eq('id', character.id);
       
       if (error) {
-        console.error('\u274c Error deleting character:', error);
+        console.error('❌ Error deleting character:', error);
         alert('Failed to delete character');
         return;
       }
       
-      console.log('\u2705 Character deleted successfully');
+      console.log('✅ Character deleted successfully');
       await loadCharacters(); // Refresh the list
     } catch (error) {
-      console.error('\ud83d\udca5 Error deleting character:', error);
+      console.error('💥 Error deleting character:', error);
       alert('Failed to delete character');
     }
+  };
+
+  const handleSaveCharacter = async (character: Character) => {
+    console.log('🎉 Character saved:', character);
+    setShowCreateModal(false);
+    setShowEditModal(false);
+    setSelectedCharacter(null);
+    await loadCharacters(); // Refresh the list
+  };
+
+  const handleCancelForm = () => {
+    setShowCreateModal(false);
+    setShowEditModal(false);
+    setSelectedCharacter(null);
   };
 
   const handleBulkAction = async (action: 'delete' | 'export' | 'update_type') => {
@@ -544,30 +559,28 @@ const CharacterManager: React.FC<CharacterManagerProps> = ({ className = '' }) =
         </div>
       </div>
 
-      {/* TODO: Character Creation/Edit Modal */}
-      {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg border border-border p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold text-foreground mb-4">
-              {showCreateModal ? 'Create New Character' : 'Edit Character'}
-            </h2>
-            <div className="text-center py-8 text-muted-foreground">
-              <Settings className="w-12 h-12 mx-auto mb-4" />
-              <p>Character creation/editing form coming in next update...</p>
-              <p className="text-sm mt-2">This will include all character properties, relationships, and abilities.</p>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setShowEditModal(false);
-                  setSelectedCharacter(null);
-                }}
-                className="px-4 py-2 bg-muted text-muted-foreground rounded-lg hover:bg-muted/80 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-            </div>
+      {/* Character Creation Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CharacterForm
+              character={null}
+              onSave={handleSaveCharacter}
+              onCancel={handleCancelForm}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Character Edit Modal */}
+      {showEditModal && selectedCharacter && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <CharacterForm
+              character={selectedCharacter}
+              onSave={handleSaveCharacter}
+              onCancel={handleCancelForm}
+            />
           </div>
         </div>
       )}

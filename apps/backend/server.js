@@ -29,6 +29,8 @@ import homepageRoutes from './routes/homepage.js';
 import releasesRoutes from './routes/releases.js';
 // Import characters routes (NEW FOR CHARACTER PROFILE PAGES)
 import charactersRoutesFactory from './src/routes/characters.js';
+// Import commerce routes (NEW FOR CUSTOMER MANAGEMENT)
+import commerceRoutes from './routes/commerce.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -176,7 +178,7 @@ async function startServer() {
 
   // Add enhanced debug logging middleware
   app.use((req, res, next) => {
-    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases') || req.path.startsWith('/api/characters')) {
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases') || req.path.startsWith('/api/characters') || req.path.startsWith('/api/commerce')) {
       console.log('🔍 Request:', {
         method: req.method,
         path: req.path,
@@ -195,6 +197,7 @@ async function startServer() {
   app.use('/api/homepage', homepageRoutes); // Homepage management API
   app.use('/api/releases', releasesRoutes); // NEW: Releases management API
   app.use('/api/characters', charactersRoutesFactory(supabase)); // NEW: Characters API for profile pages
+  app.use('/api/commerce', commerceRoutes); // NEW: Commerce/Customer management API
   app.use('/admin', adminRoutes);
   app.use('/content', contentRoutes);
   app.use('/beta', betaRoutes);
@@ -350,6 +353,8 @@ async function startServer() {
     console.log(`🔄 Chapter Sync: http://localhost:${PORT}/api/releases/sync-from-chapters`);
     console.log(`👥 Characters API: http://localhost:${PORT}/api/characters`);
     console.log(`🔍 Character Profile: http://localhost:${PORT}/api/characters/:slug`);
+    console.log(`🛒 Commerce API: http://localhost:${PORT}/api/commerce`);
+    console.log(`👥 Customer Management: http://localhost:${PORT}/api/commerce/customers`);
     
     // Log environment variables for debugging
     console.log('🔧 Environment Check:');

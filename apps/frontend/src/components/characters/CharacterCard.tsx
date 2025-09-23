@@ -22,7 +22,8 @@ import {
   getCharacterImportanceTier,
   generateCharacterColorTheme
 } from '../../utils/characterUtils';
-import { useFileUrl } from '../../utils/fileUrls';
+// Note: useFileUrl would be imported here when file system is ready
+// import { useFileUrl } from '../../utils/fileUrls';
 
 interface CharacterCardProps {
   character: Character;
@@ -41,7 +42,10 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
   onClick,
   className = ''
 }) => {
-  const portraitUrl = useFileUrl(character.portrait_file_id);
+  // TODO: Use actual file URL when file system is integrated
+  // const portraitUrl = useFileUrl(character.portrait_file_id);
+  const portraitUrl = character.portrait_url; // Fallback to direct URL for now
+  
   const typeConfig = getCharacterTypeConfig(character.character_type);
   const statusConfig = getCharacterStatusConfig(character.status);
   const powerConfig = getPowerLevelConfig(character.power_level);

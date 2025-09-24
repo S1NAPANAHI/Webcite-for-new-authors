@@ -19,8 +19,8 @@ import type { WikiPage, WikiPageWithSections } from '@zoroaster/shared';
 import { fetchWikiPage } from '@zoroaster/shared';
 import { WikiViewer } from '@zoroaster/ui';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
-// UPDATED: Use schema-adaptive beta application component
-import BetaApplication from './components/BetaApplication/BetaApplication.schema-adaptive';
+// FINAL: Use the completely fixed beta application component
+import BetaApplication from './components/BetaApplication/BetaApplication.final-fix';
 import { CartProvider } from '@zoroaster/shared';
 import ProfileDashboard from './pages/ProfileDashboard';
 import AboutPage from './pages/AboutPage';
@@ -187,7 +187,7 @@ const AppContent: React.FC = () => {
         <Route path="/subscriptions" element={<SubscriptionPage />} />
         <Route path="/subscription-success" element={<SubscriptionSuccessPage />} />
         <Route path="/checkout" element={<Elements stripe={stripePromise}><CheckoutPage /></Elements>} />
-        {/* UPDATED: Using schema-adaptive beta application with comprehensive error handling */}
+        {/* FINAL: Using the completely fixed beta application component */}
         <Route path="/beta/application" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/status" element={<BetaApplication supabaseClient={supabase} user={user} />} />
         <Route path="/beta/handbook" element={<PlaceholderPage title="Beta Reader Handbook" />} />

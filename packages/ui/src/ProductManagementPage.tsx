@@ -62,7 +62,7 @@ interface ProductFormData {
   status: 'draft' | 'published' | 'archived';
 }
 
-const ProductManagementPage: React.FC = () => {
+export const ProductManagementPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -615,5 +615,3 @@ const ProductManagementPage: React.FC = () => {
     </div>
   );
 };
-
-export default ProductManagementPage;

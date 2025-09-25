@@ -583,4 +583,4 @@ const OrderManagementPage: React.FC = () => {
   );
 };
 
-export default OrderManagementPage;
+export { OrderManagementPage };

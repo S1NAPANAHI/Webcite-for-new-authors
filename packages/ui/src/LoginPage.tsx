@@ -13,7 +13,7 @@ type PasswordStrength = {
   className: string;
 };
 
-const LoginPage: React.FC = () => {
+export const LoginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [message, setMessage] = useState<FormMessage | null>(null);
   const [loading, setLoading] = useState(false);
@@ -314,5 +314,3 @@ const LoginPage: React.FC = () => {
     </div>
   );
 };
-
-export default LoginPage;

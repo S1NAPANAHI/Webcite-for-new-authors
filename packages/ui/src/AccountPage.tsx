@@ -8,10 +8,10 @@ import { User, BookOpen, Award, Settings, Shield, LogOut, ChevronRight, User as 
 // Import sub-components for tabs
 import { OverviewTab } from './OverviewTab.js';
 import { ProfileTab } from './ProfileTab.js';
-import { ReadingTab } from '@zoroaster/ui';
-import { AchievementsTab } from '@zoroaster/ui';
-import { PreferencesTab } from '@zoroaster/ui';
-import { SecurityTab } from '@zoroaster/ui';
+import { ReadingTab } from './ReadingTab.js';
+import { AchievementsTab } from './AchievementsTab.js';
+import { PreferencesTab } from './PreferencesTab.js';
+import { SecurityTab } from './SecurityTab.js';
 
 // Tab interface for type safety
 interface Tab {

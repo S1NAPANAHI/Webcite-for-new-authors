@@ -311,38 +311,6 @@ html:not([data-theme]) .glass-card-strong {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
 }
 
-/* Enhanced glass effects for admin panel */
-.glass-card {
-  background: hsl(var(--card) / 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid hsl(var(--border) / 0.5);
-  box-shadow: 0 4px 16px hsl(var(--foreground) / 0.1);
-}
-
-.glass-card-strong {
-  background: hsl(var(--card) / 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid hsl(var(--border));
-  box-shadow: 0 8px 32px hsl(var(--foreground) / 0.1);
-}
-
-/* Light theme specific glass effects */
-html[data-theme="light"] .glass-card,
-html:not([data-theme]) .glass-card {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-}
-
-html[data-theme="light"] .glass-card-strong,
-html:not([data-theme]) .glass-card-strong {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
 /* News Carousel Enhancements */
 .news-carousel-slide {
   transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
@@ -381,19 +349,305 @@ html:not([data-theme]) .glass-card-strong {
   -webkit-backdrop-filter: blur(4px);
 }
 
-/* Mobile optimizations */
- @media (max-width: 768px) {
+/* ===== MOBILE-FIRST RESPONSIVE IMPROVEMENTS ===== */
+
+/* Mobile-first utilities */
+@layer utilities {
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .container-mobile {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .prose-mobile {
+    @apply prose-sm sm:prose-base lg:prose-lg;
+    line-height: 1.7;
+  }
+  
+  .mobile-safe-area {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Mobile visibility utilities */
+  .mobile-only {
+    @apply block sm:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden sm:block;
+  }
+  
+  .tablet-up {
+    @apply hidden md:block;
+  }
+}
+
+/* CRITICAL MOBILE FIXES */
+@media (max-width: 768px) {
+  /* Prevent zoom on iOS form inputs */
+  input, select, textarea {
+    font-size: 16px !important;
+    -webkit-appearance: none;
+    border-radius: 0.5rem;
+  }
+  
+  /* Fix cramped layouts */
+  .card, .box, [class*="card"], [class*="Card"] {
+    margin-bottom: 1rem !important;
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+  
+  /* Better mobile typography */
+  h1 { 
+    font-size: 1.875rem !important; 
+    line-height: 2.25rem !important;
+    margin-bottom: 1rem !important;
+  }
+  h2 { 
+    font-size: 1.5rem !important; 
+    line-height: 2rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+  h3 { 
+    font-size: 1.25rem !important; 
+    line-height: 1.75rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  /* Touch-friendly interactive elements */
+  button, .btn, a[role="button"], input[type="submit"], .touch-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 12px 16px !important;
+    touch-action: manipulation;
+    border-radius: 0.5rem !important;
+  }
+  
+  /* Fix grid layouts */
+  .grid-cols-2 {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  .grid-cols-3, .grid-cols-4 {
+    @apply grid-cols-2 gap-3;
+  }
+  
+  .grid-cols-5, .grid-cols-6 {
+    @apply grid-cols-2 gap-3;
+  }
+  
+  /* Fix flex layouts */
+  .flex-row {
+    @apply flex-col gap-4;
+  }
+  
+  .space-x-4 > * + * {
+    @apply ml-0 mt-4;
+  }
+  
+  .space-x-6 > * + * {
+    @apply ml-0 mt-6;
+  }
+  
+  /* Responsive containers */
+  .container, .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    @apply max-w-full px-4 mx-auto;
+  }
+  
+  /* Mobile navigation improvements */
+  .navbar-mobile {
+    padding: 0.75rem 1rem !important;
+  }
+  
+  .navbar-brand {
+    font-size: 1.125rem !important;
+  }
+  
+  /* Form improvements */
+  .form-group, .form-field {
+    @apply mb-6;
+  }
+  
+  .form-label {
+    @apply block mb-2 font-semibold text-sm;
+  }
+  
+  /* Modal improvements */
+  .modal, .dialog {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    margin: 5vh auto !important;
+    padding: 1.5rem 1rem !important;
+    border-radius: 1rem !important;
+  }
+  
+  /* Table responsiveness */
+  .table-container {
+    @apply overflow-x-auto -mx-4 px-4;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    min-width: 600px;
+    font-size: 0.875rem;
+  }
+  
+  th, td {
+    padding: 0.75rem 0.5rem !important;
+    white-space: nowrap;
+  }
+  
+  /* News carousel mobile optimizations */
   .news-carousel-content {
-    padding: 1.5rem;
+    padding: 1.5rem !important;
   }
   
   .news-carousel-title {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: 1.875rem !important;
+    line-height: 2.25rem !important;
   }
   
   .news-carousel-meta {
-    flex-direction: column;
-    gap: 0.5rem;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
   }
+}
+
+/* Small mobile (phones) specific fixes */
+@media (max-width: 480px) {
+  .container {
+    @apply px-3;
+  }
+  
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.375rem !important;
+  }
+  
+  .card {
+    padding: 0.75rem !important;
+  }
+  
+  button, .btn {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.95rem !important;
+  }
+  
+  .modal {
+    width: 98vw !important;
+    margin: 1vh auto !important;
+    padding: 1rem !important;
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-appearance: none) {
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="search"] {
+    -webkit-appearance: none;
+    border-radius: 0.5rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card, .glass-card {
+    border-width: 2px !important;
+  }
+  
+  button:focus-visible, 
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 3px solid hsl(var(--primary)) !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .news-carousel img,
+  .product-card-hover {
+    transform: none !important;
+  }
+}
+
+/* Dark theme mobile optimizations */
+@media (max-width: 768px) {
+  .dark {
+    background-color: #0a0a0a;
+  }
+  
+  .dark .card,
+  .dark .modal,
+  .dark .dialog {
+    background-color: #1a1a1a;
+    border-color: #333333;
+  }
+  
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background-color: #1a1a1a;
+    border-color: #333333;
+    color: #ffffff;
+  }
+}
+
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  /* Optimize images for mobile */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Optimize transforms for mobile */
+  .transform-gpu {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+  
+  /* Optimize scrolling */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Accessibility improvements */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary)) !important;
+  outline-offset: 2px !important;
+  border-radius: 0.25rem !important;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }

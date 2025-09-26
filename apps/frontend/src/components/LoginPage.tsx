@@ -36,6 +36,7 @@ const LoginPage: React.FC = () => {
     return () => clearTimeout(timer);
   };
 
+  // CRITICAL: Fixed login handler with proper error handling and debugging
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
@@ -43,19 +44,45 @@ const LoginPage: React.FC = () => {
       return;
     }
     
+    console.log('🔑 LoginPage: Attempting sign in for email:', loginEmail);
     setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
 
-      if (error) throw error;
-      
+      console.log('🔍 LoginPage: signInWithPassword result', { 
+        hasData: !!data, 
+        hasUser: !!data?.user, 
+        hasSession: !!data?.session, 
+        error: error?.message || 'none' 
+      });
+
+      if (error) {
+        console.error('❌ LoginPage: Authentication error:', error);
+        showMessage(error.message, 'error');
+        return;
+      }
+
+      if (!data?.user || !data?.session) {
+        console.error('❌ LoginPage: No user or session data returned');
+        showMessage('Login failed - no session created', 'error');
+        return;
+      }
+
+      console.log('✅ LoginPage: Login successful, redirecting to home page');
       showMessage('Login successful! Redirecting...', 'success');
-      navigate('/');
+      
+      // Small delay to ensure auth state propagates before navigation
+      setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 500);
+      
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      console.error('❌ LoginPage: Unexpected error:', errorMessage);
       showMessage(errorMessage, 'error');
     } finally {
       setLoading(false);
@@ -70,9 +97,11 @@ const LoginPage: React.FC = () => {
       return;
     }
     
+    console.log('🆕 LoginPage: Attempting signup for email:', signupEmail);
     setLoading(true);
+    
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: signupEmail,
         password: signupPassword,
         options: {
@@ -82,12 +111,19 @@ const LoginPage: React.FC = () => {
         },
       });
 
-      if (error) throw error;
-      
+      if (error) {
+        console.error('❌ LoginPage: Signup error:', error);
+        showMessage(error.message, 'error');
+        return;
+      }
+
+      console.log('✅ LoginPage: Signup successful');
       showMessage('Account created! Please check your email to confirm your account.', 'success');
       setActiveTab('login');
+      
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
+      console.error('❌ LoginPage: Signup error:', errorMessage);
       showMessage(errorMessage, 'error');
     } finally {
       setLoading(false);
@@ -95,20 +131,27 @@ const LoginPage: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    console.log('handleGoogleLogin called');
+    console.log('🔑 LoginPage: Attempting Google OAuth login');
     setLoading(true);
+    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/auth/callback', // Redirects to the current domain + callback path
+          redirectTo: window.location.origin + '/auth/callback',
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ LoginPage: Google login error:', error);
+        showMessage(error.message, 'error');
+      } else {
+        console.log('✅ LoginPage: Google OAuth initiated');
+      }
       // No direct navigation here, as Supabase will handle the redirect
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google';
+      console.error('❌ LoginPage: Google login error:', errorMessage);
       showMessage(errorMessage, 'error');
     } finally {
       setLoading(false);
@@ -359,15 +402,17 @@ const LoginPage: React.FC = () => {
           </button>
         </div>
 
-        {/* Login Form */}
+        {/* Login Form - FIXED: Added autocomplete attributes */}
         {activeTab === 'login' && (
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleLogin} autoComplete="on">
             <div>
               <label style={labelStyle} htmlFor="loginEmail">Sacred Email</label>
               <input
                 style={inputStyle}
                 type="email"
                 id="loginEmail"
+                name="email"
+                autoComplete="username"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
                 placeholder="Enter your sacred email"
@@ -381,6 +426,8 @@ const LoginPage: React.FC = () => {
                 style={inputStyle}
                 type="password"
                 id="loginPassword"
+                name="current-password"
+                autoComplete="current-password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 placeholder="Enter your sacred password"
@@ -401,15 +448,17 @@ const LoginPage: React.FC = () => {
           </form>
         )}
 
-        {/* Signup Form */}
+        {/* Signup Form - FIXED: Added autocomplete attributes */}
         {activeTab === 'signup' && (
-          <form onSubmit={handleSignup}>
+          <form onSubmit={handleSignup} autoComplete="on">
             <div>
               <label style={labelStyle} htmlFor="signupDisplayName">Sacred Name</label>
               <input
                 style={inputStyle}
                 type="text"
                 id="signupDisplayName"
+                name="name"
+                autoComplete="name"
                 value={signupDisplayName}
                 onChange={(e) => setSignupDisplayName(e.target.value)}
                 placeholder="Enter your sacred name"
@@ -423,6 +472,8 @@ const LoginPage: React.FC = () => {
                 style={inputStyle}
                 type="email"
                 id="signupEmail"
+                name="email"
+                autoComplete="username"
                 value={signupEmail}
                 onChange={(e) => setSignupEmail(e.target.value)}
                 placeholder="your.sacred@email.com"
@@ -436,6 +487,8 @@ const LoginPage: React.FC = () => {
                 style={inputStyle}
                 type="password"
                 id="signupPassword"
+                name="new-password"
+                autoComplete="new-password"
                 value={signupPassword}
                 onChange={(e) => {
                   setSignupPassword(e.target.value);
@@ -457,6 +510,8 @@ const LoginPage: React.FC = () => {
                 style={inputStyle}
                 type="password"
                 id="confirmPassword"
+                name="confirm-password"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your sacred password"

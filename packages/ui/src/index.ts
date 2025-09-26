@@ -169,7 +169,7 @@ export {
   TooltipTrigger,
 } from './tooltip';
 
-export { useToast, toast } from './use-toast';
+export { useToast } from './use-toast';
 
 // Types
 export type { HomepageContentItem, Post, ReleaseItem } from './HomePage';

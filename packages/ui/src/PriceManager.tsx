@@ -69,5 +69,3 @@ export const PriceManager: React.FC = () => {
     </div>
   );
 };
-
-export default PriceManager;

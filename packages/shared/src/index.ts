@@ -23,5 +23,5 @@ export * from './wiki';
 // Export utilities
 export * from './utils';
 
-// Export admin client (will be tree-shaken in browser builds)
-export * from './supabaseAdminClient';
+// NOTE: Admin client is exported separately in './server.ts'
+// Import from '@zoroaster/shared/server' for server-side operations

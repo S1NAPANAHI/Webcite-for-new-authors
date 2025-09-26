@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       try {
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 3000); // 3 second timeout
+          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000); // 10 second timeout
         });
 
         const profilePromise = supabase

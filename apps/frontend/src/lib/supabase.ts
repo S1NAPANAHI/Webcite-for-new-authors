@@ -1,58 +1,22 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+// CRITICAL: Import from shared package to use singleton
+// This prevents multiple Supabase client instances
+import { supabase as sharedSupabase, debugSupabaseClient } from '@zoroaster/shared';
 
-// Get environment variables (Vite will inject these at build time)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Debug logging
-console.log('Environment variables check:');
-console.log('VITE_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
-console.log('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
-
-// Global singleton instance
-let supabaseInstance: SupabaseClient | null = null;
-
-// Create singleton instance function
-function createSupabaseSingleton(): SupabaseClient {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    const errorMessage = `
-      Missing Supabase environment variables.
-      Please check your .env file and ensure the following are set:
-      - VITE_SUPABASE_URL
-      - VITE_SUPABASE_ANON_KEY
-      
-      Current values:
-      - VITE_SUPABASE_URL: ${supabaseUrl || 'undefined'}
-      - VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? 'set' : 'undefined'}
-    `;
-    console.error(errorMessage);
-    throw new Error('Missing Supabase environment variables');
-  }
-
-  // Return existing instance if already created
-  if (supabaseInstance) {
-    console.log('✅ Supabase client: Using existing singleton');
-    return supabaseInstance;
-  }
-
-  console.log('🚀 Supabase client: Creating new singleton instance');
-  
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-      // Use unique storage key to prevent conflicts
-      storageKey: 'zoroaster-auth',
-    },
-  });
-
-  console.log('✅ Supabase client created as singleton');
-  return supabaseInstance;
-}
-
-// Export the singleton function call
-export const supabase = createSupabaseSingleton();
-
-// For backwards compatibility
+// Re-export the shared singleton to maintain compatibility
+export const supabase = sharedSupabase;
 export default supabase;
+
+// Export debug utility for troubleshooting
+export { debugSupabaseClient };
+
+// Log to confirm we're using the shared singleton
+console.log('✅ Frontend supabase.ts: Using shared singleton client');
+
+// Debug info on module load
+if (typeof window !== 'undefined') {
+  console.log('🔍 Frontend lib/supabase.ts loaded:', {
+    hasSharedClient: !!sharedSupabase,
+    hasWindowClient: !!(window as any).__ZOROASTER_SUPABASE_CLIENT__,
+    areEqual: sharedSupabase === (window as any).__ZOROASTER_SUPABASE_CLIENT__
+  });
+}

@@ -23,9 +23,5 @@ export * from './wiki';
 // Export utilities
 export * from './utils';
 
-// Only export admin client on server-side to prevent browser errors
-const isBrowser = typeof window !== 'undefined';
-if (!isBrowser) {
-  // Server-side only exports
-  export * from './supabaseAdminClient';
-}
+// Export admin client (will be tree-shaken in browser builds)
+export * from './supabaseAdminClient';

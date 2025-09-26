@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Route, Routes, Outlet, useParams, useNavigate } from 'react-router-dom';
+import { Route, Routes, Outlet, useParams, useNavigate, Navigate } from 'react-router-dom';
 import { 
   Layout, 
   StarsBackground,
@@ -30,7 +30,8 @@ import { InventoryManagementPage, MediaUploadPage } from '@zoroaster/ui';
 import WorksManagementPage from './pages/admin/content/WorksManager';
 import ProductManagementPage from './pages/admin/commerce/ProductManagementPage';
 import OrderManagementPage from './pages/admin/commerce/OrderManagementPage';
-import CustomerManagementPage from './pages/admin/commerce/CustomerManagementPage';
+// REMOVED: Old CustomerManagementPage import
+// import CustomerManagementPage from './pages/admin/commerce/CustomerManagementPage';
 import LearnPageAdmin from './pages/admin/LearnPageAdmin';
 import AdminEditorTestPage from './pages/AdminEditorTestPage';
 import BookUploadForm from './admin/components/BookUploadForm';
@@ -62,6 +63,8 @@ import { HomepageProvider } from './contexts/HomepageContext';
 import CharactersPage from './pages/CharactersPage';
 // NEW: Individual Character Detail Page Import
 import CharacterDetailPage from './pages/CharacterDetailPage';
+// NEW: Unified User Management Import
+import UserManagementPage from './pages/admin/settings/UserManagementPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -264,13 +267,16 @@ const AppContent: React.FC = () => {
 
         <Route path="commerce/shop" element={<PlaceholderPage title="Shop" />} />
         <Route path="commerce/orders" element={<OrderManagementPage />} />
-        <Route path="commerce/customers" element={<CustomerManagementPage />} />
+        
+        {/* REDIRECT: Old customer management page now redirects to unified user management */}
+        <Route path="commerce/customers" element={<Navigate to="/admin/settings/users" replace />} />
         
         <Route path="beta/applications" element={<BetaApplicationsManager />} />
         <Route path="beta/managers" element={<PlaceholderPage title="Managers" />} />
         <Route path="beta/activity" element={<PlaceholderPage title="Activity" />} />
 
-        <Route path="settings/users" element={<PlaceholderPage title="Users" />} />
+        {/* UPDATED: New unified user management page */}
+        <Route path="settings/users" element={<UserManagementPage />} />
         <Route path="settings/roles" element={<PlaceholderPage title="Roles" />} />
         <Route path="settings/integrations" element={<PlaceholderPage title="Integrations" />} />
       </Route>

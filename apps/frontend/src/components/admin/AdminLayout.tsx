@@ -55,8 +55,9 @@ const sidebarItems = [
     icon: ShoppingCart,
     children: [
       { label: 'Shop', href: '/admin/commerce/shop' },
-      { label: 'Orders', href: '/admin/commerce/orders' },
-      { label: 'Customers', href: '/admin/commerce/customers' }
+      { label: 'Orders', href: '/admin/commerce/orders' }
+      // REMOVED: Customers link (now redirects to unified user management)
+      // { label: 'Customers', href: '/admin/commerce/customers' }
     ]
   },
   {
@@ -72,7 +73,7 @@ const sidebarItems = [
     label: 'Settings',
     icon: Settings,
     children: [
-      { label: 'Users', href: '/admin/settings/users' },
+      { label: 'Users & Customers', href: '/admin/settings/users' }, // UPDATED: More descriptive label
       { label: 'Roles', href: '/admin/settings/roles' },
       { label: 'Integrations', href: '/admin/settings/integrations' }
     ]

@@ -66,12 +66,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           if (profileError.code === 'PGRST116') { // No rows found
             console.log('🆕 AuthContext: Creating missing profile for user');
             
+            // FIXED: Use bracket notation for user metadata access
+            const displayName = currentSession.user.user_metadata?.['display_name'] || 
+                               currentSession.user.email?.split('@')[0] || '';
+            
             const { data: newProfile, error: insertError } = await supabase
               .from('profiles')
               .insert({
                 id: currentSession.user.id,
                 email: currentSession.user.email || '',
-                display_name: currentSession.user.user_metadata?.display_name || currentSession.user.email?.split('@')[0] || '',
+                display_name: displayName,
                 role: 'user',
                 subscriptionstatus: 'free'
               })

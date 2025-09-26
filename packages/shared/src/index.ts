@@ -3,7 +3,11 @@ export { AuthProvider, useAuth } from './AuthContext';
 
 // Export Supabase client singleton
 export { supabase, debugSupabaseClient } from './supabaseClient';
-export { default as supabaseAdminClient } from './supabaseAdminClient';
+
+// Export admin client with proper name
+export { supabaseAdmin } from './supabaseAdminClient';
+// For backwards compatibility with any existing imports
+export { supabaseAdmin as default } from './supabaseAdminClient';
 
 // Export auth utilities for debugging
 export * from './lib/auth-utils';
@@ -15,9 +19,7 @@ export { CartProvider, useCart } from './CartContext';
 export type { UserProfile } from './profile';
 export type { Database } from './database.types';
 
-// Export API functions
-export * from './api/homepage';
-export * from './api/content';
+// Export functions that exist
 export * from './subscription';
 export * from './storage';
 export * from './userStats';

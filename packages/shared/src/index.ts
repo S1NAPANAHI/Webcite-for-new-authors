@@ -1,16 +1,27 @@
-// Main exports for the shared package
-export * from './services/content';
-export * from './services/admin';
+// Export authentication context and hooks
+export { AuthProvider, useAuth } from './AuthContext';
 
-export * from './hooks/useLibrary';
-export * from './lib/supabase'; // Export the shared supabase client
-export * from './database.types'; // Export the auto-generated types
-export * from './CartContext'; // Export useCart hook
-export * from './subscription'; // Export getSubscription function
-export * from './userStats'; // Export getUserStats function
-export * from './wiki'; // Export fetchWikiPage function
-export * from './AuthContext'; // Export AuthProvider
+// Export Supabase client singleton
+export { supabase, debugSupabaseClient } from './supabaseClient';
+export { default as supabaseAdminClient } from './supabaseAdminClient';
 
-// Re-export specific types or instances if needed
-export { supabase } from './lib/supabase';
+// Export auth utilities for debugging
+export * from './lib/auth-utils';
+
+// Export cart context
+export { CartProvider, useCart } from './CartContext';
+
+// Export types
+export type { UserProfile } from './profile';
 export type { Database } from './database.types';
+
+// Export API functions
+export * from './api/homepage';
+export * from './api/content';
+export * from './subscription';
+export * from './storage';
+export * from './userStats';
+export * from './wiki';
+
+// Export utilities
+export * from './utils';

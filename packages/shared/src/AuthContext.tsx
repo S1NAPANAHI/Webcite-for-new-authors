@@ -62,8 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         });
 
         const profilePromise = supabase
-          .from('profiles')
-          .select('role, subscription_status, email, display_name')
+          .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
           .eq('id', currentSession.user.id)
           .single();
 
@@ -93,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                   beta_reader_status: 'inactive', // Add required field
                   subscription_status: 'free' // Fixed column name
                 })
-                .select('role, subscription_status, email, display_name')
+                .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
                 .single();
 
               if (insertError) {

@@ -30,5 +30,3 @@ export const AdminPageWrapper: React.FC<AdminPageWrapperProps> = ({
     </div>
   );
 };
-
-export default AdminPageWrapper;

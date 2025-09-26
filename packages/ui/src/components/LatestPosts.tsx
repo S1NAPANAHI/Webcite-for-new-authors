@@ -155,26 +155,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         setUsingFallback(true);
         setDebugInfo('Starting with fallback posts');
         
-        // Try multiple ways to get Supabase client
-        let client = supabaseClient || supabase;
-        console.log('📋 LatestPosts: Supabase from prop/singleton:', !!client);
-        
-        // Try global window
-        if (!client && typeof window !== 'undefined') {
-          client = (window as any).__supabase || (window as any).supabase;
-          console.log('📋 LatestPosts: Supabase from window:', !!client);
-        }
-        
-        // Try dynamic import as last resort
-        if (!client) {
-          try {
-            const sharedModule = await import('@zoroaster/shared');
-            client = sharedModule.supabase;
-            console.log('📋 LatestPosts: Supabase from import:', !!client);
-          } catch (importError) {
-            console.log('⚠️ LatestPosts: Could not import from @zoroaster/shared:', importError);
-          }
-        }
+        const client = supabaseClient || supabase;
         
         if (!client) {
           console.log('❌ LatestPosts: No Supabase client available anywhere');

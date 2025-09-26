@@ -72,9 +72,22 @@ const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
 
 const NotFoundPage = () => <PlaceholderPage title="Page Not Found" />;
 
+// CRITICAL: Fixed PublicLayout to use proper logout function
 const PublicLayout: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, signOut } = useAuth();
   console.log('PublicLayout', { isAuthenticated });
+
+  // CRITICAL: Proper logout handler with error handling
+  const handleLogout = async () => {
+    console.log('🚪 PublicLayout: Logout button clicked');
+    try {
+      await signOut();
+      console.log('✅ PublicLayout: Logout successful');
+      // Navigation will be handled by auth state change
+    } catch (error) {
+      console.error('❌ PublicLayout: Logout failed:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -82,7 +95,7 @@ const PublicLayout: React.FC = () => {
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
-        onLogout={() => supabase.auth.signOut()}
+        onLogout={handleLogout}
       >
         <Outlet />
       </Layout>
@@ -90,20 +103,41 @@ const PublicLayout: React.FC = () => {
   );
 };
 
+// CRITICAL: Fixed ProtectedLayout with proper authentication handling
 const ProtectedLayout: React.FC = () => {
-  const { isAuthenticated, userProfile, isAdmin } = useAuth();
+  const { isAuthenticated, userProfile, role, signOut, isLoading } = useAuth();
   const navigate = useNavigate();
-  console.log('ProtectedLayout', { isAuthenticated, userProfile, isAdmin });
+  console.log('ProtectedLayout', { isAuthenticated, userProfile: !!userProfile, role, isLoading });
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
+    // Only redirect if not loading and definitely not authenticated
+    if (!isLoading && !isAuthenticated) {
+      console.log('🔒 ProtectedLayout: Not authenticated, redirecting to login');
+      navigate('/login', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
 
+  // Show loading while checking auth status
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
+
+  // Don't render anything if not authenticated (will redirect)
   if (!isAuthenticated) {
     return null;
   }
+
+  // CRITICAL: Proper logout handler with error handling
+  const handleLogout = async () => {
+    console.log('🚪 ProtectedLayout: Logout button clicked');
+    try {
+      await signOut();
+      console.log('✅ ProtectedLayout: Logout successful');
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('❌ ProtectedLayout: Logout failed:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
@@ -111,7 +145,7 @@ const ProtectedLayout: React.FC = () => {
       <Layout 
         isAuthenticated={isAuthenticated}
         betaApplicationStatus={"none"}
-        onLogout={() => supabase.auth.signOut()}
+        onLogout={handleLogout}
       >
         <Outlet />
       </Layout>

@@ -76,6 +76,18 @@ export const fetchFolders = async (): Promise<WikiFolder[]> => {
   return (data as WikiFolder[]) || [];
 };
 
+export const fetchCategories = async (): Promise<WikiCategory[]> => {
+  const { data, error } = await supabase
+    .from('wiki_categories')
+    .select('*')
+    .order('name');
+  if (error) {
+    console.error('Error fetching categories:', error);
+    throw error;
+  }
+  return (data as WikiCategory[]) || [];
+};
+
 export const fetchWikiPage = async (identifier: string): Promise<WikiPageWithSections | null> => {
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(identifier);
 

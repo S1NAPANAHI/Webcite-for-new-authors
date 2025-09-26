@@ -62,6 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         });
 
         const profilePromise = supabase
+          .from('profiles')
           .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
           .eq('id', currentSession.user.id)
           .single();

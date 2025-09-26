@@ -4,10 +4,12 @@ export { AuthProvider, useAuth } from './AuthContext';
 // Export Supabase client singleton
 export { supabase, debugSupabaseClient } from './supabaseClient';
 
-// Export admin client with proper name
-export { supabaseAdmin } from './supabaseAdminClient';
-// For backwards compatibility with any existing imports
-export { supabaseAdmin as default } from './supabaseAdminClient';
+// Export admin client safely (server-side only)
+export { getSupabaseAdmin, supabaseAdmin } from './supabaseAdminClient';
+// For backwards compatibility with conditional export
+const isBrowser = typeof window !== 'undefined';
+export const supabaseAdminDefault = isBrowser ? null : require('./supabaseAdminClient').default;
+export { supabaseAdminDefault as default };
 
 // Export auth utilities for debugging
 export * from './lib/auth-utils';

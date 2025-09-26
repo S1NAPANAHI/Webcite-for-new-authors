@@ -9,8 +9,6 @@ const isBrowser = typeof window !== 'undefined';
 const supabaseUrl = import.meta.env['VITE_SUPABASE_URL'];
 const supabaseAnonKey = import.meta.env['VITE_SUPABASE_ANON_KEY'];
 
-
-
 if (!supabaseUrl) {
   throw new Error("VITE_SUPABASE_URL is not defined. Please check your .env file and restart the server.");
 }
@@ -18,65 +16,64 @@ if (!supabaseAnonKey) {
   throw new Error("VITE_SUPABASE_ANON_KEY is not defined. Please check your .env file and restart the server.");
 }
 
-// Global variable to hold the Supabase client instance
+// Global singleton instance - ensure only ONE instance across the entire app
 let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
 /**
- * Get or create the Supabase client instance
- * Ensures only one instance is created
+ * CRITICAL: Fixed singleton pattern to prevent multiple Supabase clients
+ * This ensures only ONE instance exists across all packages and modules
  */
 const getSupabase = () => {
-  // Use a global variable to ensure a single instance across hot reloads and multiple module evaluations
-  if (typeof window !== 'undefined' && (window as any).__SUPABASE_CLIENT_INSTANCE__) {
-    return (window as any).__SUPABASE_CLIENT_INSTANCE__;
+  // Check for existing global instance first (prevents multiple clients)
+  if (isBrowser && (window as any).__ZOROASTER_SUPABASE_CLIENT__) {
+    console.log('✅ Supabase client: Using existing global singleton');
+    return (window as any).__ZOROASTER_SUPABASE_CLIENT__;
   }
 
+  // Check module-level instance
   if (supabaseInstance) {
+    console.log('✅ Supabase client: Using existing module singleton');
     return supabaseInstance;
   }
 
-  // This check will now pass if hardcoded values are valid
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Supabase URL and Anon Key are required');
-  }
+  console.log('🚀 Supabase client: Creating new singleton instance');
 
-  // Create a new instance with proper typing and configuration
+  // Create a new instance with proper configuration for authentication
   const newInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: isBrowser,
+      // Use consistent storage key across all instances
+      storageKey: 'zoroaster-auth-session',
       storage: isBrowser ? window.localStorage : undefined,
     },
-    // global: {
-    //   // Get the latest record instead of from local cache
-    //   fetch: (url, options) => {
-    //     const actualOptions = options || {};
-    //     const { headers = {}, ...restOptions } = actualOptions;
-    //     return fetch(url, {
-    //       ...restOptions,
-    //       headers: {
-    //         ...headers,
-    //         'Cache-Control': 'no-cache',
-    //       },
-    //     });
-    //   },
-    // }
   });
 
+  // Store in both places to prevent duplicate instances
   supabaseInstance = newInstance;
-  if (typeof window !== 'undefined') {
-    (window as any).__SUPABASE_CLIENT_INSTANCE__ = newInstance;
+  if (isBrowser) {
+    (window as any).__ZOROASTER_SUPABASE_CLIENT__ = newInstance;
+    console.log('🌐 Global Supabase client stored on window');
   }
 
-  
-
+  console.log('✅ Supabase singleton client created successfully');
   return supabaseInstance;
 };
 
 // Export the singleton instance
 export const supabase = getSupabase();
 
-
-
+// For backwards compatibility
 export default supabase;
+
+// Debug utility to check client state
+export const debugSupabaseClient = () => {
+  console.log('🔍 Supabase Client Debug Info:', {
+    hasModuleInstance: !!supabaseInstance,
+    hasWindowInstance: isBrowser && !!(window as any).__ZOROASTER_SUPABASE_CLIENT__,
+    isBrowser,
+    url: supabaseUrl,
+    keyExists: !!supabaseAnonKey,
+  });
+};

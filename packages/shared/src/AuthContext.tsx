@@ -129,7 +129,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         }
       } catch (error) {
         console.error('❌ AuthContext: Unexpected error in profile fetch:', error);
-        if (error.message === 'Profile fetch timeout') {
+        // Fix TypeScript error: properly type error
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (errorMessage === 'Profile fetch timeout') {
           console.error('🕒 AuthContext: Profile fetch timed out - possible database connectivity issue');
         }
         setUserProfile(null);

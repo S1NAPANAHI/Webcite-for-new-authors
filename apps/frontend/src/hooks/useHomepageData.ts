@@ -2,37 +2,7 @@
 // Provides hooks for fetching and managing homepage content, metrics, and quotes
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClient } from '@supabase/supabase-js';
-import { useHomepageContextOptional } from '../contexts/HomepageContext';
-import { triggerHomepageUpdate, useHomepageUpdateListener, addCacheBuster, markHomepageRefreshed } from '../utils/homepageCache';
-
-// Create Supabase client as singleton
-let supabaseInstance: any = null;
-const getSupabaseClient = () => {
-  if (supabaseInstance) {
-    return supabaseInstance;
-  }
-  
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Missing Supabase environment variables in useHomepageData');
-    return null;
-  }
-  
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-    },
-  });
-  
-  return supabaseInstance;
-};
-
-const supabase = getSupabaseClient();
+import { supabase } from '@zoroaster/shared/supabaseClient';
 
 // Types
 export interface HomepageContent {

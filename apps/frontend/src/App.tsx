@@ -66,6 +66,8 @@ import CharactersPage from './pages/CharactersPage';
 import CharacterDetailPage from './pages/CharacterDetailPage';
 // NEW: Unified User Management Import
 import UserManagementPage from './pages/admin/settings/UserManagementPage';
+// NEW: Learn Categories Manager Import
+import LearnCategoriesManager from './pages/admin/learn/LearnCategoriesManager';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -267,8 +269,9 @@ const AppContent: React.FC = () => {
         <Route path="content/works/new" element={<WorkEditor />} />
         <Route path="content/works/:id/edit" element={<WorkEditor />} />
 
-        {/* CRITICAL FIX: Add missing Learn admin route */}
+        {/* NEW: Learn Management Routes */}
         <Route path="learn" element={<LearnPageAdmin />} />
+        <Route path="learn/categories" element={<LearnCategoriesManager />} />
 
         <Route path="commerce/shop" element={<PlaceholderPage title="Shop" />} />
         <Route path="commerce/orders" element={<OrderManagementPage />} />

@@ -184,13 +184,13 @@ export default function BlogEditorPage() {
     try {
       setUploading(true);
       
-      // Upload cropped image to blog-images bucket
+      // Upload cropped image to media bucket in blog-images folder
       const timestamp = Date.now();
       const fileName = `featured-${timestamp}.jpg`;
       const filePath = `blog-images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('blog-images')
+        .from('media')
         .upload(filePath, croppedBlob, {
           contentType: 'image/jpeg',
           upsert: false
@@ -200,7 +200,7 @@ export default function BlogEditorPage() {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('blog-images')
+        .from('media')
         .getPublicUrl(filePath);
 
       // Update form data and file record
@@ -224,13 +224,13 @@ export default function BlogEditorPage() {
     try {
       setUploading(true);
       
-      // Upload cropped image to blog-images bucket
+      // Upload cropped image to media bucket in blog-images folder
       const timestamp = Date.now();
       const fileName = `social-${timestamp}.jpg`;
       const filePath = `blog-images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('blog-images')
+        .from('media')
         .upload(filePath, croppedBlob, {
           contentType: 'image/jpeg',
           upsert: false
@@ -240,7 +240,7 @@ export default function BlogEditorPage() {
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('blog-images')
+        .from('media')
         .getPublicUrl(filePath);
 
       // Update form data and file record

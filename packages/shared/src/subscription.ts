@@ -22,7 +22,7 @@ export const getSubscription = async (userId: string): Promise<EnhancedSubscript
         console.log(`🔍 Fetching subscription for user: ${userId}`);
         
         // First, try to get from user profile (this has the most up-to-date info)
-        const { data: profile, error: profileError } = await supabase
+        const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select(`
                 id, 
@@ -37,40 +37,16 @@ export const getSubscription = async (userId: string): Promise<EnhancedSubscript
         if (profileError) {
             console.error('Error fetching user profile:', profileError);
             
-            // Fallback: try to get from users table if profiles doesn't exist
-            const { data: userData, error: userError } = await supabase
-                .from('users')
-                .select(`
-                    id, 
-                    subscription_status, 
-                    subscription_tier, 
-                    subscription_end_date,
-                    stripe_customer_id
-                `)
-                .eq('id', userId)
-                .single();
-                
-            if (userError) {
-                console.error('Error fetching from users table too:', userError);
-                return {
-                    user_id: userId,
-                    status: 'inactive',
-                    tier: 'free',
-                    is_subscribed: false
-                };
-            }
-            
-            // Use users table data
-            const isSubscribed = ['active', 'trialing'].includes(userData.subscription_status);
-            
+            // If profile fetch fails, return default inactive subscription
             return {
                 user_id: userId,
-                status: userData.subscription_status || 'inactive',
-                tier: userData.subscription_tier || 'free',
-                current_period_end: userData.subscription_end_date,
-                is_subscribed: isSubscribed
+                status: 'inactive',
+                tier: 'free',
+                is_subscribed: false
             };
         }
+
+        const profile = profileData; // Corrected cast
 
         // Now try to get detailed subscription data from subscriptions table
         let detailedSubscription = null;

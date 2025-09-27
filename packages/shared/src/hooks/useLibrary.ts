@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ContentService } from '../services/content';
-import { Database } from '../database.types';
-
-type Book = Database['public']['Tables']['books']['Row'];
+import { Database, Tables } from '../database.types';
 
 export function useLibrary(userId?: string) {
-  const [libraryBooks, setLibraryBooks] = useState<Book[]>([]);
+  const [libraryBooks, setLibraryBooks] = useState<Tables<'content_items'>[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadLibrary = async () => {
@@ -16,13 +14,15 @@ export function useLibrary(userId?: string) {
 
     setLoading(true);
     try {
-      // 1. Fetch the user's library (which contains IDs)
-      const libraryItems = await ContentService.getUserLibrary(userId);
+      // 1. Fetch the user's library using the RPC function
+      const { data: libraryItems, error } = await supabase.rpc('get_user_library_with_progress', { user_id: userId });
 
-      // 2. Filter for books and extract their IDs
+      if (error) throw error;
+
+      // 2. Filter for books and extract their content_item_ids
       const bookIds = libraryItems
-        .filter(item => item.work_type === 'book')
-        .map(item => item.work_id);
+        .filter(item => item.item_type === 'book')
+        .map(item => item.content_item_id);
 
       // 3. Fetch the full book details for those IDs
       if (bookIds.length > 0) {
@@ -45,13 +45,12 @@ export function useLibrary(userId?: string) {
   }, [userId]);
 
   const addToLibrary = async (
-    workType: 'book' | 'volume' | 'saga' | 'arc' | 'issue' | 'chapter',
-    workId: string
+    contentItemId: string
   ) => {
     if (!userId) return;
 
     try {
-      await ContentService.addToLibrary(userId, workType, workId);
+      await ContentService.addToLibrary(userId, contentItemId);
       await loadLibrary(); // Refresh library after adding
     } catch (error) {
       console.error('Error adding to library:', error);

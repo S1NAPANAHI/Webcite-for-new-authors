@@ -33,15 +33,16 @@ export const useWikiStructure = () => {
     setError(null);
     try {
       const { data: foldersData, error: foldersError } = await supabase
-        .from('wiki_folders')
-        .select('*')
+        .from('wiki_items')
+        .select('id, name, slug, parent_id, created_at, updated_at')
+        .eq('type', 'folder')
         .order('name');
       
       if (foldersError) throw foldersError;
       
       const { data: pagesData, error: pagesError } = await supabase
         .from('wiki_pages')
-        .select('*')
+        .select('id, title, slug, folder_id, created_at, updated_at, content')
         .order('title');
       
       if (pagesError) throw pagesError;
@@ -64,13 +65,15 @@ export const useWikiStructure = () => {
   const createFolder = useCallback(async (name: string, parentId: string | null = null) => {
     try {
       const { data, error } = await supabase
-        .from('wiki_folders')
+        .from('wiki_items')
         .insert([{
           name: name.trim(),
           slug: name.trim().toLowerCase().replace(/\s+/g, '-'),
-          parent_id: parentId
+          parent_id: parentId,
+          type: 'folder', // Specify type as 'folder'
+          content: '', // wiki_items requires content
         }])
-        .select()
+        .select('id, name, slug, parent_id, created_at, updated_at') // Select specific columns to match Folder type
         .single();
       
       if (error) throw error;
@@ -94,7 +97,7 @@ export const useWikiStructure = () => {
           folder_id: folderId,
           content: '',
         }])
-        .select()
+        .select('id, title, slug, folder_id, created_at, updated_at, content') // Select specific columns to match Page type
         .single();
       
       if (error) throw error;

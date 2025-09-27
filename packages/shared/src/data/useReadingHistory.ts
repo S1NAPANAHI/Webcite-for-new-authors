@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@zoroaster/shared/supabaseClient';
+import { supabase } from '../supabaseClient';
+import { Database, Json } from '../database.types'; // Added Json import
 
 interface ReadingItem {
-  id: string;
-  title: string;
-  author: string;
-  progress: number; // Percentage or pages read
-  total_pages?: number; // Total pages if progress is pages
-  last_read_at: string; // ISO date string
-  cover_image_url?: string;
-  type: 'book' | 'article' | 'other';
+  added_at: string;
+  average_rating: number;
+  completed_chapters: number;
+  completion_percentage: number;
+  content_description: string;
+  content_item_id: string;
+  content_slug: string;
+  content_title: string;
+  cover_image_url: string;
+  is_favorite: boolean;
+  item_type: 'book' | 'article' | 'other'; // Assuming this is the enum
+  library_id: string;
+  metadata: Json;
+  overall_progress: number;
+  personal_rating: number;
+  rating_count: number;
+  total_chapters: number;
+  // Custom fields
+  author: string; // Placeholder
 }
 
 export const useReadingHistory = (userId: string) => {
@@ -22,17 +34,24 @@ export const useReadingHistory = (userId: string) => {
       setLoading(true);
       setError(null);
       try {
-        // Assuming a 'user_reading_history' table in Supabase
-        // with RLS enabled for user_id
+        type GetUserLibraryWithProgressResult = Database['public']['Functions']['get_user_library_with_progress']['Returns'][number];
+
         const { data, error } = await supabase
-          .from('user_reading_history')
-          .select('id, title, author, progress, total_pages, last_read_at, cover_image_url, type')
-          .eq('user_id', userId)
-          .order('last_read_at', { ascending: false });
+          .rpc('get_user_library_with_progress', { user_id: userId })
+          .select('added_at, average_rating, completed_chapters, completion_percentage, content_description, content_item_id, content_slug, content_title, cover_image_url, is_favorite, item_type, library_id, metadata, overall_progress, personal_rating, rating_count, total_chapters')
+          .order('added_at', { ascending: false });
 
         if (error) throw error;
 
-        setReadingItems(data as ReadingItem[]);
+        const validData: GetUserLibraryWithProgressResult[] = data || [];
+
+        const mappedData: ReadingItem[] = validData.map(item => ({
+          ...item,
+          author: 'Unknown', // Add custom field
+          item_type: item.item_type as ReadingItem['item_type'],
+        }));
+
+        setReadingItems(mappedData);
       } catch (err: any) {
         setError(err.message || 'Failed to fetch reading history');
       } finally {

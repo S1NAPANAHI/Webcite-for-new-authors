@@ -1,16 +1,17 @@
 import { supabase } from '../lib/supabase';
 import { Database } from '../database.types';
 
-type Book = Database['public']['Tables']['books']['Row'];
+type Book = Database['public']['Tables']['content_items']['Row'];
 type Chapter = Database['public']['Tables']['chapters']['Row'];
 
 export class ContentService {
   // Get all published books for library
   static async getPublishedBooks(): Promise<Book[]> {
     const { data, error } = await supabase
-      .from('books')
+      .from('content_items')
       .select('*')
-      .eq('state', 'published')
+      .eq('type', 'book')
+      .eq('status', 'published')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -20,7 +21,7 @@ export class ContentService {
   // Get book with full hierarchy
   static async getBookWithHierarchy(bookSlug: string) {
     const { data: book, error: bookError } = await supabase
-      .from('books')
+      .from('content_items')
       .select(`
         *,
         volumes(
@@ -38,7 +39,8 @@ export class ContentService {
         )
       `)
       .eq('slug', bookSlug)
-      .eq('state', 'published')
+      .eq('type', 'book')
+      .eq('status', 'published')
       .single();
 
     if (bookError) throw bookError;
@@ -68,7 +70,7 @@ export class ContentService {
               *,
               volumes!inner(
                 *,
-                books!inner(slug)
+                content_items!inner(slug)
               )
             )
           )
@@ -79,7 +81,7 @@ export class ContentService {
       .eq('issues.arcs.slug', arcSlug)
       .eq('issues.arcs.sagas.slug', sagaSlug)
       .eq('issues.arcs.sagas.volumes.slug', volumeSlug)
-      .eq('issues.arcs.sagas.volumes.books.slug', bookSlug)
+      .eq('issues.arcs.sagas.volumes.content_items.slug', bookSlug)
       .single();
 
     if (error) {
@@ -108,13 +110,12 @@ export class ContentService {
         const { data } = await supabase
           .from('chapters')
           .select(`
-            subscription_required,
-            issues!inner(subscription_required)
+            subscription_tier_required
           `)
           .eq('id', contentId)
           .single();
 
-        return !data?.subscription_required && !data?.issues?.subscription_required;
+        return !data?.subscription_tier_required;
       }
     }
 
@@ -136,15 +137,13 @@ export class ContentService {
   // Add content to user library
   static async addToLibrary(
     userId: string,
-    workType: 'book' | 'volume' | 'saga' | 'arc' | 'issue' | 'chapter',
-    workId: string
+    contentItemId: string
   ) {
     const { data, error } = await supabase
       .from('user_library')
       .insert({
         user_id: userId,
-        work_type: workType,
-        work_id: workId
+        content_item_id: contentItemId
       });
 
     if (error) throw error;
@@ -192,8 +191,9 @@ export class ContentService {
     }
 
     const { data, error } = await supabase
-      .from('books')
+      .from('content_items')
       .select('*')
+      .eq('type', 'book')
       .in('id', bookIds);
 
     if (error) throw error;
@@ -203,9 +203,10 @@ export class ContentService {
   // Get a single book by its ID
   static async getBookById(bookId: string): Promise<Book | null> {
     const { data, error } = await supabase
-      .from('books')
+      .from('content_items')
       .select('*')
       .eq('id', bookId)
+      .eq('type', 'book')
       .single();
 
     if (error) {

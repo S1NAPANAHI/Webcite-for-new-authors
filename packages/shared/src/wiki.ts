@@ -69,8 +69,9 @@ export interface WikiPageWithSections extends WikiPage {
 
 export const fetchFolders = async (): Promise<WikiFolder[]> => {
   const { data, error } = await supabase
-    .from('wiki_folders')
-    .select('*')
+    .from('wiki_items')
+    .select('id, name, slug, parent_id, created_at, updated_at')
+    .eq('type', 'folder')
     .order('name');
   if (error) throw error;
   return (data as WikiFolder[]) || [];
@@ -95,7 +96,7 @@ export const fetchWikiPage = async (identifier: string): Promise<WikiPageWithSec
     .from('wiki_pages')
     .select(`
       id, created_at, created_by, title, slug, excerpt, is_published, category_id, folder_id, updated_at, view_count,
-      content, seo_title, seo_description, seo_keywords,
+      content,
       category:wiki_categories(*),
       user:profiles(*)
     `)

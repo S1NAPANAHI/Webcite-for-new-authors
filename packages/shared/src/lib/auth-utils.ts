@@ -196,7 +196,7 @@ export const testAuth = async (email: string, password: string) => {
       console.log('Profile fetch result:', {
         hasProfile: !!profile,
         role: profile?.role,
-        subscription: profile?.subscriptionstatus,
+        subscription: profile?.subscription_status,
         error: profileError?.message,
       });
     }

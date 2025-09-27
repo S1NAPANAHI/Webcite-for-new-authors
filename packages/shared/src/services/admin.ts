@@ -7,11 +7,18 @@ export class AdminService {
     subtitle?: string;
     description?: string;
     slug: string;
-    cover_image?: string;
+    cover_image_url?: string; // Changed from cover_image
   }) {
     const { data, error } = await supabase
-      .from('books')
-      .insert(bookData)
+      .from('content_items')
+      .insert({
+        title: bookData.title,
+        slug: bookData.slug,
+        description: bookData.description,
+        cover_image_url: bookData.cover_image_url,
+        type: 'book', // Specify type as 'book'
+        metadata: bookData.subtitle ? { subtitle: bookData.subtitle } : null, // Store subtitle in metadata
+      })
       .select()
       .single();
 
@@ -24,6 +31,7 @@ export class AdminService {
     issue_id: string;
     title: string;
     slug: string;
+    chapter_number: number; // Added
     content_format: 'rich' | 'markdown' | 'file';
     content_text?: string;
     content_json?: any;
@@ -32,7 +40,15 @@ export class AdminService {
   }) {
     const { data, error } = await supabase
       .from('chapters')
-      .insert(chapterData)
+      .insert({
+        issue_id: chapterData.issue_id,
+        title: chapterData.title,
+        slug: chapterData.slug,
+        chapter_number: chapterData.chapter_number,
+        content_format: chapterData.content_format,
+        content: chapterData.content_json || chapterData.content_text || chapterData.content_url || '',
+        order_index: chapterData.order_index,
+      })
       .select()
       .single();
 
@@ -53,7 +69,7 @@ export class AdminService {
     let query;
     switch (table) {
       case 'books':
-        query = supabase.from('books').update(updateData).eq('id', id);
+        query = supabase.from('content_items').update({ status: state, published_at: updateData.publish_at }).eq('id', id).eq('type', 'book');
         break;
       case 'chapters':
         query = supabase.from('chapters').update(updateData).eq('id', id);
@@ -71,8 +87,8 @@ export class AdminService {
   // Get admin dashboard data
   static async getAdminDashboard() {
     const [booksResult, chaptersResult] = await Promise.all([
-      supabase.from('books').select('id, title, state, created_at'),
-      supabase.from('chapters').select('id, title, state, created_at'),
+      supabase.from('content_items').select('id, title, status, created_at').eq('type', 'book'),
+      supabase.from('chapters').select('id, title, status, created_at'),
       // (supabase.rpc('get_admin_profiles') as any)
     ]);
 

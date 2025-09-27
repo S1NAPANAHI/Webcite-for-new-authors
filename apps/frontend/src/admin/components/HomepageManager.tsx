@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Eye, Loader2, CheckCircle, RefreshCw, Plus, X, BarChart3 } from 'lucide-react';
 import { useHomepageData, useHomepageAdmin, formatMetricValue, type HomepageContent, type HomepageQuote } from '../../hooks/useHomepageData';
-// CRITICAL FIX: Import the missing useHomepageContextOptional function
-import { useHomepageContextOptional } from '../../contexts/HomepageContext';
+// CRITICAL FIX: Import the CORRECT context hook name
+import { useHomepageContextSafe } from '../../contexts/HomepageContext';
 
 // CRITICAL FIX: Error Boundary Component
 class HomepageErrorBoundary extends React.Component<
@@ -47,8 +47,8 @@ class HomepageErrorBoundary extends React.Component<
 }
 
 const HomepageManagerContent: React.FC = () => {
-  // CRITICAL FIX: Use optional context to prevent crashes if context is not available
-  const homepageContext = useHomepageContextOptional();
+  // CRITICAL FIX: Use the SAFE context hook that provides fallbacks
+  const homepageContext = useHomepageContextSafe();
   
   const { data, isLoading, error, refetch } = useHomepageData();
   const { 
@@ -84,24 +84,20 @@ const HomepageManagerContent: React.FC = () => {
     }
   }, [data]);
 
-  // CRITICAL FIX: Proper useEffect cleanup for context registration
+  // CRITICAL FIX: Simplified useEffect for context registration with safe fallback
   useEffect(() => {
-    if (!homepageContext) return;
+    console.log('📝 Registering homepage context callback');
     
-    // Register the callback
+    // Register the callback (this now always works due to safe context)
     const unregister = homepageContext.registerDataRefresh(() => {
-      // Your refresh logic here
-      console.log('📝 Refreshing homepage data');
+      console.log('📝 Refreshing homepage data from context');
       refetch();
     });
     
-    // CRITICAL FIX: Ensure cleanup runs properly
+    // Return cleanup function
     return () => {
-      try {
-        unregister();
-      } catch (error) {
-        console.error('Error during cleanup:', error);
-      }
+      console.log('🗑️ Cleaning up homepage context callback');
+      unregister();
     };
   }, [homepageContext, refetch]);
 
@@ -151,18 +147,16 @@ const HomepageManagerContent: React.FC = () => {
       const result = await updateContent(updatePayload);
       console.log('✅ Content saved successfully!', result);
       
-      // CRITICAL FIX: Defer context invalidation and refetch to avoid hook timing issues
-      setTimeout(() => {
+      // CRITICAL FIX: Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
         setLastSaved(new Date());
         
-        // Invalidate cache if context is available
-        if (homepageContext) {
-          homepageContext.invalidateHomepageData();
-        }
+        // Invalidate cache using safe context
+        homepageContext.invalidateHomepageData();
         
         // Refresh data after a short delay to avoid race conditions
-        refetch();
-      }, 100);
+        setTimeout(() => refetch(), 50);
+      });
       
     } catch (error) {
       console.error('❌ Failed to save content:', error);
@@ -189,17 +183,15 @@ const HomepageManagerContent: React.FC = () => {
       const result = await updateMetrics(metricsPayload);
       console.log('✅ Metrics saved successfully:', result);
       
-      // CRITICAL FIX: Defer context operations using setTimeout to avoid timing conflicts
-      setTimeout(() => {
+      // CRITICAL FIX: Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
         setLastSaved(new Date());
         
-        // Invalidate cache if context is available
-        if (homepageContext) {
-          homepageContext.invalidateMetrics();
-        }
+        // Invalidate cache using safe context
+        homepageContext.invalidateMetrics();
         
-        refetch();
-      }, 100);
+        setTimeout(() => refetch(), 50);
+      });
     } catch (error) {
       console.error('❌ Failed to save metrics:', error);
       throw error;
@@ -212,15 +204,13 @@ const HomepageManagerContent: React.FC = () => {
       const result = await calculateMetrics();
       console.log('✅ Metrics calculated:', result);
       
-      // CRITICAL FIX: Defer context invalidation and refetch to avoid hook timing issues
-      setTimeout(() => {
-        // Invalidate cache if context is available
-        if (homepageContext) {
-          homepageContext.invalidateMetrics();
-        }
+      // CRITICAL FIX: Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        // Invalidate cache using safe context
+        homepageContext.invalidateMetrics();
         
-        refetch(); // Refresh data to show updated metrics
-      }, 100);
+        setTimeout(() => refetch(), 50);
+      });
     } catch (error) {
       console.error('❌ Failed to calculate metrics:', error);
     }

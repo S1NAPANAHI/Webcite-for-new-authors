@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Tabs,
-  Tab,
+  Button,
   Card,
   CardBody,
   CardHeader,
-  Button,
   Input,
   Textarea,
   Select,
@@ -15,373 +13,232 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  useDisclosure,
+  Chip,
   Table,
   TableHeader,
   TableColumn,
   TableBody,
   TableRow,
   TableCell,
-  Chip,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-  Progress,
-  Spacer,
-  Divider
+  Switch,
+  Spinner
 } from '@nextui-org/react';
-import {
-  Plus,
-  Edit3,
-  Trash2,
-  Eye,
-  MoreVertical,
-  TrendingUp,
-  Users,
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  EyeOff, 
   BookOpen,
-  Video,
-  Download,
-  DollarSign,
-  Calendar,
-  Filter,
-  Search,
-  BarChart3,
-  FileText,
-  Upload,
-  ExternalLink
+  Users,
+  Clock,
+  Tag
 } from 'lucide-react';
 import { supabase } from '@zoroaster/shared';
-import { Database } from '@/types/supabase';
 import { toast } from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
 
-// Type definitions
-type AuthorJourneyPost = Database['public']['Tables']['authors_journey_posts']['Row'];
-type WritingGuide = Database['public']['Tables']['writing_guides']['Row'];
-type VideoTutorial = Database['public']['Tables']['video_tutorials']['Row'];
-type DownloadableTemplate = Database['public']['Tables']['downloadable_templates']['Row'];
-type ProfessionalService = Database['public']['Tables']['professional_services']['Row'];
-
-type ContentType = 'authors_journey' | 'writing_guides' | 'video_tutorials' | 'downloadable_templates' | 'professional_services';
-type ContentStatus = 'draft' | 'published' | 'archived';
-type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
-
-interface ContentItem {
+interface LearnResource {
   id: string;
   title: string;
-  description?: string;
-  content?: string;
-  status: ContentStatus;
-  difficulty?: DifficultyLevel;
-  category?: string;
-  view_count?: number;
+  content: string;
+  category: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  status: 'draft' | 'published' | 'archived';
+  image_url?: string;
+  tags: string[];
   created_at: string;
   updated_at: string;
-  author?: string;
-  price?: number;
-  duration?: number;
-  file_path?: string;
-  video_url?: string;
-  slug?: string;
+  created_by: string;
 }
 
-interface AnalyticsData {
-  totalViews: number;
-  totalContent: number;
-  popularContent: ContentItem[];
-  categoryBreakdown: { [key: string]: number };
-  difficultyBreakdown: { [key: string]: number };
-  recentActivity: any[];
+interface FormData {
+  title: string;
+  content: string;
+  category: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  status: 'draft' | 'published' | 'archived';
+  image_url: string;
+  tags: string;
 }
 
-// Content Form Component
-const ContentForm = ({ 
-  type, 
-  content, 
-  isOpen, 
-  onClose, 
-  onSave 
-}: { 
-  type: ContentType;
-  content: ContentItem | null;
-  isOpen: boolean;
-  onClose: () => void;
-  onSave: (data: any) => void;
-}) => {
-  const [formData, setFormData] = useState<Partial<ContentItem>>({});
-  const [isLoading, setIsLoading] = useState(false);
+const DIFFICULTY_OPTIONS = [
+  { key: 'beginner', label: 'Beginner' },
+  { key: 'intermediate', label: 'Intermediate' },
+  { key: 'advanced', label: 'Advanced' }
+];
+
+const STATUS_OPTIONS = [
+  { key: 'draft', label: 'Draft' },
+  { key: 'published', label: 'Published' },
+  { key: 'archived', label: 'Archived' }
+];
+
+const CATEGORY_OPTIONS = [
+  { key: 'Basics', label: 'Basics' },
+  { key: 'Sacred Texts', label: 'Sacred Texts' },
+  { key: 'Practices', label: 'Practices' },
+  { key: 'History', label: 'History' },
+  { key: 'Philosophy', label: 'Philosophy' },
+  { key: 'Rituals', label: 'Rituals' },
+  { key: 'Modern Practice', label: 'Modern Practice' }
+];
+
+export default function EnhancedLearnAdmin() {
+  const [resources, setResources] = useState<LearnResource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedResource, setSelectedResource] = useState<LearnResource | null>(null);
+  const [formData, setFormData] = useState<FormData>({
+    title: '',
+    content: '',
+    category: '',
+    difficulty: 'beginner',
+    status: 'draft',
+    image_url: '',
+    tags: ''
+  });
+  const [mode, setMode] = useState<'create' | 'edit'>('create');
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [stats, setStats] = useState({
+    total: 0,
+    published: 0,
+    draft: 0
+  });
 
   useEffect(() => {
-    if (content) {
-      setFormData(content);
-    } else {
-      setFormData({
-        title: '',
-        description: '',
-        content: '',
-        status: 'draft',
-        difficulty: 'beginner',
-        category: '',
-        author: '',
-        price: 0,
-        duration: 0,
-        file_path: '',
-        video_url: '',
-        slug: ''
-      });
-    }
-  }, [content, isOpen]);
+    fetchResources();
+  }, []);
 
-  const handleSave = async () => {
-    setIsLoading(true);
+  const fetchResources = async () => {
     try {
-      await onSave(formData);
-      onClose();
-      toast.success(`${content ? 'Updated' : 'Created'} successfully!`);
-    } catch (error: any) {
-      toast.error(`Error: ${error.message}`);
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('learn_content')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setResources(data || []);
+      
+      // Calculate stats
+      const total = data?.length || 0;
+      const published = data?.filter(r => r.status === 'published').length || 0;
+      const draft = data?.filter(r => r.status === 'draft').length || 0;
+      
+      setStats({ total, published, draft });
+
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      toast.error('Failed to load resources');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
+  const handleCreate = () => {
+    setMode('create');
+    setFormData({
+      title: '',
+      content: '',
+      category: '',
+      difficulty: 'beginner',
+      status: 'draft',
+      image_url: '',
+      tags: ''
+    });
+    onOpen();
   };
 
-  const handleTitleChange = (title: string) => {
-    setFormData(prev => ({
-      ...prev,
-      title,
-      slug: !content ? generateSlug(title) : prev.slug // Only auto-generate for new content
-    }));
+  const handleEdit = (resource: LearnResource) => {
+    setMode('edit');
+    setSelectedResource(resource);
+    setFormData({
+      title: resource.title,
+      content: resource.content,
+      category: resource.category,
+      difficulty: resource.difficulty,
+      status: resource.status,
+      image_url: resource.image_url || '',
+      tags: resource.tags?.join(', ') || ''
+    });
+    onOpen();
   };
 
-  return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      size="2xl"
-      scrollBehavior="inside"
-    >
-      <ModalContent>
-        <ModalHeader>
-          {content ? 'Edit' : 'Create'} {type.replace('_', ' ')}
-        </ModalHeader>
-        <ModalBody>
-          <div className="space-y-4">
-            <Input
-              label="Title"
-              value={formData.title || ''}
-              onChange={(e) => handleTitleChange(e.target.value)}
-              variant="bordered"
-              isRequired
-            />
-            
-            <Input
-              label="Slug"
-              value={formData.slug || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-              variant="bordered"
-              description="URL-friendly version of the title"
-            />
-            
-            <Textarea
-              label="Description"
-              value={formData.description || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              variant="bordered"
-              rows={3}
-            />
-            
-            {(type === 'authors_journey' || type === 'writing_guides') && (
-              <Textarea
-                label="Content"
-                value={formData.content || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                variant="bordered"
-                rows={8}
-                description="Main content (HTML supported)"
-              />
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="Status"
-                selectedKeys={formData.status ? [formData.status] : []}
-                onSelectionChange={(keys) => setFormData(prev => ({ 
-                  ...prev, 
-                  status: Array.from(keys)[0] as ContentStatus 
-                }))}
-                variant="bordered"
-              >
-                <SelectItem key="draft">Draft</SelectItem>
-                <SelectItem key="published">Published</SelectItem>
-                <SelectItem key="archived">Archived</SelectItem>
-              </Select>
-              
-              <Select
-                label="Difficulty"
-                selectedKeys={formData.difficulty ? [formData.difficulty] : []}
-                onSelectionChange={(keys) => setFormData(prev => ({ 
-                  ...prev, 
-                  difficulty: Array.from(keys)[0] as DifficultyLevel 
-                }))}
-                variant="bordered"
-              >
-                <SelectItem key="beginner">Beginner</SelectItem>
-                <SelectItem key="intermediate">Intermediate</SelectItem>
-                <SelectItem key="advanced">Advanced</SelectItem>
-              </Select>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Category"
-                value={formData.category || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                variant="bordered"
-              />
-              
-              <Input
-                label="Author"
-                value={formData.author || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                variant="bordered"
-              />
-            </div>
-            
-            {type === 'video_tutorials' && (
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="Video URL"
-                  value={formData.video_url || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
-                  variant="bordered"
-                />
-                
-                <Input
-                  label="Duration (minutes)"
-                  type="number"
-                  value={formData.duration?.toString() || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, duration: parseInt(e.target.value) || 0 }))}
-                  variant="bordered"
-                />
-              </div>
-            )}
-            
-            {type === 'downloadable_templates' && (
-              <Input
-                label="File Path/URL"
-                value={formData.file_path || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, file_path: e.target.value }))}
-                variant="bordered"
-              />
-            )}
-            
-            {type === 'professional_services' && (
-              <Input
-                label="Price ($)"
-                type="number"
-                step="0.01"
-                value={formData.price?.toString() || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                variant="bordered"
-              />
-            )}
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="light" onPress={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            color="primary" 
-            onPress={handleSave}
-            isLoading={isLoading}
-          >
-            {content ? 'Update' : 'Create'}
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
-};
+  const handleSubmit = async () => {
+    try {
+      const resourceData = {
+        title: formData.title,
+        content: formData.content,
+        category: formData.category,
+        difficulty: formData.difficulty,
+        status: formData.status,
+        image_url: formData.image_url || null,
+        tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag) : []
+      };
 
-// Analytics Dashboard Component
-const AnalyticsDashboard = ({ data }: { data: AnalyticsData }) => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <Card>
-        <CardBody className="text-center">
-          <div className="flex items-center justify-center mb-2">
-            <Eye className="w-8 h-8 text-blue-500" />
-          </div>
-          <p className="text-2xl font-bold">{data.totalViews.toLocaleString()}</p>
-          <p className="text-sm text-gray-500">Total Views</p>
-        </CardBody>
-      </Card>
-      
-      <Card>
-        <CardBody className="text-center">
-          <div className="flex items-center justify-center mb-2">
-            <BookOpen className="w-8 h-8 text-green-500" />
-          </div>
-          <p className="text-2xl font-bold">{data.totalContent}</p>
-          <p className="text-sm text-gray-500">Total Content</p>
-        </CardBody>
-      </Card>
-      
-      <Card>
-        <CardBody className="text-center">
-          <div className="flex items-center justify-center mb-2">
-            <TrendingUp className="w-8 h-8 text-purple-500" />
-          </div>
-          <p className="text-2xl font-bold">{data.popularContent.length}</p>
-          <p className="text-sm text-gray-500">Popular Items</p>
-        </CardBody>
-      </Card>
-      
-      <Card>
-        <CardBody className="text-center">
-          <div className="flex items-center justify-center mb-2">
-            <Users className="w-8 h-8 text-orange-500" />
-          </div>
-          <p className="text-2xl font-bold">{Object.keys(data.categoryBreakdown).length}</p>
-          <p className="text-sm text-gray-500">Categories</p>
-        </CardBody>
-      </Card>
-    </div>
-  );
-};
+      if (mode === 'create') {
+        const { error } = await supabase
+          .from('learn_content')
+          .insert([resourceData]);
 
-// Content Table Component
-const ContentTable = ({ 
-  data, 
-  type, 
-  onEdit, 
-  onDelete, 
-  onView 
-}: { 
-  data: ContentItem[];
-  type: ContentType;
-  onEdit: (item: ContentItem) => void;
-  onDelete: (id: string) => void;
-  onView: (item: ContentItem) => void;
-}) => {
-  const getStatusColor = (status: ContentStatus) => {
-    switch (status) {
-      case 'published': return 'success';
-      case 'draft': return 'warning';
-      case 'archived': return 'default';
-      default: return 'default';
+        if (error) throw error;
+        toast.success('Resource created successfully!');
+      } else if (selectedResource) {
+        const { error } = await supabase
+          .from('learn_content')
+          .update(resourceData)
+          .eq('id', selectedResource.id);
+
+        if (error) throw error;
+        toast.success('Resource updated successfully!');
+      }
+
+      await fetchResources();
+      onClose();
+    } catch (error) {
+      console.error('Error saving resource:', error);
+      toast.error('Failed to save resource');
     }
   };
 
-  const getDifficultyColor = (difficulty?: DifficultyLevel) => {
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this resource?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('learn_content')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Resource deleted successfully!');
+      await fetchResources();
+    } catch (error) {
+      console.error('Error deleting resource:', error);
+      toast.error('Failed to delete resource');
+    }
+  };
+
+  const toggleStatus = async (id: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('learn_content')
+        .update({ status: newStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success(`Resource ${newStatus}!`);
+      await fetchResources();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error('Failed to update status');
+    }
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'beginner': return 'success';
       case 'intermediate': return 'warning';
@@ -390,259 +247,21 @@ const ContentTable = ({
     }
   };
 
-  return (
-    <Table aria-label={`${type} content table`}>
-      <TableHeader>
-        <TableColumn>TITLE</TableColumn>
-        <TableColumn>STATUS</TableColumn>
-        <TableColumn>DIFFICULTY</TableColumn>
-        <TableColumn>CATEGORY</TableColumn>
-        <TableColumn>VIEWS</TableColumn>
-        <TableColumn>CREATED</TableColumn>
-        <TableColumn>ACTIONS</TableColumn>
-      </TableHeader>
-      <TableBody>
-        {data.map((item) => (
-          <TableRow key={item.id}>
-            <TableCell>
-              <div>
-                <p className="font-medium">{item.title}</p>
-                {item.author && (
-                  <p className="text-sm text-gray-500">by {item.author}</p>
-                )}
-              </div>
-            </TableCell>
-            <TableCell>
-              <Chip 
-                size="sm" 
-                color={getStatusColor(item.status)}
-                variant="flat"
-              >
-                {item.status}
-              </Chip>
-            </TableCell>
-            <TableCell>
-              {item.difficulty && (
-                <Chip 
-                  size="sm" 
-                  color={getDifficultyColor(item.difficulty)}
-                  variant="flat"
-                >
-                  {item.difficulty}
-                </Chip>
-              )}
-            </TableCell>
-            <TableCell>{item.category || '-'}</TableCell>
-            <TableCell>{(item.view_count || 0).toLocaleString()}</TableCell>
-            <TableCell>{new Date(item.created_at).toLocaleDateString()}</TableCell>
-            <TableCell>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button 
-                    variant="light" 
-                    size="sm" 
-                    isIconOnly
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu>
-                  <DropdownItem 
-                    key="view" 
-                    startContent={<Eye className="w-4 h-4" />}
-                    onPress={() => onView(item)}
-                  >
-                    View
-                  </DropdownItem>
-                  <DropdownItem 
-                    key="edit" 
-                    startContent={<Edit3 className="w-4 h-4" />}
-                    onPress={() => onEdit(item)}
-                  >
-                    Edit
-                  </DropdownItem>
-                  <DropdownItem 
-                    key="delete" 
-                    className="text-danger" 
-                    color="danger"
-                    startContent={<Trash2 className="w-4 h-4" />}
-                    onPress={() => onDelete(item.id)}
-                  >
-                    Delete
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
-};
-
-// Main Enhanced Learn Admin Component
-export default function EnhancedLearnAdmin() {
-  const [activeTab, setActiveTab] = useState<ContentType>('authors_journey');
-  const [data, setData] = useState<{ [key in ContentType]: ContentItem[] }>({
-    authors_journey: [],
-    writing_guides: [],
-    video_tutorials: [],
-    downloadable_templates: [],
-    professional_services: []
-  });
-  const [analytics, setAnalytics] = useState<AnalyticsData>({
-    totalViews: 0,
-    totalContent: 0,
-    popularContent: [],
-    categoryBreakdown: {},
-    difficultyBreakdown: {},
-    recentActivity: []
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const tableNames: { [key in ContentType]: string } = {
-    authors_journey: 'authors_journey_posts',
-    writing_guides: 'writing_guides',
-    video_tutorials: 'video_tutorials',
-    downloadable_templates: 'downloadable_templates',
-    professional_services: 'professional_services'
-  };
-
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const promises = Object.entries(tableNames).map(async ([key, tableName]) => {
-        const { data, error } = await supabase
-          .from(tableName)
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        return [key, data || []];
-      });
-
-      const results = await Promise.all(promises);
-      const newData = Object.fromEntries(results) as { [key in ContentType]: ContentItem[] };
-      setData(newData);
-
-      // Calculate analytics
-      const totalContent = Object.values(newData).reduce((sum, items) => sum + items.length, 0);
-      const totalViews = Object.values(newData).flat().reduce((sum, item) => sum + (item.view_count || 0), 0);
-      const popularContent = Object.values(newData).flat()
-        .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
-        .slice(0, 5);
-      
-      const categoryBreakdown: { [key: string]: number } = {};
-      const difficultyBreakdown: { [key: string]: number } = {};
-      
-      Object.values(newData).flat().forEach(item => {
-        if (item.category) {
-          categoryBreakdown[item.category] = (categoryBreakdown[item.category] || 0) + 1;
-        }
-        if (item.difficulty) {
-          difficultyBreakdown[item.difficulty] = (difficultyBreakdown[item.difficulty] || 0) + 1;
-        }
-      });
-
-      setAnalytics({
-        totalContent,
-        totalViews,
-        popularContent,
-        categoryBreakdown,
-        difficultyBreakdown,
-        recentActivity: []
-      });
-    } catch (error: any) {
-      toast.error(`Error fetching data: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleSave = async (formData: Partial<ContentItem>) => {
-    const tableName = tableNames[activeTab];
-    
-    if (selectedContent) {
-      // Update existing
-      const { error } = await supabase
-        .from(tableName)
-        .update(formData)
-        .eq('id', selectedContent.id);
-      
-      if (error) throw error;
-    } else {
-      // Create new
-      const { error } = await supabase
-        .from(tableName)
-        .insert([formData]);
-      
-      if (error) throw error;
-    }
-    
-    await fetchData();
-    setSelectedContent(null);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
-    
-    const tableName = tableNames[activeTab];
-    const { error } = await supabase
-      .from(tableName)
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      toast.error(`Error deleting: ${error.message}`);
-      return;
-    }
-    
-    toast.success('Deleted successfully!');
-    await fetchData();
-  };
-
-  const handleView = (item: ContentItem) => {
-    if (item.slug) {
-      const baseUrl = activeTab === 'authors_journey' ? '/learn/authors-journey' : '/learn/writing-guides';
-      window.open(`${baseUrl}/${item.slug}`, '_blank');
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'published': return 'success';
+      case 'draft': return 'warning';
+      case 'archived': return 'default';
+      default: return 'default';
     }
   };
 
-  const filteredData = data[activeTab]?.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (item.category && item.category.toLowerCase().includes(searchQuery.toLowerCase()))
-  ) || [];
-
-  const tabIcons = {
-    authors_journey: BookOpen,
-    writing_guides: FileText,
-    video_tutorials: Video,
-    downloadable_templates: Download,
-    professional_services: DollarSign
-  };
-
-  const tabLabels = {
-    authors_journey: "Author's Journey",
-    writing_guides: 'Writing Guides',
-    video_tutorials: 'Video Tutorials',
-    downloadable_templates: 'Templates',
-    professional_services: 'Services'
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-96">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Loading Learn admin...</p>
+          <Spinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading Learn Resources...</p>
         </div>
       </div>
     );
@@ -651,115 +270,273 @@ export default function EnhancedLearnAdmin() {
   return (
     <div className="p-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Learn Content Management</h1>
-        <p className="text-gray-600">Manage all educational content and professional services</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Learn Resources</h1>
+          <p className="text-muted-foreground">Manage learning content for your community</p>
+        </div>
+        <Button 
+          color="primary" 
+          startContent={<Plus className="w-4 h-4" />}
+          onPress={handleCreate}
+        >
+          Add Resource
+        </Button>
       </div>
 
-      {/* Analytics Dashboard */}
-      <AnalyticsDashboard data={analytics} />
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <Card>
+          <CardBody className="flex flex-row items-center space-x-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <BookOpen className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.total}</p>
+              <p className="text-sm text-muted-foreground">Total Resources</p>
+            </div>
+          </CardBody>
+        </Card>
+        
+        <Card>
+          <CardBody className="flex flex-row items-center space-x-3">
+            <div className="p-2 bg-success/10 rounded-lg">
+              <Eye className="w-6 h-6 text-success" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.published}</p>
+              <p className="text-sm text-muted-foreground">Published</p>
+            </div>
+          </CardBody>
+        </Card>
+        
+        <Card>
+          <CardBody className="flex flex-row items-center space-x-3">
+            <div className="p-2 bg-warning/10 rounded-lg">
+              <Edit className="w-6 h-6 text-warning" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{stats.draft}</p>
+              <p className="text-sm text-muted-foreground">Drafts</p>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
 
-      {/* Main Content Tabs */}
+      {/* Resources Table */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center w-full">
-            <div className="flex items-center space-x-4">
-              <Input
-                placeholder="Search content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                startContent={<Search className="w-4 h-4" />}
-                className="w-64"
-              />
-            </div>
-            <Button
-              color="primary"
-              startContent={<Plus className="w-4 h-4" />}
-              onPress={() => {
-                setSelectedContent(null);
-                setIsFormOpen(true);
-              }}
-            >
-              Add {tabLabels[activeTab]}
-            </Button>
-          </div>
+          <h2 className="text-xl font-semibold">All Resources</h2>
         </CardHeader>
         <CardBody>
-          <Tabs
-            selectedKey={activeTab}
-            onSelectionChange={(key) => setActiveTab(key as ContentType)}
-            variant="underlined"
-            classNames={{
-              tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
-              cursor: "w-full bg-gradient-to-r from-blue-500 to-purple-500",
-              tab: "max-w-fit px-0 h-12",
-              tabContent: "group-data-[selected=true]:font-semibold"
-            }}
-          >
-            {(Object.keys(tabLabels) as ContentType[]).map((key) => {
-              const Icon = tabIcons[key];
-              return (
-                <Tab
-                  key={key}
-                  title={
-                    <div className="flex items-center space-x-2">
-                      <Icon className="w-4 h-4" />
-                      <span>{tabLabels[key]}</span>
-                      <Chip size="sm" variant="flat">
-                        {data[key]?.length || 0}
-                      </Chip>
+          <Table aria-label="Learn resources table">
+            <TableHeader>
+              <TableColumn>TITLE</TableColumn>
+              <TableColumn>CATEGORY</TableColumn>
+              <TableColumn>DIFFICULTY</TableColumn>
+              <TableColumn>STATUS</TableColumn>
+              <TableColumn>CREATED</TableColumn>
+              <TableColumn>ACTIONS</TableColumn>
+            </TableHeader>
+            <TableBody>
+              {resources.map((resource) => (
+                <TableRow key={resource.id}>
+                  <TableCell>
+                    <div>
+                      <p className="font-medium">{resource.title}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {resource.content.substring(0, 100)}...
+                      </p>
+                      {resource.tags && resource.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {resource.tags.slice(0, 2).map((tag, index) => (
+                            <Chip key={index} size="sm" variant="flat">
+                              {tag}
+                            </Chip>
+                          ))}
+                          {resource.tags.length > 2 && (
+                            <Chip size="sm" variant="flat">
+                              +{resource.tags.length - 2}
+                            </Chip>
+                          )}
+                        </div>
+                      )}
                     </div>
-                  }
-                >
-                  <div className="mt-6">
-                    {filteredData.length > 0 ? (
-                      <ContentTable
-                        data={filteredData}
-                        type={activeTab}
-                        onEdit={(item) => {
-                          setSelectedContent(item);
-                          setIsFormOpen(true);
-                        }}
-                        onDelete={handleDelete}
-                        onView={handleView}
-                      />
-                    ) : (
-                      <div className="text-center py-12">
-                        <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                        <p className="text-gray-500 text-lg mb-4">
-                          {searchQuery ? 'No content matches your search.' : `No ${tabLabels[activeTab].toLowerCase()} found.`}
-                        </p>
-                        <Button
-                          color="primary"
-                          startContent={<Plus className="w-4 h-4" />}
-                          onPress={() => {
-                            setSelectedContent(null);
-                            setIsFormOpen(true);
-                          }}
-                        >
-                          Create First {tabLabels[activeTab]}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </Tab>
-              );
-            })}
-          </Tabs>
+                  </TableCell>
+                  <TableCell>
+                    <Chip size="sm" variant="flat">
+                      {resource.category}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      size="sm" 
+                      color={getDifficultyColor(resource.difficulty)}
+                      variant="flat"
+                    >
+                      {resource.difficulty}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <Chip 
+                      size="sm" 
+                      color={getStatusColor(resource.status)}
+                      variant="flat"
+                    >
+                      {resource.status}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    {new Date(resource.created_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        onPress={() => toggleStatus(
+                          resource.id, 
+                          resource.status === 'published' ? 'draft' : 'published'
+                        )}
+                      >
+                        {resource.status === 'published' ? 
+                          <EyeOff className="w-4 h-4" /> : 
+                          <Eye className="w-4 h-4" />
+                        }
+                      </Button>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        onPress={() => handleEdit(resource)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        isIconOnly
+                        size="sm"
+                        variant="light"
+                        color="danger"
+                        onPress={() => handleDelete(resource.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </CardBody>
       </Card>
 
-      {/* Content Form Modal */}
-      <ContentForm
-        type={activeTab}
-        content={selectedContent}
-        isOpen={isFormOpen}
-        onClose={() => {
-          setIsFormOpen(false);
-          setSelectedContent(null);
-        }}
-        onSave={handleSave}
-      />
+      {/* Create/Edit Modal */}
+      <Modal 
+        isOpen={isOpen} 
+        onClose={onClose}
+        size="2xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          <ModalHeader>
+            {mode === 'create' ? 'Create New Resource' : 'Edit Resource'}
+          </ModalHeader>
+          <ModalBody>
+            <div className="flex flex-col gap-4">
+              <Input
+                label="Title"
+                placeholder="Enter resource title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                isRequired
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Select
+                  label="Category"
+                  placeholder="Select category"
+                  selectedKeys={formData.category ? [formData.category] : []}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as string;
+                    setFormData({...formData, category: selected});
+                  }}
+                >
+                  {CATEGORY_OPTIONS.map((option) => (
+                    <SelectItem key={option.key} value={option.key}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                <Select
+                  label="Difficulty"
+                  selectedKeys={[formData.difficulty]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as 'beginner' | 'intermediate' | 'advanced';
+                    setFormData({...formData, difficulty: selected});
+                  }}
+                >
+                  {DIFFICULTY_OPTIONS.map((option) => (
+                    <SelectItem key={option.key} value={option.key}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Select
+                  label="Status"
+                  selectedKeys={[formData.status]}
+                  onSelectionChange={(keys) => {
+                    const selected = Array.from(keys)[0] as 'draft' | 'published' | 'archived';
+                    setFormData({...formData, status: selected});
+                  }}
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <SelectItem key={option.key} value={option.key}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                <Input
+                  label="Image URL (Optional)"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.image_url}
+                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
+                />
+              </div>
+
+              <Input
+                label="Tags"
+                placeholder="tag1, tag2, tag3"
+                value={formData.tags}
+                onChange={(e) => setFormData({...formData, tags: e.target.value})}
+                description="Comma-separated tags"
+              />
+
+              <Textarea
+                label="Content"
+                placeholder="Write your resource content here..."
+                value={formData.content}
+                onChange={(e) => setFormData({...formData, content: e.target.value})}
+                minRows={8}
+                isRequired
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={onClose}>
+              Cancel
+            </Button>
+            <Button color="primary" onPress={handleSubmit}>
+              {mode === 'create' ? 'Create' : 'Update'} Resource
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

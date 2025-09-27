@@ -20,7 +20,8 @@ import {
   LogOut,
   Home,
   Menu,
-  X
+  X,
+  GraduationCap
 } from 'lucide-react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 
@@ -38,6 +39,15 @@ const sidebarItems = [
       { label: 'Works', href: '/admin/content/works' },
       { label: 'Homepage', href: '/admin/content/homepage' },
       { label: 'About', href: '/admin/content/about' }
+    ]
+  },
+  // NEW: Learn Management Section
+  {
+    label: 'Learn Management',
+    icon: GraduationCap,
+    children: [
+      { label: 'Resources', href: '/admin/learn' },
+      { label: 'Categories', href: '/admin/learn/categories' }
     ]
   },
   {

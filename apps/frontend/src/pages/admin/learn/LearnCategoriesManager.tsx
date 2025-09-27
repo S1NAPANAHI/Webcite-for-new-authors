@@ -64,16 +64,44 @@ export default function LearnCategoriesManager() {
   });
   const [mode, setMode] = useState<'create' | 'edit'>('create');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [hasTable, setHasTable] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    checkTableAndFetchCategories();
   }, []);
 
-  const fetchCategories = async () => {
+  const checkTableAndFetchCategories = async () => {
     try {
       setLoading(true);
       
-      // First get all categories
+      // First check if learn_categories table exists by trying to query it
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from('learn_categories')
+        .select('*')
+        .order('sort_order')
+        .limit(1);
+
+      if (categoriesError) {
+        // Table doesn't exist, show mock categories
+        console.log('learn_categories table not found, showing mock data');
+        setHasTable(false);
+        setCategories(getMockCategories());
+      } else {
+        // Table exists, fetch real data
+        setHasTable(true);
+        await fetchRealCategories();
+      }
+
+    } catch (error) {
+      console.error('Error checking table:', error);
+      setCategories(getMockCategories());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchRealCategories = async () => {
+    try {
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('learn_categories')
         .select('*')
@@ -81,15 +109,14 @@ export default function LearnCategoriesManager() {
 
       if (categoriesError) throw categoriesError;
 
-      // Then get count of content for each category (if learn_categories table exists)
-      // For now, we'll set this up for the existing learn_content table
+      // Get count of content for each category
       const categoriesWithCount = await Promise.all(
         (categoriesData || []).map(async (category) => {
           try {
             const { count } = await supabase
               .from('learn_content')
               .select('*', { count: 'exact' })
-              .eq('category', category.name);
+              .eq('category_id', category.id);
 
             return {
               ...category,
@@ -109,13 +136,75 @@ export default function LearnCategoriesManager() {
       );
 
       setCategories(categoriesWithCount);
-
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error('Error fetching real categories:', error);
       toast.error('Failed to load categories');
-    } finally {
-      setLoading(false);
     }
+  };
+
+  const getMockCategories = (): LearnCategory[] => {
+    return [
+      {
+        id: '1',
+        name: 'Basics',
+        description: 'Fundamental concepts and introductory material',
+        slug: 'basics',
+        icon: 'book-open',
+        sort_order: 0,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        _count: { learn_content: 2 }
+      },
+      {
+        id: '2', 
+        name: 'Sacred Texts',
+        description: 'Religious texts and scriptural studies',
+        slug: 'sacred-texts',
+        icon: 'scroll',
+        sort_order: 1,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        _count: { learn_content: 1 }
+      },
+      {
+        id: '3',
+        name: 'Practices',
+        description: 'Rituals, ceremonies, and daily practices',
+        slug: 'practices',
+        icon: 'flame',
+        sort_order: 2,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        _count: { learn_content: 1 }
+      },
+      {
+        id: '4',
+        name: 'History',
+        description: 'Historical context and development',
+        slug: 'history',
+        icon: 'clock',
+        sort_order: 3,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        _count: { learn_content: 0 }
+      },
+      {
+        id: '5',
+        name: 'Philosophy',
+        description: 'Philosophical concepts and teachings',
+        slug: 'philosophy',
+        icon: 'lightbulb',
+        sort_order: 4,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        _count: { learn_content: 0 }
+      }
+    ];
   };
 
   const generateSlug = (name: string) => {
@@ -154,18 +243,31 @@ export default function LearnCategoriesManager() {
   };
 
   const handleSubmit = async () => {
+    if (!hasTable) {
+      toast.info('Category management requires the learn_categories table. Please run the database migration first.');
+      return;
+    }
+
     try {
-      // Check if the learn_categories table exists, if not, work with hardcoded categories
       if (mode === 'create') {
-        // For now, we'll add it to a simple categories list since learn_categories table might not exist
-        // In a real implementation, you would create the table first
-        toast.info('Category management requires the learn_categories table. Using hardcoded categories for now.');
-        return;
+        const { error } = await supabase
+          .from('learn_categories')
+          .insert([formData]);
+
+        if (error) throw error;
+        toast.success('Category created successfully!');
       } else if (selectedCategory) {
-        // Update existing category
-        toast.info('Category editing requires the learn_categories table. Using hardcoded categories for now.');
-        return;
+        const { error } = await supabase
+          .from('learn_categories')
+          .update(formData)
+          .eq('id', selectedCategory.id);
+
+        if (error) throw error;
+        toast.success('Category updated successfully!');
       }
+
+      await fetchRealCategories();
+      onClose();
     } catch (error) {
       console.error('Error saving category:', error);
       toast.error('Failed to save category');
@@ -173,6 +275,11 @@ export default function LearnCategoriesManager() {
   };
 
   const handleDelete = async (id: string, hasContent: boolean) => {
+    if (!hasTable) {
+      toast.info('Category management requires the learn_categories table.');
+      return;
+    }
+
     if (hasContent) {
       toast.error('Cannot delete category with associated content. Please move or delete the content first.');
       return;
@@ -181,8 +288,15 @@ export default function LearnCategoriesManager() {
     if (!confirm('Are you sure you want to delete this category?')) return;
 
     try {
-      // For now, show info message since table might not exist
-      toast.info('Category deletion requires the learn_categories table.');
+      const { error } = await supabase
+        .from('learn_categories')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success('Category deleted successfully!');
+      await fetchRealCategories();
     } catch (error) {
       console.error('Error deleting category:', error);
       toast.error('Failed to delete category');
@@ -190,80 +304,26 @@ export default function LearnCategoriesManager() {
   };
 
   const toggleActive = async (id: string, currentStatus: boolean) => {
+    if (!hasTable) {
+      toast.info('Category management requires the learn_categories table.');
+      return;
+    }
+
     try {
-      // For now, show info message since table might not exist
-      toast.info('Category status toggle requires the learn_categories table.');
+      const { error } = await supabase
+        .from('learn_categories')
+        .update({ is_active: !currentStatus })
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      toast.success(`Category ${!currentStatus ? 'activated' : 'deactivated'}!`);
+      await fetchRealCategories();
     } catch (error) {
       console.error('Error updating category status:', error);
       toast.error('Failed to update category status');
     }
   };
-
-  // Since we might not have the learn_categories table, let's show the existing categories from the learn_content
-  const mockCategories: LearnCategory[] = [
-    {
-      id: '1',
-      name: 'Basics',
-      description: 'Fundamental concepts and introductory material',
-      slug: 'basics',
-      icon: 'book-open',
-      sort_order: 0,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      _count: { learn_content: categories.length > 0 ? 0 : 1 }
-    },
-    {
-      id: '2', 
-      name: 'Sacred Texts',
-      description: 'Religious texts and scriptural studies',
-      slug: 'sacred-texts',
-      icon: 'scroll',
-      sort_order: 1,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      _count: { learn_content: categories.length > 0 ? 0 : 1 }
-    },
-    {
-      id: '3',
-      name: 'Practices',
-      description: 'Rituals, ceremonies, and daily practices',
-      slug: 'practices',
-      icon: 'flame',
-      sort_order: 2,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      _count: { learn_content: categories.length > 0 ? 0 : 1 }
-    },
-    {
-      id: '4',
-      name: 'History',
-      description: 'Historical context and development',
-      slug: 'history',
-      icon: 'clock',
-      sort_order: 3,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      _count: { learn_content: 0 }
-    },
-    {
-      id: '5',
-      name: 'Philosophy',
-      description: 'Philosophical concepts and teachings',
-      slug: 'philosophy',
-      icon: 'lightbulb',
-      sort_order: 4,
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      _count: { learn_content: 0 }
-    }
-  ];
-
-  const displayCategories = categories.length > 0 ? categories : mockCategories;
 
   if (loading) {
     return (
@@ -294,16 +354,20 @@ export default function LearnCategoriesManager() {
       </div>
 
       {/* Info Card */}
-      <Card className="mb-6 bg-blue-50 border-blue-200">
+      <Card className={`mb-6 ${hasTable ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
         <CardBody>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Hash className="w-5 h-5 text-blue-600" />
+            <div className={`p-2 ${hasTable ? 'bg-green-100' : 'bg-blue-100'} rounded-lg`}>
+              <Hash className={`w-5 h-5 ${hasTable ? 'text-green-600' : 'text-blue-600'}`} />
             </div>
             <div>
-              <p className="font-medium text-blue-800">Category Management</p>
-              <p className="text-sm text-blue-600">
-                Categories help organize learning resources. Currently showing {displayCategories.length} categories.
+              <p className={`font-medium ${hasTable ? 'text-green-800' : 'text-blue-800'}`}>
+                {hasTable ? 'Categories Connected' : 'Mock Categories'}
+              </p>
+              <p className={`text-sm ${hasTable ? 'text-green-600' : 'text-blue-600'}`}>
+                {hasTable 
+                  ? `Connected to database. Managing ${categories.length} categories.`
+                  : 'Database table not found. Showing sample categories. Run the migration to enable full management.'}
               </p>
             </div>
           </div>
@@ -326,7 +390,7 @@ export default function LearnCategoriesManager() {
               <TableColumn>ACTIONS</TableColumn>
             </TableHeader>
             <TableBody>
-              {displayCategories.map((category) => (
+              {categories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -363,6 +427,7 @@ export default function LearnCategoriesManager() {
                       isSelected={category.is_active}
                       onValueChange={() => toggleActive(category.id, category.is_active)}
                       size="sm"
+                      isDisabled={!hasTable}
                     />
                   </TableCell>
                   <TableCell>
@@ -372,6 +437,7 @@ export default function LearnCategoriesManager() {
                         size="sm"
                         variant="light"
                         onPress={() => handleEdit(category)}
+                        isDisabled={!hasTable}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
@@ -384,6 +450,7 @@ export default function LearnCategoriesManager() {
                           category.id,
                           (category._count?.learn_content || 0) > 0
                         )}
+                        isDisabled={!hasTable}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -469,7 +536,7 @@ export default function LearnCategoriesManager() {
             <Button variant="light" onPress={onClose}>
               Cancel
             </Button>
-            <Button color="primary" onPress={handleSubmit}>
+            <Button color="primary" onPress={handleSubmit} isDisabled={!hasTable}>
               {mode === 'create' ? 'Create' : 'Update'} Category
             </Button>
           </ModalFooter>

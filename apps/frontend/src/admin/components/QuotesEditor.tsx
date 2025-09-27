@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Loader2, CheckCircle, Plus, X, Edit2, RefreshCw } from 'lucide-react';
+import { buildApiUrl, logApiConfig } from '../../lib/config';
 
 interface Quote {
   id: number;
@@ -25,6 +26,10 @@ const QuotesEditor: React.FC = () => {
 
   // Only one useEffect - loads data on mount
   useEffect(() => {
+    // Log API configuration for debugging
+    console.log('🔧 QuotesEditor - API Configuration:');
+    logApiConfig();
+    
     loadQuotes();
   }, []);
 
@@ -33,14 +38,32 @@ const QuotesEditor: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch('/api/homepage/quotes');
-      if (!response.ok) throw new Error('Failed to load quotes');
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl('api/homepage/quotes');
+      console.log('💬 QuotesEditor - Fetching from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      
+      console.log('💬 QuotesEditor - Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('💬 QuotesEditor - Error response:', errorText);
+        throw new Error(`Failed to load quotes: ${response.status} ${response.statusText}`);
+      }
       
       const data = await response.json();
+      console.log('💬 QuotesEditor - Received data:', data);
+      
       setQuotes(data);
     } catch (err) {
-      console.error('Failed to load quotes:', err);
+      console.error('❌ QuotesEditor - Failed to load quotes:', err);
       setError('Failed to load quotes');
       
       // Set mock quotes for demonstration
@@ -82,11 +105,15 @@ const QuotesEditor: React.FC = () => {
       setIsSaving(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch('/api/homepage/quotes', {
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl('api/homepage/quotes');
+      console.log('➕ QuotesEditor - Adding quote to:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
           text: newQuote.text.trim(),
@@ -95,16 +122,24 @@ const QuotesEditor: React.FC = () => {
         })
       });
       
-      if (!response.ok) throw new Error('Failed to add quote');
+      console.log('➕ QuotesEditor - Add response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('➕ QuotesEditor - Add error response:', errorText);
+        throw new Error(`Failed to add quote: ${response.status} ${response.statusText}`);
+      }
       
       const addedQuote = await response.json();
+      console.log('➕ QuotesEditor - Quote added:', addedQuote);
+      
       setQuotes(prev => [addedQuote, ...prev]);
       setNewQuote({ text: '', author: '' });
       setLastSaved(new Date());
-      console.log('✅ Quote added successfully');
+      console.log('✅ QuotesEditor - Quote added successfully');
       
     } catch (err) {
-      console.error('Failed to add quote:', err);
+      console.error('❌ QuotesEditor - Failed to add quote:', err);
       setError('Failed to add quote');
       
       // Mock addition for demonstration
@@ -128,26 +163,39 @@ const QuotesEditor: React.FC = () => {
       setIsSaving(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch(`/api/homepage/quotes/${updatedQuote.id}`, {
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl(`api/homepage/quotes/${updatedQuote.id}`);
+      console.log('📝 QuotesEditor - Updating quote at:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(updatedQuote)
       });
       
-      if (!response.ok) throw new Error('Failed to update quote');
+      console.log('📝 QuotesEditor - Update response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('📝 QuotesEditor - Update error response:', errorText);
+        throw new Error(`Failed to update quote: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('📝 QuotesEditor - Quote updated:', result);
       
       setQuotes(prev => prev.map(quote => 
         quote.id === updatedQuote.id ? updatedQuote : quote
       ));
       setEditingQuote(null);
       setLastSaved(new Date());
-      console.log('✅ Quote updated successfully');
+      console.log('✅ QuotesEditor - Quote updated successfully');
       
     } catch (err) {
-      console.error('Failed to update quote:', err);
+      console.error('❌ QuotesEditor - Failed to update quote:', err);
       setError('Failed to update quote');
       
       // Mock update for demonstration
@@ -170,19 +218,31 @@ const QuotesEditor: React.FC = () => {
       setIsSaving(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch(`/api/homepage/quotes/${quoteId}`, {
-        method: 'DELETE'
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl(`api/homepage/quotes/${quoteId}`);
+      console.log('🗑️ QuotesEditor - Deleting quote at:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+        },
       });
       
-      if (!response.ok) throw new Error('Failed to delete quote');
+      console.log('🗑️ QuotesEditor - Delete response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🗑️ QuotesEditor - Delete error response:', errorText);
+        throw new Error(`Failed to delete quote: ${response.status} ${response.statusText}`);
+      }
       
       setQuotes(prev => prev.filter(quote => quote.id !== quoteId));
       setLastSaved(new Date());
-      console.log('✅ Quote deleted successfully');
+      console.log('✅ QuotesEditor - Quote deleted successfully');
       
     } catch (err) {
-      console.error('Failed to delete quote:', err);
+      console.error('❌ QuotesEditor - Failed to delete quote:', err);
       setError('Failed to delete quote');
       
       // Mock deletion for demonstration
@@ -235,6 +295,9 @@ const QuotesEditor: React.FC = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
+          <p className="text-xs text-red-500 mt-1">
+            Check the browser console for detailed error information.
+          </p>
         </div>
       )}
 
@@ -382,6 +445,12 @@ const QuotesEditor: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* API Debug Info */}
+      <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
+        <p><strong>API Debug:</strong> Using centralized config pointing to Render backend</p>
+        <p><strong>Quotes URL:</strong> {buildApiUrl('api/homepage/quotes')}</p>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { Spinner } from '@nextui-org/react';
-import LearnAdmin from '@/admin/components/LearnAdmin';
+// UPDATED: Use enhanced Learn admin component
+import EnhancedLearnAdmin from '@/admin/components/EnhancedLearnAdmin';
 
 function ErrorBoundary({ children }: { children: React.ReactNode }) {
   const [hasError, setHasError] = useState(false);
@@ -40,11 +41,14 @@ export default function LearnPageAdmin() {
       <Suspense 
         fallback={
           <div className="flex items-center justify-center min-h-[60vh]">
-            <Spinner size="lg" />
+            <div className="text-center">
+              <Spinner size="lg" />
+              <p className="mt-4 text-gray-600">Loading Learn Admin...</p>
+            </div>
           </div>
         }
       >
-        <LearnAdmin />
+        <EnhancedLearnAdmin />
       </Suspense>
     </ErrorBoundary>
   );

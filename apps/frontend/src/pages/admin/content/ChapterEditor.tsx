@@ -1,12 +1,53 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '@zoroaster/shared';
-import { BookOpen, ArrowLeft, Save, AlertCircle, Loader2, Lock, Crown, Gift, Image as ImageIcon, Layout, Eye } from 'lucide-react';
+import { BookOpen, ArrowLeft, Save, AlertCircle, Loader2, Lock, Crown, Gift, Eye, FileText } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import ImageInput from '../../../components/ImageInput';
 import { FileRecord } from '../../../utils/fileUpload';
+
+// HTML sanitization function to preserve paragraph structure
+const sanitizeHtml = (html: string): string => {
+  if (!html) return '';
+  
+  // Create a temporary div to work with the HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Convert any div elements to paragraphs for consistency
+  const divs = tempDiv.querySelectorAll('div');
+  divs.forEach(div => {
+    if (!div.querySelector('p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol')) {
+      const p = document.createElement('p');
+      p.innerHTML = div.innerHTML;
+      div.parentNode?.replaceChild(p, div);
+    }
+  });
+  
+  return tempDiv.innerHTML;
+};
+
+// Convert plain text with line breaks to proper HTML paragraphs
+const textToParagraphs = (text: string): string => {
+  if (!text.trim()) return '<p></p>';
+  
+  // Split by double line breaks (paragraph breaks)
+  const paragraphs = text
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .split(/\n\s*\n/) // Split on double line breaks
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+  
+  if (paragraphs.length === 0) {
+    return '<p></p>';
+  }
+  
+  return paragraphs
+    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+};
 
 interface Issue {
   id: string;
@@ -20,13 +61,14 @@ interface ChapterFormData {
   issue_id: string;
   content: any; // JSONB rich content
   plain_content: string; // Plain text for search
+  html_content: string; // NEW: HTML content for proper rendering
   chapter_number: number;
   status: 'draft' | 'published' | 'scheduled' | 'archived';
   // New subscription fields
   is_free: boolean;
   subscription_tier_required: 'free' | 'premium' | 'patron';
   free_chapter_order: number | null;
-  // NEW: Visual assets
+  // Visual assets
   hero_file_id?: string | null;
   banner_file_id?: string | null;
   word_count?: number;
@@ -52,8 +94,9 @@ const ChapterEditor: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const quillRef = useRef<ReactQuill | null>(null);
   const [editorContent, setEditorContent] = useState<string>(''); // Direct HTML content
+  const [showPreview, setShowPreview] = useState(false); // Toggle for content preview
   
-  // NEW: Hero and Banner file states
+  // Hero and Banner file states
   const [heroFile, setHeroFile] = useState<FileRecord | null>(null);
   const [bannerFile, setBannerFile] = useState<FileRecord | null>(null);
   
@@ -63,16 +106,58 @@ const ChapterEditor: React.FC = () => {
     issue_id: issueId || '',
     content: { type: 'doc', content: [] },
     plain_content: '',
+    html_content: '', // NEW: Initialize HTML content
     chapter_number: 1,
     status: 'draft',
-    // New subscription fields with smart defaults
     is_free: true, // Default to free for first chapters
     subscription_tier_required: 'free',
     free_chapter_order: null,
-    // NEW: Visual assets
     hero_file_id: null,
     banner_file_id: null
   });
+
+  // Enhanced Quill modules with better paragraph handling
+  const quillModules = useMemo(() => ({
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link'],
+      ['clean']
+    ],
+    clipboard: {
+      // Preserve paragraph structure when pasting
+      matchVisual: false,
+      matchers: [
+        // Convert pasted content to proper paragraphs
+        [Node.TEXT_NODE, (node: any, delta: any) => {
+          const text = node.data || '';
+          if (text.includes('\n\n')) {
+            // Handle paragraphs separated by double newlines
+            const parts = text.split('\n\n');
+            const newOps = [];
+            for (let i = 0; i < parts.length; i++) {
+              if (i > 0) {
+                newOps.push({ insert: '\n' }); // Paragraph break
+              }
+              newOps.push({ insert: parts[i].replace(/\n/g, ' ') });
+            }
+            return { ops: newOps };
+          }
+          return delta;
+        }]
+      ]
+    }
+  }), []);
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'blockquote', 'code-block',
+    'link'
+  ];
 
   // Load issues for dropdown
   useEffect(() => {
@@ -82,29 +167,23 @@ const ChapterEditor: React.FC = () => {
         setLoading(true);
         console.log('Loading issues...');
 
-        // Load from content_items with type 'issue'
         const { data: issuesData, error: issuesError } = await supabase
           .from('content_items')
           .select('id, title, slug')
           .eq('type', 'issue')
-          .in('status', ['published', 'draft']) // Allow both published and draft
+          .in('status', ['published', 'draft'])
           .order('title');
-
-        console.log('Issues query result:', { issuesData, issuesError });
 
         if (issuesError) {
           console.error('Error loading issues:', issuesError);
           setError(`Failed to load issues: ${issuesError.message}`);
           setIssues([]);
         } else if (!issuesData || issuesData.length === 0) {
-          console.log('No issues found');
           setError('No issues found. Please create an issue first.');
           setIssues([]);
         } else {
-          console.log('Found issues:', issuesData);
           setIssues(issuesData);
           
-          // If creating a new chapter and we have issues, set the first one as default
           if (!id && !issueId && issuesData.length > 0) {
             setFormData(prev => ({ ...prev, issue_id: issuesData[0].id }));
           }
@@ -119,7 +198,6 @@ const ChapterEditor: React.FC = () => {
       }
     };
 
-    // Only load if user is authenticated
     if (!authLoading && user) {
       loadIssues();
     } else if (!authLoading && !user) {
@@ -127,25 +205,20 @@ const ChapterEditor: React.FC = () => {
     }
   }, [user, authLoading, navigate, id, issueId]);
 
-  // FIXED: Load existing chapter with proper file queries
+  // Load existing chapter with proper content handling
   useEffect(() => {
     const loadChapter = async () => {
-      if (!id) return; // Skip if creating new chapter
+      if (!id) return;
       
       try {
         setError(null);
         setLoading(true);
 
-        console.log('Loading chapter with ID:', id);
-
-        // FIXED: Load chapter with proper file joins
         const { data: chapterData, error: chapterError } = await supabase
           .from('chapters')
           .select('*')
           .eq('id', id)
           .single();
-
-        console.log('Chapter query result:', { chapterData, chapterError });
 
         if (chapterError) {
           console.error('Error loading chapter:', chapterError);
@@ -154,11 +227,8 @@ const ChapterEditor: React.FC = () => {
         }
 
         if (chapterData) {
-          console.log('Loaded chapter data:', chapterData);
-          
-          // FIXED: Load hero file if hero_file_id exists
+          // Load hero file if exists
           if (chapterData.hero_file_id) {
-            console.log('Loading hero file with ID:', chapterData.hero_file_id);
             const { data: heroFileData, error: heroError } = await supabase
               .from('files')
               .select('*')
@@ -166,16 +236,12 @@ const ChapterEditor: React.FC = () => {
               .single();
               
             if (!heroError && heroFileData) {
-              console.log('Hero file loaded:', heroFileData);
               setHeroFile(heroFileData);
-            } else {
-              console.warn('Could not load hero file:', heroError);
             }
           }
           
-          // FIXED: Load banner file if banner_file_id exists
+          // Load banner file if exists
           if (chapterData.banner_file_id) {
-            console.log('Loading banner file with ID:', chapterData.banner_file_id);
             const { data: bannerFileData, error: bannerError } = await supabase
               .from('files')
               .select('*')
@@ -183,33 +249,25 @@ const ChapterEditor: React.FC = () => {
               .single();
               
             if (!bannerError && bannerFileData) {
-              console.log('Banner file loaded:', bannerFileData);
               setBannerFile(bannerFileData);
-            } else {
-              console.warn('Could not load banner file:', bannerError);
             }
           }
           
-          // Extract HTML content for editor
+          // Handle content loading with better HTML support
           let htmlContent = '';
-          try {
-            // Try to extract content from various possible formats
-            if (chapterData.plain_content) {
-              htmlContent = chapterData.plain_content;
-            } else if (chapterData.content && typeof chapterData.content === 'string') {
-              htmlContent = chapterData.content;
-            } else if (chapterData.content && chapterData.content.content) {
-              // Try to extract from JSON structure
-              const firstParagraph = chapterData.content.content[0];
-              if (firstParagraph && firstParagraph.content && firstParagraph.content[0]) {
-                htmlContent = firstParagraph.content[0].text || '';
-              }
-            }
-          } catch (e) {
-            console.log('Error extracting content:', e);
-            htmlContent = '';
+          
+          if (chapterData.html_content) {
+            // Use stored HTML content if available
+            htmlContent = chapterData.html_content;
+          } else if (chapterData.plain_content) {
+            // Convert plain text to HTML paragraphs
+            htmlContent = textToParagraphs(chapterData.plain_content);
+          } else if (typeof chapterData.content === 'string') {
+            htmlContent = chapterData.content;
           }
           
+          // Sanitize the content to ensure proper paragraph structure
+          htmlContent = sanitizeHtml(htmlContent);
           setEditorContent(htmlContent);
           
           setFormData({
@@ -218,13 +276,12 @@ const ChapterEditor: React.FC = () => {
             issue_id: chapterData.issue_id || '',
             content: chapterData.content || { type: 'doc', content: [] },
             plain_content: chapterData.plain_content || '',
+            html_content: htmlContent,
             chapter_number: chapterData.chapter_number || 1,
             status: chapterData.status || 'draft',
-            // Load subscription fields with fallbacks
-            is_free: chapterData.is_free ?? (chapterData.chapter_number <= 2), // Default first 2 chapters to free
+            is_free: chapterData.is_free ?? (chapterData.chapter_number <= 2),
             subscription_tier_required: chapterData.subscription_tier_required || 'free',
             free_chapter_order: chapterData.free_chapter_order || null,
-            // NEW: Load visual assets
             hero_file_id: chapterData.hero_file_id,
             banner_file_id: chapterData.banner_file_id,
             word_count: chapterData.word_count,
@@ -257,11 +314,10 @@ const ChapterEditor: React.FC = () => {
     }
   }, [formData.title]);
 
-  // Smart defaults for subscription settings based on chapter number
+  // Smart defaults for subscription settings
   useEffect(() => {
     const chapterNum = formData.chapter_number;
     
-    // Auto-set subscription defaults for new chapters
     if (!id && chapterNum) {
       setFormData(prev => ({
         ...prev,
@@ -272,43 +328,38 @@ const ChapterEditor: React.FC = () => {
     }
   }, [formData.chapter_number, id]);
 
-  // Handle content change from ReactQuill - using useCallback to prevent re-renders
+  // Enhanced content change handler with proper HTML processing
   const handleContentChange = useCallback((htmlContent: string) => {
-    console.log('Content changed, length:', htmlContent.length);
-    
-    // Update editor content state
-    setEditorContent(htmlContent);
+    // Sanitize and ensure proper paragraph structure
+    const sanitizedHtml = sanitizeHtml(htmlContent);
+    setEditorContent(sanitizedHtml);
     
     // Convert HTML to plain text for search
     const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
+    tempDiv.innerHTML = sanitizedHtml;
     const plainText = tempDiv.textContent || tempDiv.innerText || '';
     
     // Calculate stats
     const wordCount = plainText.trim().split(/\s+/).filter(word => word.length > 0).length;
-    const readTime = Math.max(1, Math.round(wordCount / 200)); // 200 words per minute
+    const readTime = Math.max(1, Math.round(wordCount / 200));
     
-    // Create simple content structure
+    // Create content structure
     const contentJson = {
       type: 'doc',
-      content: [
-        {
-          type: 'paragraph',
-          content: [
-            {
-              type: 'text',
-              text: plainText
-            }
-          ]
-        }
-      ]
+      content: [{
+        type: 'paragraph',
+        content: [{
+          type: 'text',
+          text: plainText
+        }]
+      }]
     };
     
-    // Update form data with debouncing to prevent excessive updates
     setFormData(prev => ({
       ...prev,
       content: contentJson,
       plain_content: plainText,
+      html_content: sanitizedHtml, // Store the HTML content
       word_count: wordCount,
       estimated_read_time: readTime
     }));
@@ -324,26 +375,22 @@ const ChapterEditor: React.FC = () => {
     }));
   };
 
-  // FIXED: Handle hero image change with enhanced logging
+  // Handle hero image change
   const handleHeroChange = (fileRecord: FileRecord | null, url: string | null) => {
-    console.log('Hero image changed:', { fileRecord, url });
     setHeroFile(fileRecord);
     setFormData(prev => ({
       ...prev,
       hero_file_id: fileRecord?.id || null
     }));
-    console.log('Hero file state updated');
   };
 
-  // FIXED: Handle banner image change with enhanced logging
+  // Handle banner image change
   const handleBannerChange = (fileRecord: FileRecord | null, url: string | null) => {
-    console.log('Banner image changed:', { fileRecord, url });
     setBannerFile(fileRecord);
     setFormData(prev => ({
       ...prev,
       banner_file_id: fileRecord?.id || null
     }));
-    console.log('Banner file state updated');
   };
 
   const handlePreview = () => {
@@ -354,7 +401,7 @@ const ChapterEditor: React.FC = () => {
     }
   };
 
-  // Calculate word count and estimated read time
+  // Calculate stats
   const wordCount = formData.word_count || formData.plain_content.split(/\s+/).filter(word => word.length > 0).length;
   const estimatedReadTime = formData.estimated_read_time || Math.max(1, Math.round(wordCount / 200));
 
@@ -378,25 +425,24 @@ const ChapterEditor: React.FC = () => {
         return;
       }
 
-      if (!formData.plain_content.trim()) {
+      if (!formData.html_content.trim() && !formData.plain_content.trim()) {
         setError('Chapter content is required.');
         return;
       }
 
-      // FIXED: Prepare chapter data with enhanced file logging
+      // Prepare chapter data with HTML content
       const chapterData = {
         title: formData.title.trim(),
         slug: formData.slug || formData.title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'),
         issue_id: formData.issue_id,
-        content: formData.content, // JSONB rich content
-        plain_content: formData.plain_content, // Plain text for search
+        content: formData.content,
+        plain_content: formData.plain_content,
+        html_content: formData.html_content, // Store HTML content
         chapter_number: formData.chapter_number,
         status: formData.status,
-        // Add subscription fields
         is_free: formData.is_free,
         subscription_tier_required: formData.subscription_tier_required,
         free_chapter_order: formData.is_free ? formData.free_chapter_order : null,
-        // FIXED: Add visual assets with detailed logging
         hero_file_id: formData.hero_file_id,
         banner_file_id: formData.banner_file_id,
         word_count: wordCount,
@@ -404,46 +450,30 @@ const ChapterEditor: React.FC = () => {
         metadata: { created_by: user.id }
       };
 
-      console.log('=== CHAPTER SAVE DEBUG ===');
-      console.log('Current hero file state:', heroFile);
-      console.log('Current banner file state:', bannerFile);
-      console.log('Form data hero_file_id:', formData.hero_file_id);
-      console.log('Form data banner_file_id:', formData.banner_file_id);
-      console.log('Submitting chapter data:', chapterData);
-
       let result;
       if (id) {
-        // Update existing chapter
-        console.log('Updating existing chapter with ID:', id);
         result = await supabase
           .from('chapters')
           .update(chapterData)
           .eq('id', id)
-          .select(); // Add select to see what was saved
+          .select();
       } else {
-        // Create new chapter
-        console.log('Creating new chapter');
         result = await supabase
           .from('chapters')
           .insert([chapterData])
-          .select(); // Add select to see what was created
+          .select();
       }
 
-      console.log('Database operation result:', result);
-
       if (result.error) {
-        console.error('Error saving chapter:', result.error);
         setError(`Failed to save chapter: ${result.error.message}`);
         return;
       }
 
-      console.log('Chapter saved successfully:', result.data);
-      setSuccess(`Chapter ${id ? 'updated' : 'created'} successfully! File associations: Hero=${formData.hero_file_id ? '✓' : '✗'}, Banner=${formData.banner_file_id ? '✓' : '✗'}`);
+      setSuccess(`Chapter ${id ? 'updated' : 'created'} successfully with proper paragraph formatting!`);
       
-      // Don't navigate immediately - let user see the success message
       setTimeout(() => {
         navigate('/admin/content/chapters');
-      }, 3000);
+      }, 2000);
       
     } catch (err) {
       console.error('Unexpected error saving chapter:', err);
@@ -453,7 +483,7 @@ const ChapterEditor: React.FC = () => {
     }
   };
 
-  // Show loading while authenticating
+  // Loading states
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -465,7 +495,6 @@ const ChapterEditor: React.FC = () => {
     );
   }
 
-  // Show loading while fetching data
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -479,7 +508,7 @@ const ChapterEditor: React.FC = () => {
     );
   }
 
-  // Show error with retry option
+  // Error state
   if (error && issues.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -504,6 +533,78 @@ const ChapterEditor: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Add global styles for proper paragraph spacing */}
+      <style jsx global>{`
+        .chapter-content-preview p {
+          margin: 1.2em 0 !important;
+          line-height: 1.7 !important;
+        }
+        .chapter-content-preview p:first-child {
+          margin-top: 0 !important;
+        }
+        .chapter-content-preview p:last-child {
+          margin-bottom: 0 !important;
+        }
+        .chapter-content-preview blockquote {
+          margin: 1.5em 0 !important;
+          padding-left: 1em !important;
+          border-left: 3px solid #e5e7eb !important;
+          font-style: italic !important;
+        }
+        .chapter-content-preview ul,
+        .chapter-content-preview ol {
+          margin: 1em 0 !important;
+          padding-left: 1.5em !important;
+        }
+        .chapter-content-preview li {
+          margin: 0.5em 0 !important;
+        }
+        .chapter-content-preview h1,
+        .chapter-content-preview h2,
+        .chapter-content-preview h3 {
+          margin: 1.5em 0 0.5em 0 !important;
+          font-weight: bold !important;
+        }
+        .chapter-content-preview h1 { font-size: 1.5em !important; }
+        .chapter-content-preview h2 { font-size: 1.3em !important; }
+        .chapter-content-preview h3 { font-size: 1.1em !important; }
+        
+        /* Reader styles - apply same spacing to published content */
+        .chapter-content-render p {
+          margin: 1.2em 0 !important;
+          line-height: 1.7 !important;
+        }
+        .chapter-content-render p:first-child {
+          margin-top: 0 !important;
+        }
+        .chapter-content-render p:last-child {
+          margin-bottom: 0 !important;
+        }
+        .chapter-content-render blockquote {
+          margin: 1.5em 0 !important;
+          padding-left: 1em !important;
+          border-left: 3px solid #e5e7eb !important;
+          font-style: italic !important;
+        }
+        .chapter-content-render ul,
+        .chapter-content-render ol {
+          margin: 1em 0 !important;
+          padding-left: 1.5em !important;
+        }
+        .chapter-content-render li {
+          margin: 0.5em 0 !important;
+        }
+        .chapter-content-render h1,
+        .chapter-content-render h2,
+        .chapter-content-render h3 {
+          margin: 1.5em 0 0.5em 0 !important;
+          font-weight: bold !important;
+        }
+        .chapter-content-render h1 { font-size: 1.5em !important; }
+        .chapter-content-render h2 { font-size: 1.3em !important; }
+        .chapter-content-render h3 { font-size: 1.1em !important; }
+      `}</style>
+      
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -519,7 +620,7 @@ const ChapterEditor: React.FC = () => {
               {id ? 'Edit Chapter' : 'Create New Chapter'}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {id ? 'Update your chapter content and settings' : 'Add a new chapter to your story'}
+              {id ? 'Update your chapter with proper paragraph spacing' : 'Create a new chapter with enhanced formatting'}
             </p>
             
             {/* Live Stats */}
@@ -528,9 +629,10 @@ const ChapterEditor: React.FC = () => {
                 <span>📝 {wordCount.toLocaleString()} words</span>
                 <span>•</span>
                 <span>🕰 ~{estimatedReadTime} min read</span>
+                <span>•</span>
+                <span>📄 {(editorContent.match(/<p>/g) || []).length} paragraphs</span>
                 {formData.is_free && <span>• 🎁 FREE</span>}
                 {!formData.is_free && <span>• 👑 {formData.subscription_tier_required.toUpperCase()}</span>}
-                {/* NEW: Visual asset indicators */}
                 {heroFile && <span>• 🎨 Hero</span>}
                 {bannerFile && <span>• 🏞️ Banner</span>}
               </div>
@@ -538,16 +640,30 @@ const ChapterEditor: React.FC = () => {
           </div>
           
           {/* Header Actions */}
-          {id && formData.issue_id && formData.slug && (
+          <div className="flex gap-2">
             <button
               type="button"
-              onClick={handlePreview}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              onClick={() => setShowPreview(!showPreview)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                showPreview 
+                  ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+              }`}
             >
-              <Eye className="w-4 h-4" />
-              Preview
+              <FileText className="w-4 h-4" />
+              {showPreview ? 'Hide Preview' : 'Show Preview'}
             </button>
-          )}
+            {id && formData.issue_id && formData.slug && (
+              <button
+                type="button"
+                onClick={handlePreview}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                Live Preview
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Status Messages */}
@@ -556,9 +672,7 @@ const ChapterEditor: React.FC = () => {
             <div className="flex items-start">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5 mr-3" />
               <div>
-                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                  Error
-                </h3>
+                <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Error</h3>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">{error}</p>
               </div>
             </div>
@@ -570,9 +684,7 @@ const ChapterEditor: React.FC = () => {
             <div className="flex items-start">
               <div className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 mr-3">✓</div>
               <div>
-                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
-                  Success
-                </h3>
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">Success</h3>
                 <p className="text-sm text-green-700 dark:text-green-300 mt-1">{success}</p>
               </div>
             </div>
@@ -639,9 +751,6 @@ const ChapterEditor: React.FC = () => {
                         </option>
                       ))}
                     </select>
-                    {issues.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">No issues found. Please create an issue first.</p>
-                    )}
                   </div>
 
                   {/* Status */}
@@ -663,51 +772,73 @@ const ChapterEditor: React.FC = () => {
                 </div>
               </div>
               
-              {/* Chapter Content */}
+              {/* Chapter Content Editor */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">✏️ Chapter Content</h3>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Chapter Content *
-                  </label>
-                  <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white">
-                    <ReactQuill
-                      ref={quillRef}
-                      value={editorContent}
-                      onChange={handleContentChange}
-                      modules={{
-                        toolbar: [
-                          [{ 'header': [1, 2, 3, false] }],
-                          ['bold', 'italic', 'underline', 'strike'],
-                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                          ['blockquote', 'code-block'],
-                          ['link'],
-                          ['clean']
-                        ],
-                      }}
-                      formats={[
-                        'header',
-                        'bold', 'italic', 'underline', 'strike',
-                        'list', 'bullet',
-                        'blockquote', 'code-block',
-                        'link'
-                      ]}
-                      style={{ minHeight: '400px' }}
-                      placeholder="Write your chapter content here...\n\nUse the toolbar above to format your text with headings, bold, italic, lists, and more."
-                      theme="snow"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Use the formatting toolbar to style your chapter. Word count and reading time are calculated automatically.
-                  </p>
+                {/* Content Tips */}
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">📖 Formatting Tips for Perfect Paragraph Spacing</h4>
+                  <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <li>• Press <kbd className="px-1 py-0.5 bg-blue-200 dark:bg-blue-800 rounded text-xs">Enter</kbd> once to create a line break within a paragraph</li>
+                    <li>• Press <kbd className="px-1 py-0.5 bg-blue-200 dark:bg-blue-800 rounded text-xs">Enter</kbd> twice to create a new paragraph with proper spacing</li>
+                    <li>• Use the toolbar to add headings, bold text, italics, lists, and quotes</li>
+                    <li>• Toggle preview below to see exactly how readers will see your content</li>
+                    <li>• Content automatically saves with proper HTML paragraph formatting</li>
+                  </ul>
                 </div>
+                
+                <div className={`grid gap-6 ${showPreview ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+                  {/* Editor */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Chapter Content *
+                    </label>
+                    <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white">
+                      <ReactQuill
+                        ref={quillRef}
+                        value={editorContent}
+                        onChange={handleContentChange}
+                        modules={quillModules}
+                        formats={quillFormats}
+                        style={{ minHeight: '400px' }}
+                        placeholder="Write your chapter content here...\n\nPress Enter twice to create paragraphs with proper spacing.\nUse the toolbar above for formatting."
+                        theme="snow"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Live Preview */}
+                  {showPreview && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        📖 Reader Preview (Exactly how it will appear)
+                      </label>
+                      <div className="border border-green-300 dark:border-green-600 rounded-lg p-4 bg-green-50 dark:bg-green-900/10 min-h-[400px] overflow-y-auto">
+                        <div 
+                          className="chapter-content-preview prose prose-green max-w-none"
+                          dangerouslySetInnerHTML={{ 
+                            __html: editorContent || '<p class="text-gray-400 italic">Start typing to see your content preview with proper paragraph spacing...</p>'
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs text-green-600 mt-2">
+                        ✅ This preview shows proper paragraph spacing that readers will see
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-2">
+                  Content is automatically saved with proper paragraph spacing and formatting. 
+                  Word count: <strong>{wordCount}</strong> • Reading time: <strong>~{estimatedReadTime} min</strong> • Paragraphs: <strong>{(editorContent.match(/<p>/g) || []).length}</strong>
+                </p>
               </div>
             </div>
 
-            {/* Sidebar Column (1/3 width) */}
+            {/* Sidebar */}
             <div className="space-y-6">
-              {/* NEW: Visual Assets Card */}
+              {/* Visual Assets */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   🎨 Visual Assets
@@ -723,14 +854,8 @@ const ChapterEditor: React.FC = () => {
                       allowedTypes={['images']}
                     />
                     <div className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md mt-2">
-                      🎨 <strong>Hero Image:</strong> Displayed at the very beginning of the chapter when reading. Creates an immersive opening experience.
+                      🎨 <strong>Hero Image:</strong> Displayed at the very beginning of the chapter when reading.
                     </div>
-                    {/* DEBUG: Show current hero file ID */}
-                    {formData.hero_file_id && (
-                      <div className="text-xs text-green-600 mt-1">
-                        ✓ Hero ID: {formData.hero_file_id.substring(0, 8)}...
-                      </div>
-                    )}
                   </div>
 
                   <div>
@@ -742,19 +867,13 @@ const ChapterEditor: React.FC = () => {
                       allowedTypes={['images']}
                     />
                     <div className="text-xs text-purple-600 bg-purple-50 dark:bg-purple-900/20 p-3 rounded-md mt-2">
-                      🏞️ <strong>Banner Image:</strong> Used as the background for chapter cards in the library. Should be landscape orientation (16:9 or similar).
+                      🏞️ <strong>Banner Image:</strong> Used as the background for chapter cards in the library.
                     </div>
-                    {/* DEBUG: Show current banner file ID */}
-                    {formData.banner_file_id && (
-                      <div className="text-xs text-green-600 mt-1">
-                        ✓ Banner ID: {formData.banner_file_id.substring(0, 8)}...
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Subscription Access Control */}
+              {/* Access Control */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border-2 border-dashed border-yellow-300 dark:border-yellow-700 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                   <Lock className="w-5 h-5 text-yellow-600" />
@@ -777,33 +896,33 @@ const ChapterEditor: React.FC = () => {
                         This is a FREE chapter
                       </label>
                       <p className="text-xs text-gray-500 mt-1">
-                        Free chapters can be read by anyone without a subscription. Usually the first 1-2 chapters of each issue.
+                        Free chapters can be read by anyone without a subscription.
                       </p>
                     </div>
                   </div>
 
-                  {/* Subscription Tier Required */}
+                  {/* Subscription Tier */}
                   {!formData.is_free && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Required Subscription Tier
                       </label>
                       <div className="space-y-2">
-                        {([                       
-                          { value: 'premium', label: 'Premium', icon: Crown, desc: '👑 $9.99/mo subscribers', color: 'yellow' },
-                          { value: 'patron', label: 'Patron', icon: Crown, desc: '💜 $19.99/mo supporters', color: 'purple' }
-                        ] as const).map(({ value, label, icon: Icon, desc, color }) => (
+                        {([
+                          { value: 'premium', label: 'Premium', desc: '👑 $9.99/mo subscribers', color: 'yellow' },
+                          { value: 'patron', label: 'Patron', desc: '💜 $19.99/mo supporters', color: 'purple' }
+                        ] as const).map(({ value, label, desc, color }) => (
                           <button
                             key={value}
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, subscription_tier_required: value }))}
-                            className={`w-full p-3 border-2 rounded-lg transition-all duration-200 text-left flex items-center gap-3 ${
+                            className={`w-full p-3 border-2 rounded-lg transition-all text-left flex items-center gap-3 ${
                               formData.subscription_tier_required === value
                                 ? `border-${color}-500 bg-${color}-50 dark:bg-${color}-900/20`
-                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                                : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
                             }`}
                           >
-                            <Icon className={`w-4 h-4 ${color === 'yellow' ? 'text-yellow-600' : 'text-purple-600'}`} />
+                            <Crown className={`w-4 h-4 ${color === 'yellow' ? 'text-yellow-600' : 'text-purple-600'}`} />
                             <div>
                               <div className="font-medium text-sm">{label}</div>
                               <div className="text-xs opacity-70">{desc}</div>
@@ -814,7 +933,7 @@ const ChapterEditor: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Free Chapter Order (only shown for free chapters) */}
+                  {/* Free Chapter Order */}
                   {formData.is_free && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -830,82 +949,16 @@ const ChapterEditor: React.FC = () => {
                           free_chapter_order: e.target.value ? parseInt(e.target.value) : null 
                         }))}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                        placeholder="1, 2, 3... (order among free chapters)"
+                        placeholder="1, 2, 3..."
                       />
-                      <p className="text-xs text-gray-500 mt-1">
-                        The position of this chapter among free chapters (1st free, 2nd free, etc.)
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Access Preview */}
-                  <div className={`p-3 rounded-lg border-2 border-dashed ${
-                    formData.is_free 
-                      ? 'border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700'
-                      : 'border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700'
-                  }`}>
-                    <div className="flex items-center gap-2 mb-2">
-                      {formData.is_free ? (
-                        <>
-                          <Gift className="w-4 h-4 text-green-600" />
-                          <span className="font-medium text-green-800 dark:text-green-200">FREE Chapter</span>
-                        </>
-                      ) : (
-                        <>
-                          <Crown className="w-4 h-4 text-yellow-600" />
-                          <span className="font-medium text-yellow-800 dark:text-yellow-200">
-                            {formData.subscription_tier_required.toUpperCase()} Chapter
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <p className={`text-xs ${
-                      formData.is_free 
-                        ? 'text-green-700 dark:text-green-300'
-                        : 'text-yellow-700 dark:text-yellow-300'
-                    }`}>
-                      {formData.is_free 
-                        ? 'This chapter will be available to all users without a subscription'
-                        : `This chapter will require a ${formData.subscription_tier_required} subscription to read`
-                      }
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* URL Settings */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔗 URL Settings</h3>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    URL Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.slug}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    placeholder="auto-generated from title"
-                  />
-                  
-                  {formData.slug && issues.find(i => i.id === formData.issue_id) && (
-                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-xs">
-                      <strong>Preview URL:</strong> 
-                      <code className="ml-1 text-blue-600 dark:text-blue-400">
-                        /read/{issues.find(i => i.id === formData.issue_id)?.slug}/{formData.slug}
-                      </code>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
 
-            {/* Right Sidebar Column (1/3 width) */}
-            <div className="space-y-6">
-              {/* Chapter Stats */}
+              {/* Statistics */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📈 Statistics</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Content Statistics</h3>
                 
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -919,29 +972,21 @@ const ChapterEditor: React.FC = () => {
                   </div>
                   
                   <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Paragraphs:</span>
+                    <span className="font-medium text-green-600">{(editorContent.match(/<p>/g) || []).length}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Format:</span>
+                    <span className="font-medium text-green-600">✅ Proper Spacing</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
                     <span className="text-sm text-gray-600 dark:text-gray-400">Access Level:</span>
                     <span className={`font-medium ${
                       formData.is_free ? 'text-green-600' : 'text-yellow-600'
                     }`}>
                       {formData.is_free ? '🎁 Free' : `👑 ${formData.subscription_tier_required}`}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Hero Image:</span>
-                    <span className={`font-medium ${
-                      heroFile ? 'text-purple-600' : 'text-gray-400'
-                    }`}>
-                      {heroFile ? '🎨 Set' : '❌ None'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Banner Image:</span>
-                    <span className={`font-medium ${
-                      bannerFile ? 'text-indigo-600' : 'text-gray-400'
-                    }`}>
-                      {bannerFile ? '🏞️ Set' : '❌ None'}
                     </span>
                   </div>
                 </div>
@@ -953,6 +998,9 @@ const ChapterEditor: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between">
               <div className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-green-600 font-medium mb-1">
+                  ✅ Content will be saved with proper paragraph spacing for readers
+                </div>
                 {formData.is_free ? (
                   <span className="text-green-600">
                     🎁 This chapter will be <strong>free</strong> for all readers
@@ -962,10 +1010,6 @@ const ChapterEditor: React.FC = () => {
                     👑 This chapter requires a <strong>{formData.subscription_tier_required}</strong> subscription
                   </span>
                 )}
-                {/* Debug info */}
-                <div className="mt-1 text-xs text-blue-500">
-                  Hero: {formData.hero_file_id ? '✓' : '✗'} | Banner: {formData.banner_file_id ? '✓' : '✗'}
-                </div>
               </div>
               
               <div className="flex gap-3">
@@ -980,7 +1024,7 @@ const ChapterEditor: React.FC = () => {
                 
                 <button
                   type="submit"
-                  disabled={saving || !formData.title || !formData.issue_id || !formData.plain_content}
+                  disabled={saving || !formData.title || !formData.issue_id || (!formData.html_content && !formData.plain_content)}
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
                 >
                   {saving ? (

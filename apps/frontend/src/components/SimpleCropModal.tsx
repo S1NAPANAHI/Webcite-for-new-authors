@@ -61,8 +61,15 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
   useEffect(() => {
     if (isOpen && imageUrl) {
       const img = new Image();
+      img.crossOrigin = 'anonymous'; // Handle CORS for external images
       img.onload = () => {
+        console.log('Image loaded successfully:', {
+          natural: { width: img.naturalWidth, height: img.naturalHeight },
+          src: imageUrl
+        });
+        
         setImageElement(img);
+        
         // Calculate display dimensions
         const naturalWidth = img.naturalWidth;
         const naturalHeight = img.naturalHeight;
@@ -87,7 +94,19 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
           width: cropWidth,
           height: Math.min(cropHeight, displayHeight * 0.6)
         });
+        
+        console.log('Initial crop data set:', {
+          display: { width: displayWidth, height: displayHeight },
+          crop: { width: cropWidth, height: cropHeight },
+          scale: scale
+        });
       };
+      
+      img.onerror = () => {
+        console.error('Failed to load image:', imageUrl);
+        alert('Failed to load image. Please try again.');
+      };
+      
       img.src = imageUrl;
     }
   }, [isOpen, imageUrl, aspectRatio]);
@@ -205,54 +224,163 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
     }
   }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
+  // ENHANCED CROP FUNCTION WITH MULTIPLE FALLBACKS
   const handleCrop = async () => {
     if (!imageElement) {
+      console.error('No image element available for cropping');
       alert('Image not loaded properly. Please try again.');
+      return;
+    }
+
+    // Validate crop data
+    if (cropData.width <= 0 || cropData.height <= 0) {
+      console.error('Invalid crop dimensions:', cropData);
+      alert('Invalid crop area. Please adjust the crop selection.');
       return;
     }
 
     try {
       setIsProcessing(true);
+      console.log('Starting crop process...');
       
       const { scale } = calculateImageDimensions();
+      console.log('Scale factor:', scale);
       
-      // Create canvas for cropping
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        throw new Error('Could not get canvas context');
+      // Calculate actual crop coordinates in original image
+      const actualCropX = cropData.x / scale;
+      const actualCropY = cropData.y / scale;
+      const actualCropWidth = cropData.width / scale;
+      const actualCropHeight = cropData.height / scale;
+      
+      console.log('Crop coordinates:', {
+        display: cropData,
+        actual: { x: actualCropX, y: actualCropY, width: actualCropWidth, height: actualCropHeight },
+        imageNatural: { width: imageElement.naturalWidth, height: imageElement.naturalHeight }
+      });
+      
+      // Validate coordinates are within image bounds
+      if (actualCropX < 0 || actualCropY < 0 || 
+          actualCropX + actualCropWidth > imageElement.naturalWidth ||
+          actualCropY + actualCropHeight > imageElement.naturalHeight) {
+        throw new Error('Crop coordinates exceed image boundaries');
       }
-
-      // Calculate source coordinates in natural image size
-      const sourceX = cropData.x / scale;
-      const sourceY = cropData.y / scale;
-      const sourceWidth = cropData.width / scale;
-      const sourceHeight = cropData.height / scale;
-
-      // Set canvas size to crop dimensions at natural resolution
-      canvas.width = sourceWidth;
-      canvas.height = sourceHeight;
-
-      // Draw cropped portion
+      
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d', { 
+        alpha: true,
+        willReadFrequently: false
+      });
+      
+      if (!ctx) {
+        throw new Error('Could not create canvas 2D context');
+      }
+      
+      console.log('Canvas context created successfully');
+      
+      // Set canvas dimensions to actual crop size
+      canvas.width = Math.round(actualCropWidth);
+      canvas.height = Math.round(actualCropHeight);
+      
+      console.log('Canvas dimensions set:', { width: canvas.width, height: canvas.height });
+      
+      // Enable high-quality rendering
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      
+      // Clear canvas and draw cropped image
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(
         imageElement,
-        sourceX, sourceY, sourceWidth, sourceHeight, // source
-        0, 0, canvas.width, canvas.height // destination
+        Math.round(actualCropX),
+        Math.round(actualCropY),
+        Math.round(actualCropWidth),
+        Math.round(actualCropHeight),
+        0,
+        0,
+        canvas.width,
+        canvas.height
       );
-
-      // Convert to blob with high quality
-      canvas.toBlob((blob) => {
-        if (blob) {
-          onCropComplete(blob);
-          onClose();
-        } else {
-          throw new Error('Failed to create blob from canvas');
-        }
-      }, 'image/jpeg', 0.95);
+      
+      console.log('Image drawn to canvas');
+      
+      // Try multiple conversion methods
+      const convertToBlob = (): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+          let attempts = 0;
+          const maxAttempts = 3;
+          
+          const tryConversion = (format: string, quality: number) => {
+            attempts++;
+            console.log(`Conversion attempt ${attempts}: ${format} at ${quality} quality`);
+            
+            canvas.toBlob(
+              (blob) => {
+                if (blob && blob.size > 0) {
+                  console.log(`✅ Conversion successful: ${blob.size} bytes, ${format}`);
+                  resolve(blob);
+                } else if (attempts < maxAttempts) {
+                  console.log(`❌ Conversion failed, trying next method...`);
+                  // Try different formats
+                  if (format === 'image/jpeg') {
+                    tryConversion('image/png', 1.0);
+                  } else if (format === 'image/png') {
+                    tryConversion('image/webp', 0.9);
+                  } else {
+                    reject(new Error('All blob conversion methods failed'));
+                  }
+                } else {
+                  reject(new Error('Maximum conversion attempts reached'));
+                }
+              },
+              format,
+              quality
+            );
+          };
+          
+          // Start with JPEG at high quality
+          tryConversion('image/jpeg', 0.95);
+        });
+      };
+      
+      const blob = await convertToBlob();
+      
+      console.log('✅ Crop completed successfully:', {
+        blobSize: blob.size,
+        blobType: blob.type
+      });
+      
+      onCropComplete(blob);
+      onClose();
       
     } catch (error) {
-      console.error('Crop failed:', error);
-      alert('Failed to crop image. Please try again.');
+      console.error('❌ Detailed crop error:', error);
+      console.log('Debug info:', {
+        cropData,
+        imageElement: imageElement ? {
+          naturalWidth: imageElement.naturalWidth,
+          naturalHeight: imageElement.naturalHeight,
+          src: imageElement.src
+        } : null,
+        canvasSupport: !!document.createElement('canvas').getContext
+      });
+      
+      // Provide specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('canvas')) {
+          alert('Canvas not supported in your browser. Please try a modern browser.');
+        } else if (error.message.includes('context')) {
+          alert('Graphics rendering unavailable. Please refresh the page and try again.');
+        } else if (error.message.includes('boundaries')) {
+          alert('Crop area is outside image bounds. Please adjust your selection.');
+        } else if (error.message.includes('conversion')) {
+          alert('Image conversion failed. The image might be corrupted or too large.');
+        } else {
+          alert(`Crop failed: ${error.message}`);
+        }
+      } else {
+        alert('Unknown cropping error. Please try refreshing the page.');
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -419,7 +547,7 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
               <button
                 type="button"
                 onClick={handleCrop}
-                disabled={isProcessing || loading}
+                disabled={isProcessing || loading || !imageElement}
                 className="px-8 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors font-medium shadow-lg"
               >
                 {isProcessing || loading ? (

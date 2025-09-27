@@ -38,115 +38,129 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [role, setRole] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const supabase = supabaseClient;
+
+  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
 
   // CRITICAL: Fixed authentication state management
   const updateAuthState = async (currentSession: Session | null) => {
-    console.log('🔄 AuthContext: Updating auth state', { 
-      hasSession: !!currentSession, 
-      userId: currentSession?.user?.id,
-      userEmail: currentSession?.user?.email 
-    });
+    if (isFetchingProfile) {
+      console.log('🔄 AuthContext: Profile fetch already in progress, skipping.');
+      return;
+    }
 
-    setSession(currentSession);
-    setUser(currentSession?.user ?? null);
-    setIsAuthenticated(!!currentSession);
+    setIsFetchingProfile(true);
 
-    if (currentSession?.user) {
-      console.log('👤 AuthContext: User authenticated, fetching profile...');
-      
-      try {
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Profile fetch timeout')), 10000); // 10 second timeout
-        });
+    try {
+      console.log('🔄 AuthContext: Updating auth state', { 
+        hasSession: !!currentSession, 
+        userId: currentSession?.user?.id,
+        userEmail: currentSession?.user?.email 
+      });
 
-        const profilePromise = supabase
-          .from('profiles')
-          .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
-          .eq('id', currentSession.user.id)
-          .single();
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
+      setIsAuthenticated(!!currentSession);
 
-        const { data: profile, error: profileError } = await Promise.race([
-          profilePromise,
-          timeoutPromise
-        ]) as any;
+      if (currentSession?.user) {
+        console.log('👤 AuthContext: User authenticated, fetching profile...');
+        
+        try {
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Profile fetch timeout')), 10000); // 10 second timeout
+          });
 
-        if (profileError) {
-          console.log('⚠️ AuthContext: Profile fetch error:', profileError);
-          
-          if (profileError.code === 'PGRST116') { // No rows found
-            console.log('🆕 AuthContext: Creating missing profile for user');
+          const profilePromise = supabase
+            .from('profiles')
+            .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
+            .eq('id', currentSession.user.id)
+            .single();
+
+          const { data: profile, error: profileError } = await Promise.race([
+            profilePromise,
+            timeoutPromise
+          ]) as any;
+
+          if (profileError) {
+            console.log('⚠️ AuthContext: Profile fetch error:', profileError);
             
-            // FIXED: Use bracket notation for user metadata access
-            const displayName = currentSession.user.user_metadata?.['display_name'] || 
-                               currentSession.user.email?.split('@')[0] || '';
-            
-            try {
-              const { data: newProfile, error: insertError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: currentSession.user.id,
-                  email: currentSession.user.email || '',
-                  display_name: displayName,
-                  role: 'user',
-                  beta_reader_status: 'inactive', // Add required field
-                  subscription_status: 'free' // Fixed column name
-                })
-                .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
-                .single();
+            if (profileError.code === 'PGRST116') { // No rows found
+              console.log('🆕 AuthContext: Creating missing profile for user');
+              
+              // FIXED: Use bracket notation for user metadata access
+              const displayName = currentSession.user.user_metadata?.['display_name'] || 
+                                 currentSession.user.email?.split('@')[0] || '';
+              
+              try {
+                const { data: newProfile, error: insertError } = await supabase
+                  .from('profiles')
+                  .insert({
+                    id: currentSession.user.id,
+                    email: currentSession.user.email || '',
+                    display_name: displayName,
+                    role: 'user',
+                    beta_reader_status: 'inactive', // Add required field
+                    subscription_status: 'free' // Fixed column name
+                  })
+                  .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
+                  .single();
 
-              if (insertError) {
-                console.error('❌ AuthContext: Error creating profile:', insertError);
+                if (insertError) {
+                  console.error('❌ AuthContext: Error creating profile:', insertError);
+                  setUserProfile(null);
+                  setRole('user'); // Default role
+                  setIsSubscribed(false);
+                } else {
+                  console.log('✅ AuthContext: Profile created successfully');
+                  setUserProfile(newProfile);
+                  setRole(newProfile.role || 'user');
+                  const isAdmin = newProfile.role === 'admin' || newProfile.role === 'super_admin';
+                  setIsSubscribed(isAdmin || newProfile.subscription_status === 'premium');
+                }
+              } catch (insertError) {
+                console.error('❌ AuthContext: Error in profile creation:', insertError);
                 setUserProfile(null);
-                setRole('user'); // Default role
+                setRole('user');
                 setIsSubscribed(false);
-              } else {
-                console.log('✅ AuthContext: Profile created successfully');
-                setUserProfile(newProfile);
-                setRole(newProfile.role || 'user');
-                const isAdmin = newProfile.role === 'admin' || newProfile.role === 'super_admin';
-                setIsSubscribed(isAdmin || newProfile.subscription_status === 'premium');
               }
-            } catch (insertError) {
-              console.error('❌ AuthContext: Error in profile creation:', insertError);
+            } else {
+              console.error('❌ AuthContext: Error fetching profile:', profileError);
               setUserProfile(null);
               setRole('user');
               setIsSubscribed(false);
             }
-          } else {
-            console.error('❌ AuthContext: Error fetching profile:', profileError);
-            setUserProfile(null);
-            setRole('user');
-            setIsSubscribed(false);
+          } else if (profile) {
+            console.log('✅ AuthContext: Profile loaded successfully', { role: profile.role, subscription: profile.subscription_status });
+            setUserProfile(profile);
+            setRole(profile.role || 'user');
+            const isAdmin = profile.role === 'admin' || profile.role === 'super_admin';
+            setIsSubscribed(isAdmin || profile.subscription_status === 'premium');
           }
-        } else if (profile) {
-          console.log('✅ AuthContext: Profile loaded successfully', { role: profile.role, subscription: profile.subscription_status });
-          setUserProfile(profile);
-          setRole(profile.role || 'user');
-          const isAdmin = profile.role === 'admin' || profile.role === 'super_admin';
-          setIsSubscribed(isAdmin || profile.subscription_status === 'premium');
+        } catch (error) {
+          console.error('❌ AuthContext: Unexpected error in profile fetch:', error);
+          // Fix TypeScript error: properly type error
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage === 'Profile fetch timeout') {
+            console.error('🕒 AuthContext: Profile fetch timed out - possible database connectivity issue');
+          }
+          setUserProfile(null);
+          setRole('user');
+          setIsSubscribed(false);
         }
-      } catch (error) {
-        console.error('❌ AuthContext: Unexpected error in profile fetch:', error);
-        // Fix TypeScript error: properly type error
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage === 'Profile fetch timeout') {
-          console.error('🕒 AuthContext: Profile fetch timed out - possible database connectivity issue');
-        }
+      } else {
+        console.log('🚫 AuthContext: No user session, clearing state');
         setUserProfile(null);
-        setRole('user');
+        setRole(null);
         setIsSubscribed(false);
       }
-    } else {
-      console.log('🚫 AuthContext: No user session, clearing state');
-      setUserProfile(null);
-      setRole(null);
-      setIsSubscribed(false);
-    }
 
-    setIsLoading(false);
-    console.log('🏁 AuthContext: Auth state update completed');
+      setIsLoading(false);
+      console.log('🏁 AuthContext: Auth state update completed');
+    } finally {
+      setIsFetchingProfile(false);
+    }
   };
 
   useEffect(() => {

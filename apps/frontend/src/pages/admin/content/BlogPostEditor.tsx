@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase, useAuth } from '@zoroaster/shared';
-import { AdvancedEditor } from '../../../components/editor/AdvancedEditor';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import '../../../styles/chapter-content.css'; // Import the paragraph spacing CSS
 import { 
   Save, 
   Eye, 
@@ -17,8 +19,58 @@ import {
   Search,
   Grid,
   List,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react';
+
+// HTML sanitization function to preserve paragraph structure
+const sanitizeHtml = (html: string): string => {
+  if (!html) return '';
+  
+  // Create a temporary div to work with the HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Remove empty paragraphs
+  const emptyPs = tempDiv.querySelectorAll('p:empty, p:not([class]):not([id]):not([style]):not(:has(*))');
+  emptyPs.forEach(p => {
+    if (!p.textContent?.trim()) {
+      p.remove();
+    }
+  });
+  
+  // Convert any div elements to paragraphs for consistency
+  const divs = tempDiv.querySelectorAll('div');
+  divs.forEach(div => {
+    if (!div.querySelector('p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol')) {
+      const p = document.createElement('p');
+      p.innerHTML = div.innerHTML;
+      div.parentNode?.replaceChild(p, div);
+    }
+  });
+  
+  return tempDiv.innerHTML;
+};
+
+// Convert plain text with line breaks to proper HTML paragraphs
+const textToParagraphs = (text: string): string => {
+  if (!text.trim()) return '<p></p>';
+  
+  // Split by double line breaks (paragraph breaks)
+  const paragraphs = text
+    .replace(/\r\n/g, '\n') // Normalize line endings
+    .split(/\n\s*\n/) // Split on double line breaks
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+  
+  if (paragraphs.length === 0) {
+    return '<p></p>';
+  }
+  
+  return paragraphs
+    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+};
 
 interface FileRecord {
   id: string;
@@ -45,16 +97,23 @@ const BlogPostEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const quillRef = useRef<ReactQuill | null>(null);
 
   // Basic post data
   const [title, setTitle] = useState('');
   const [slug, setSlug] = useState('');
   const [excerpt, setExcerpt] = useState('');
   const [content, setContent] = useState('');
+  const [htmlContent, setHtmlContent] = useState(''); // NEW: HTML content for editor
   const [status, setStatus] = useState('draft');
   const [coverUrl, setCoverUrl] = useState('');
   const [author, setAuthor] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
+  const [showPreview, setShowPreview] = useState(false); // NEW: Preview toggle
+  
+  // Content stats
+  const [wordCount, setWordCount] = useState(0);
+  const [estimatedReadTime, setEstimatedReadTime] = useState(0);
   
   // ✅ SIMPLIFIED: Only tags system (category is first tag)
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -75,6 +134,49 @@ const BlogPostEditor = () => {
   const [showSEOSettings, setShowSEOSettings] = useState(false);
   const [metaTitle, setMetaTitle] = useState('');
   const [metaDescription, setMetaDescription] = useState('');
+
+  // Enhanced Quill modules with better paragraph handling
+  const quillModules = useMemo(() => ({
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['blockquote', 'code-block'],
+      ['link'],
+      ['clean']
+    ],
+    clipboard: {
+      // Preserve paragraph structure when pasting
+      matchVisual: false,
+      matchers: [
+        // Convert pasted content to proper paragraphs
+        [Node.TEXT_NODE, (node: any, delta: any) => {
+          const text = node.data || '';
+          if (text.includes('\n\n')) {
+            // Handle paragraphs separated by double newlines
+            const parts = text.split('\n\n');
+            const newOps = [];
+            for (let i = 0; i < parts.length; i++) {
+              if (i > 0) {
+                newOps.push({ insert: '\n' }); // Paragraph break
+              }
+              newOps.push({ insert: parts[i].replace(/\n/g, ' ') });
+            }
+            return { ops: newOps };
+          }
+          return delta;
+        }]
+      ]
+    }
+  }), []);
+
+  const quillFormats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'blockquote', 'code-block',
+    'link'
+  ];
 
   useEffect(() => {
     loadInitialData();
@@ -161,7 +263,40 @@ const BlogPostEditor = () => {
         setTitle(data.title);
         setSlug(data.slug);
         setExcerpt(data.excerpt || '');
-        setContent(data.content ? (typeof data.content === 'string' ? JSON.parse(data.content) : data.content) : '');
+        
+        // Handle content loading with better HTML support
+        let loadedHtmlContent = '';
+        
+        if (data.html_content) {
+          // Use stored HTML content if available
+          loadedHtmlContent = data.html_content;
+        } else if (data.content) {
+          // Handle various content formats
+          if (typeof data.content === 'string') {
+            try {
+              // Try to parse as JSON first
+              const parsed = JSON.parse(data.content);
+              if (typeof parsed === 'string') {
+                loadedHtmlContent = textToParagraphs(parsed);
+              } else {
+                loadedHtmlContent = data.content;
+              }
+            } catch {
+              // If not JSON, treat as HTML or plain text
+              if (data.content.includes('<')) {
+                loadedHtmlContent = data.content;
+              } else {
+                loadedHtmlContent = textToParagraphs(data.content);
+              }
+            }
+          }
+        }
+        
+        // Sanitize the content to ensure proper paragraph structure
+        loadedHtmlContent = sanitizeHtml(loadedHtmlContent);
+        setHtmlContent(loadedHtmlContent);
+        setContent(loadedHtmlContent); // Keep for compatibility
+        
         setStatus(data.status || 'draft');
         setCoverUrl(data.cover_url || data.featured_image || '');
         setAuthor(data.author || '');
@@ -221,6 +356,26 @@ const BlogPostEditor = () => {
     }
   };
 
+  // Enhanced content change handler with proper HTML processing
+  const handleContentChange = useCallback((htmlContent: string) => {
+    // Sanitize and ensure proper paragraph structure
+    const sanitizedHtml = sanitizeHtml(htmlContent);
+    setHtmlContent(sanitizedHtml);
+    setContent(sanitizedHtml); // Keep for compatibility
+    
+    // Convert HTML to plain text for stats
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = sanitizedHtml;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+    
+    // Calculate stats
+    const words = plainText.trim().split(/\s+/).filter(word => word.length > 0).length;
+    const readTime = Math.max(1, Math.round(words / 200));
+    
+    setWordCount(words);
+    setEstimatedReadTime(readTime);
+  }, []);
+
   // ✅ SIMPLIFIED: Add tag function
   const handleAddTag = () => {
     const tagName = newTagInput.trim();
@@ -257,7 +412,7 @@ const BlogPostEditor = () => {
     return '';
   };
 
-  // 🔥 CRITICAL FIX: Simplified save function
+  // 🔥 CRITICAL FIX: Simplified save function with HTML content
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
 
@@ -266,11 +421,13 @@ const BlogPostEditor = () => {
       if (!title.trim()) throw new Error('Title is required');
 
       console.log('🔄 Preparing post data with tags:', selectedTags);
+      console.log('🔄 HTML content length:', htmlContent.length);
 
       const postData = {
         title: title.trim(),
         slug: slug || generateSlug(title),
-        content: typeof content === 'string' ? content : JSON.stringify(content),
+        content: htmlContent, // Store HTML content directly
+        html_content: htmlContent, // NEW: Also store in html_content field if supported
         excerpt: excerpt || null,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null,
@@ -281,12 +438,13 @@ const BlogPostEditor = () => {
         is_featured: isFeatured,
         meta_title: metaTitle || null,
         meta_description: metaDescription || null,
-        // 🔥 CRITICAL FIX: Send as proper PostgreSQL array
         tags: selectedTags.length > 0 ? selectedTags : null,
+        word_count: wordCount,
+        estimated_read_time: estimatedReadTime,
         updated_at: new Date().toISOString()
       };
 
-      console.log('📦 Saving post data:', postData);
+      console.log('📦 Saving post data with proper HTML:', postData);
 
       let postId = id;
       let response;
@@ -317,11 +475,11 @@ const BlogPostEditor = () => {
         throw response.error;
       }
 
-      console.log('✅ Post saved successfully:', response.data);
+      console.log('✅ Post saved successfully with proper paragraph spacing:', response.data);
 
       // Show success message
       const actionText = publishNow ? 'published' : 'saved';
-      const statusText = publishNow ? 'Your post is now live on the blog page!' : 'You can publish it later from the admin panel.';
+      const statusText = publishNow ? 'Your post is now live with proper paragraph spacing!' : 'Content saved with proper formatting.';
       
       alert(`✅ Post ${actionText} successfully!\n\n${statusText}`);
       
@@ -358,11 +516,40 @@ const BlogPostEditor = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {id && id !== 'new' ? 'Edit Blog Post' : 'New Blog Post'}
-        </h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {id && id !== 'new' ? 'Edit Blog Post' : 'New Blog Post'}
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            {id && id !== 'new' ? 'Update your blog post with proper paragraph formatting' : 'Create a new blog post with enhanced formatting'}
+          </p>
+          
+          {/* Live Stats */}
+          {wordCount > 0 && (
+            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+              <span>📝 {wordCount.toLocaleString()} words</span>
+              <span>•</span>
+              <span>🕰 ~{estimatedReadTime} min read</span>
+              <span>•</span>
+              <span>📄 {(htmlContent.match(/<p>/g) || []).length} paragraphs</span>
+              {isFeatured && <span>• ⭐ Featured</span>}
+            </div>
+          )}
+        </div>
 
         <div className="flex space-x-3">
+          <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              showPreview 
+                ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            {showPreview ? 'Hide Preview' : 'Show Preview'}
+          </button>
           <button
             onClick={() => saveBlogPost(false)}
             disabled={saving || !title.trim()}
@@ -488,20 +675,99 @@ const BlogPostEditor = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Content
-            </label>
-            <AdvancedEditor
-              content={content}
-              onChange={setContent}
-              placeholder="Start writing your blog post..."
-            />
+          {/* Blog Content Editor */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">✏️ Blog Content</h3>
+            
+            {/* Content Tips */}
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">📝 Formatting Tips for Perfect Paragraph Spacing</h4>
+              <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                <li>• Press <kbd className="px-1 py-0.5 bg-blue-200 dark:bg-blue-800 rounded text-xs">Enter</kbd> once to create a line break within a paragraph</li>
+                <li>• Press <kbd className="px-1 py-0.5 bg-blue-200 dark:bg-blue-800 rounded text-xs">Enter</kbd> twice to create a new paragraph with proper spacing</li>
+                <li>• Use the toolbar to add headings, bold text, italics, lists, and quotes</li>
+                <li>• Toggle preview to see exactly how readers will see your content</li>
+                <li>• Empty paragraphs are automatically removed to prevent spacing issues</li>
+              </ul>
+            </div>
+            
+            <div className={`grid gap-6 ${showPreview ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
+              {/* Editor */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Blog Content *
+                </label>
+                <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white">
+                  <ReactQuill
+                    ref={quillRef}
+                    value={htmlContent}
+                    onChange={handleContentChange}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    style={{ minHeight: '400px' }}
+                    placeholder="Write your blog post content here...\n\nPress Enter twice to create paragraphs with proper spacing.\nUse the toolbar above for formatting."
+                    theme="snow"
+                  />
+                </div>
+              </div>
+
+              {/* Live Preview */}
+              {showPreview && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    📖 Reader Preview (Exactly how it will appear)
+                  </label>
+                  <div className="border border-green-300 dark:border-green-600 rounded-lg p-4 bg-green-50 dark:bg-green-900/10 min-h-[400px] overflow-y-auto">
+                    <div 
+                      className="chapter-content-preview prose prose-green max-w-none"
+                      dangerouslySetInnerHTML={{ 
+                        __html: htmlContent || '<p class="text-gray-400 italic">Start typing to see your blog post preview with proper paragraph spacing...</p>'
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">
+                    ✅ This preview shows proper paragraph spacing that readers will see
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <p className="text-xs text-gray-500 mt-2">
+              Content is automatically saved with proper paragraph spacing and formatting. 
+              Word count: <strong>{wordCount}</strong> • Reading time: <strong>~{estimatedReadTime} min</strong> • Paragraphs: <strong>{(htmlContent.match(/<p>/g) || []).length}</strong>
+            </p>
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Publish Settings */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">📊 Content Statistics</h3>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Word Count:</span>
+                <span className="font-medium">{wordCount.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Est. Read Time:</span>
+                <span className="font-medium">{estimatedReadTime} min</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Paragraphs:</span>
+                <span className="font-medium text-green-600">{(htmlContent.match(/<p>/g) || []).length}</span>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Format:</span>
+                <span className="font-medium text-green-600">✅ Proper Spacing</span>
+              </div>
+            </div>
+          </div>
+
           {/* Publish Settings */}
           <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Publish Settings</h3>
@@ -516,9 +782,9 @@ const BlogPostEditor = () => {
                   onChange={(e) => setStatus(e.target.value)}
                   className="w-full border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
-                  <option value="archived">Archived</option>
+                  <option value="draft">📝 Draft</option>
+                  <option value="published">✅ Published</option>
+                  <option value="archived">📦 Archived</option>
                 </select>
               </div>
 

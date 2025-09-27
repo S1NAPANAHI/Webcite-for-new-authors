@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import { useBlogMetadata } from '../../hooks/useBlogData';
 import { supabase } from '../../lib/supabase';
+// NEW: Add the crop button component
+import ImageCropButton from '../../components/ImageCropButton';
 
 interface BlogPostData {
   id?: string;
@@ -168,6 +170,16 @@ export default function BlogEditorPage() {
     } finally {
       setUploading(false);
     }
+  };
+
+  // NEW: Handle cropped image for featured image
+  const handleFeaturedImageCrop = (croppedFile: File) => {
+    uploadImage(croppedFile, 'featured');
+  };
+
+  // NEW: Handle cropped image for social image
+  const handleSocialImageCrop = (croppedFile: File) => {
+    uploadImage(croppedFile, 'social');
   };
 
   const handleTagToggle = (tagId: string) => {
@@ -414,7 +426,7 @@ export default function BlogEditorPage() {
               />
             </div>
 
-            {/* Featured Image */}
+            {/* Featured Image - ENHANCED with cropping */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
                 Featured Image
@@ -426,6 +438,16 @@ export default function BlogEditorPage() {
                     alt="Featured"
                     className="w-full h-48 object-cover rounded-lg"
                   />
+                  {/* NEW: Crop button overlay */}
+                  <div className="absolute top-2 left-2">
+                    <ImageCropButton
+                      imageUrl={formData.featured_image}
+                      onCropComplete={handleFeaturedImageCrop}
+                      aspectRatio={16/9} // Blog featured images work best in landscape
+                      buttonText="✂️ Crop"
+                      className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-1"
+                    />
+                  </div>
                   <button
                     onClick={() => setFormData(prev => ({ ...prev, featured_image: undefined }))}
                     className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
@@ -448,6 +470,8 @@ export default function BlogEditorPage() {
                     <>
                       <ImageIcon className="w-8 h-8 mb-2" />
                       <span>Click to upload featured image</span>
+                      {/* NEW: Cropping indicator */}
+                      <span className="text-xs text-purple-600 mt-1">✂️ Cropping available after upload</span>
                     </>
                   )}
                 </button>
@@ -626,6 +650,7 @@ export default function BlogEditorPage() {
                   />
                 </div>
                 
+                {/* Social Image - ENHANCED with cropping */}
                 <div>
                   <label className="block text-xs font-medium text-muted-foreground mb-1">
                     Social Image
@@ -637,6 +662,16 @@ export default function BlogEditorPage() {
                         alt="Social"
                         className="w-full h-20 object-cover rounded-lg"
                       />
+                      {/* NEW: Crop button for social image */}
+                      <div className="absolute top-1 left-1">
+                        <ImageCropButton
+                          imageUrl={formData.social_image}
+                          onCropComplete={handleSocialImageCrop}
+                          aspectRatio={1} // Square works great for social media
+                          buttonText="✂️"
+                          className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-1.5 py-0.5"
+                        />
+                      </div>
                       <button
                         onClick={() => setFormData(prev => ({ ...prev, social_image: undefined }))}
                         className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
@@ -660,6 +695,10 @@ export default function BlogEditorPage() {
                     onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'social')}
                     className="hidden"
                   />
+                  {/* NEW: Cropping info */}
+                  {formData.social_image && (
+                    <p className="text-xs text-purple-600 mt-1">✂️ Click crop button to adjust for social media</p>
+                  )}
                 </div>
               </div>
             )}

@@ -14,6 +14,8 @@ import {
   Tag,
   ExternalLink
 } from 'lucide-react';
+// Import CSS for proper paragraph spacing
+import '../styles/chapter-content.css';
 
 interface BlogPost {
   id: string;
@@ -231,15 +233,33 @@ export default function BlogPostPage() {
     return Math.ceil(words / 200);
   };
 
-  const renderContent = (content: string) => {
-    // Simple content rendering - split by paragraphs
-    const paragraphs = content.split('\n\n').filter(p => p.trim());
+  // FIXED: HTML sanitization function to clean up content
+  const sanitizeHtml = (html: string): string => {
+    if (!html) return '';
     
-    return paragraphs.map((paragraph, index) => (
-      <p key={index} className="mb-4 leading-relaxed text-gray-900 dark:text-gray-100">
-        {paragraph.trim()}
-      </p>
-    ));
+    // Remove empty paragraph tags
+    let cleaned = html.replace(/<p>\s*<\/p>/gi, '');
+    
+    // Remove consecutive empty tags
+    cleaned = cleaned.replace(/(<p><\/p>\s*)+/gi, '');
+    
+    // Ensure proper paragraph structure
+    cleaned = cleaned.replace(/<div>/gi, '<p>').replace(/<\/div>/gi, '</p>');
+    
+    return cleaned.trim();
+  };
+
+  // FIXED: Proper HTML content rendering
+  const renderHtmlContent = (content: string) => {
+    // Sanitize the HTML content
+    const sanitizedContent = sanitizeHtml(content);
+    
+    return (
+      <div 
+        className="chapter-content-render"
+        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+      />
+    );
   };
 
   if (loading) {
@@ -361,10 +381,10 @@ export default function BlogPostPage() {
           </div>
         )}
 
-        {/* Post content with dark mode */}
+        {/* FIXED: Post content with proper HTML rendering and CSS classes */}
         <div className="prose prose-lg max-w-none dark:prose-invert mb-8">
-          <div className="leading-relaxed transition-colors">
-            {renderContent(post.content)}
+          <div className="leading-relaxed transition-colors text-gray-900 dark:text-gray-100">
+            {renderHtmlContent(post.content)}
           </div>
         </div>
 

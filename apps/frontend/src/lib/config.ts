@@ -1,55 +1,189 @@
-// Centralized API configuration
-console.log('🔧 Loading API Config...');
-console.log('🌍 Environment:', {
-  NODE_ENV: import.meta.env.NODE_ENV,
-  MODE: import.meta.env.MODE,
-  PROD: import.meta.env.PROD,
-  DEV: import.meta.env.DEV,
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-});
+/**
+ * Centralized API Configuration for Next.js
+ * 
+ * This configuration allows the frontend to connect to different backends
+ * based on environment variables, making it easy to switch between
+ * development, staging, and production environments.
+ */
 
-export const API_CONFIG = {
-  // Use environment variable for API base URL, fallback to production backend
-  BASE_URL: import.meta.env.VITE_API_URL || 'https://webcite-for-new-authors.onrender.com',
-  
-  // Ensure we always append /api to the base URL if not already present
-  get API_BASE_URL() {
-    const baseUrl = this.BASE_URL;
-    const finalUrl = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`;
-    console.log('🔗 Final API URL:', finalUrl);
-    return finalUrl;
-  },
-  
-  // Common request configuration
-  DEFAULT_HEADERS: {
-    'Content-Type': 'application/json',
-  },
-  
-  // Request timeout in milliseconds
-  TIMEOUT: 30000,
+// Helper to check if we're in a browser environment
+const isBrowser = typeof window !== 'undefined';
+
+// Get environment variables (Next.js style)
+const getEnvVar = (key: string, fallback?: string) => {
+  if (isBrowser) {
+    // In browser, use the runtime config or fallback
+    return (window as any).__NEXT_DATA__?.env?.[key] || fallback;
+  }
+  // On server, use process.env
+  return process.env[key] || fallback;
 };
 
-// Helper function to build full API URLs
-export function buildApiUrl(endpoint: string): string {
+export const API_CONFIG = {
+  // Use Next.js environment variable for API base URL, fallback to Render backend
+  BASE_URL: getEnvVar('NEXT_PUBLIC_API_BASE_URL', 'https://webcite-for-new-authors.onrender.com'),
+  
+  // Timeout for API requests (in milliseconds)
+  TIMEOUT: 30000,
+  
+  // Default headers for API requests
+  DEFAULT_HEADERS: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  },
+} as const;
+
+/**
+ * Build complete API endpoint URL
+ * @param endpoint - API endpoint path (e.g., '/api/homepage/hero')
+ * @returns Complete URL for the API call
+ */
+export const buildApiUrl = (endpoint: string): string => {
   // Remove leading slash if present to avoid double slashes
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-  const fullUrl = `${API_CONFIG.API_BASE_URL}/${cleanEndpoint}`;
-  console.log('🔗 Building API URL:', { endpoint, cleanEndpoint, fullUrl });
+  
+  // Get base URL and ensure it doesn't end with slash
+  const baseUrl = API_CONFIG.BASE_URL.replace(/\/$/, '');
+  
+  // Build complete URL
+  const fullUrl = `${baseUrl}/${cleanEndpoint}`;
+  
+  // Log in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🌐 API URL: ${fullUrl}`);
+  }
+  
   return fullUrl;
-}
+};
 
-// Helper function to log API configuration (for debugging)
-export function logApiConfig() {
-  console.log('📊 API Configuration:', {
-    VITE_API_URL: import.meta.env.VITE_API_URL,
-    BASE_URL: API_CONFIG.BASE_URL,
-    API_BASE_URL: API_CONFIG.API_BASE_URL,
-    MODE: import.meta.env.MODE,
-    PROD: import.meta.env.PROD,
+/**
+ * Create fetch configuration with default settings
+ * @param options - Additional fetch options
+ * @returns Complete fetch configuration
+ */
+export const createFetchConfig = (options: RequestInit = {}): RequestInit => {
+  return {
+    headers: {
+      ...API_CONFIG.DEFAULT_HEADERS,
+      ...options.headers,
+    },
+    // Note: fetch timeout is handled differently in modern browsers
+    ...options,
+  };
+};
+
+/**
+ * Environment-aware API client
+ * Handles different backend configurations based on environment
+ */
+export const apiClient = {
+  /**
+   * Make a GET request to the API
+   */
+  get: async (endpoint: string, options: RequestInit = {}) => {
+    const url = buildApiUrl(endpoint);
+    const config = createFetchConfig({ method: 'GET', ...options });
+    
+    try {
+      const response = await fetch(url, config);
+      return response;
+    } catch (error) {
+      console.error(`❌ API GET Error (${url}):`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Make a POST request to the API
+   */
+  post: async (endpoint: string, data?: any, options: RequestInit = {}) => {
+    const url = buildApiUrl(endpoint);
+    const config = createFetchConfig({
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    });
+    
+    try {
+      const response = await fetch(url, config);
+      return response;
+    } catch (error) {
+      console.error(`❌ API POST Error (${url}):`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Make a PUT request to the API
+   */
+  put: async (endpoint: string, data?: any, options: RequestInit = {}) => {
+    const url = buildApiUrl(endpoint);
+    const config = createFetchConfig({
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+      ...options,
+    });
+    
+    try {
+      const response = await fetch(url, config);
+      return response;
+    } catch (error) {
+      console.error(`❌ API PUT Error (${url}):`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Make a DELETE request to the API
+   */
+  delete: async (endpoint: string, options: RequestInit = {}) => {
+    const url = buildApiUrl(endpoint);
+    const config = createFetchConfig({ method: 'DELETE', ...options });
+    
+    try {
+      const response = await fetch(url, config);
+      return response;
+    } catch (error) {
+      console.error(`❌ API DELETE Error (${url}):`, error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Development utilities
+ */
+export const debugApi = () => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 API Configuration Debug:', {
+      baseUrl: API_CONFIG.BASE_URL,
+      environment: process.env.NODE_ENV,
+      nextPublicApiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+      sampleHeroUrl: buildApiUrl('api/homepage/hero'),
+      sampleContentUrl: buildApiUrl('api/homepage/content'),
+      renderBackend: 'https://webcite-for-new-authors.onrender.com',
+    });
+  }
+};
+
+/**
+ * Helper to get API configuration info
+ */
+export const getApiInfo = () => {
+  return {
+    baseUrl: API_CONFIG.BASE_URL,
+    isRenderBackend: API_CONFIG.BASE_URL.includes('onrender.com'),
+    isLocalhost: API_CONFIG.BASE_URL.includes('localhost'),
+    environment: process.env.NODE_ENV,
+  };
+};
+
+// Log API configuration in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('✅ API Config loaded:', {
+    baseUrl: API_CONFIG.BASE_URL,
+    isRenderBackend: API_CONFIG.BASE_URL.includes('onrender.com'),
   });
 }
-
-// Log configuration on module load
-console.log('✅ API Config loaded with BASE_URL:', API_CONFIG.BASE_URL);
 
 export default API_CONFIG;

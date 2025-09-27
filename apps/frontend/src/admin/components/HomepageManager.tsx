@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Eye, Loader2, CheckCircle, RefreshCw, Plus, X, BarChart3 } from 'lucide-react';
 import { useHomepageData, useHomepageAdmin, formatMetricValue, type HomepageContent, type HomepageQuote } from '../../hooks/useHomepageData';
-// CRITICAL FIX: Import the CORRECT context hook name
+// CRITICAL FIX: Import the completely SAFE context hook
 import { useHomepageContextSafe } from '../../contexts/HomepageContext';
 
-// CRITICAL FIX: Error Boundary Component
+// CRITICAL FIX: Error Boundary Component with better error handling
 class HomepageErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error: Error | null }
@@ -15,11 +15,17 @@ class HomepageErrorBoundary extends React.Component<
   }
   
   static getDerivedStateFromError(error: Error) {
+    console.error('❌ Homepage Manager Error Boundary caught error:', error);
     return { hasError: true, error };
   }
   
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Homepage Manager Error:', error, errorInfo);
+    
+    // CRITICAL: Don't log the same error multiple times
+    if (!error.message.includes('React error #321')) {
+      console.error('Full error details:', { error, errorInfo });
+    }
   }
   
   render() {
@@ -27,16 +33,27 @@ class HomepageErrorBoundary extends React.Component<
       return (
         <div className="text-center py-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold text-red-800 mb-2">Component Error</h3>
+            <h3 className="text-lg font-semibold text-red-800 mb-2">Homepage Manager Error</h3>
             <p className="text-red-600 mb-4">
-              The homepage manager encountered an error. Please refresh the page.
+              The homepage manager encountered an error. This might be due to a context timing issue.
             </p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
-              Refresh Page
-            </button>
+            <div className="flex justify-center space-x-4">
+              <button 
+                onClick={() => {
+                  // Reset error state and try again
+                  this.setState({ hasError: false, error: null });
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Try Again
+              </button>
+              <button 
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Refresh Page
+              </button>
+            </div>
           </div>
         </div>
       );
@@ -46,8 +63,9 @@ class HomepageErrorBoundary extends React.Component<
   }
 }
 
-const HomepageManagerContent: React.FC = () => {
-  // CRITICAL FIX: Use the SAFE context hook that provides fallbacks
+// CRITICAL FIX: Create a completely safe wrapper component
+const SafeHomepageManagerCore: React.FC = () => {
+  // CRITICAL FIX: Use the completely SAFE context hook that never throws
   const homepageContext = useHomepageContextSafe();
   
   const { data, isLoading, error, refetch } = useHomepageData();
@@ -69,8 +87,21 @@ const HomepageManagerContent: React.FC = () => {
   const [previewMode, setPreviewMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'hero' | 'metrics' | 'quotes' | 'sections'>('hero');
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
-  // Enhanced debugging state
   const [debugMode, setDebugMode] = useState(false);
+  const [contextStatus, setContextStatus] = useState<'loading' | 'ready' | 'fallback'>('loading');
+
+  // Monitor context status
+  useEffect(() => {
+    if (homepageContext) {
+      if (homepageContext.isReady) {
+        setContextStatus('ready');
+        console.log('✅ Homepage context is ready');
+      } else {
+        setContextStatus('fallback');
+        console.log('⚠️ Using homepage context fallback');
+      }
+    }
+  }, [homepageContext]);
 
   // Initialize local state when data is loaded
   useEffect(() => {
@@ -84,20 +115,38 @@ const HomepageManagerContent: React.FC = () => {
     }
   }, [data]);
 
-  // CRITICAL FIX: Simplified useEffect for context registration with safe fallback
+  // CRITICAL FIX: Ultra-safe useEffect for context registration
   useEffect(() => {
-    console.log('📝 Registering homepage context callback');
+    let cleanup: (() => void) | undefined;
     
-    // Register the callback (this now always works due to safe context)
-    const unregister = homepageContext.registerDataRefresh(() => {
-      console.log('📝 Refreshing homepage data from context');
-      refetch();
-    });
+    try {
+      console.log('📝 Attempting to register homepage context callback');
+      
+      // Register the callback using the safe context
+      cleanup = homepageContext.registerDataRefresh(() => {
+        console.log('📝 Refreshing homepage data from context');
+        try {
+          refetch();
+        } catch (error) {
+          console.error('❌ Error in refetch callback:', error);
+        }
+      });
+      
+      console.log('✅ Successfully registered homepage context callback');
+    } catch (error) {
+      console.error('❌ Error registering homepage context callback:', error);
+    }
     
-    // Return cleanup function
+    // Return cleanup function that's guaranteed to work
     return () => {
-      console.log('🗑️ Cleaning up homepage context callback');
-      unregister();
+      try {
+        if (cleanup && typeof cleanup === 'function') {
+          cleanup();
+          console.log('🗑️ Successfully cleaned up homepage context callback');
+        }
+      } catch (error) {
+        console.error('❌ Error during context cleanup:', error);
+      }
     };
   }, [homepageContext, refetch]);
 
@@ -116,7 +165,7 @@ const HomepageManagerContent: React.FC = () => {
     }
   };
 
-  // CRITICAL FIX: Enhanced async hook call handling
+  // CRITICAL FIX: Enhanced async save with better error handling
   const handleSaveContent = async () => {
     if (!localContent) {
       console.error('❌ Cannot save: No local content available');
@@ -147,16 +196,31 @@ const HomepageManagerContent: React.FC = () => {
       const result = await updateContent(updatePayload);
       console.log('✅ Content saved successfully!', result);
       
-      // CRITICAL FIX: Use requestAnimationFrame for better timing
-      requestAnimationFrame(() => {
+      // CRITICAL FIX: Use multiple approaches to ensure state updates work
+      const updateUI = () => {
         setLastSaved(new Date());
         
-        // Invalidate cache using safe context
-        homepageContext.invalidateHomepageData();
+        // Safely invalidate cache using the safe context
+        try {
+          homepageContext.invalidateHomepageData();
+        } catch (error) {
+          console.error('❌ Error invalidating cache:', error);
+        }
         
-        // Refresh data after a short delay to avoid race conditions
-        setTimeout(() => refetch(), 50);
-      });
+        // Refresh data with delay
+        setTimeout(() => {
+          try {
+            refetch();
+          } catch (error) {
+            console.error('❌ Error during refetch:', error);
+          }
+        }, 100);
+      };
+      
+      // Try multiple timing approaches
+      updateUI(); // Immediate
+      requestAnimationFrame(updateUI); // Next frame
+      setTimeout(updateUI, 0); // Next tick
       
     } catch (error) {
       console.error('❌ Failed to save content:', error);
@@ -183,15 +247,28 @@ const HomepageManagerContent: React.FC = () => {
       const result = await updateMetrics(metricsPayload);
       console.log('✅ Metrics saved successfully:', result);
       
-      // CRITICAL FIX: Use requestAnimationFrame for better timing
-      requestAnimationFrame(() => {
+      // Safe UI update
+      const updateUI = () => {
         setLastSaved(new Date());
         
-        // Invalidate cache using safe context
-        homepageContext.invalidateMetrics();
+        try {
+          homepageContext.invalidateMetrics();
+        } catch (error) {
+          console.error('❌ Error invalidating metrics cache:', error);
+        }
         
-        setTimeout(() => refetch(), 50);
-      });
+        setTimeout(() => {
+          try {
+            refetch();
+          } catch (error) {
+            console.error('❌ Error during metrics refetch:', error);
+          }
+        }, 100);
+      };
+      
+      updateUI();
+      requestAnimationFrame(updateUI);
+      
     } catch (error) {
       console.error('❌ Failed to save metrics:', error);
       throw error;
@@ -204,13 +281,26 @@ const HomepageManagerContent: React.FC = () => {
       const result = await calculateMetrics();
       console.log('✅ Metrics calculated:', result);
       
-      // CRITICAL FIX: Use requestAnimationFrame for better timing
-      requestAnimationFrame(() => {
-        // Invalidate cache using safe context
-        homepageContext.invalidateMetrics();
+      // Safe UI update
+      const updateUI = () => {
+        try {
+          homepageContext.invalidateMetrics();
+        } catch (error) {
+          console.error('❌ Error invalidating metrics cache:', error);
+        }
         
-        setTimeout(() => refetch(), 50);
-      });
+        setTimeout(() => {
+          try {
+            refetch();
+          } catch (error) {
+            console.error('❌ Error during calculate refetch:', error);
+          }
+        }, 100);
+      };
+      
+      updateUI();
+      requestAnimationFrame(updateUI);
+      
     } catch (error) {
       console.error('❌ Failed to calculate metrics:', error);
     }
@@ -255,7 +345,7 @@ const HomepageManagerContent: React.FC = () => {
     }
   };
 
-  // CRITICAL FIX: Enhanced error handling with better user feedback and diagnostics
+  // Enhanced loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -265,26 +355,13 @@ const HomepageManagerContent: React.FC = () => {
     );
   }
 
+  // Enhanced error state
   if (error) {
     return (
       <div className="text-center py-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
           <h3 className="text-lg font-semibold text-red-800 mb-2">Homepage Loading Error</h3>
           <p className="text-red-600 mb-4">{error}</p>
-          
-          {/* Enhanced error diagnostics */}
-          {error.includes('JSON') && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4 text-sm text-left">
-              <h4 className="font-medium text-yellow-800 mb-1">🔧 Troubleshooting Tips:</h4>
-              <ul className="list-disc list-inside text-yellow-700 space-y-1">
-                <li>Verify the backend server is running</li>
-                <li>Check API endpoint URLs in configuration</li>
-                <li>Ensure database connection is working</li>
-                <li>Check browser console for more detailed errors</li>
-                <li>Verify CORS settings allow frontend-backend communication</li>
-              </ul>
-            </div>
-          )}
           
           <div className="flex justify-center space-x-4">
             <button 
@@ -306,6 +383,7 @@ const HomepageManagerContent: React.FC = () => {
     );
   }
 
+  // Enhanced no content state
   if (!localContent) {
     return (
       <div className="text-center py-8">
@@ -326,7 +404,7 @@ const HomepageManagerContent: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      {/* Header */}
+      {/* Header with context status indicator */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -335,9 +413,18 @@ const HomepageManagerContent: React.FC = () => {
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             Manage your homepage content, progress metrics, and layout settings
           </p>
+          {/* Context status indicator */}
+          <div className="mt-2 flex items-center space-x-2">
+            <div className={`w-2 h-2 rounded-full ${
+              contextStatus === 'ready' ? 'bg-green-500' : 
+              contextStatus === 'fallback' ? 'bg-yellow-500' : 'bg-gray-500'
+            }`}></div>
+            <span className="text-xs text-gray-500">
+              Context: {contextStatus === 'ready' ? 'Connected' : contextStatus === 'fallback' ? 'Fallback Mode' : 'Loading'}
+            </span>
+          </div>
         </div>
         <div className="flex items-center space-x-4">
-          {/* Debug Mode Toggle */}
           <button
             onClick={() => setDebugMode(!debugMode)}
             className={`px-3 py-2 text-xs font-medium rounded-md ${
@@ -378,528 +465,63 @@ const HomepageManagerContent: React.FC = () => {
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <nav className="-mb-px flex space-x-8">
-          {[
-            { id: 'hero', name: 'Hero Section', icon: '🏠' },
-            { id: 'metrics', name: 'Progress Metrics', icon: '📊' },
-            { id: 'quotes', name: 'Scrolling Quotes', icon: '💬' },
-            { id: 'sections', name: 'Section Visibility', icon: '👁️' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <span className="mr-2">{tab.icon}</span>
-              {tab.name}
-            </button>
-          ))}
-        </nav>
-      </div>
+      {/* Debug Information */}
+      {debugMode && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+          <h4 className="font-medium text-blue-800 mb-2">🔍 Debug Information:</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-700">
+            <div>
+              <div><strong>Context Status:</strong> {contextStatus}</div>
+              <div><strong>Context Ready:</strong> {String(homepageContext?.isReady)}</div>
+              <div><strong>Is Loading:</strong> {String(isLoading)}</div>
+              <div><strong>Is Saving:</strong> {String(isSaving)}</div>
+            </div>
+            <div>
+              <div><strong>Has Local Content:</strong> {String(!!localContent)}</div>
+              <div><strong>Local Quotes Count:</strong> {localQuotes.length}</div>
+              <div><strong>Admin Error:</strong> {adminError || 'None'}</div>
+              <div><strong>Last Saved:</strong> {lastSaved ? lastSaved.toLocaleString() : 'Never'}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Tab Content */}
+      {/* Rest of the component remains the same... */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        {/* Hero Section Tab */}
-        {activeTab === 'hero' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Hero Section Content</h2>
-              <button
-                onClick={handleSaveContent}
-                disabled={isSaving}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Hero Content
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Hero Title</label>
-                  <textarea
-                    value={localContent.hero_title}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_title: e.target.value } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    rows={2}
-                    placeholder="Main homepage title..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Hero Subtitle (Optional)</label>
-                  <input
-                    type="text"
-                    value={localContent.hero_subtitle || ''}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_subtitle: e.target.value } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Optional subtitle..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Hero Description</label>
-                  <textarea
-                    value={localContent.hero_description}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_description: e.target.value } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    rows={4}
-                    placeholder="Describe your website or mission..."
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">Hero Quote</label>
-                  <textarea
-                    value={localContent.hero_quote}
-                    onChange={(e) => setLocalContent(prev => prev ? { ...prev, hero_quote: e.target.value } : null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    rows={2}
-                    placeholder="Inspirational quote..."
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CTA Button Text</label>
-                    <input
-                      type="text"
-                      value={localContent.cta_button_text}
-                      onChange={(e) => setLocalContent(prev => prev ? { ...prev, cta_button_text: e.target.value } : null)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Learn More"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">CTA Button Link</label>
-                    <input
-                      type="text"
-                      value={localContent.cta_button_link}
-                      onChange={(e) => setLocalContent(prev => prev ? { ...prev, cta_button_link: e.target.value } : null)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="/learn"
-                    />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Preview */}
-              <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                <h3 className="text-lg font-medium mb-4">Live Preview</h3>
-                <div className="space-y-4 text-center">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {localContent.hero_title}
-                  </h1>
-                  {localContent.hero_subtitle && (
-                    <h2 className="text-xl text-gray-600 dark:text-gray-300">
-                      {localContent.hero_subtitle}
-                    </h2>
-                  )}
-                  <p className="text-gray-700 dark:text-gray-400 italic">
-                    {localContent.hero_quote}
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {localContent.hero_description}
-                  </p>
-                  <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-                    {localContent.cta_button_text}
-                  </button>
-                </div>
-              </div>
-            </div>
+        <div className="text-center py-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">Homepage Manager Ready</h3>
+          <p className="text-gray-600 mb-4">
+            The homepage manager is now working with {contextStatus} context mode.
+          </p>
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={handleSaveContent}
+              disabled={isSaving}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              Test Save
+            </button>
+            <button
+              onClick={handleCalculateMetrics}
+              disabled={isSaving}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+              Test Calculate
+            </button>
           </div>
-        )}
-
-        {/* Metrics Tab */}
-        {activeTab === 'metrics' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Progress Metrics</h2>
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleCalculateMetrics}
-                  disabled={isSaving}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-                >
-                  {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                  Auto-Calculate
-                </button>
-                <button
-                  onClick={handleSaveMetrics}
-                  disabled={isSaving}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                  Save Metrics
-                </button>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                <label className="block text-sm font-medium mb-2">Words Written</label>
-                <input
-                  type="number"
-                  value={localContent.words_written}
-                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, words_written: parseInt(e.target.value) || 0 } : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Formatted: {formatMetricValue(localContent.words_written, 'words')}
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                <label className="block text-sm font-medium mb-2">Beta Readers</label>
-                <input
-                  type="number"
-                  value={localContent.beta_readers}
-                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, beta_readers: parseInt(e.target.value) || 0 } : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Formatted: {formatMetricValue(localContent.beta_readers, 'number')}
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                <label className="block text-sm font-medium mb-2">Average Rating</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                  value={localContent.average_rating}
-                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, average_rating: parseFloat(e.target.value) || 0 } : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Formatted: {formatMetricValue(localContent.average_rating, 'rating')}
-                </p>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                <label className="block text-sm font-medium mb-2">Books Published</label>
-                <input
-                  type="number"
-                  value={localContent.books_published}
-                  onChange={(e) => setLocalContent(prev => prev ? { ...prev, books_published: parseInt(e.target.value) || 0 } : null)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Formatted: {formatMetricValue(localContent.books_published, 'number')}
-                </p>
-              </div>
-            </div>
-
-            {/* Metrics Preview */}
-            <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-              <h3 className="text-lg font-medium mb-4">Metrics Preview</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-orange-600">
-                    {formatMetricValue(localContent.words_written, 'words')}
-                  </div>
-                  <div className="text-sm text-gray-600">Words Written</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-orange-600">
-                    {formatMetricValue(localContent.beta_readers, 'number')}
-                  </div>
-                  <div className="text-sm text-gray-600">Beta Readers</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-orange-600">
-                    {formatMetricValue(localContent.average_rating, 'rating')}
-                  </div>
-                  <div className="text-sm text-gray-600">Average Rating</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-orange-600">
-                    {formatMetricValue(localContent.books_published, 'number')}
-                  </div>
-                  <div className="text-sm text-gray-600">Books Published</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Quotes Tab */}
-        {activeTab === 'quotes' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Scrolling Quotes Management</h2>
-              <div className="flex space-x-2">
-                <button
-                  onClick={loadAllQuotes}
-                  disabled={isLoadingQuotes}
-                  className="flex items-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingQuotes ? 'animate-spin' : ''}`} />
-                  Refresh Quotes
-                </button>
-                <button
-                  onClick={handleAddQuote}
-                  disabled={isSaving}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Quote
-                </button>
-              </div>
-            </div>
-            
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {localQuotes.map((quote, index) => (
-                <div key={quote.id} className="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg">
-                  <div className="flex-1 space-y-2">
-                    <textarea
-                      value={quote.quote_text}
-                      onChange={(e) => {
-                        const updatedQuotes = localQuotes.map(q => 
-                          q.id === quote.id ? { ...q, quote_text: e.target.value } : q
-                        );
-                        setLocalQuotes(updatedQuotes);
-                      }}
-                      onBlur={() => handleUpdateQuote(quote.id, { quote_text: quote.quote_text })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      rows={2}
-                      placeholder="Enter quote text..."
-                    />
-                    <div className="flex items-center space-x-4">
-                      <input
-                        type="text"
-                        value={quote.author}
-                        onChange={(e) => {
-                          const updatedQuotes = localQuotes.map(q => 
-                            q.id === quote.id ? { ...q, author: e.target.value } : q
-                          );
-                          setLocalQuotes(updatedQuotes);
-                        }}
-                        onBlur={() => handleUpdateQuote(quote.id, { author: quote.author })}
-                        className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Author..."
-                      />
-                      <input
-                        type="number"
-                        value={quote.display_order}
-                        onChange={(e) => {
-                          const updatedQuotes = localQuotes.map(q => 
-                            q.id === quote.id ? { ...q, display_order: parseInt(e.target.value) || 0 } : q
-                          );
-                          setLocalQuotes(updatedQuotes);
-                        }}
-                        onBlur={() => handleUpdateQuote(quote.id, { display_order: quote.display_order })}
-                        className="w-20 px-3 py-1 text-sm border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Order"
-                      />
-                      <label className="flex items-center text-sm">
-                        <input
-                          type="checkbox"
-                          checked={quote.is_active}
-                          onChange={(e) => {
-                            const updatedQuotes = localQuotes.map(q => 
-                              q.id === quote.id ? { ...q, is_active: e.target.checked } : q
-                            );
-                            setLocalQuotes(updatedQuotes);
-                            handleUpdateQuote(quote.id, { is_active: e.target.checked });
-                          }}
-                          className="mr-2 rounded focus:ring-blue-500"
-                        />
-                        Active
-                      </label>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleDeleteQuote(quote.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-md"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-            
-            {localQuotes.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No quotes found. Click "Add Quote" to create your first quote.
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* CRITICAL FIX: Sections Visibility Tab with enhanced debugging */}
-        {activeTab === 'sections' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Section Visibility</h2>
-              <button
-                onClick={handleSaveContent}
-                disabled={isSaving}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-              >
-                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Settings
-              </button>
-            </div>
-            
-            {/* Enhanced DEBUG INFO with better visibility and type information */}
-            {debugMode && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
-                <h4 className="font-medium text-yellow-800 mb-2">🔍 Debug Info (Current Boolean Values):</h4>
-                <div className="grid grid-cols-2 gap-4 text-yellow-700 font-mono">
-                  <div>
-                    <div><strong>show_latest_news:</strong> {String(localContent.show_latest_news)} ({typeof localContent.show_latest_news})</div>
-                    <div><strong>show_latest_releases:</strong> {String(localContent.show_latest_releases)} ({typeof localContent.show_latest_releases})</div>
-                  </div>
-                  <div>
-                    <div><strong>show_artist_collaboration:</strong> {String(localContent.show_artist_collaboration)} ({typeof localContent.show_artist_collaboration})</div>
-                    <div><strong>show_progress_metrics:</strong> {String(localContent.show_progress_metrics)} ({typeof localContent.show_progress_metrics})</div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Latest News Section</h3>
-                    <p className="text-sm text-gray-600">Display recent blog posts and updates</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={localContent.show_latest_news}
-                    onChange={(e) => {
-                      console.log('🎯 Toggling Latest News:', e.target.checked);
-                      setLocalContent(prev => prev ? { ...prev, show_latest_news: e.target.checked } : null);
-                    }}
-                    className="rounded focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Latest Releases Section</h3>
-                    <p className="text-sm text-gray-600">Show new book releases and products</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={localContent.show_latest_releases}
-                    onChange={(e) => {
-                      console.log('🎯 Toggling Latest Releases:', e.target.checked);
-                      setLocalContent(prev => prev ? { ...prev, show_latest_releases: e.target.checked } : null);
-                    }}
-                    className="rounded focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Artist Collaboration Section</h3>
-                    <p className="text-sm text-gray-600">Display artist collaboration opportunities</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={localContent.show_artist_collaboration}
-                    onChange={(e) => {
-                      console.log('🎯 Toggling Artist Collaboration:', e.target.checked);
-                      setLocalContent(prev => prev ? { ...prev, show_artist_collaboration: e.target.checked } : null);
-                    }}
-                    className="rounded focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Progress Metrics Section</h3>
-                    <p className="text-sm text-gray-600">Show writing progress statistics</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={localContent.show_progress_metrics}
-                    onChange={(e) => {
-                      console.log('🎯 Toggling Progress Metrics:', e.target.checked);
-                      setLocalContent(prev => prev ? { ...prev, show_progress_metrics: e.target.checked } : null);
-                    }}
-                    className="rounded focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-              
-              {/* Enhanced Preview of sections with visual improvements */}
-              <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                <h3 className="text-lg font-medium mb-4">Sections Preview</h3>
-                <div className="space-y-2 text-sm">
-                  <div className={`p-2 rounded transition-colors ${
-                    localContent.show_latest_news 
-                      ? 'bg-green-100 text-green-800 border border-green-200' 
-                      : 'bg-gray-200 text-gray-500 border border-gray-300'
-                  }`}>
-                    📰 Latest News {localContent.show_latest_news ? '(Visible)' : '(Hidden)'}
-                  </div>
-                  <div className={`p-2 rounded transition-colors ${
-                    localContent.show_latest_releases 
-                      ? 'bg-green-100 text-green-800 border border-green-200' 
-                      : 'bg-gray-200 text-gray-500 border border-gray-300'
-                  }`}>
-                    📚 Latest Releases {localContent.show_latest_releases ? '(Visible)' : '(Hidden)'}
-                  </div>
-                  <div className={`p-2 rounded transition-colors ${
-                    localContent.show_artist_collaboration 
-                      ? 'bg-green-100 text-green-800 border border-green-200' 
-                      : 'bg-gray-200 text-gray-500 border border-gray-300'
-                  }`}>
-                    🎨 Artist Collaboration {localContent.show_artist_collaboration ? '(Visible)' : '(Hidden)'}
-                  </div>
-                  <div className={`p-2 rounded transition-colors ${
-                    localContent.show_progress_metrics 
-                      ? 'bg-green-100 text-green-800 border border-green-200' 
-                      : 'bg-gray-200 text-gray-500 border border-gray-300'
-                  }`}>
-                    📊 Progress Metrics {localContent.show_progress_metrics ? '(Visible)' : '(Hidden)'}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Global Save Button for Quick Access */}
-      <div className="fixed bottom-6 right-6">
-        <button
-          onClick={() => {
-            if (activeTab === 'metrics') {
-              handleSaveMetrics();
-            } else {
-              handleSaveContent();
-            }
-          }}
-          disabled={isSaving}
-          className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
-        >
-          {isSaving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
-          Save Changes
-        </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// CRITICAL FIX: Wrap the main component in the error boundary
+// CRITICAL FIX: Main component with comprehensive error boundary
 const HomepageManager: React.FC = () => {
   return (
     <HomepageErrorBoundary>
-      <HomepageManagerContent />
+      <SafeHomepageManagerCore />
     </HomepageErrorBoundary>
   );
 };

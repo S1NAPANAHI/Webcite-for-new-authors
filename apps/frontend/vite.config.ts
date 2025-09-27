@@ -27,8 +27,8 @@ export default defineConfig(({ mode }) => {
       ],
       extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
       preserveSymlinks: false,
-      // Temporarily remove dedupe to simplify
-      // dedupe: ['react', 'react-dom'],
+      // Re-enable dedupe to force single React instance
+      dedupe: ['react', 'react-dom'],
     },
     // Temporarily simplify optimizeDeps
     // optimizeDeps: {

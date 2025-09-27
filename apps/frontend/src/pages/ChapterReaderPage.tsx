@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, AlertCircle, Loader2, Lock, Crown, LogIn, CreditCard } from 'lucide-react';
 import { useAuth } from '@zoroaster/shared';
 import { supabase } from '../lib/supabase';
-import { ImmersiveEbookReader } from '../components/ImmersiveEbookReader';
+// 🎉 ENHANCED READER ACTIVATED! 🎉
+import { ImmersiveEbookReaderEnhanced } from '../components/ImmersiveEbookReaderEnhanced';
 import { redirectLegacyChapterUrl } from '../utils/chapterUtils';
 
-// Import the immersive ebook reader styles
+// Import the enhanced ebook reader styles
 import '../styles/immersive-ebook.css';
+import '../styles/enhanced-reader-ui.css';
 
 interface Chapter {
   id: string;
@@ -255,7 +257,7 @@ function LoadingPage() {
       <div className="text-center">
         <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Loading Chapter</h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-8">Preparing your immersive reading experience...</p>
+        <p className="text-gray-600 dark:text-gray-400 mb-8">Preparing your enhanced immersive reading experience...</p>
         
         {/* Loading skeleton */}
         <div className="max-w-2xl mx-auto space-y-4">
@@ -525,10 +527,10 @@ export default function ChapterReaderPage() {
     );
   }
 
-  // Show the IMMERSIVE ebook reader if user has access
+  // 🎉 ENHANCED READER WITH ALL NEW FEATURES! 🎉
   if (chapter.has_access && showImmersiveReader) {
     return (
-      <ImmersiveEbookReader
+      <ImmersiveEbookReaderEnhanced
         chapter={chapter}
         onChapterChange={handleChapterChange}
         showNavigation={navigation && (navigation.prev_chapter_slug || navigation.next_chapter_slug) ? true : false}
@@ -545,13 +547,18 @@ export default function ChapterReaderPage() {
     );
   }
 
-  // Fallback - show loading page to enter immersive reader
+  // Enhanced entrance page
   if (chapter.has_access && !showImmersiveReader) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
         <div className="text-center max-w-lg w-full">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-12">
-            <BookOpen className="w-20 h-20 text-blue-500 mx-auto mb-6" />
+          <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl p-12 border border-white/20">
+            <div className="mb-8">
+              <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <BookOpen className="w-12 h-12 text-white" />
+              </div>
+              <div className="text-4xl mb-2">✨</div>
+            </div>
             
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
               {chapter.title}
@@ -562,26 +569,30 @@ export default function ChapterReaderPage() {
                 Chapter {chapter.chapter_number} • {chapter.word_count?.toLocaleString() || 0} words • {chapter.estimated_read_time || 0} min read
               </p>
               
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  📚 <strong>Immersive Reading Experience</strong><br/>
-                  • Distraction-free fullscreen mode<br/>
-                  • Word-based page turning<br/>
-                  • Collapsible navigation sidebar<br/>
-                  • Customizable reading settings<br/>
-                  • Mobile-optimized interface
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200/50 dark:border-blue-800/50">
+                <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                  🎨 <strong>Enhanced Reading Experience</strong><br/>
+                  ✨ Modern glassmorphism design<br/>
+                  🎯 Focus mode (press M)<br/>
+                  📱 Superior mobile experience<br/>
+                  ⌨️ Advanced keyboard shortcuts<br/>
+                  🎨 Beautiful animations & transitions
                 </p>
               </div>
             </div>
             
             <button
               onClick={() => setShowImmersiveReader(true)}
-              className="px-12 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="px-12 py-4 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 text-lg font-semibold shadow-lg hover:shadow-2xl transform hover:scale-105 mb-6"
             >
-              📖 Enter Immersive Reader
+              🚀 Enter Enhanced Reader
             </button>
             
-            <div className="mt-8 flex justify-center space-x-4">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+              New features: Glassmorphism UI • Focus Mode • Enhanced Mobile • Keyboard Shortcuts
+            </div>
+            
+            <div className="flex justify-center space-x-4">
               <button
                 onClick={() => navigate('/library')}
                 className="px-6 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"

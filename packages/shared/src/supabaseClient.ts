@@ -17,47 +17,28 @@ if (!supabaseAnonKey) {
 }
 
 // Global singleton instance - ensure only ONE instance across the entire app
-let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
+let supabaseInstance: ReturnType<typeof createClient<Database>>;
+
+// Create a new instance with proper configuration for authentication
+// This will only run once when the module is first loaded
+console.log('🚀 Supabase client: Initializing singleton instance...');
+supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: isBrowser,
+    // Use consistent storage key across all instances
+    storageKey: 'zoroaster-auth-session',
+    storage: isBrowser ? window.localStorage : undefined,
+  },
+});
+console.log('✅ Supabase singleton client initialized.');
 
 /**
- * CRITICAL: Fixed singleton pattern to prevent multiple Supabase clients
- * This ensures only ONE instance exists across all packages and modules
+ * Returns the singleton Supabase client instance.
+ * This ensures only ONE instance exists across all packages and modules.
  */
 const getSupabase = () => {
-  // Check for existing global instance first (prevents multiple clients)
-  if (isBrowser && (window as any).__ZOROASTER_SUPABASE_CLIENT__) {
-    console.log('✅ Supabase client: Using existing global singleton');
-    return (window as any).__ZOROASTER_SUPABASE_CLIENT__;
-  }
-
-  // Check module-level instance
-  if (supabaseInstance) {
-    console.log('✅ Supabase client: Using existing module singleton');
-    return supabaseInstance;
-  }
-
-  console.log('🚀 Supabase client: Creating new singleton instance');
-
-  // Create a new instance with proper configuration for authentication
-  const newInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: isBrowser,
-      // Use consistent storage key across all instances
-      storageKey: 'zoroaster-auth-session',
-      storage: isBrowser ? window.localStorage : undefined,
-    },
-  });
-
-  // Store in both places to prevent duplicate instances
-  supabaseInstance = newInstance;
-  if (isBrowser) {
-    (window as any).__ZOROASTER_SUPABASE_CLIENT__ = newInstance;
-    console.log('🌐 Global Supabase client stored on window');
-  }
-
-  console.log('✅ Supabase singleton client created successfully');
   return supabaseInstance;
 };
 

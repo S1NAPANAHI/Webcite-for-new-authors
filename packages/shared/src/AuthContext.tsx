@@ -3,6 +3,8 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback, // Import useCallback
+  useRef,      // Import useRef
   ReactNode,
 } from 'react';
 import { Session, User, SupabaseClient } from '@supabase/supabase-js';
@@ -27,6 +29,15 @@ interface AuthProviderProps {
   supabaseClient: SupabaseClient;
 }
 
+// Debounce utility function
+const debounce = <T extends (...args: any[]) => void>(func: T, delay: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({
   children,
   supabaseClient,
@@ -38,17 +49,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [role, setRole] = useState<string | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+  const isFetchingProfileRef = useRef(false); // Use ref for isFetchingProfile
   const supabase = supabaseClient;
 
-  // CRITICAL: Fixed authentication state management
-  const updateAuthState = async (currentSession: Session | null) => {
-    if (isFetchingProfile) {
+  // Memoized updateAuthState function
+  const updateAuthState = useCallback(async (currentSession: Session | null) => {
+    if (isFetchingProfileRef.current) {
       console.log('🔄 AuthContext: Profile fetch already in progress, skipping.');
       return;
     }
 
-    setIsFetchingProfile(true);
+    isFetchingProfileRef.current = true;
+    setIsLoading(true); // Start loading state
 
     try {
       console.log('🔄 AuthContext: Updating auth state', { 
@@ -65,7 +77,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         console.log('👤 AuthContext: User authenticated, fetching profile...');
         
         try {
-          // Add timeout to prevent hanging
           const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => reject(new Error('Profile fetch timeout')), 10000); // 10 second timeout
           });
@@ -87,7 +98,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
             if (profileError.code === 'PGRST116') { // No rows found
               console.log('🆕 AuthContext: Creating missing profile for user');
               
-              // FIXED: Use bracket notation for user metadata access
               const displayName = currentSession.user.user_metadata?.['display_name'] || 
                                  currentSession.user.email?.split('@')[0] || '';
               
@@ -99,8 +109,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                     email: currentSession.user.email || '',
                     display_name: displayName,
                     role: 'user',
-                    beta_reader_status: 'inactive', // Add required field
-                    subscription_status: 'free' // Fixed column name
+                    beta_reader_status: 'inactive',
+                    subscription_status: 'free'
                   })
                   .select('id, avatar_url, beta_reader_status, created_at, display_name, role, updated_at, username, website, subscription_status, email')
                   .single();
@@ -108,7 +118,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
                 if (insertError) {
                   console.error('❌ AuthContext: Error creating profile:', insertError);
                   setUserProfile(null);
-                  setRole('user'); // Default role
+                  setRole('user');
                   setIsSubscribed(false);
                 } else {
                   console.log('✅ AuthContext: Profile created successfully');
@@ -138,7 +148,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           }
         } catch (error) {
           console.error('❌ AuthContext: Unexpected error in profile fetch:', error);
-          // Fix TypeScript error: properly type error
           const errorMessage = error instanceof Error ? error.message : String(error);
           if (errorMessage === 'Profile fetch timeout') {
             console.error('🕒 AuthContext: Profile fetch timed out - possible database connectivity issue');
@@ -154,12 +163,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         setIsSubscribed(false);
       }
 
-      setIsLoading(false);
       console.log('🏁 AuthContext: Auth state update completed');
     } finally {
-      setIsFetchingProfile(false);
+      isFetchingProfileRef.current = false;
+      setIsLoading(false); // End loading state
     }
-  };
+  }, [supabase]); // Dependency on supabaseClient
 
   useEffect(() => {
     let mounted = true;
@@ -192,14 +201,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
     initializeAuth();
 
-    // CRITICAL: Listen for auth state changes
+    // Debounced auth state change listener
+    const debouncedUpdateAuthState = debounce(async (event: string, session: Session | null) => {
+      console.log('🔊 AuthContext: Auth state changed (debounced)', { event, hasSession: !!session });
+      if (mounted) {
+        await updateAuthState(session);
+      }
+    }, 300); // 300ms debounce delay
+
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔊 AuthContext: Auth state changed', { event, hasSession: !!session });
-        
-        if (mounted) {
-          await updateAuthState(session);
-        }
+        debouncedUpdateAuthState(event, session);
       }
     );
 
@@ -207,14 +219,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       mounted = false;
       authListener.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, updateAuthState]); // Add updateAuthState to dependencies
 
-  // CRITICAL: Proper logout function with state cleanup
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     console.log('🚪 AuthContext: Starting logout process...');
     
     try {
-      // Clear local state first
       setIsLoading(true);
       setSession(null);
       setUser(null);
@@ -223,7 +233,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       setRole(null);
       setIsSubscribed(false);
 
-      // Sign out from Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -233,7 +242,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
       console.log('✅ AuthContext: Logout successful');
       
-      // Optional: Clear any remaining auth storage
       if (typeof window !== 'undefined') {
         localStorage.removeItem('zoroaster-auth-session');
         console.log('🧹 AuthContext: Cleared auth storage');
@@ -245,7 +253,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
   const value = {
     session,
@@ -256,7 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     isSubscribed,
     isLoading,
     supabase,
-    signOut, // Add signOut to context
+    signOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -265,16 +273,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 export const useAuth = () => {
   const context = useContext(AuthContext);
   
-  // Enhanced logging for debugging
-  if (context) {
-    console.log('🔍 useAuth context:', {
-      isAuthenticated: context.isAuthenticated,
-      hasUser: !!context.user,
-      hasProfile: !!context.userProfile,
-      role: context.role,
-      isLoading: context.isLoading
-    });
-  }
+  // Removed verbose logging from useAuth context
   
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');

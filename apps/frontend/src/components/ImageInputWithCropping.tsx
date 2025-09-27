@@ -689,7 +689,7 @@ const ImageInputWithCropping: React.FC<ImageInputWithCroppingProps> = ({
       const extension = originalName.substring(originalName.lastIndexOf('.')) || '.jpg';
       const croppedFileName = `${nameWithoutExt}-cropped-${timestamp}${extension}`;
       
-      // Upload to Supabase Storage
+      // FIXED: Upload to Supabase Storage using 'media' bucket instead of 'blog-images'
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('media')
         .upload(`images/cropped/${croppedFileName}`, croppedBlob, {
@@ -734,7 +734,7 @@ const ImageInputWithCropping: React.FC<ImageInputWithCroppingProps> = ({
       setImageError(false);
       
     } catch (error) {
-      console.error('Error uploading cropped image:', error);
+      console.error('❌ Error uploading cropped image:', error);
       alert('Failed to save cropped image. Please try again.');
     }
   };

@@ -33,23 +33,35 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [imageRect, setImageRect] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   // Initialize crop area when image loads
   const handleImageLoad = (img: HTMLImageElement) => {
     setImageElement(img);
     const container = img.parentElement;
     if (container) {
+      // Get the actual rendered image dimensions and position
+      const imgRect = img.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
+      
+      const imageInfo = {
+        x: imgRect.left - containerRect.left,
+        y: imgRect.top - containerRect.top,
+        width: img.offsetWidth,
+        height: img.offsetHeight
+      };
+      
+      setImageRect(imageInfo);
       setContainerSize({ width: containerRect.width, height: containerRect.height });
       
       // Set initial crop size based on aspect ratio and center it
-      const maxWidth = Math.min(400, img.offsetWidth * 0.7);
+      const maxWidth = Math.min(400, imageInfo.width * 0.7);
       const cropWidth = maxWidth;
       const cropHeight = aspectRatio ? cropWidth / aspectRatio : cropWidth * 0.75;
       
-      // Center the crop area
-      const centerX = (img.offsetWidth - cropWidth) / 2;
-      const centerY = (img.offsetHeight - cropHeight) / 2;
+      // Center the crop area within the actual image bounds
+      const centerX = (imageInfo.width - cropWidth) / 2;
+      const centerY = (imageInfo.height - cropHeight) / 2;
       
       setCropData({
         x: Math.max(0, centerX),
@@ -111,7 +123,7 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
     }
   };
 
-  // FIXED: Better boundary calculation for drag handling
+  // FIXED: Proper drag handling with correct boundary calculations
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -131,9 +143,13 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
       const newX = startCropX + deltaX;
       const newY = startCropY + deltaY;
       
-      // FIXED: Proper boundary constraints
-      const maxX = Math.max(0, imageElement.offsetWidth - cropData.width);
-      const maxY = Math.max(0, imageElement.offsetHeight - cropData.height);
+      // FIXED: Use actual image dimensions, not offset dimensions
+      const imageWidth = imageElement.offsetWidth;
+      const imageHeight = imageElement.offsetHeight;
+      
+      // Ensure crop stays within image bounds
+      const maxX = Math.max(0, imageWidth - cropData.width);
+      const maxY = Math.max(0, imageHeight - cropData.height);
       
       setCropData(prev => ({
         ...prev,
@@ -174,8 +190,11 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
       const newX = startCropX + deltaX;
       const newY = startCropY + deltaY;
       
-      const maxX = Math.max(0, imageElement.offsetWidth - cropData.width);
-      const maxY = Math.max(0, imageElement.offsetHeight - cropData.height);
+      const imageWidth = imageElement.offsetWidth;
+      const imageHeight = imageElement.offsetHeight;
+      
+      const maxX = Math.max(0, imageWidth - cropData.width);
+      const maxY = Math.max(0, imageHeight - cropData.height);
       
       setCropData(prev => ({
         ...prev,
@@ -205,7 +224,7 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
             <Crop className="w-5 h-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
             <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full">
-              ✂️ Drag to position
+              ✂️ Drag anywhere to position
             </span>
           </div>
           <button
@@ -217,75 +236,78 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
           </button>
         </div>
 
-        {/* Crop Area - IMPROVED */}
+        {/* Crop Area - FIXED POSITIONING */}
         <div className="relative flex-1 p-6 bg-gray-900 overflow-hidden">
           <div className="relative mx-auto max-w-full max-h-full flex items-center justify-center min-h-[500px]">
-            <img
-              src={imageUrl}
-              alt="Crop preview"
-              onLoad={(e) => handleImageLoad(e.target as HTMLImageElement)}
-              className="max-w-full max-h-[65vh] object-contain select-none"
-              draggable={false}
-              style={{ userSelect: 'none' }}
-            />
-            
-            {/* Crop overlay */}
-            {imageElement && (
-              <>
-                {/* Enhanced crop selection rectangle */}
-                <div
-                  className={`absolute border-2 border-blue-400 bg-transparent cursor-move transition-all duration-150 ${
-                    isDragging ? 'border-blue-500 shadow-lg' : 'hover:border-blue-300'
-                  }`}
-                  style={{
-                    left: cropData.x,
-                    top: cropData.y,
-                    width: cropData.width,
-                    height: cropData.height,
-                    boxShadow: isDragging 
-                      ? '0 0 0 9999px rgba(0, 0, 0, 0.7), 0 4px 20px rgba(59, 130, 246, 0.5)' 
-                      : '0 0 0 9999px rgba(0, 0, 0, 0.6)',
-                    zIndex: 10
-                  }}
-                  onMouseDown={handleMouseDown}
-                  onTouchStart={handleTouchStart}
-                >
-                  {/* Enhanced corner handles */}
-                  <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
-                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
-                  <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
-                  <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
-                  
-                  {/* Enhanced center crosshair */}
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                    <div className="w-6 h-6 border-2 border-white rounded-full bg-blue-500 shadow-md flex items-center justify-center">
-                      <div className="w-2 h-2 bg-white rounded-full" />
+            <div className="relative inline-block">
+              <img
+                src={imageUrl}
+                alt="Crop preview"
+                onLoad={(e) => handleImageLoad(e.target as HTMLImageElement)}
+                className="max-w-full max-h-[65vh] object-contain select-none block"
+                draggable={false}
+                style={{ userSelect: 'none' }}
+              />
+              
+              {/* FIXED: Crop overlay positioned relative to image */}
+              {imageElement && (
+                <>
+                  {/* Enhanced crop selection rectangle */}
+                  <div
+                    className={`absolute border-2 border-blue-400 bg-transparent cursor-move transition-all duration-150 ${
+                      isDragging ? 'border-blue-500 shadow-lg' : 'hover:border-blue-300'
+                    }`}
+                    style={{
+                      left: cropData.x,
+                      top: cropData.y,
+                      width: cropData.width,
+                      height: cropData.height,
+                      boxShadow: isDragging 
+                        ? '0 0 0 9999px rgba(0, 0, 0, 0.7), 0 4px 20px rgba(59, 130, 246, 0.5)' 
+                        : '0 0 0 9999px rgba(0, 0, 0, 0.6)',
+                      zIndex: 10
+                    }}
+                    onMouseDown={handleMouseDown}
+                    onTouchStart={handleTouchStart}
+                  >
+                    {/* Enhanced corner handles */}
+                    <div className="absolute -top-2 -left-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
+                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
+                    <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
+                    <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-md" />
+                    
+                    {/* Enhanced center crosshair */}
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                      <div className="w-6 h-6 border-2 border-white rounded-full bg-blue-500 shadow-md flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full" />
+                      </div>
+                    </div>
+                    
+                    {/* Grid overlay for better precision */}
+                    <div className="absolute inset-0 opacity-30">
+                      <div className="absolute top-1/3 left-0 right-0 h-px bg-white" />
+                      <div className="absolute top-2/3 left-0 right-0 h-px bg-white" />
+                      <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white" />
+                      <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white" />
                     </div>
                   </div>
-                  
-                  {/* Grid overlay for better precision */}
-                  <div className="absolute inset-0 opacity-30">
-                    <div className="absolute top-1/3 left-0 right-0 h-px bg-white" />
-                    <div className="absolute top-2/3 left-0 right-0 h-px bg-white" />
-                    <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white" />
-                    <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white" />
-                  </div>
-                </div>
-              </>
-            )}
+                </>
+              )}
+            </div>
           </div>
           
           {/* Enhanced instructions */}
           <div className="absolute top-4 left-4 bg-black bg-opacity-90 text-white px-4 py-2 rounded-lg text-sm border border-blue-500">
             <div className="flex items-center gap-2">
               <span className="text-blue-400">👆</span>
-              <span>Drag the blue rectangle to position your crop</span>
+              <span>Drag the blue rectangle anywhere on the image</span>
             </div>
           </div>
           
           {/* Crop info */}
           <div className="absolute top-4 right-4 bg-black bg-opacity-90 text-white px-3 py-2 rounded-lg text-xs">
             <div>Size: {Math.round(cropData.width)} × {Math.round(cropData.height)}px</div>
+            <div>Position: {Math.round(cropData.x)}, {Math.round(cropData.y)}</div>
             <div>Ratio: {aspectRatio === 1 ? '1:1' : aspectRatio === 16/9 ? '16:9' : aspectRatio?.toFixed(2) || 'Free'}</div>
           </div>
         </div>
@@ -304,11 +326,15 @@ const SimpleCropModal: React.FC<SimpleCropModalProps> = ({
                 onChange={(e) => {
                   const width = Number(e.target.value);
                   const height = aspectRatio ? width / aspectRatio : cropData.height;
+                  
                   setCropData(prev => {
-                    const maxX = Math.max(0, (imageElement?.offsetWidth || 0) - width);
-                    const maxY = Math.max(0, (imageElement?.offsetHeight || 0) - height);
+                    const imageWidth = imageElement?.offsetWidth || 0;
+                    const imageHeight = imageElement?.offsetHeight || 0;
+                    
+                    const maxX = Math.max(0, imageWidth - width);
+                    const maxY = Math.max(0, imageHeight - height);
+                    
                     return {
-                      ...prev,
                       width,
                       height,
                       x: Math.max(0, Math.min(prev.x, maxX)),

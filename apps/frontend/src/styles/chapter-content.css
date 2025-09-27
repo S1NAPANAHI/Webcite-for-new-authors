@@ -1,0 +1,186 @@
+/* Chapter Content Paragraph Spacing Styles */
+/* Apply proper paragraph spacing for both editor preview and published content */
+
+/* Editor Preview Styles */
+.chapter-content-preview p {
+  margin: 1.2em 0 !important;
+  line-height: 1.7 !important;
+}
+
+.chapter-content-preview p:first-child {
+  margin-top: 0 !important;
+}
+
+.chapter-content-preview p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.chapter-content-preview blockquote {
+  margin: 1.5em 0 !important;
+  padding-left: 1em !important;
+  border-left: 3px solid #e5e7eb !important;
+  font-style: italic !important;
+}
+
+.chapter-content-preview ul,
+.chapter-content-preview ol {
+  margin: 1em 0 !important;
+  padding-left: 1.5em !important;
+}
+
+.chapter-content-preview li {
+  margin: 0.5em 0 !important;
+}
+
+.chapter-content-preview h1,
+.chapter-content-preview h2,
+.chapter-content-preview h3 {
+  margin: 1.5em 0 0.5em 0 !important;
+  font-weight: bold !important;
+}
+
+.chapter-content-preview h1 { font-size: 1.5em !important; }
+.chapter-content-preview h2 { font-size: 1.3em !important; }
+.chapter-content-preview h3 { font-size: 1.1em !important; }
+
+/* Published Chapter Content Styles (Reader View) */
+.chapter-content-render,
+.chapter-content,
+.chapter-text {
+  line-height: 1.7;
+}
+
+.chapter-content-render p,
+.chapter-content p,
+.chapter-text p {
+  margin: 1.2em 0 !important;
+  line-height: 1.7 !important;
+}
+
+.chapter-content-render p:first-child,
+.chapter-content p:first-child,
+.chapter-text p:first-child {
+  margin-top: 0 !important;
+}
+
+.chapter-content-render p:last-child,
+.chapter-content p:last-child,
+.chapter-text p:last-child {
+  margin-bottom: 0 !important;
+}
+
+.chapter-content-render blockquote,
+.chapter-content blockquote,
+.chapter-text blockquote {
+  margin: 1.5em 0 !important;
+  padding-left: 1em !important;
+  border-left: 3px solid #e5e7eb !important;
+  font-style: italic !important;
+}
+
+.chapter-content-render ul,
+.chapter-content ul,
+.chapter-text ul,
+.chapter-content-render ol,
+.chapter-content ol,
+.chapter-text ol {
+  margin: 1em 0 !important;
+  padding-left: 1.5em !important;
+}
+
+.chapter-content-render li,
+.chapter-content li,
+.chapter-text li {
+  margin: 0.5em 0 !important;
+}
+
+.chapter-content-render h1,
+.chapter-content h1,
+.chapter-text h1,
+.chapter-content-render h2,
+.chapter-content h2,
+.chapter-text h2,
+.chapter-content-render h3,
+.chapter-content h3,
+.chapter-text h3 {
+  margin: 1.5em 0 0.5em 0 !important;
+  font-weight: bold !important;
+}
+
+.chapter-content-render h1,
+.chapter-content h1,
+.chapter-text h1 { 
+  font-size: 1.5em !important; 
+}
+
+.chapter-content-render h2,
+.chapter-content h2,
+.chapter-text h2 { 
+  font-size: 1.3em !important; 
+}
+
+.chapter-content-render h3,
+.chapter-content h3,
+.chapter-text h3 { 
+  font-size: 1.1em !important; 
+}
+
+/* For narrative content, add first-line indent (optional) */
+.chapter-content-narrative p + p,
+.chapter-content-story p + p {
+  text-indent: 1.25em;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .chapter-content-preview blockquote,
+  .chapter-content-render blockquote,
+  .chapter-content blockquote,
+  .chapter-text blockquote {
+    border-left-color: #6b7280 !important;
+  }
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  .chapter-content-render p,
+  .chapter-content p,
+  .chapter-text p {
+    margin: 1em 0 !important;
+  }
+  
+  .chapter-content-render,
+  .chapter-content,
+  .chapter-text {
+    line-height: 1.6;
+  }
+}
+
+/* Fix for Quill editor paragraph spacing in preview */
+.ql-editor p {
+  margin: 1.2em 0 !important;
+  line-height: 1.7 !important;
+}
+
+.ql-editor p:first-child {
+  margin-top: 0 !important;
+}
+
+.ql-editor p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Ensure proper spacing even if content uses divs instead of paragraphs */
+.chapter-content-render div,
+.chapter-content div,
+.chapter-text div {
+  margin: 0.8em 0;
+}
+
+/* Override any global CSS resets that might remove paragraph margins */
+.chapter-content-container p,
+.chapter-display p,
+.reading-content p {
+  margin: 1.2em 0 !important;
+  line-height: 1.7 !important;
+}

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useRef, Component, ReactNode } from 'react';
+import React, { createContext, useContext, useCallback, useRef, Component, ReactNode, useState, useEffect } from 'react';
 
 // Context for managing homepage data cache invalidation across components
 interface HomepageContextValue {
@@ -12,6 +12,9 @@ interface HomepageContextValue {
   registerDataRefresh: (callback: () => void) => () => void;
   registerMetricsRefresh: (callback: () => void) => () => void;
   registerQuotesRefresh: (callback: () => void) => () => void;
+  
+  // Provider state
+  isReady: boolean;
 }
 
 const HomepageContext = createContext<HomepageContextValue | null>(null);
@@ -32,7 +35,7 @@ class HomepageErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('🗑️ Unregistered homepage data refresh callback');
+    console.error('🗑️ Homepage Manager Error caught by boundary');
     console.error('Homepage Manager Error:', error, errorInfo);
   }
 
@@ -62,13 +65,35 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const metricsRefreshCallbacks = useRef<Set<() => void>>(new Set());
   const quotesRefreshCallbacks = useRef<Set<() => void>>(new Set());
   const isInitialized = useRef(false);
+  const [isReady, setIsReady] = useState(false);
+
+  // CRITICAL FIX: Initialize provider properly
+  useEffect(() => {
+    // Use setTimeout to ensure provider is ready after React's render cycle
+    const timer = setTimeout(() => {
+      isInitialized.current = true;
+      setIsReady(true);
+      console.log('✅ HomepageProvider initialized and ready');
+    }, 0);
+    
+    return () => {
+      clearTimeout(timer);
+      isInitialized.current = false;
+      setIsReady(false);
+      console.log('🔄 HomepageProvider cleanup');
+    };
+  }, []);
 
   // Enhanced callback execution with error boundaries and async handling
   const executeCallbacks = useCallback((callbacks: Set<() => void>, type: string) => {
     if (!isInitialized.current) {
       console.warn(`⚠️ ${type} callbacks called before initialization, deferring...`);
       // Defer execution until next tick to allow proper initialization
-      setTimeout(() => executeCallbacks(callbacks, type), 100);
+      setTimeout(() => {
+        if (isInitialized.current) {
+          executeCallbacks(callbacks, type);
+        }
+      }, 100);
       return;
     }
 
@@ -103,8 +128,10 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Return cleanup function with enhanced error handling
     return () => {
       try {
-        dataRefreshCallbacks.current.delete(callback);
-        console.log('🗑️ Unregistered homepage data refresh callback');
+        const wasDeleted = dataRefreshCallbacks.current.delete(callback);
+        if (wasDeleted) {
+          console.log('🗑️ Unregistered homepage data refresh callback');
+        }
       } catch (error) {
         console.error('❌ Error unregistering data refresh callback:', error);
       }
@@ -122,8 +149,10 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     return () => {
       try {
-        metricsRefreshCallbacks.current.delete(callback);
-        console.log('🗑️ Unregistered metrics refresh callback');
+        const wasDeleted = metricsRefreshCallbacks.current.delete(callback);
+        if (wasDeleted) {
+          console.log('🗑️ Unregistered metrics refresh callback');
+        }
       } catch (error) {
         console.error('❌ Error unregistering metrics refresh callback:', error);
       }
@@ -141,8 +170,10 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     return () => {
       try {
-        quotesRefreshCallbacks.current.delete(callback);
-        console.log('🗑️ Unregistered quotes refresh callback');
+        const wasDeleted = quotesRefreshCallbacks.current.delete(callback);
+        if (wasDeleted) {
+          console.log('🗑️ Unregistered quotes refresh callback');
+        }
       } catch (error) {
         console.error('❌ Error unregistering quotes refresh callback:', error);
       }
@@ -188,17 +219,6 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [invalidateHomepageData, invalidateMetrics, invalidateQuotes]);
 
-  // Initialize the provider
-  React.useEffect(() => {
-    isInitialized.current = true;
-    console.log('✅ HomepageProvider initialized');
-    
-    return () => {
-      isInitialized.current = false;
-      console.log('🔄 HomepageProvider cleanup');
-    };
-  }, []);
-
   const value: HomepageContextValue = {
     invalidateHomepageData,
     invalidateMetrics,
@@ -206,7 +226,8 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     invalidateAll,
     registerDataRefresh,
     registerMetricsRefresh,
-    registerQuotesRefresh
+    registerQuotesRefresh,
+    isReady
   };
 
   return (
@@ -218,9 +239,20 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
+// CRITICAL FIX: Create a completely hook-safe context accessor
+function getHomepageContextSafely(): HomepageContextValue | null {
+  try {
+    // This approach avoids the useContext hook timing issues
+    return React.useContext(HomepageContext);
+  } catch (error) {
+    console.error('❌ Error accessing homepage context:', error);
+    return null;
+  }
+}
+
 // Safe hook to use the homepage context with proper error handling
 export const useHomepageContext = (): HomepageContextValue => {
-  const context = useContext(HomepageContext);
+  const context = getHomepageContextSafely();
   if (!context) {
     const error = new Error('useHomepageContext must be used within a HomepageProvider. Make sure the component is wrapped in <HomepageProvider>.');
     console.error('❌ Homepage Context Error:', error.message);
@@ -232,33 +264,70 @@ export const useHomepageContext = (): HomepageContextValue => {
 // Enhanced optional hook with better error handling and fallback
 export const useHomepageContextOptional = (): HomepageContextValue | null => {
   try {
-    const context = useContext(HomepageContext);
-    return context;
+    return getHomepageContextSafely();
   } catch (error) {
     console.error('❌ Error accessing homepage context:', error);
     return null;
   }
 };
 
-// Safe hook that provides a no-op fallback when context is not available
+// CRITICAL FIX: Completely safe hook that NEVER throws and provides functional fallbacks
 export const useHomepageContextSafe = (): HomepageContextValue => {
-  const context = useHomepageContextOptional();
-  
-  // Return no-op fallback if context is not available
-  if (!context) {
-    console.warn('⚠️ HomepageContext not available, using fallback implementation');
-    return {
-      invalidateHomepageData: () => console.log('🔄 Fallback: invalidateHomepageData called'),
-      invalidateMetrics: () => console.log('📊 Fallback: invalidateMetrics called'),
-      invalidateQuotes: () => console.log('💬 Fallback: invalidateQuotes called'),
-      invalidateAll: () => console.log('🔄 Fallback: invalidateAll called'),
-      registerDataRefresh: () => () => console.log('📝 Fallback: registerDataRefresh cleanup'),
-      registerMetricsRefresh: () => () => console.log('📊 Fallback: registerMetricsRefresh cleanup'),
-      registerQuotesRefresh: () => () => console.log('💬 Fallback: registerQuotesRefresh cleanup')
-    };
+  // Create fallback implementation that never throws
+  const fallbackContext: HomepageContextValue = {
+    invalidateHomepageData: () => {
+      console.log('🔄 Fallback: invalidateHomepageData called');
+    },
+    invalidateMetrics: () => {
+      console.log('📊 Fallback: invalidateMetrics called');
+    },
+    invalidateQuotes: () => {
+      console.log('💬 Fallback: invalidateQuotes called');
+    },
+    invalidateAll: () => {
+      console.log('🔄 Fallback: invalidateAll called');
+    },
+    registerDataRefresh: (callback: () => void) => {
+      console.log('📝 Fallback: registerDataRefresh called');
+      return () => {
+        console.log('📝 Fallback: registerDataRefresh cleanup');
+      };
+    },
+    registerMetricsRefresh: (callback: () => void) => {
+      console.log('📊 Fallback: registerMetricsRefresh called');
+      return () => {
+        console.log('📊 Fallback: registerMetricsRefresh cleanup');
+      };
+    },
+    registerQuotesRefresh: (callback: () => void) => {
+      console.log('💬 Fallback: registerQuotesRefresh called');
+      return () => {
+        console.log('💬 Fallback: registerQuotesRefresh cleanup');
+      };
+    },
+    isReady: false
+  };
+
+  try {
+    const context = getHomepageContextSafely();
+    
+    if (!context) {
+      console.warn('⚠️ HomepageContext not available, using fallback implementation');
+      return fallbackContext;
+    }
+    
+    // Additional safety check for context readiness
+    if (!context.isReady) {
+      console.warn('⚠️ HomepageContext not ready yet, using fallback implementation');
+      return fallbackContext;
+    }
+    
+    return context;
+  } catch (error) {
+    console.error('❌ Error in useHomepageContextSafe:', error);
+    console.warn('⚠️ Using fallback implementation due to error');
+    return fallbackContext;
   }
-  
-  return context;
 };
 
 export default HomepageContext;

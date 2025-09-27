@@ -30,8 +30,8 @@ import {
 } from 'lucide-react';
 import { useBlogMetadata } from '../../hooks/useBlogData';
 import { supabase } from '../../lib/supabase';
-// NEW: Add the crop button component
-import ImageCropButton from '../../components/ImageCropButton';
+// Import the advanced image cropping component
+import ImageInputWithCropping, { CROP_PRESETS, FileRecord } from '../../components/ImageInputWithCropping';
 
 interface BlogPostData {
   id?: string;
@@ -54,8 +54,6 @@ interface BlogPostData {
 export default function BlogEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const socialImageInputRef = useRef<HTMLInputElement>(null);
   const isEditing = id !== 'new';
 
   const [formData, setFormData] = useState<BlogPostData>({
@@ -67,6 +65,10 @@ export default function BlogEditorPage() {
     is_featured: false,
     tag_ids: []
   });
+
+  // Image state management
+  const [featuredImageFile, setFeaturedImageFile] = useState<FileRecord | null>(null);
+  const [socialImageFile, setSocialImageFile] = useState<FileRecord | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -117,6 +119,31 @@ export default function BlogEditorPage() {
         ...data,
         tag_ids: tagIds
       });
+
+      // Load existing images if they exist
+      if (data.featured_image) {
+        // Try to find the file record for existing images
+        // This is a fallback for existing blog posts
+        setFeaturedImageFile({
+          id: 'legacy-featured',
+          name: 'Featured Image',
+          original_name: 'featured-image.jpg',
+          url: data.featured_image,
+          type: 'images',
+          mime_type: 'image/jpeg'
+        } as FileRecord);
+      }
+
+      if (data.social_image) {
+        setSocialImageFile({
+          id: 'legacy-social',
+          name: 'Social Image',
+          original_name: 'social-image.jpg',
+          url: data.social_image,
+          type: 'images',
+          mime_type: 'image/jpeg'
+        } as FileRecord);
+      }
     } catch (error) {
       console.error('Error loading post:', error);
       alert('Failed to load post');
@@ -141,45 +168,96 @@ export default function BlogEditorPage() {
     }));
   };
 
-  const uploadImage = async (file: File, type: 'featured' | 'social' = 'featured') => {
+  // Handle image changes from the cropping component
+  const handleFeaturedImageChange = (fileRecord: FileRecord | null, url: string | null) => {
+    setFeaturedImageFile(fileRecord);
+    setFormData(prev => ({ ...prev, featured_image: url || undefined }));
+  };
+
+  const handleSocialImageChange = (fileRecord: FileRecord | null, url: string | null) => {
+    setSocialImageFile(fileRecord);
+    setFormData(prev => ({ ...prev, social_image: url || undefined }));
+  };
+
+  // Handle processed images from cropping
+  const handleFeaturedImageProcessed = async (croppedBlob: Blob, originalFile: FileRecord) => {
     try {
       setUploading(true);
       
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      // Upload cropped image to blog-images bucket
+      const timestamp = Date.now();
+      const fileName = `featured-${timestamp}.jpg`;
       const filePath = `blog-images/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('blog-images')
-        .upload(filePath, file);
+        .upload(filePath, croppedBlob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('blog-images')
         .getPublicUrl(filePath);
 
-      if (type === 'featured') {
-        setFormData(prev => ({ ...prev, featured_image: publicUrl }));
-      } else {
-        setFormData(prev => ({ ...prev, social_image: publicUrl }));
-      }
+      // Update form data and file record
+      setFormData(prev => ({ ...prev, featured_image: publicUrl }));
+      setFeaturedImageFile({
+        ...originalFile,
+        id: `cropped-${timestamp}`,
+        name: fileName,
+        url: publicUrl,
+        storage_path: filePath
+      });
     } catch (error) {
-      console.error('Error uploading image:', error);
-      alert('Failed to upload image');
+      console.error('Error uploading featured image:', error);
+      alert('Failed to upload featured image');
     } finally {
       setUploading(false);
     }
   };
 
-  // NEW: Handle cropped image for featured image
-  const handleFeaturedImageCrop = (croppedFile: File) => {
-    uploadImage(croppedFile, 'featured');
-  };
+  const handleSocialImageProcessed = async (croppedBlob: Blob, originalFile: FileRecord) => {
+    try {
+      setUploading(true);
+      
+      // Upload cropped image to blog-images bucket
+      const timestamp = Date.now();
+      const fileName = `social-${timestamp}.jpg`;
+      const filePath = `blog-images/${fileName}`;
 
-  // NEW: Handle cropped image for social image
-  const handleSocialImageCrop = (croppedFile: File) => {
-    uploadImage(croppedFile, 'social');
+      const { error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(filePath, croppedBlob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(filePath);
+
+      // Update form data and file record
+      setFormData(prev => ({ ...prev, social_image: publicUrl }));
+      setSocialImageFile({
+        ...originalFile,
+        id: `cropped-${timestamp}`,
+        name: fileName,
+        url: publicUrl,
+        storage_path: filePath
+      });
+    } catch (error) {
+      console.error('Error uploading social image:', error);
+      alert('Failed to upload social image');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleTagToggle = (tagId: string) => {
@@ -426,64 +504,29 @@ export default function BlogEditorPage() {
               />
             </div>
 
-            {/* Featured Image - ENHANCED with cropping */}
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Featured Image
-              </label>
-              {formData.featured_image ? (
-                <div className="relative">
-                  <img
-                    src={formData.featured_image}
-                    alt="Featured"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  {/* NEW: Crop button overlay */}
-                  <div className="absolute top-2 left-2">
-                    <ImageCropButton
-                      imageUrl={formData.featured_image}
-                      onCropComplete={handleFeaturedImageCrop}
-                      aspectRatio={16/9} // Blog featured images work best in landscape
-                      buttonText="✂️ Crop"
-                      className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-2 py-1"
-                    />
-                  </div>
-                  <button
-                    onClick={() => setFormData(prev => ({ ...prev, featured_image: undefined }))}
-                    className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+            {/* Featured Image - Enhanced with Advanced Cropping */}
+            <ImageInputWithCropping
+              label="Featured Image"
+              value={featuredImageFile}
+              onChange={handleFeaturedImageChange}
+              placeholder="Select a featured image for your blog post"
+              enableCropping={true}
+              cropConfig={CROP_PRESETS.landscape} // 16:9 ratio perfect for blog headers
+              cropPresets={['landscape', 'square', 'free']}
+              onImageProcessed={handleFeaturedImageProcessed}
+              showPreview={true}
+              previewSize="large"
+              className="w-full"
+            />
+            
+            {uploading && (
+              <div className="text-center py-2">
+                <div className="inline-flex items-center gap-2 text-blue-600">
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm">Processing image...</span>
                 </div>
-              ) : (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="w-full h-48 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors disabled:opacity-50"
-                >
-                  {uploading ? (
-                    <>
-                      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
-                      <span>Uploading...</span>
-                    </>
-                  ) : (
-                    <>
-                      <ImageIcon className="w-8 h-8 mb-2" />
-                      <span>Click to upload featured image</span>
-                      {/* NEW: Cropping indicator */}
-                      <span className="text-xs text-purple-600 mt-1">✂️ Cropping available after upload</span>
-                    </>
-                  )}
-                </button>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'featured')}
-                className="hidden"
-              />
-            </div>
+              </div>
+            )}
 
             {/* Content Editor */}
             <div>
@@ -650,56 +693,20 @@ export default function BlogEditorPage() {
                   />
                 </div>
                 
-                {/* Social Image - ENHANCED with cropping */}
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">
-                    Social Image
-                  </label>
-                  {formData.social_image ? (
-                    <div className="relative">
-                      <img
-                        src={formData.social_image}
-                        alt="Social"
-                        className="w-full h-20 object-cover rounded-lg"
-                      />
-                      {/* NEW: Crop button for social image */}
-                      <div className="absolute top-1 left-1">
-                        <ImageCropButton
-                          imageUrl={formData.social_image}
-                          onCropComplete={handleSocialImageCrop}
-                          aspectRatio={1} // Square works great for social media
-                          buttonText="✂️"
-                          className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-1.5 py-0.5"
-                        />
-                      </div>
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, social_image: undefined }))}
-                        className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => socialImageInputRef.current?.click()}
-                      className="w-full h-20 border-2 border-dashed border-border rounded-lg flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors text-sm"
-                    >
-                      <ImageIcon className="w-4 h-4 mr-2" />
-                      Upload Image
-                    </button>
-                  )}
-                  <input
-                    ref={socialImageInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => e.target.files?.[0] && uploadImage(e.target.files[0], 'social')}
-                    className="hidden"
-                  />
-                  {/* NEW: Cropping info */}
-                  {formData.social_image && (
-                    <p className="text-xs text-purple-600 mt-1">✂️ Click crop button to adjust for social media</p>
-                  )}
-                </div>
+                {/* Social Image - Enhanced with Advanced Cropping */}
+                <ImageInputWithCropping
+                  label="Social Media Image"
+                  value={socialImageFile}
+                  onChange={handleSocialImageChange}
+                  placeholder="Select an image for social media sharing"
+                  enableCropping={true}
+                  cropConfig={CROP_PRESETS.square} // 1:1 ratio perfect for social media
+                  cropPresets={['square', 'landscape']}
+                  onImageProcessed={handleSocialImageProcessed}
+                  showPreview={true}
+                  previewSize="small"
+                  className="w-full"
+                />
               </div>
             )}
           </div>

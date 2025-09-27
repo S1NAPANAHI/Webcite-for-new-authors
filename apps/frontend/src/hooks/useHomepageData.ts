@@ -3,6 +3,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@zoroaster/shared/supabaseClient';
+// CRITICAL FIX: Add missing import for context hook
+import { useHomepageContextOptional } from '../contexts/HomepageContext';
 
 // Types
 export interface HomepageContent {
@@ -54,6 +56,44 @@ export interface HomepageData {
     show_progress_metrics: boolean;
   };
 }
+
+// Global update system for homepage data
+let homepageUpdateListeners: Array<() => void> = [];
+let lastHomepageRefresh = 0;
+
+// CRITICAL FIX: Add missing helper functions referenced in the code
+const addCacheBuster = (url: string) => {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}cb=${Date.now()}`;
+};
+
+const useHomepageUpdateListener = (callback: () => void) => {
+  useEffect(() => {
+    homepageUpdateListeners.push(callback);
+    return () => {
+      homepageUpdateListeners = homepageUpdateListeners.filter(cb => cb !== callback);
+    };
+  }, [callback]);
+  
+  return () => {
+    homepageUpdateListeners = homepageUpdateListeners.filter(cb => cb !== callback);
+  };
+};
+
+const triggerHomepageUpdate = () => {
+  console.log('📢 Triggering homepage update listeners...');
+  homepageUpdateListeners.forEach(listener => {
+    try {
+      listener();
+    } catch (error) {
+      console.error('❌ Homepage update listener error:', error);
+    }
+  });
+};
+
+const markHomepageRefreshed = () => {
+  lastHomepageRefresh = Date.now();
+};
 
 // API Base URL - Fixed to use correct backend URL
 const getApiBase = () => {
@@ -206,8 +246,14 @@ export const useHomepageData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Get context for cache invalidation (optional)
-  const homepageContext = useHomepageContextOptional();
+  // CRITICAL FIX: Get context for cache invalidation with proper error handling
+  let homepageContext;
+  try {
+    homepageContext = useHomepageContextOptional();
+  } catch (error) {
+    console.warn('⚠️ Homepage context not available, continuing without context integration:', error);
+    homepageContext = null;
+  }
 
   const fetchHomepageData = useCallback(async (force = false) => {
     try {
@@ -305,11 +351,15 @@ export const useHomepageData = () => {
     }
   }, []);
 
-  // Register for cache invalidation via context
+  // Register for cache invalidation via context (safely)
   useEffect(() => {
-    if (homepageContext) {
-      const cleanup = homepageContext.registerDataRefresh(() => fetchHomepageData(true));
-      return cleanup;
+    if (homepageContext && typeof homepageContext.registerDataRefresh === 'function') {
+      try {
+        const cleanup = homepageContext.registerDataRefresh(() => fetchHomepageData(true));
+        return cleanup;
+      } catch (error) {
+        console.warn('⚠️ Failed to register data refresh callback:', error);
+      }
     }
   }, [homepageContext, fetchHomepageData]);
 
@@ -341,8 +391,14 @@ export const useHomepageMetrics = (autoRefresh = false, intervalMs = 60000) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Get context for cache invalidation (optional)
-  const homepageContext = useHomepageContextOptional();
+  // CRITICAL FIX: Get context for cache invalidation with proper error handling
+  let homepageContext;
+  try {
+    homepageContext = useHomepageContextOptional();
+  } catch (error) {
+    console.warn('⚠️ Homepage context not available for metrics hook:', error);
+    homepageContext = null;
+  }
 
   const fetchMetrics = useCallback(async () => {
     try {
@@ -390,11 +446,15 @@ export const useHomepageMetrics = (autoRefresh = false, intervalMs = 60000) => {
     }
   }, []);
 
-  // Register for cache invalidation
+  // Register for cache invalidation (safely)
   useEffect(() => {
-    if (homepageContext) {
-      const cleanup = homepageContext.registerMetricsRefresh(fetchMetrics);
-      return cleanup;
+    if (homepageContext && typeof homepageContext.registerMetricsRefresh === 'function') {
+      try {
+        const cleanup = homepageContext.registerMetricsRefresh(fetchMetrics);
+        return cleanup;
+      } catch (error) {
+        console.warn('⚠️ Failed to register metrics refresh callback:', error);
+      }
     }
   }, [homepageContext, fetchMetrics]);
 
@@ -421,8 +481,14 @@ export const useHomepageQuotes = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Get context for cache invalidation (optional)
-  const homepageContext = useHomepageContextOptional();
+  // CRITICAL FIX: Get context for cache invalidation with proper error handling
+  let homepageContext;
+  try {
+    homepageContext = useHomepageContextOptional();
+  } catch (error) {
+    console.warn('⚠️ Homepage context not available for quotes hook:', error);
+    homepageContext = null;
+  }
 
   const fetchQuotes = useCallback(async () => {
     try {
@@ -479,11 +545,15 @@ export const useHomepageQuotes = () => {
     }
   }, []);
 
-  // Register for cache invalidation
+  // Register for cache invalidation (safely)
   useEffect(() => {
-    if (homepageContext) {
-      const cleanup = homepageContext.registerQuotesRefresh(fetchQuotes);
-      return cleanup;
+    if (homepageContext && typeof homepageContext.registerQuotesRefresh === 'function') {
+      try {
+        const cleanup = homepageContext.registerQuotesRefresh(fetchQuotes);
+        return cleanup;
+      } catch (error) {
+        console.warn('⚠️ Failed to register quotes refresh callback:', error);
+      }
     }
   }, [homepageContext, fetchQuotes]);
 
@@ -504,8 +574,14 @@ export const useHomepageAdmin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Get context for cache invalidation
-  const homepageContext = useHomepageContextOptional();
+  // CRITICAL FIX: Get context for cache invalidation with proper error handling
+  let homepageContext;
+  try {
+    homepageContext = useHomepageContextOptional();
+  } catch (error) {
+    console.warn('⚠️ Homepage context not available for admin hook:', error);
+    homepageContext = null;
+  }
 
   const getAuthToken = async () => {
     if (!supabase) throw new Error('Supabase client not available');
@@ -571,9 +647,13 @@ export const useHomepageAdmin = () => {
       triggerHomepageUpdate();
       
       // Also use context if available
-      if (homepageContext) {
-        console.log('🔄 Invalidating homepage caches after content update...');
-        homepageContext.invalidateAll();
+      if (homepageContext && typeof homepageContext.invalidateAll === 'function') {
+        try {
+          console.log('🔄 Invalidating homepage caches after content update...');
+          homepageContext.invalidateAll();
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate caches via context:', error);
+        }
       }
       
       return response;
@@ -631,9 +711,13 @@ export const useHomepageAdmin = () => {
       // Trigger cache invalidation
       triggerHomepageUpdate();
       
-      if (homepageContext) {
-        console.log('🔄 Invalidating metrics cache after update...');
-        homepageContext.invalidateMetrics();
+      if (homepageContext && typeof homepageContext.invalidateMetrics === 'function') {
+        try {
+          console.log('🔄 Invalidating metrics cache after update...');
+          homepageContext.invalidateMetrics();
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate metrics cache via context:', error);
+        }
       }
       
       return response;
@@ -719,9 +803,13 @@ export const useHomepageAdmin = () => {
       // Trigger cache invalidation
       triggerHomepageUpdate();
       
-      if (homepageContext) {
-        console.log('🔄 Invalidating caches after metrics calculation...');
-        homepageContext.invalidateAll();
+      if (homepageContext && typeof homepageContext.invalidateAll === 'function') {
+        try {
+          console.log('🔄 Invalidating caches after metrics calculation...');
+          homepageContext.invalidateAll();
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate caches via context:', error);
+        }
       }
       
       return response;
@@ -760,9 +848,13 @@ export const useHomepageAdmin = () => {
       // Trigger cache invalidation
       triggerHomepageUpdate();
       
-      if (homepageContext) {
-        console.log('🔄 Invalidating quotes cache after add...');
-        homepageContext.invalidateQuotes();
+      if (homepageContext && typeof homepageContext.invalidateQuotes === 'function') {
+        try {
+          console.log('🔄 Invalidating quotes cache after add...');
+          homepageContext.invalidateQuotes();
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate quotes cache via context:', error);
+        }
       }
       
       return { success: true, data };
@@ -799,9 +891,13 @@ export const useHomepageAdmin = () => {
       // Trigger cache invalidation
       triggerHomepageUpdate();
       
-      if (homepageContext) {
-        console.log('🔄 Invalidating quotes cache after update...');
-        homepageContext.invalidateQuotes();
+      if (homepageContext && typeof homepageContext.invalidateQuotes === 'function') {
+        try {
+          console.log('🔄 Invalidating quotes cache after update...');
+          homepageContext.invalidateQuotes();
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate quotes cache via context:', error);
+        }
       }
       
       return { success: true, data };
@@ -833,9 +929,13 @@ export const useHomepageAdmin = () => {
       // Trigger cache invalidation
       triggerHomepageUpdate();
       
-      if (homepageContext) {
-        console.log('🔄 Invalidating quotes cache after delete...');
-        homepageContext.invalidateQuotes();
+      if (homepageContext && typeof homepageContext.invalidateQuotes === 'function') {
+        try {
+          console.log('🔄 Invalidating quotes cache after delete...');
+          homepageContext.invalidateQuotes();
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate quotes cache via context:', error);
+        }
       }
       
       return { success: true };

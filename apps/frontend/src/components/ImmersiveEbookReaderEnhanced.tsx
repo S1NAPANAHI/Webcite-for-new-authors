@@ -28,7 +28,10 @@ import {
   Coffee,
   Palette,
   Type,
-  AlignLeft
+  AlignLeft,
+  Keyboard,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import { useAuth } from '@zoroaster/shared';
 import { supabase } from '../lib/supabase';
@@ -287,6 +290,108 @@ function StatusIndicator({ message, type = 'info' }: { message: string; type?: '
   );
 }
 
+// 🎯 NEW: Keyboard Shortcuts Help Component
+function KeyboardShortcutsHelp({ isOpen, onClose, theme }: { isOpen: boolean; onClose: () => void; theme: string }) {
+  if (!isOpen) return null;
+
+  const shortcuts = [
+    { key: '←/→', description: 'Navigate pages' },
+    { key: 'Space', description: 'Next page' },
+    { key: 'T', description: 'Toggle sidebar' },
+    { key: 'S', description: 'Open settings' },
+    { key: 'M', description: 'Toggle focus mode' },
+    { key: 'F', description: 'Toggle fullscreen' },
+    { key: 'G', description: 'Go to first page' },
+    { key: 'Shift+G', description: 'Go to last page' },
+    { key: 'H', description: 'Previous page (Vim)' },
+    { key: 'L', description: 'Next page (Vim)' },
+    { key: 'ESC', description: 'Exit reader' },
+    { key: '?', description: 'Show this help' }
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[2147483647] flex items-center justify-center p-4">
+      <div className={`w-full max-w-md rounded-2xl shadow-2xl overflow-hidden ${
+        theme === 'dark' || theme === 'night' 
+          ? 'bg-gray-800 border border-gray-700' 
+          : 'bg-white border border-gray-200'
+      }`}>
+        {/* Header */}
+        <div className={`p-6 border-b ${
+          theme === 'dark' || theme === 'night' 
+            ? 'border-gray-700 bg-gray-800' 
+            : 'border-gray-100 bg-gray-50'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-lg bg-blue-500 text-white">
+                <Keyboard className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className={`text-lg font-bold ${
+                  theme === 'dark' || theme === 'night' ? 'text-white' : 'text-gray-900'
+                }`}>
+                  Keyboard Shortcuts
+                </h3>
+                <p className={`text-sm ${
+                  theme === 'dark' || theme === 'night' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  Power user shortcuts for faster reading
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-lg transition-colors ${
+                theme === 'dark' || theme === 'night' 
+                  ? 'hover:bg-gray-700 text-gray-300' 
+                  : 'hover:bg-gray-100 text-gray-600'
+              }`}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Shortcuts List */}
+        <div className="p-6 max-h-96 overflow-y-auto">
+          <div className="space-y-3">
+            {shortcuts.map((shortcut, index) => (
+              <div key={index} className="flex items-center justify-between py-2">
+                <span className={`text-sm ${
+                  theme === 'dark' || theme === 'night' ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  {shortcut.description}
+                </span>
+                <kbd className={`px-3 py-1 text-xs font-mono font-bold rounded-lg ${
+                  theme === 'dark' || theme === 'night' 
+                    ? 'bg-gray-700 text-gray-200 border border-gray-600' 
+                    : 'bg-gray-100 text-gray-800 border border-gray-300'
+                }`}>
+                  {shortcut.key}
+                </kbd>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className={`px-6 py-4 border-t ${
+          theme === 'dark' || theme === 'night' 
+            ? 'border-gray-700 bg-gray-800' 
+            : 'border-gray-100 bg-gray-50'
+        }`}>
+          <p className={`text-xs text-center ${
+            theme === 'dark' || theme === 'night' ? 'text-gray-400' : 'text-gray-500'
+          }`}>
+            💡 Tip: These shortcuts work when reading content
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhancedProps> = ({ 
   chapter, 
   onChapterChange,
@@ -296,6 +401,7 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
 }) => {
   const { user } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isFullscreen, setFullscreen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -455,7 +561,7 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
   // Enhanced keyboard navigation
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (showSettings || isSidebarOpen) return;
+      if (showSettings || showKeyboardHelp || isSidebarOpen) return;
       
       switch (e.key) {
         case 'ArrowLeft':
@@ -520,12 +626,16 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
           setSettings(prev => ({ ...prev, focusMode: !prev.focusMode }));
           setStatusMessage(settings.focusMode ? 'Focus mode disabled' : 'Focus mode enabled');
           break;
+        case '?':
+          e.preventDefault();
+          setShowKeyboardHelp(true);
+          break;
       }
     };
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [currentPage, totalPages, showSettings, isSidebarOpen, onChapterChange, navigationInfo, goToPage, onExit, isFullscreen, settings.focusMode]);
+  }, [currentPage, totalPages, showSettings, showKeyboardHelp, isSidebarOpen, onChapterChange, navigationInfo, goToPage, onExit, isFullscreen, settings.focusMode]);
 
   // Reading time tracker
   useEffect(() => {
@@ -624,35 +734,50 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
           bg: 'linear-gradient(135deg, #fff 0%, #f9fafb 100%)', 
           text: '#2d3748', 
           accent: 'rgba(45, 55, 72, 0.1)',
-          glass: 'rgba(255, 255, 255, 0.15)'
+          glass: 'rgba(255, 255, 255, 0.15)',
+          settingsBg: 'rgba(255, 255, 255, 0.95)',
+          settingsText: '#1f2937',
+          settingsBorder: 'rgba(0, 0, 0, 0.1)'
         };
       case 'dark':
         return { 
           bg: 'linear-gradient(135deg, #1a202c 0%, #2d3748 100%)', 
           text: '#e2e8f0', 
           accent: 'rgba(226, 232, 240, 0.1)',
-          glass: 'rgba(0, 0, 0, 0.15)'
+          glass: 'rgba(0, 0, 0, 0.15)',
+          settingsBg: 'rgba(31, 41, 55, 0.95)',
+          settingsText: '#f9fafb',
+          settingsBorder: 'rgba(255, 255, 255, 0.1)'
         };
       case 'sepia':
         return { 
           bg: 'linear-gradient(135deg, #fef7ed 0%, #fed7aa 100%)', 
           text: '#8b4513', 
           accent: 'rgba(139, 69, 19, 0.1)',
-          glass: 'rgba(139, 69, 19, 0.05)'
+          glass: 'rgba(139, 69, 19, 0.05)',
+          settingsBg: 'rgba(254, 243, 199, 0.95)',
+          settingsText: '#92400e',
+          settingsBorder: 'rgba(139, 69, 19, 0.2)'
         };
       case 'night':
         return { 
           bg: 'linear-gradient(135deg, #0f1419 0%, #1a1a2e 100%)', 
           text: '#cbd5e0', 
           accent: 'rgba(203, 213, 224, 0.1)',
-          glass: 'rgba(0, 0, 0, 0.3)'
+          glass: 'rgba(0, 0, 0, 0.3)',
+          settingsBg: 'rgba(15, 20, 25, 0.95)',
+          settingsText: '#e5e7eb',
+          settingsBorder: 'rgba(255, 255, 255, 0.1)'
         };
       default:
         return { 
           bg: 'linear-gradient(135deg, #fef7ed 0%, #fed7aa 100%)', 
           text: '#8b4513', 
           accent: 'rgba(139, 69, 19, 0.1)',
-          glass: 'rgba(139, 69, 19, 0.05)'
+          glass: 'rgba(139, 69, 19, 0.05)',
+          settingsBg: 'rgba(254, 243, 199, 0.95)',
+          settingsText: '#92400e',
+          settingsBorder: 'rgba(139, 69, 19, 0.2)'
         };
     }
   };
@@ -800,6 +925,15 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
             
             <div className="flex items-center space-x-2">
               <button
+                onClick={() => setShowKeyboardHelp(true)}
+                className="reader-fab"
+                style={{ position: 'relative', background: themeColors.glass }}
+                title="Keyboard Shortcuts (?)"
+              >
+                <HelpCircle className="w-4 h-4" />
+              </button>
+              
+              <button
                 onClick={() => setSettings(prev => ({ ...prev, focusMode: !prev.focusMode }))}
                 className="reader-fab"
                 style={{ position: 'relative', background: themeColors.glass }}
@@ -839,14 +973,14 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
         </div>
       )}
 
-      {/* Enhanced Main Reading Area */}
+      {/* Enhanced Main Reading Area with Proper Scrolling */}
       <div 
-        className={`${settings.focusMode ? 'pt-8' : 'pt-24'} h-full flex items-start justify-center overflow-hidden`}
+        className={`${settings.focusMode ? 'pt-8' : 'pt-24'} h-full flex items-start justify-center`}
         style={{
           paddingBottom: settings.focusMode ? '60px' : 'calc(120px + var(--reader-footer-height, 0px) + env(safe-area-inset-bottom, 0px))'
         }}
       >
-        <div className="w-full max-w-5xl px-6">
+        <div className="w-full max-w-5xl px-6 h-full">
           <div
             ref={contentRef}
             className={`h-full overflow-y-auto overflow-x-hidden reader-content-enhanced enhanced-scrollbar ${
@@ -995,12 +1129,30 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
         </div>
       )}
 
-      {/* Enhanced Settings Modal */}
+      {/* 🎯 Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsHelp 
+        isOpen={showKeyboardHelp}
+        onClose={() => setShowKeyboardHelp(false)}
+        theme={settings.theme}
+      />
+
+      {/* Enhanced Settings Modal with Theme-Aware Colors */}
       {showSettings && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-[2147483647] flex items-center justify-center p-4 settings-backdrop">
-          <div className="settings-modal-enhanced w-full max-w-3xl max-h-[90vh] overflow-y-auto enhanced-scrollbar">
+          <div 
+            className="w-full max-w-3xl max-h-[90vh] overflow-y-auto enhanced-scrollbar rounded-2xl shadow-2xl border"
+            style={{
+              background: themeColors.settingsBg,
+              backdropFilter: 'blur(30px)',
+              borderColor: themeColors.settingsBorder,
+              color: themeColors.settingsText
+            }}
+          >
             {/* Settings Header */}
-            <div className="settings-section">
+            <div 
+              className="p-6 border-b"
+              style={{ borderColor: themeColors.settingsBorder }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 text-white">
@@ -1021,7 +1173,10 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
             </div>
             
             {/* Theme Selection */}
-            <div className="settings-section">
+            <div 
+              className="p-6 border-b"
+              style={{ borderColor: themeColors.settingsBorder }}
+            >
               <div className="flex items-center space-x-3 mb-4">
                 <Palette className="w-5 h-5" />
                 <h4 className="font-semibold">Reading Theme</h4>
@@ -1048,7 +1203,10 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
             </div>
 
             {/* Typography Settings */}
-            <div className="settings-section">
+            <div 
+              className="p-6 border-b"
+              style={{ borderColor: themeColors.settingsBorder }}
+            >
               <div className="flex items-center space-x-3 mb-6">
                 <Type className="w-5 h-5" />
                 <h4 className="font-semibold">Typography</h4>
@@ -1061,7 +1219,12 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
                   <select
                     value={settings.fontFamily}
                     onChange={(e) => setSettings({ ...settings, fontFamily: e.target.value })}
-                    className="w-full p-3 rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full p-3 rounded-xl border transition-all"
+                    style={{
+                      backgroundColor: settings.theme === 'dark' || settings.theme === 'night' ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      borderColor: themeColors.settingsBorder,
+                      color: themeColors.settingsText
+                    }}
                   >
                     <option value="Georgia, serif">Georgia (Serif)</option>
                     <option value="'Inter', 'Segoe UI', sans-serif">Inter (Sans-serif)</option>
@@ -1083,7 +1246,7 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
                     onChange={(e) => setSettings({ ...settings, fontSize: parseInt(e.target.value) })}
                     className="range-slider-enhanced w-full"
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs opacity-60 mt-1">
                     <span>Small</span>
                     <span>Large</span>
                   </div>
@@ -1103,7 +1266,7 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
                     onChange={(e) => setSettings({ ...settings, lineHeight: parseFloat(e.target.value) })}
                     className="range-slider-enhanced w-full"
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs opacity-60 mt-1">
                     <span>Tight</span>
                     <span>Loose</span>
                   </div>
@@ -1123,7 +1286,7 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
                     onChange={(e) => setSettings({ ...settings, wordsPerPage: parseInt(e.target.value) })}
                     className="range-slider-enhanced w-full"
                   />
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <div className="flex justify-between text-xs opacity-60 mt-1">
                     <span>Few</span>
                     <span>Many</span>
                   </div>
@@ -1132,7 +1295,10 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
             </div>
 
             {/* Layout Settings */}
-            <div className="settings-section">
+            <div 
+              className="p-6 border-b"
+              style={{ borderColor: themeColors.settingsBorder }}
+            >
               <div className="flex items-center space-x-3 mb-6">
                 <AlignLeft className="w-5 h-5" />
                 <h4 className="font-semibold">Layout & Behavior</h4>
@@ -1145,7 +1311,12 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
                   <select
                     value={settings.textAlign}
                     onChange={(e) => setSettings({ ...settings, textAlign: e.target.value as any })}
-                    className="w-full p-3 rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full p-3 rounded-xl border transition-all"
+                    style={{
+                      backgroundColor: settings.theme === 'dark' || settings.theme === 'night' ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      borderColor: themeColors.settingsBorder,
+                      color: themeColors.settingsText
+                    }}
                   >
                     <option value="justify">Justified</option>
                     <option value="left">Left Aligned</option>
@@ -1159,7 +1330,12 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
                   <select
                     value={settings.pageTransition}
                     onChange={(e) => setSettings({ ...settings, pageTransition: e.target.value as any })}
-                    className="w-full p-3 rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    className="w-full p-3 rounded-xl border transition-all"
+                    style={{
+                      backgroundColor: settings.theme === 'dark' || settings.theme === 'night' ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                      borderColor: themeColors.settingsBorder,
+                      color: themeColors.settingsText
+                    }}
                   >
                     <option value="slide">Slide</option>
                     <option value="fade">Fade</option>
@@ -1193,7 +1369,7 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
             </div>
 
             {/* Actions */}
-            <div className="settings-section">
+            <div className="p-6">
               <div className="flex justify-between items-center">
                 <div className="text-sm opacity-70">
                   Settings are saved automatically
@@ -1212,20 +1388,6 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
           </div>
         </div>
       )}
-
-      {/* Enhanced Keyboard Shortcuts Overlay */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
-        <div className="opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/80 backdrop-blur text-white text-xs rounded-xl px-6 py-3">
-          <div className="grid grid-cols-3 gap-x-8 gap-y-1">
-            <span><kbd className="px-1 py-0.5 bg-white/20 rounded text-xs">T</kbd> Sidebar</span>
-            <span><kbd className="px-1 py-0.5 bg-white/20 rounded text-xs">F</kbd> Fullscreen</span>
-            <span><kbd className="px-1 py-0.5 bg-white/20 rounded text-xs">M</kbd> Focus</span>
-            <span><kbd className="px-1 py-0.5 bg-white/20 rounded text-xs">←→</kbd> Pages</span>
-            <span><kbd className="px-1 py-0.5 bg-white/20 rounded text-xs">S</kbd> Settings</span>
-            <span><kbd className="px-1 py-0.5 bg-white/20 rounded text-xs">ESC</kbd> Exit</span>
-          </div>
-        </div>
-      </div>
 
       {/* Enhanced CSS Styles */}
       <style jsx>{`
@@ -1266,6 +1428,29 @@ export const ImmersiveEbookReaderEnhanced: React.FC<ImmersiveEbookReaderEnhanced
         .focus-mode:hover .status-bar-enhanced {
           opacity: 1;
           pointer-events: auto;
+        }
+        
+        /* Improved scrolling for content area */
+        .enhanced-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(102, 126, 234, 0.3) transparent;
+        }
+        
+        .enhanced-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        .enhanced-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .enhanced-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(102, 126, 234, 0.3);
+          border-radius: 4px;
+        }
+        
+        .enhanced-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(102, 126, 234, 0.5);
         }
         
         kbd {

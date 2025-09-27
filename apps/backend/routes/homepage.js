@@ -137,7 +137,103 @@ router.get('/', requireSupabase, async (req, res) => {
   }
 });
 
-// GET /api/homepage/content - Get homepage content only (ADDED MISSING ENDPOINT)
+// GET /api/homepage/hero - Dedicated hero section endpoint
+router.get('/hero', requireSupabase, async (req, res) => {
+  try {
+    console.log('🏠 GET /api/homepage/hero - Fetching hero section data...');
+    
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .select('hero_title, hero_subtitle, hero_description, hero_quote, cta_button_text, cta_button_link, updated_at')
+      .eq('id', 'homepage')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('❌ Hero fetch error:', error);
+      throw error;
+    }
+
+    // Handle hero content not found gracefully with live site defaults
+    const heroContent = data || {
+      hero_title: 'ZOROASTERVERSE',
+      hero_subtitle: '',
+      hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
+      hero_quote: 'Happiness comes to them who bring happiness to others.',
+      cta_button_text: 'Learn More',
+      cta_button_link: '/blog/about',
+      updated_at: new Date().toISOString()
+    };
+
+    console.log('✅ Hero content fetched successfully');
+    res.json({ success: true, data: heroContent });
+  } catch (error) {
+    console.error('❌ Hero content fetch error:', error);
+    res.status(500).json({ error: error.message || 'Failed to fetch hero content' });
+  }
+});
+
+// PUT /api/homepage/hero - Update hero section only
+router.put('/hero', requireSupabase, async (req, res) => {
+  try {
+    console.log('🏠 PUT /api/homepage/hero - Updating hero section...');
+    console.log('📋 Hero request body:', JSON.stringify(req.body, null, 2));
+    
+    // Map hero-specific fields
+    const updates = {
+      id: 'homepage', // Ensure ID is set
+      updated_at: new Date().toISOString()
+    };
+
+    // Hero section fields with validation
+    if (req.body.hero_title !== undefined) updates.hero_title = String(req.body.hero_title);
+    if (req.body.hero_subtitle !== undefined) updates.hero_subtitle = String(req.body.hero_subtitle || '');
+    if (req.body.hero_description !== undefined) updates.hero_description = String(req.body.hero_description);
+    if (req.body.hero_quote !== undefined) updates.hero_quote = String(req.body.hero_quote);
+    if (req.body.cta_button_text !== undefined) updates.cta_button_text = String(req.body.cta_button_text);
+    if (req.body.cta_button_link !== undefined) updates.cta_button_link = String(req.body.cta_button_link);
+
+    console.log('💾 Hero updates object:', JSON.stringify(updates, null, 2));
+    
+    // Perform the database update
+    console.log('🚀 Executing hero database upsert...');
+    const { data, error } = await supabase
+      .from('homepage_content')
+      .update(updates)
+      .eq('id', 'homepage') 
+      .select()
+      .single();
+
+    if (error) {
+      console.error('❌ CRITICAL: Hero update error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        updates: updates
+      });
+      throw error;
+    }
+    
+    console.log('✅ Hero content updated successfully');
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('❌ CRITICAL: Hero update failed:', {
+      error: error.message,
+      stack: error.stack,
+      supabaseError: error.details || error.hint,
+      requestBody: req.body
+    });
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Failed to update hero content',
+      details: error.details || null,
+      hint: error.hint || null,
+      code: error.code || null
+    });
+  }
+});
+
+// GET /api/homepage/content - Get homepage content only (EXISTING ENDPOINT)
 router.get('/content', requireSupabase, async (req, res) => {
   try {
     console.log('📡 GET /api/homepage/content - Fetching homepage content...');

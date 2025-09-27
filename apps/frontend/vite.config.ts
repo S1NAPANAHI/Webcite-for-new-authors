@@ -21,16 +21,22 @@ export default defineConfig(({ mode }) => {
       alias: [
         { find: '@', replacement: path.resolve(__dirname, './src') },
         { find: '@zoroaster/shared', replacement: path.resolve(__dirname, '../../packages/shared/src') },
+        // CRITICAL: Force single React instance across all packages
         { find: 'react', replacement: path.resolve(__dirname, '../../node_modules/react') },
         { find: 'react-dom', replacement: path.resolve(__dirname, '../../node_modules/react-dom') },
         { find: '@zoroaster/ui/styles.css', replacement: path.resolve(__dirname, '../../packages/ui/dist/style.css') },
       ],
       extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
       preserveSymlinks: false,
+      // CRITICAL FIX: Force React deduplication
+      dedupe: ['react', 'react-dom'],
     },
     optimizeDeps: {
       include: [
-
+        // CRITICAL: Force these into the same bundle to prevent hook errors
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
         'react-router-dom',
         '@supabase/supabase-js',
         '@tanstack/react-query',
@@ -38,6 +44,8 @@ export default defineConfig(({ mode }) => {
         'lucide-react'
       ],
       exclude: ['@zoroaster/shared'],
+      // CRITICAL FIX: Force single React instance in dependencies
+      force: true,
       esbuildOptions: {
         target: 'es2020',
         define: {
@@ -67,52 +75,54 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         external: [],
         output: {
-          // Critical: Manual chunking to optimize bundle sizes
-          manualChunks: {
-            // Core React
-            'react-vendor': ['react', 'react-dom'],
+          // CRITICAL FIX: Manual chunking to ensure single React instance
+          manualChunks: (id) => {
+            // CRITICAL: Always put React in the vendor chunk to prevent duplicates
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'react-vendor';
+            }
             
             // Supabase (separate chunk to avoid conflicts)
-            'supabase': ['@supabase/supabase-js'],
+            if (id.includes('@supabase/supabase-js')) {
+              return 'supabase';
+            }
             
             // React Query
-            'query': ['@tanstack/react-query'],
+            if (id.includes('@tanstack/react-query')) {
+              return 'query';
+            }
             
             // UI Libraries (largest components)
-            'ui-heavy': [
-              '@nextui-org/react',
-              'framer-motion'
-            ],
+            if (id.includes('@nextui-org/react') || id.includes('framer-motion')) {
+              return 'ui-heavy';
+            }
             
             // Editor (massive bundle - separate it)
-            'editor': [
-              'react-quill', 
-              'quill',
-              '@tiptap/react',
-              '@tiptap/starter-kit',
-              '@tiptap/extension-table',
-              '@tiptap/extension-text-style',
-              '@tiptap/extension-color',
-              '@tiptap/extension-image',
-              '@tiptap/extension-link',
-              '@tiptap/extension-text-align'
-            ],
+            if (id.includes('react-quill') || 
+                id.includes('quill') ||
+                id.includes('@tiptap/')) {
+              return 'editor';
+            }
             
             // Icons
-            'icons': ['lucide-react'],
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
             
             // Utilities
-            'utils': [
-              'clsx',
-              'tailwind-merge',
-              'class-variance-authority'
-            ]
+            if (id.includes('clsx') || 
+                id.includes('tailwind-merge') ||
+                id.includes('class-variance-authority')) {
+              return 'utils';
+            }
+            
+            // Default vendor chunk for large node_modules
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
           },
           // Ensure proper chunk naming
           chunkFileNames: (chunkInfo) => {
-            const facadeModuleId = chunkInfo.facadeModuleId 
-              ? chunkInfo.facadeModuleId.split('/').pop() 
-              : 'unknown';
             return `js/[name]-[hash].js`;
           },
           entryFileNames: 'js/[name]-[hash].js',

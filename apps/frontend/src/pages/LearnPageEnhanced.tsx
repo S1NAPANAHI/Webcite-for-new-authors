@@ -1,566 +1,573 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Tabs, 
-  Tab, 
-  Spinner, 
-  Card, 
-  CardBody, 
-  Button, 
+import React, { useState, useEffect } from 'react';
+import {
+  Card,
+  CardBody,
+  CardHeader,
   Input,
   Select,
   SelectItem,
   Chip,
-  Progress,
-  Avatar,
-  Badge,
-  Tooltip
+  Button,
+  Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure
 } from '@nextui-org/react';
-import { supabase } from '@zoroaster/shared';
-import { Database } from '@/types/supabase';
-import { toast } from 'react-hot-toast';
 import { 
-  FileText, 
-  Video, 
-  Download, 
-  DollarSign, 
   Search, 
-  Filter, 
   Clock, 
-  User, 
   BookOpen, 
+  Eye,
+  Filter,
+  GraduationCap,
   Star,
   TrendingUp,
-  Calendar,
-  Eye,
-  PlayCircle
+  Users
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { supabase, useAuth } from '@zoroaster/shared';
+import { toast } from 'react-hot-toast';
 
-// Define types for the new tables
-type AuthorJourneyPost = Database['public']['Tables']['authors_journey_posts']['Row'];
-type WritingGuide = Database['public']['Tables']['writing_guides']['Row'];
-type VideoTutorial = Database['public']['Tables']['video_tutorials']['Row'];
-type DownloadableTemplate = Database['public']['Tables']['downloadable_templates']['Row'];
-type ProfessionalService = Database['public']['Tables']['professional_services']['Row'];
+interface LearnResource {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  status: 'draft' | 'published' | 'archived';
+  image_url?: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
 
-type LearnSectionType = 'authors_journey' | 'educational_resources' | 'professional_services';
-type EducationalResourceType = 'writing_guides' | 'video_tutorials' | 'downloadable_templates';
-type SortOption = 'newest' | 'oldest' | 'popular' | 'title';
-type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced' | 'all';
+interface LearnProgress {
+  id: string;
+  user_id: string;
+  resource_id: string;
+  completed: boolean;
+  completion_date?: string;
+  time_spent: number;
+  notes?: string;
+}
 
-const SECTION_TITLES = {
-  authors_journey: "Author's Journey",
-  educational_resources: 'Educational Resources',
-  professional_services: 'Professional Services',
-};
+interface UserStats {
+  totalResources: number;
+  completedResources: number;
+  totalTimeSpent: number;
+  currentStreak: number;
+}
 
-const EDUCATIONAL_RESOURCE_TITLES = {
-  writing_guides: 'Writing Guides',
-  video_tutorials: 'Video Tutorials',
-  downloadable_templates: 'Downloadable Templates',
-};
-
-const DIFFICULTY_COLORS = {
-  beginner: 'success',
-  intermediate: 'warning', 
-  advanced: 'danger'
-} as const;
-
-// Enhanced Content Card Component
-const ContentCard = ({ 
-  content, 
-  type, 
-  onClick 
-}: { 
-  content: any, 
-  type: string, 
-  onClick: () => void 
-}) => {
-  const getIcon = () => {
-    switch(type) {
-      case 'video_tutorials': return <Video className="w-8 h-8 text-blue-500" />;
-      case 'downloadable_templates': return <Download className="w-8 h-8 text-green-500" />;
-      case 'professional_services': return <DollarSign className="w-8 h-8 text-purple-500" />;
-      default: return <FileText className="w-8 h-8 text-gray-500" />;
-    }
-  };
-
-  const getDuration = () => {
-    if (type === 'video_tutorials' && content.duration) {
-      return `${content.duration} min`;
-    }
-    if (content.estimated_reading_time) {
-      return `${content.estimated_reading_time} min read`;
-    }
-    return null;
-  };
-
-  return (
-    <motion.div
-      whileHover={{ y: -4, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Card 
-        isPressable 
-        onPress={onClick} 
-        className="h-full bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
-      >
-        <CardBody className="p-6">
-          {/* Header with icon and metadata */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              {getIcon()}
-              <div>
-                {content.difficulty && (
-                  <Chip 
-                    size="sm" 
-                    color={DIFFICULTY_COLORS[content.difficulty as keyof typeof DIFFICULTY_COLORS] || 'default'}
-                    variant="flat"
-                    className="mb-1"
-                  >
-                    {content.difficulty}
-                  </Chip>
-                )}
-                {content.category && (
-                  <Chip size="sm" variant="bordered" className="mb-1 ml-1">
-                    {content.category}
-                  </Chip>
-                )}
-              </div>
-            </div>
-            
-            {/* Duration/Reading time */}
-            {getDuration() && (
-              <div className="flex items-center text-sm text-gray-500">
-                <Clock className="w-4 h-4 mr-1" />
-                {getDuration()}
-              </div>
-            )}
-          </div>
-
-          {/* Title and Description */}
-          <h3 className="text-xl font-bold mb-3 text-gray-900 dark:text-white line-clamp-2">
-            {content.title}
-          </h3>
-          
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 mb-4">
-            {content.content ? 
-              content.content.replace(/<[^>]*>/g, '').substring(0, 150) + '...' : 
-              content.description || 'No description available.'
-            }
-          </p>
-
-          {/* Footer with metadata */}
-          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-4">
-              {content.author && (
-                <div className="flex items-center space-x-2">
-                  <Avatar size="sm" name={content.author} className="w-6 h-6" />
-                  <span className="text-xs text-gray-500">{content.author}</span>
-                </div>
-              )}
-              
-              {type === 'professional_services' && content.price && (
-                <div className="flex items-center">
-                  <span className="text-lg font-bold text-green-600">${content.price.toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-            
-            <div className="flex items-center space-x-2 text-xs text-gray-500">
-              <Calendar className="w-4 h-4" />
-              <span>{new Date(content.created_at).toLocaleDateString()}</span>
-            </div>
-          </div>
-
-          {/* Progress indicator if applicable */}
-          {content.completion_rate && (
-            <div className="mt-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1">
-                <span>Progress</span>
-                <span>{content.completion_rate}%</span>
-              </div>
-              <Progress value={content.completion_rate} size="sm" />
-            </div>
-          )}
-        </CardBody>
-      </Card>
-    </motion.div>
-  );
-};
-
-// Enhanced Learn Page Component
 export default function LearnPageEnhanced() {
-  const navigate = useNavigate();
-  const [activeMainTab, setActiveMainTab] = useState<LearnSectionType>('authors_journey');
-  const [activeEduTab, setActiveEduTab] = useState<EducationalResourceType>('writing_guides');
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [difficultyFilter, setDifficultyFilter] = useState<DifficultyLevel>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [resources, setResources] = useState<LearnResource[]>([]);
+  const [filteredResources, setFilteredResources] = useState<LearnResource[]>([]);
+  const [userProgress, setUserProgress] = useState<{ [key: string]: LearnProgress }>({});
+  const [userStats, setUserStats] = useState<UserStats>({
+    totalResources: 0,
+    completedResources: 0,
+    totalTimeSpent: 0,
+    currentStreak: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  const [selectedResource, setSelectedResource] = useState<LearnResource | null>(null);
+  const [readingStartTime, setReadingStartTime] = useState<number | null>(null);
+  
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { user, isAuthenticated } = useAuth();
 
-  // Data states
-  const [authorsJourneyPosts, setAuthorsJourneyPosts] = useState<AuthorJourneyPost[]>([]);
-  const [writingGuides, setWritingGuides] = useState<WritingGuide[]>([]);
-  const [videoTutorials, setVideoTutorials] = useState<VideoTutorial[]>([]);
-  const [downloadableTemplates, setDownloadableTemplates] = useState<DownloadableTemplate[]>([]);
-  const [professionalServices, setProfessionalServices] = useState<ProfessionalService[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-
-  const fetchAllData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      // Fetch all data with enhanced queries
-      const [postsData, guidesData, videosData, templatesData, servicesData] = await Promise.all([
-        supabase.from('authors_journey_posts')
-          .select('*')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false }),
-        supabase.from('writing_guides')
-          .select('*')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false }),
-        supabase.from('video_tutorials')
-          .select('*')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false }),
-        supabase.from('downloadable_templates')
-          .select('*')
-          .eq('status', 'published')
-          .order('created_at', { ascending: false }),
-        supabase.from('professional_services')
-          .select('*')
-          .eq('is_available', true)
-          .order('created_at', { ascending: false })
-      ]);
-
-      if (postsData.error) throw postsData.error;
-      if (guidesData.error) throw guidesData.error;
-      if (videosData.error) throw videosData.error;
-      if (templatesData.error) throw templatesData.error;
-      if (servicesData.error) throw servicesData.error;
-
-      setAuthorsJourneyPosts(postsData.data || []);
-      setWritingGuides(guidesData.data || []);
-      setVideoTutorials(videosData.data || []);
-      setDownloadableTemplates(templatesData.data || []);
-      setProfessionalServices(servicesData.data || []);
-
-      // Extract categories for filtering
-      const allCategories = new Set<string>();
-      [...(guidesData.data || []), ...(videosData.data || []), ...(templatesData.data || [])]
-        .forEach(item => {
-          if (item.category) allCategories.add(item.category);
-        });
-      setCategories(Array.from(allCategories));
-
-    } catch (error: any) {
-      toast.error('Error fetching learn data: ' + error.message);
-      console.error('Error fetching learn data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const categories = ['All', 'Basics', 'Sacred Texts', 'Practices', 'History', 'Philosophy', 'Rituals', 'Modern Practice'];
+  const difficulties = ['All', 'beginner', 'intermediate', 'advanced'];
 
   useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+    fetchResources();
+    if (isAuthenticated && user) {
+      fetchUserProgress();
+    }
+  }, [user, isAuthenticated]);
 
-  // Filtering and sorting logic
-  const getFilteredAndSortedData = (data: any[], type: string) => {
-    let filtered = [...data];
+  useEffect(() => {
+    filterResources();
+  }, [resources, searchTerm, selectedCategory, selectedDifficulty]);
 
-    // Search filter
-    if (searchQuery) {
-      filtered = filtered.filter(item => 
-        item.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.content?.toLowerCase().includes(searchQuery.toLowerCase())
+  const fetchResources = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('learn_content')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setResources(data || []);
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      toast.error('Failed to load learning resources');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserProgress = async () => {
+    if (!user) return;
+
+    try {
+      // First, check if learn_progress table exists by attempting to select from it
+      const { data: progressData, error: progressError } = await supabase
+        .from('learn_progress')
+        .select('*')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      if (progressError) {
+        // Table doesn't exist yet, just continue without progress tracking
+        console.log('Learn progress table not found, continuing without progress tracking');
+        return;
+      }
+
+      // Get all progress data
+      const { data: allProgress, error: allProgressError } = await supabase
+        .from('learn_progress')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (allProgressError) throw allProgressError;
+
+      const progressMap = (allProgress || []).reduce((acc, progress) => {
+        acc[progress.resource_id] = progress;
+        return acc;
+      }, {} as { [key: string]: LearnProgress });
+
+      setUserProgress(progressMap);
+
+      // Calculate user stats
+      const completed = allProgress?.filter(p => p.completed).length || 0;
+      const totalTime = allProgress?.reduce((sum, p) => sum + (p.time_spent || 0), 0) || 0;
+
+      setUserStats({
+        totalResources: resources.length,
+        completedResources: completed,
+        totalTimeSpent: totalTime,
+        currentStreak: 0 // TODO: Calculate streak based on completion dates
+      });
+    } catch (error) {
+      console.error('Error fetching user progress:', error);
+    }
+  };
+
+  const filterResources = () => {
+    let filtered = resources;
+
+    if (searchTerm) {
+      filtered = filtered.filter(resource =>
+        resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resource.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resource.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resource.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
-    // Difficulty filter
-    if (difficultyFilter !== 'all') {
-      filtered = filtered.filter(item => item.difficulty === difficultyFilter);
+    if (selectedCategory && selectedCategory !== 'All') {
+      filtered = filtered.filter(resource => resource.category === selectedCategory);
     }
 
-    // Category filter
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(item => item.category === categoryFilter);
+    if (selectedDifficulty && selectedDifficulty !== 'All') {
+      filtered = filtered.filter(resource => resource.difficulty === selectedDifficulty);
     }
 
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        case 'oldest':
-          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        case 'title':
-          return a.title.localeCompare(b.title);
-        case 'popular':
-          return (b.view_count || 0) - (a.view_count || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
+    setFilteredResources(filtered);
   };
 
-  const filteredAuthorsJourney = useMemo(() => 
-    getFilteredAndSortedData(authorsJourneyPosts, 'authors_journey'), 
-    [authorsJourneyPosts, searchQuery, sortBy, difficultyFilter, categoryFilter]
-  );
-  
-  const filteredWritingGuides = useMemo(() => 
-    getFilteredAndSortedData(writingGuides, 'writing_guides'), 
-    [writingGuides, searchQuery, sortBy, difficultyFilter, categoryFilter]
-  );
-  
-  const filteredVideoTutorials = useMemo(() => 
-    getFilteredAndSortedData(videoTutorials, 'video_tutorials'), 
-    [videoTutorials, searchQuery, sortBy, difficultyFilter, categoryFilter]
-  );
-  
-  const filteredTemplates = useMemo(() => 
-    getFilteredAndSortedData(downloadableTemplates, 'downloadable_templates'), 
-    [downloadableTemplates, searchQuery, sortBy, difficultyFilter, categoryFilter]
-  );
-  
-  const filteredServices = useMemo(() => 
-    getFilteredAndSortedData(professionalServices, 'professional_services'), 
-    [professionalServices, searchQuery, sortBy]
-  );
+  const openResourceModal = (resource: LearnResource) => {
+    setSelectedResource(resource);
+    setReadingStartTime(Date.now());
+    onOpen();
+  };
 
-  if (isLoading) {
+  const closeResourceModal = async () => {
+    if (selectedResource && readingStartTime && isAuthenticated && user) {
+      const timeSpent = Math.floor((Date.now() - readingStartTime) / 1000 / 60); // minutes
+      await updateProgress(selectedResource.id, false, timeSpent);
+    }
+    
+    setSelectedResource(null);
+    setReadingStartTime(null);
+    onClose();
+  };
+
+  const updateProgress = async (resourceId: string, completed: boolean, additionalTime: number = 0) => {
+    if (!user) return;
+
+    try {
+      const existingProgress = userProgress[resourceId];
+      const newTimeSpent = (existingProgress?.time_spent || 0) + additionalTime;
+
+      const { error } = await supabase
+        .from('learn_progress')
+        .upsert({
+          user_id: user.id,
+          resource_id: resourceId,
+          completed,
+          completion_date: completed ? new Date().toISOString() : existingProgress?.completion_date,
+          time_spent: newTimeSpent,
+          notes: existingProgress?.notes
+        }, {
+          onConflict: 'user_id,resource_id'
+        });
+
+      if (error) throw error;
+
+      // Update local state
+      setUserProgress(prev => ({
+        ...prev,
+        [resourceId]: {
+          ...prev[resourceId],
+          resource_id: resourceId,
+          user_id: user.id,
+          completed,
+          time_spent: newTimeSpent,
+          completion_date: completed ? new Date().toISOString() : prev[resourceId]?.completion_date
+        } as LearnProgress
+      }));
+
+      if (completed) {
+        toast.success('Resource marked as completed! 🎉');
+        await fetchUserProgress(); // Refresh stats
+      }
+
+    } catch (error) {
+      // If progress table doesn't exist, just show a message
+      if (error && typeof error === 'object' && 'code' in error) {
+        console.log('Progress tracking not available yet');
+        if (completed) {
+          toast.success('Great job completing this resource! Progress tracking will be available soon.');
+        }
+      } else {
+        console.error('Error updating progress:', error);
+        toast.error('Failed to update progress');
+      }
+    }
+  };
+
+  const markAsCompleted = async () => {
+    if (!selectedResource || !user) return;
+    
+    const timeSpent = readingStartTime ? Math.floor((Date.now() - readingStartTime) / 1000 / 60) : 0;
+    await updateProgress(selectedResource.id, true, timeSpent);
+    closeResourceModal();
+  };
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'beginner': return 'success';
+      case 'intermediate': return 'warning';
+      case 'advanced': return 'danger';
+      default: return 'default';
+    }
+  };
+
+  const getProgressPercentage = (resourceId: string) => {
+    const progress = userProgress[resourceId];
+    return progress?.completed ? 100 : 0;
+  };
+
+  if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Spinner size="lg" label="Loading content..." />
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Spinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading learning resources...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-          >
-            Learn & Grow
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
-          >
-            Explore our comprehensive resources for writers, from beginner guides to advanced techniques
-          </motion.p>
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center mb-4">
+          <div className="p-3 bg-gradient-to-br from-primary to-secondary rounded-full">
+            <GraduationCap className="w-8 h-8 text-white" />
+          </div>
         </div>
+        <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Learn & Grow
+        </h1>
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          Discover comprehensive resources about Zoroastrianism, from ancient wisdom to modern practice. 
+          Expand your knowledge and deepen your understanding.
+        </p>
+      </div>
 
-        {/* Search and Filter Controls */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Input
-              placeholder="Search content..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              startContent={<Search className="w-4 h-4 text-gray-400" />}
-              variant="bordered"
-              classNames={{
-                input: "text-sm",
-                inputWrapper: "h-12"
+      {/* User Stats (if authenticated) */}
+      {isAuthenticated && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardBody className="text-center">
+              <BookOpen className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-blue-800">{userStats.totalResources}</p>
+              <p className="text-sm text-blue-600">Resources Available</p>
+            </CardBody>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardBody className="text-center">
+              <Star className="w-6 h-6 text-green-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-green-800">{userStats.completedResources}</p>
+              <p className="text-sm text-green-600">Completed</p>
+            </CardBody>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardBody className="text-center">
+              <Clock className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-purple-800">{Math.floor(userStats.totalTimeSpent / 60)}h {userStats.totalTimeSpent % 60}m</p>
+              <p className="text-sm text-purple-600">Time Spent</p>
+            </CardBody>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardBody className="text-center">
+              <TrendingUp className="w-6 h-6 text-orange-600 mx-auto mb-2" />
+              <p className="text-2xl font-bold text-orange-800">{Math.round((userStats.completedResources / userStats.totalResources) * 100) || 0}%</p>
+              <p className="text-sm text-orange-600">Progress</p>
+            </CardBody>
+          </Card>
+        </div>
+      )}
+
+      {/* Filters */}
+      <Card className="mb-8">
+        <CardBody>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Search resources..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                startContent={<Search className="w-4 h-4 text-gray-400" />}
+              />
+            </div>
+            
+            <Select
+              placeholder="All Categories"
+              className="md:w-48"
+              selectedKeys={selectedCategory ? [selectedCategory] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string;
+                setSelectedCategory(selected === 'All' ? '' : selected);
               }}
-            />
-            
-            <Select
-              placeholder="Sort by"
-              selectedKeys={[sortBy]}
-              onSelectionChange={(keys) => setSortBy(Array.from(keys)[0] as SortOption)}
-              variant="bordered"
-              classNames={{ trigger: "h-12" }}
             >
-              <SelectItem key="newest">Newest First</SelectItem>
-              <SelectItem key="oldest">Oldest First</SelectItem>
-              <SelectItem key="title">Alphabetical</SelectItem>
-              <SelectItem key="popular">Most Popular</SelectItem>
-            </Select>
-            
-            <Select
-              placeholder="Difficulty"
-              selectedKeys={[difficultyFilter]}
-              onSelectionChange={(keys) => setDifficultyFilter(Array.from(keys)[0] as DifficultyLevel)}
-              variant="bordered"
-              classNames={{ trigger: "h-12" }}
-            >
-              <SelectItem key="all">All Levels</SelectItem>
-              <SelectItem key="beginner">Beginner</SelectItem>
-              <SelectItem key="intermediate">Intermediate</SelectItem>
-              <SelectItem key="advanced">Advanced</SelectItem>
-            </Select>
-            
-            <Select
-              placeholder="Category"
-              selectedKeys={[categoryFilter]}
-              onSelectionChange={(keys) => setCategoryFilter(Array.from(keys)[0] as string)}
-              variant="bordered"
-              classNames={{ trigger: "h-12" }}
-            >
-              <SelectItem key="all">All Categories</SelectItem>
-              {categories.map(category => (
-                <SelectItem key={category}>{category}</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
               ))}
             </Select>
+
+            <Select
+              placeholder="All Levels"
+              className="md:w-48"
+              selectedKeys={selectedDifficulty ? [selectedDifficulty] : []}
+              onSelectionChange={(keys) => {
+                const selected = Array.from(keys)[0] as string;
+                setSelectedDifficulty(selected === 'All' ? '' : selected);
+              }}
+            >
+              {difficulties.map((difficulty) => (
+                <SelectItem key={difficulty} value={difficulty}>
+                  {difficulty === 'All' ? 'All Levels' : difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                </SelectItem>
+              ))}
+            </Select>
+
+            <Button
+              variant="light"
+              onPress={() => {
+                setSearchTerm('');
+                setSelectedCategory('');
+                setSelectedDifficulty('');
+              }}
+            >
+              Clear Filters
+            </Button>
           </div>
-        </motion.div>
+        </CardBody>
+      </Card>
 
-        {/* Main Tabs */}
-        <Tabs 
-          selectedKey={activeMainTab}
-          onSelectionChange={(key) => setActiveMainTab(key as LearnSectionType)}
-          aria-label="Learn main sections"
-          color="primary"
-          variant="underlined"
-          size="lg"
-          classNames={{
-            tabList: "gap-8 w-full relative rounded-none p-0 border-b border-divider justify-center mb-8",
-            cursor: "w-full bg-gradient-to-r from-blue-500 to-purple-500",
-            tab: "max-w-fit px-0 h-14 text-lg",
-            tabContent: "group-data-[selected=true]:font-bold group-data-[selected=true]:text-blue-600"
-          }}
-        >
-          {(Object.keys(SECTION_TITLES) as LearnSectionType[]).map((key) => (
-            <Tab key={key} title={SECTION_TITLES[key]}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={key}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-8"
+      {/* Resources Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredResources.map((resource) => {
+          const progress = userProgress[resource.id];
+          const isCompleted = progress?.completed;
+          
+          return (
+            <Card key={resource.id} className="h-full hover:shadow-lg transition-shadow cursor-pointer" isPressable onPress={() => openResourceModal(resource)}>
+              {resource.image_url && (
+                <div className="w-full h-48 bg-gray-200 rounded-t-lg overflow-hidden">
+                  <img 
+                    src={resource.image_url} 
+                    alt={resource.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start w-full">
+                  <h3 className="text-lg font-semibold line-clamp-2 flex-1">
+                    {resource.title}
+                  </h3>
+                  {isCompleted && (
+                    <Chip size="sm" color="success" variant="flat">
+                      ✓ Complete
+                    </Chip>
+                  )}
+                </div>
+              </CardHeader>
+              
+              <CardBody className="pt-0">
+                <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+                  {resource.content.substring(0, 150)}...
+                </p>
+                
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Chip size="sm" variant="flat">
+                    {resource.category}
+                  </Chip>
+                  <Chip size="sm" color={getDifficultyColor(resource.difficulty)} variant="flat">
+                    {resource.difficulty}
+                  </Chip>
+                </div>
+
+                {resource.tags && resource.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {resource.tags.slice(0, 3).map((tag, index) => (
+                      <Chip key={index} size="sm" variant="bordered">
+                        {tag}
+                      </Chip>
+                    ))}
+                    {resource.tags.length > 3 && (
+                      <Chip size="sm" variant="bordered">
+                        +{resource.tags.length - 3}
+                      </Chip>
+                    )}
+                  </div>
+                )}
+
+                {isAuthenticated && progress && (
+                  <div className="mb-4">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Progress</span>
+                      <span>{isCompleted ? '100%' : '0%'}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all ${isCompleted ? 'bg-green-500' : 'bg-blue-500'}`}
+                        style={{ width: `${getProgressPercentage(resource.id)}%` }}
+                      />
+                    </div>
+                    {progress.time_spent > 0 && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Time spent: {Math.floor(progress.time_spent / 60)}h {progress.time_spent % 60}m
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <Button 
+                  color={isCompleted ? "success" : "primary"} 
+                  variant={isCompleted ? "flat" : "solid"}
+                  className="w-full"
+                  startContent={isCompleted ? <Eye className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
                 >
-                  {/* Content for each main tab */}
-                  {key === 'authors_journey' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredAuthorsJourney.length > 0 ? (
-                        filteredAuthorsJourney.map((post) => (
-                          <ContentCard 
-                            key={post.id} 
-                            content={post} 
-                            type="authors_journey"
-                            onClick={() => navigate(`/learn/authors-journey/${post.slug}`)}
-                          />
-                        ))
-                      ) : (
-                        <div className="col-span-full text-center py-12">
-                          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-500 dark:text-gray-400 text-lg">No author's journey posts match your criteria.</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {key === 'educational_resources' && (
-                    <Tabs 
-                      selectedKey={activeEduTab}
-                      onSelectionChange={(key) => setActiveEduTab(key as EducationalResourceType)}
-                      aria-label="Educational resources sub-sections"
-                      color="secondary"
-                      variant="bordered"
-                      classNames={{
-                        tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider justify-center mb-6",
-                        cursor: "w-full",
-                        tab: "max-w-fit px-0 h-12",
-                        tabContent: "group-data-[selected=true]:font-semibold"
-                      }}
-                    >
-                      {(Object.keys(EDUCATIONAL_RESOURCE_TITLES) as EducationalResourceType[]).map((eduKey) => (
-                        <Tab key={eduKey} title={EDUCATIONAL_RESOURCE_TITLES[eduKey]}>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {eduKey === 'writing_guides' && filteredWritingGuides.map((guide) => (
-                              <ContentCard 
-                                key={guide.id} 
-                                content={guide} 
-                                type="writing_guides"
-                                onClick={() => navigate(`/learn/writing-guides/${guide.slug}`)}
-                              />
-                            ))}
-                            
-                            {eduKey === 'video_tutorials' && filteredVideoTutorials.map((video) => (
-                              <ContentCard 
-                                key={video.id} 
-                                content={video} 
-                                type="video_tutorials"
-                                onClick={() => window.open(video.video_url || '', '_blank')}
-                              />
-                            ))}
-                            
-                            {eduKey === 'downloadable_templates' && filteredTemplates.map((template) => (
-                              <ContentCard 
-                                key={template.id} 
-                                content={template} 
-                                type="downloadable_templates"
-                                onClick={() => window.open(template.file_path || '', '_blank')}
-                              />
-                            ))}
-                            
-                            {/* Show empty state if no content */}
-                            {((eduKey === 'writing_guides' && filteredWritingGuides.length === 0) ||
-                              (eduKey === 'video_tutorials' && filteredVideoTutorials.length === 0) ||
-                              (eduKey === 'downloadable_templates' && filteredTemplates.length === 0)) && (
-                              <div className="col-span-full text-center py-12">
-                                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                                <p className="text-gray-500 dark:text-gray-400 text-lg">
-                                  No {EDUCATIONAL_RESOURCE_TITLES[eduKey].toLowerCase()} match your criteria.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </Tab>
-                      ))}
-                    </Tabs>
-                  )}
-
-                  {key === 'professional_services' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredServices.length > 0 ? (
-                        filteredServices.map((service) => (
-                          <ContentCard 
-                            key={service.id} 
-                            content={service} 
-                            type="professional_services"
-                            onClick={() => {}}
-                          />
-                        ))
-                      ) : (
-                        <div className="col-span-full text-center py-12">
-                          <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <p className="text-gray-500 dark:text-gray-400 text-lg">No professional services match your criteria.</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </Tab>
-          ))}
-        </Tabs>
+                  {isCompleted ? 'Review' : 'Start Reading'}
+                </Button>
+              </CardBody>
+            </Card>
+          );
+        })}
       </div>
+
+      {filteredResources.length === 0 && !loading && (
+        <div className="text-center py-16">
+          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2">No resources found</h3>
+          <p className="text-gray-500 mb-4">
+            {searchTerm || selectedCategory || selectedDifficulty
+              ? 'Try adjusting your filters to find more resources.'
+              : 'No learning resources are available at the moment.'}
+          </p>
+          <Button
+            variant="light"
+            onPress={() => {
+              setSearchTerm('');
+              setSelectedCategory('');
+              setSelectedDifficulty('');
+            }}
+          >
+            Clear Filters
+          </Button>
+        </div>
+      )}
+
+      {/* Resource Reading Modal */}
+      <Modal 
+        isOpen={isOpen} 
+        onClose={closeResourceModal}
+        size="3xl"
+        scrollBehavior="inside"
+      >
+        <ModalContent>
+          {selectedResource && (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <h2 className="text-xl font-bold">{selectedResource.title}</h2>
+                <div className="flex gap-2">
+                  <Chip size="sm" variant="flat">
+                    {selectedResource.category}
+                  </Chip>
+                  <Chip size="sm" color={getDifficultyColor(selectedResource.difficulty)} variant="flat">
+                    {selectedResource.difficulty}
+                  </Chip>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="prose prose-gray max-w-none">
+                  {selectedResource.content.split('\n').map((paragraph, index) => (
+                    <p key={index} className="mb-4">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={closeResourceModal}>
+                  Close
+                </Button>
+                {isAuthenticated && !userProgress[selectedResource.id]?.completed && (
+                  <Button color="success" onPress={markAsCompleted}>
+                    Mark as Completed
+                  </Button>
+                )}
+                {isAuthenticated && userProgress[selectedResource.id]?.completed && (
+                  <Chip color="success" variant="flat">
+                    ✓ Completed
+                  </Chip>
+                )}
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

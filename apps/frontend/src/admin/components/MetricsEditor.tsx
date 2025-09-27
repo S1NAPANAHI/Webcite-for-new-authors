@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Loader2, CheckCircle, BarChart3 } from 'lucide-react';
+import { buildApiUrl, logApiConfig } from '../../lib/config';
 
 interface ProgressMetrics {
   id?: number;
@@ -35,6 +36,10 @@ const MetricsEditor: React.FC = () => {
 
   // Only one useEffect - loads data on mount
   useEffect(() => {
+    // Log API configuration for debugging
+    console.log('🔧 MetricsEditor - API Configuration:');
+    logApiConfig();
+    
     loadMetricsData();
   }, []);
 
@@ -43,15 +48,41 @@ const MetricsEditor: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch('/api/homepage/metrics');
-      if (!response.ok) throw new Error('Failed to load metrics data');
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl('api/homepage/metrics');
+      console.log('📊 MetricsEditor - Fetching from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      
+      console.log('📊 MetricsEditor - Response status:', response.status);
+      console.log('📊 MetricsEditor - Response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('📊 MetricsEditor - Error response:', errorText);
+        throw new Error(`Failed to load metrics data: ${response.status} ${response.statusText}`);
+      }
       
       const data = await response.json();
-      setMetricsData(data);
+      console.log('📊 MetricsEditor - Received data:', data);
+      
+      setMetricsData({
+        words_written: data.words_written || 0,
+        beta_readers: data.beta_readers || 0,
+        average_rating: data.average_rating || 0,
+        books_published: data.books_published || 0
+      });
+      
     } catch (err) {
-      console.error('Failed to load metrics data:', err);
+      console.error('❌ MetricsEditor - Failed to load metrics data:', err);
       setError('Failed to load metrics');
+      
       // Set mock values on error for demonstration
       setMetricsData({
         words_written: 125000,
@@ -77,22 +108,36 @@ const MetricsEditor: React.FC = () => {
       setIsSaving(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch('/api/homepage/metrics', {
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl('api/homepage/metrics');
+      console.log('💾 MetricsEditor - Saving to:', apiUrl);
+      console.log('💾 MetricsEditor - Save payload:', metricsData);
+      
+      const response = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(metricsData)
       });
       
-      if (!response.ok) throw new Error('Failed to save metrics data');
+      console.log('💾 MetricsEditor - Save response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('💾 MetricsEditor - Save error response:', errorText);
+        throw new Error(`Failed to save metrics data: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('💾 MetricsEditor - Save result:', result);
       
       setLastSaved(new Date());
-      console.log('✅ Metrics saved successfully');
+      console.log('✅ MetricsEditor - Metrics saved successfully');
       
     } catch (err) {
-      console.error('Failed to save metrics data:', err);
+      console.error('❌ MetricsEditor - Failed to save metrics data:', err);
       setError('Failed to save metrics');
     } finally {
       setIsSaving(false);
@@ -104,20 +149,43 @@ const MetricsEditor: React.FC = () => {
       setIsCalculating(true);
       setError(null);
       
-      // Mock API call to calculate metrics from database
-      const response = await fetch('/api/homepage/metrics/calculate', {
-        method: 'POST'
+      // Use centralized API configuration pointing to Render backend
+      const apiUrl = buildApiUrl('api/homepage/metrics/calculate');
+      console.log('🔄 MetricsEditor - Auto-calculating from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        }
       });
       
-      if (!response.ok) throw new Error('Failed to calculate metrics');
+      console.log('🔄 MetricsEditor - Calculate response status:', response.status);
       
-      const calculatedData = await response.json();
-      setMetricsData(calculatedData);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🔄 MetricsEditor - Calculate error response:', errorText);
+        throw new Error(`Failed to calculate metrics: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('🔄 MetricsEditor - Calculate result:', result);
+      
+      if (result.success && result.data) {
+        setMetricsData({
+          words_written: result.data.words_written || 0,
+          beta_readers: result.data.beta_readers || 0,
+          average_rating: result.data.average_rating || 0,
+          books_published: result.data.books_published || 0
+        });
+      }
+      
       setLastSaved(new Date());
-      console.log('✅ Metrics calculated successfully');
+      console.log('✅ MetricsEditor - Metrics calculated successfully');
       
     } catch (err) {
-      console.error('Failed to calculate metrics:', err);
+      console.error('❌ MetricsEditor - Failed to calculate metrics:', err);
       setError('Failed to auto-calculate metrics');
       
       // Mock calculation for demonstration
@@ -155,6 +223,9 @@ const MetricsEditor: React.FC = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
+          <p className="text-xs text-red-500 mt-1">
+            Check the browser console for detailed error information.
+          </p>
         </div>
       )}
 
@@ -275,6 +346,13 @@ const MetricsEditor: React.FC = () => {
           )}
           Save Metrics
         </button>
+      </div>
+
+      {/* API Debug Info */}
+      <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
+        <p><strong>API Debug:</strong> Using centralized config pointing to Render backend</p>
+        <p><strong>Metrics URL:</strong> {buildApiUrl('api/homepage/metrics')}</p>
+        <p><strong>Calculate URL:</strong> {buildApiUrl('api/homepage/metrics/calculate')}</p>
       </div>
     </div>
   );

@@ -4,7 +4,49 @@ import { useHomepageData, useHomepageAdmin, formatMetricValue, type HomepageCont
 // CRITICAL FIX: Import the missing useHomepageContextOptional function
 import { useHomepageContextOptional } from '../../contexts/HomepageContext';
 
-const HomepageManager: React.FC = () => {
+// CRITICAL FIX: Error Boundary Component
+class HomepageErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Homepage Manager Error:', error, errorInfo);
+  }
+  
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="text-center py-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-red-800 mb-2">Component Error</h3>
+            <p className="text-red-600 mb-4">
+              The homepage manager encountered an error. Please refresh the page.
+            </p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    
+    return this.props.children;
+  }
+}
+
+const HomepageManagerContent: React.FC = () => {
   // CRITICAL FIX: Use optional context to prevent crashes if context is not available
   const homepageContext = useHomepageContextOptional();
   
@@ -42,6 +84,27 @@ const HomepageManager: React.FC = () => {
     }
   }, [data]);
 
+  // CRITICAL FIX: Proper useEffect cleanup for context registration
+  useEffect(() => {
+    if (!homepageContext) return;
+    
+    // Register the callback
+    const unregister = homepageContext.registerDataRefresh(() => {
+      // Your refresh logic here
+      console.log('📝 Refreshing homepage data');
+      refetch();
+    });
+    
+    // CRITICAL FIX: Ensure cleanup runs properly
+    return () => {
+      try {
+        unregister();
+      } catch (error) {
+        console.error('Error during cleanup:', error);
+      }
+    };
+  }, [homepageContext, refetch]);
+
   // Load all quotes for admin management
   const loadAllQuotes = async () => {
     try {
@@ -57,7 +120,7 @@ const HomepageManager: React.FC = () => {
     }
   };
 
-  // CRITICAL FIX: Enhanced payload construction with proper error handling and validation
+  // CRITICAL FIX: Enhanced async hook call handling
   const handleSaveContent = async () => {
     if (!localContent) {
       console.error('❌ Cannot save: No local content available');
@@ -65,7 +128,6 @@ const HomepageManager: React.FC = () => {
     }
     
     try {
-      // CRITICAL FIX: Explicitly construct the update payload to ensure all values are properly serialized
       const updatePayload = {
         id: localContent.id,
         hero_title: localContent.hero_title || '',
@@ -78,46 +140,33 @@ const HomepageManager: React.FC = () => {
         beta_readers: Number(localContent.beta_readers) || 0,
         average_rating: Number(localContent.average_rating) || 0,
         books_published: Number(localContent.books_published) || 0,
-        // CRITICAL FIX: Explicitly include boolean values with proper coercion to fix checkbox saving issue
         show_latest_news: Boolean(localContent.show_latest_news),
         show_latest_releases: Boolean(localContent.show_latest_releases),
         show_artist_collaboration: Boolean(localContent.show_artist_collaboration),
         show_progress_metrics: Boolean(localContent.show_progress_metrics)
       };
       
-      if (debugMode) {
-        console.log('🔍 FIXED: Sending explicit payload with all boolean values:', JSON.stringify(updatePayload, null, 2));
-      }
-      
-      console.log('🎯 Section visibility values being sent:', {
-        show_latest_news: updatePayload.show_latest_news,
-        show_latest_releases: updatePayload.show_latest_releases,
-        show_artist_collaboration: updatePayload.show_artist_collaboration,
-        show_progress_metrics: updatePayload.show_progress_metrics
-      });
+      console.log('🎯 Sending payload:', updatePayload);
       
       const result = await updateContent(updatePayload);
       console.log('✅ Content saved successfully!', result);
-      setLastSaved(new Date());
       
-      // Invalidate cache if context is available
-      if (homepageContext) {
-        homepageContext.invalidateHomepageData();
-      }
-      
-      // Refresh data to ensure UI is up to date
-      await refetch();
+      // CRITICAL FIX: Defer context invalidation and refetch to avoid hook timing issues
+      setTimeout(() => {
+        setLastSaved(new Date());
+        
+        // Invalidate cache if context is available
+        if (homepageContext) {
+          homepageContext.invalidateHomepageData();
+        }
+        
+        // Refresh data after a short delay to avoid race conditions
+        refetch();
+      }, 100);
       
     } catch (error) {
       console.error('❌ Failed to save content:', error);
-      
-      // CRITICAL FIX: Better error handling for JSON parsing issues
-      if (error instanceof SyntaxError && error.message.includes('JSON')) {
-        console.error('🚨 JSON Parsing Error: The server returned invalid JSON. This usually means the API endpoint is returning HTML instead of JSON.');
-        console.error('🔧 Possible fixes: Check API endpoint URLs, verify backend server is running, check CORS configuration');
-      }
-      
-      throw error; // Re-throw to allow UI error handling
+      throw error;
     }
   };
 
@@ -140,14 +189,17 @@ const HomepageManager: React.FC = () => {
       const result = await updateMetrics(metricsPayload);
       console.log('✅ Metrics saved successfully:', result);
       
-      setLastSaved(new Date());
-      
-      // Invalidate cache if context is available
-      if (homepageContext) {
-        homepageContext.invalidateMetrics();
-      }
-      
-      await refetch();
+      // CRITICAL FIX: Defer context operations using setTimeout to avoid timing conflicts
+      setTimeout(() => {
+        setLastSaved(new Date());
+        
+        // Invalidate cache if context is available
+        if (homepageContext) {
+          homepageContext.invalidateMetrics();
+        }
+        
+        refetch();
+      }, 100);
     } catch (error) {
       console.error('❌ Failed to save metrics:', error);
       throw error;
@@ -160,12 +212,15 @@ const HomepageManager: React.FC = () => {
       const result = await calculateMetrics();
       console.log('✅ Metrics calculated:', result);
       
-      // Invalidate cache if context is available
-      if (homepageContext) {
-        homepageContext.invalidateMetrics();
-      }
-      
-      await refetch(); // Refresh data to show updated metrics
+      // CRITICAL FIX: Defer context invalidation and refetch to avoid hook timing issues
+      setTimeout(() => {
+        // Invalidate cache if context is available
+        if (homepageContext) {
+          homepageContext.invalidateMetrics();
+        }
+        
+        refetch(); // Refresh data to show updated metrics
+      }, 100);
     } catch (error) {
       console.error('❌ Failed to calculate metrics:', error);
     }
@@ -847,6 +902,15 @@ const HomepageManager: React.FC = () => {
         </button>
       </div>
     </div>
+  );
+};
+
+// CRITICAL FIX: Wrap the main component in the error boundary
+const HomepageManager: React.FC = () => {
+  return (
+    <HomepageErrorBoundary>
+      <HomepageManagerContent />
+    </HomepageErrorBoundary>
   );
 };
 

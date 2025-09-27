@@ -20,7 +20,7 @@ import { fetchWikiPage } from '@zoroaster/shared';
 import { WikiViewer } from '@zoroaster/ui';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
 // FINAL: Use the completely fixed beta application component
-import BetaApplication from './components/BetaApplication/BetaApplication.final-fix';
+import BetaApplication from './components/BetaApplication/BetaApplication.enhanced';
 import { CartProvider } from '@zoroaster/shared';
 import ProfileDashboard from './pages/ProfileDashboard';
 import AboutPage from './pages/AboutPage';

@@ -41,8 +41,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
   const supabase = supabaseClient;
 
-  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
-
   // CRITICAL: Fixed authentication state management
   const updateAuthState = async (currentSession: Session | null) => {
     if (isFetchingProfile) {

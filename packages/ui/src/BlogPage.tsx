@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Link } from 'react-router-dom';
 // Import CSS for proper paragraph spacing
-import '../apps/frontend/src/styles/chapter-content.css';
+import './styles/chapter-content.css';
 
 // Define the type for our posts (should match the one in PostsManager.tsx)
 type Post = {

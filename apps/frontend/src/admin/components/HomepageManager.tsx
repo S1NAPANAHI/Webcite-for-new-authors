@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Eye, Loader2, CheckCircle, RefreshCw, Plus, X, BarChart3 } from 'lucide-react';
 import { useHomepageData, useHomepageAdmin, formatMetricValue, type HomepageContent, type HomepageQuote } from '../../hooks/useHomepageData';
+// CRITICAL FIX: Import the missing useHomepageContextOptional function
+import { useHomepageContextOptional } from '../../contexts/HomepageContext';
 
 const HomepageManager: React.FC = () => {
+  // CRITICAL FIX: Use optional context to prevent crashes if context is not available
+  const homepageContext = useHomepageContextOptional();
+  
   const { data, isLoading, error, refetch } = useHomepageData();
   const { 
     isLoading: isSaving, 
@@ -22,13 +27,17 @@ const HomepageManager: React.FC = () => {
   const [previewMode, setPreviewMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'hero' | 'metrics' | 'quotes' | 'sections'>('hero');
   const [isLoadingQuotes, setIsLoadingQuotes] = useState(false);
+  // Enhanced debugging state
+  const [debugMode, setDebugMode] = useState(false);
 
   // Initialize local state when data is loaded
   useEffect(() => {
     if (data?.content) {
+      console.log('🔄 Initializing local content from data:', data.content);
       setLocalContent(data.content);
     }
     if (data?.quotes) {
+      console.log('💬 Initializing local quotes from data:', data.quotes.length, 'quotes');
       setLocalQuotes(data.quotes);
     }
   }, [data]);
@@ -37,103 +46,154 @@ const HomepageManager: React.FC = () => {
   const loadAllQuotes = async () => {
     try {
       setIsLoadingQuotes(true);
+      console.log('📥 Loading all quotes...');
       const allQuotes = await getAllQuotes();
+      console.log('✅ Loaded quotes:', allQuotes.length);
       setLocalQuotes(allQuotes);
     } catch (error) {
-      console.error('Failed to load all quotes:', error);
+      console.error('❌ Failed to load all quotes:', error);
     } finally {
       setIsLoadingQuotes(false);
     }
   };
 
-  // CRITICAL FIX: Explicitly construct payload with all boolean values
+  // CRITICAL FIX: Enhanced payload construction with proper error handling and validation
   const handleSaveContent = async () => {
-    if (!localContent) return;
-    
-    // Explicitly construct the update payload to ensure all values are properly serialized
-    const updatePayload = {
-      id: localContent.id,
-      hero_title: localContent.hero_title,
-      hero_subtitle: localContent.hero_subtitle || '',
-      hero_description: localContent.hero_description,
-      hero_quote: localContent.hero_quote,
-      cta_button_text: localContent.cta_button_text,
-      cta_button_link: localContent.cta_button_link,
-      words_written: localContent.words_written,
-      beta_readers: localContent.beta_readers,
-      average_rating: localContent.average_rating,
-      books_published: localContent.books_published,
-      // CRITICAL: Explicitly include boolean values to fix checkbox saving issue
-      show_latest_news: Boolean(localContent.show_latest_news),
-      show_latest_releases: Boolean(localContent.show_latest_releases),
-      show_artist_collaboration: Boolean(localContent.show_artist_collaboration),
-      show_progress_metrics: Boolean(localContent.show_progress_metrics)
-    };
-    
-    console.log('🔍 FIXED: Sending explicit payload with all boolean values:', JSON.stringify(updatePayload, null, 2));
-    console.log('🎯 Section visibility values:', {
-      show_latest_news: updatePayload.show_latest_news,
-      show_latest_releases: updatePayload.show_latest_releases,
-      show_artist_collaboration: updatePayload.show_artist_collaboration,
-      show_progress_metrics: updatePayload.show_progress_metrics
-    });
+    if (!localContent) {
+      console.error('❌ Cannot save: No local content available');
+      return;
+    }
     
     try {
-      await updateContent(updatePayload);
+      // CRITICAL FIX: Explicitly construct the update payload to ensure all values are properly serialized
+      const updatePayload = {
+        id: localContent.id,
+        hero_title: localContent.hero_title || '',
+        hero_subtitle: localContent.hero_subtitle || '',
+        hero_description: localContent.hero_description || '',
+        hero_quote: localContent.hero_quote || '',
+        cta_button_text: localContent.cta_button_text || '',
+        cta_button_link: localContent.cta_button_link || '',
+        words_written: Number(localContent.words_written) || 0,
+        beta_readers: Number(localContent.beta_readers) || 0,
+        average_rating: Number(localContent.average_rating) || 0,
+        books_published: Number(localContent.books_published) || 0,
+        // CRITICAL FIX: Explicitly include boolean values with proper coercion to fix checkbox saving issue
+        show_latest_news: Boolean(localContent.show_latest_news),
+        show_latest_releases: Boolean(localContent.show_latest_releases),
+        show_artist_collaboration: Boolean(localContent.show_artist_collaboration),
+        show_progress_metrics: Boolean(localContent.show_progress_metrics)
+      };
+      
+      if (debugMode) {
+        console.log('🔍 FIXED: Sending explicit payload with all boolean values:', JSON.stringify(updatePayload, null, 2));
+      }
+      
+      console.log('🎯 Section visibility values being sent:', {
+        show_latest_news: updatePayload.show_latest_news,
+        show_latest_releases: updatePayload.show_latest_releases,
+        show_artist_collaboration: updatePayload.show_artist_collaboration,
+        show_progress_metrics: updatePayload.show_progress_metrics
+      });
+      
+      const result = await updateContent(updatePayload);
+      console.log('✅ Content saved successfully!', result);
       setLastSaved(new Date());
-      console.log('✅ Content saved successfully with explicit boolean values!');
+      
+      // Invalidate cache if context is available
+      if (homepageContext) {
+        homepageContext.invalidateHomepageData();
+      }
+      
+      // Refresh data to ensure UI is up to date
+      await refetch();
+      
     } catch (error) {
       console.error('❌ Failed to save content:', error);
+      
+      // CRITICAL FIX: Better error handling for JSON parsing issues
+      if (error instanceof SyntaxError && error.message.includes('JSON')) {
+        console.error('🚨 JSON Parsing Error: The server returned invalid JSON. This usually means the API endpoint is returning HTML instead of JSON.');
+        console.error('🔧 Possible fixes: Check API endpoint URLs, verify backend server is running, check CORS configuration');
+      }
+      
+      throw error; // Re-throw to allow UI error handling
     }
   };
 
   const handleSaveMetrics = async () => {
-    if (!localContent) return;
+    if (!localContent) {
+      console.error('❌ Cannot save metrics: No local content available');
+      return;
+    }
     
     try {
-      await updateMetrics({
-        words_written: localContent.words_written,
-        beta_readers: localContent.beta_readers,
-        average_rating: localContent.average_rating,
-        books_published: localContent.books_published
-      });
+      console.log('📊 Saving metrics...');
+      const metricsPayload = {
+        words_written: Number(localContent.words_written) || 0,
+        beta_readers: Number(localContent.beta_readers) || 0,
+        average_rating: Number(localContent.average_rating) || 0,
+        books_published: Number(localContent.books_published) || 0
+      };
+      
+      console.log('📊 Metrics payload:', metricsPayload);
+      const result = await updateMetrics(metricsPayload);
+      console.log('✅ Metrics saved successfully:', result);
       
       setLastSaved(new Date());
+      
+      // Invalidate cache if context is available
+      if (homepageContext) {
+        homepageContext.invalidateMetrics();
+      }
+      
       await refetch();
     } catch (error) {
-      console.error('Failed to save metrics:', error);
+      console.error('❌ Failed to save metrics:', error);
+      throw error;
     }
   };
 
   const handleCalculateMetrics = async () => {
     try {
+      console.log('🧮 Calculating metrics automatically...');
       const result = await calculateMetrics();
-      console.log('Metrics calculated:', result);
+      console.log('✅ Metrics calculated:', result);
+      
+      // Invalidate cache if context is available
+      if (homepageContext) {
+        homepageContext.invalidateMetrics();
+      }
+      
       await refetch(); // Refresh data to show updated metrics
     } catch (error) {
-      console.error('Failed to calculate metrics:', error);
+      console.error('❌ Failed to calculate metrics:', error);
     }
   };
 
   const handleAddQuote = async () => {
     try {
+      console.log('➕ Adding new quote...');
       await createQuote({
         quote_text: 'New inspiring quote...',
         author: 'Zoroastrian Wisdom',
         display_order: localQuotes.length + 1
       });
+      console.log('✅ Quote added successfully');
       await loadAllQuotes();
     } catch (error) {
-      console.error('Failed to add quote:', error);
+      console.error('❌ Failed to add quote:', error);
     }
   };
 
   const handleUpdateQuote = async (id: number, updates: Partial<HomepageQuote>) => {
     try {
+      console.log(`📝 Updating quote ${id}:`, updates);
       await updateQuote(id, updates);
+      console.log('✅ Quote updated successfully');
       await loadAllQuotes();
     } catch (error) {
-      console.error('Failed to update quote:', error);
+      console.error('❌ Failed to update quote:', error);
     }
   };
 
@@ -141,13 +201,16 @@ const HomepageManager: React.FC = () => {
     if (!confirm('Are you sure you want to delete this quote?')) return;
     
     try {
+      console.log(`🗑️ Deleting quote ${id}...`);
       await deleteQuote(id);
+      console.log('✅ Quote deleted successfully');
       await loadAllQuotes();
     } catch (error) {
-      console.error('Failed to delete quote:', error);
+      console.error('❌ Failed to delete quote:', error);
     }
   };
 
+  // CRITICAL FIX: Enhanced error handling with better user feedback and diagnostics
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -160,19 +223,60 @@ const HomepageManager: React.FC = () => {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 mb-4">Error loading homepage data: {error}</p>
-        <button 
-          onClick={refetch}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Retry
-        </button>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-2xl mx-auto">
+          <h3 className="text-lg font-semibold text-red-800 mb-2">Homepage Loading Error</h3>
+          <p className="text-red-600 mb-4">{error}</p>
+          
+          {/* Enhanced error diagnostics */}
+          {error.includes('JSON') && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded p-3 mb-4 text-sm text-left">
+              <h4 className="font-medium text-yellow-800 mb-1">🔧 Troubleshooting Tips:</h4>
+              <ul className="list-disc list-inside text-yellow-700 space-y-1">
+                <li>Verify the backend server is running</li>
+                <li>Check API endpoint URLs in configuration</li>
+                <li>Ensure database connection is working</li>
+                <li>Check browser console for more detailed errors</li>
+                <li>Verify CORS settings allow frontend-backend communication</li>
+              </ul>
+            </div>
+          )}
+          
+          <div className="flex justify-center space-x-4">
+            <button 
+              onClick={refetch}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              <RefreshCw className="w-4 h-4 inline mr-2" />
+              Retry Loading
+            </button>
+            <button 
+              onClick={() => setDebugMode(!debugMode)}
+              className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+            >
+              {debugMode ? 'Hide' : 'Show'} Debug Info
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!localContent) {
-    return <div className="text-center py-8">No homepage content found.</div>;
+    return (
+      <div className="text-center py-8">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-lg mx-auto">
+          <h3 className="text-lg font-semibold text-yellow-800 mb-2">No Homepage Content</h3>
+          <p className="text-yellow-600 mb-4">No homepage content found in the database.</p>
+          <button 
+            onClick={refetch}
+            className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700"
+          >
+            <RefreshCw className="w-4 h-4 inline mr-2" />
+            Refresh
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -188,6 +292,15 @@ const HomepageManager: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center space-x-4">
+          {/* Debug Mode Toggle */}
+          <button
+            onClick={() => setDebugMode(!debugMode)}
+            className={`px-3 py-2 text-xs font-medium rounded-md ${
+              debugMode ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+            }`}
+          >
+            🔧 Debug {debugMode ? 'ON' : 'OFF'}
+          </button>
           <button
             onClick={() => setPreviewMode(!previewMode)}
             className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -216,7 +329,7 @@ const HomepageManager: React.FC = () => {
       
       {(error || adminError) && (
         <div className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-md">
-          Error: {error || adminError}
+          <strong>Error:</strong> {error || adminError}
         </div>
       )}
 
@@ -578,7 +691,7 @@ const HomepageManager: React.FC = () => {
           </div>
         )}
 
-        {/* Sections Visibility Tab - CRITICAL FIX APPLIED */}
+        {/* CRITICAL FIX: Sections Visibility Tab with enhanced debugging */}
         {activeTab === 'sections' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -593,16 +706,22 @@ const HomepageManager: React.FC = () => {
               </button>
             </div>
             
-            {/* DEBUG INFO */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
-              <h4 className="font-medium text-yellow-800 mb-2">🔍 Debug Info (Current Values):</h4>
-              <div className="text-yellow-700">
-                <div>show_latest_news: <strong>{String(localContent.show_latest_news)}</strong></div>
-                <div>show_latest_releases: <strong>{String(localContent.show_latest_releases)}</strong></div>
-                <div>show_artist_collaboration: <strong>{String(localContent.show_artist_collaboration)}</strong></div>
-                <div>show_progress_metrics: <strong>{String(localContent.show_progress_metrics)}</strong></div>
+            {/* Enhanced DEBUG INFO with better visibility and type information */}
+            {debugMode && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm">
+                <h4 className="font-medium text-yellow-800 mb-2">🔍 Debug Info (Current Boolean Values):</h4>
+                <div className="grid grid-cols-2 gap-4 text-yellow-700 font-mono">
+                  <div>
+                    <div><strong>show_latest_news:</strong> {String(localContent.show_latest_news)} ({typeof localContent.show_latest_news})</div>
+                    <div><strong>show_latest_releases:</strong> {String(localContent.show_latest_releases)} ({typeof localContent.show_latest_releases})</div>
+                  </div>
+                  <div>
+                    <div><strong>show_artist_collaboration:</strong> {String(localContent.show_artist_collaboration)} ({typeof localContent.show_artist_collaboration})</div>
+                    <div><strong>show_progress_metrics:</strong> {String(localContent.show_progress_metrics)} ({typeof localContent.show_progress_metrics})</div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
@@ -671,20 +790,36 @@ const HomepageManager: React.FC = () => {
                 </div>
               </div>
               
-              {/* Preview of sections */}
+              {/* Enhanced Preview of sections with visual improvements */}
               <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
                 <h3 className="text-lg font-medium mb-4">Sections Preview</h3>
                 <div className="space-y-2 text-sm">
-                  <div className={`p-2 rounded ${localContent.show_latest_news ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                  <div className={`p-2 rounded transition-colors ${
+                    localContent.show_latest_news 
+                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                      : 'bg-gray-200 text-gray-500 border border-gray-300'
+                  }`}>
                     📰 Latest News {localContent.show_latest_news ? '(Visible)' : '(Hidden)'}
                   </div>
-                  <div className={`p-2 rounded ${localContent.show_latest_releases ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                  <div className={`p-2 rounded transition-colors ${
+                    localContent.show_latest_releases 
+                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                      : 'bg-gray-200 text-gray-500 border border-gray-300'
+                  }`}>
                     📚 Latest Releases {localContent.show_latest_releases ? '(Visible)' : '(Hidden)'}
                   </div>
-                  <div className={`p-2 rounded ${localContent.show_artist_collaboration ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                  <div className={`p-2 rounded transition-colors ${
+                    localContent.show_artist_collaboration 
+                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                      : 'bg-gray-200 text-gray-500 border border-gray-300'
+                  }`}>
                     🎨 Artist Collaboration {localContent.show_artist_collaboration ? '(Visible)' : '(Hidden)'}
                   </div>
-                  <div className={`p-2 rounded ${localContent.show_progress_metrics ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'}`}>
+                  <div className={`p-2 rounded transition-colors ${
+                    localContent.show_progress_metrics 
+                      ? 'bg-green-100 text-green-800 border border-green-200' 
+                      : 'bg-gray-200 text-gray-500 border border-gray-300'
+                  }`}>
                     📊 Progress Metrics {localContent.show_progress_metrics ? '(Visible)' : '(Hidden)'}
                   </div>
                 </div>
@@ -705,7 +840,7 @@ const HomepageManager: React.FC = () => {
             }
           }}
           disabled={isSaving}
-          className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 disabled:opacity-50"
+          className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-all"
         >
           {isSaving ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
           Save Changes

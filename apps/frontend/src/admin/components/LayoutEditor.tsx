@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Loader2, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { buildApiUrl, logApiConfig } from '../../lib/config';
 
 interface LayoutConfig {
   id?: number;
@@ -24,6 +25,10 @@ const LayoutEditor: React.FC = () => {
 
   // Only one useEffect - loads data on mount
   useEffect(() => {
+    // Log API configuration for debugging
+    console.log('🔧 LayoutEditor - API Configuration:');
+    logApiConfig();
+    
     loadLayoutConfig();
   }, []);
 
@@ -32,14 +37,42 @@ const LayoutEditor: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch('/api/homepage/layout');
-      if (!response.ok) throw new Error('Failed to load layout configuration');
+      // Use centralized API configuration pointing to Render backend
+      // Note: Layout config is part of homepage content, so we use the content endpoint
+      const apiUrl = buildApiUrl('api/homepage/content');
+      console.log('🎨 LayoutEditor - Fetching from:', apiUrl);
       
-      const data = await response.json();
-      setLayoutConfig(data);
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
+      
+      console.log('🎨 LayoutEditor - Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎨 LayoutEditor - Error response:', errorText);
+        throw new Error(`Failed to load layout configuration: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('🎨 LayoutEditor - Received data:', result);
+      
+      // Extract layout config from homepage content response
+      const data = result.success ? result.data : result;
+      
+      setLayoutConfig({
+        show_latest_news: data.show_latest_news ?? true,
+        show_latest_releases: data.show_latest_releases ?? true,
+        show_artist_collaboration: data.show_artist_collaboration ?? true,
+        show_progress_metrics: data.show_progress_metrics ?? true
+      });
+      
     } catch (err) {
-      console.error('Failed to load layout config:', err);
+      console.error('❌ LayoutEditor - Failed to load layout config:', err);
       setError('Failed to load layout settings');
       
       // Set default values on error
@@ -66,22 +99,37 @@ const LayoutEditor: React.FC = () => {
       setIsSaving(true);
       setError(null);
       
-      // Mock API call - replace with your actual API endpoint
-      const response = await fetch('/api/homepage/layout', {
+      // Use centralized API configuration pointing to Render backend
+      // Layout config is saved as part of homepage content
+      const apiUrl = buildApiUrl('api/homepage/content');
+      console.log('💾 LayoutEditor - Saving to:', apiUrl);
+      console.log('💾 LayoutEditor - Save payload:', layoutConfig);
+      
+      const response = await fetch(apiUrl, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(layoutConfig)
       });
       
-      if (!response.ok) throw new Error('Failed to save layout configuration');
+      console.log('💾 LayoutEditor - Save response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('💾 LayoutEditor - Save error response:', errorText);
+        throw new Error(`Failed to save layout configuration: ${response.status} ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      console.log('💾 LayoutEditor - Save result:', result);
       
       setLastSaved(new Date());
-      console.log('✅ Layout settings saved successfully');
+      console.log('✅ LayoutEditor - Layout settings saved successfully');
       
     } catch (err) {
-      console.error('Failed to save layout config:', err);
+      console.error('❌ LayoutEditor - Failed to save layout config:', err);
       setError('Failed to save layout settings');
     } finally {
       setIsSaving(false);
@@ -127,7 +175,7 @@ const LayoutEditor: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">🎛️ Layout Sections</h2>
+        <h2 className="text-xl font-semibold">🏛️ Layout Sections</h2>
         {lastSaved && (
           <div className="flex items-center text-sm text-green-600">
             <CheckCircle className="w-4 h-4 mr-2" />
@@ -139,6 +187,9 @@ const LayoutEditor: React.FC = () => {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-600">{error}</p>
+          <p className="text-xs text-red-500 mt-1">
+            Check the browser console for detailed error information.
+          </p>
         </div>
       )}
 
@@ -254,6 +305,12 @@ const LayoutEditor: React.FC = () => {
           )}
           Save Layout Settings
         </button>
+      </div>
+
+      {/* API Debug Info */}
+      <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
+        <p><strong>API Debug:</strong> Using centralized config pointing to Render backend</p>
+        <p><strong>Layout Config URL:</strong> {buildApiUrl('api/homepage/content')}</p>
       </div>
     </div>
   );

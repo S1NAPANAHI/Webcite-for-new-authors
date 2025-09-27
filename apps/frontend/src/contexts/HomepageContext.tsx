@@ -1,7 +1,7 @@
 // REACT HOOK ERROR #321 FIX - Simplified Homepage Context
 // This simplified context eliminates the complex hook usage that was causing React error #321
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { homepageManager } from '../lib/HomepageManager';
 
 /**
@@ -72,10 +72,11 @@ class HomepageContextErrorBoundary extends React.Component<
  * No hooks are used within the provider itself
  */
 export const HomepageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const value: HomepageContextValue = {
+  // Use useMemo to create stable value object
+  const value = useMemo<HomepageContextValue>(() => ({
     manager: homepageManager,
     isReady: true
-  };
+  }), []);
 
   console.log('✅ HomepageProvider rendering with simplified context');
 
@@ -108,33 +109,32 @@ export const useHomepageContext = (): HomepageContextValue => {
 };
 
 /**
- * Completely safe hook that never throws errors
+ * Completely safe hook that returns fallback instead of throwing
+ * IMPORTANT: This hook must still be called at the top level of a React component
  */
 export const useHomepageContextSafe = (): HomepageContextValue => {
+  // Create fallback outside of hook call
+  const fallbackValue = useMemo<HomepageContextValue>(() => ({
+    manager: homepageManager,
+    isReady: false
+  }), []);
+
+  let context: HomepageContextValue | null = null;
+  
   try {
-    const context = useContext(HomepageContext);
-    
-    if (!context) {
-      console.warn('⚠️ HomepageContext not available, providing fallback');
-      
-      // Return a safe fallback that provides the manager
-      return {
-        manager: homepageManager,
-        isReady: false
-      };
-    }
-    
-    return context;
+    // This must be called unconditionally at the top level
+    context = useContext(HomepageContext);
   } catch (error) {
-    console.error('❌ Error in useHomepageContextSafe:', error);
-    console.warn('⚠️ Providing fallback context due to error');
-    
-    // Return fallback context
-    return {
-      manager: homepageManager,
-      isReady: false
-    };
+    console.error('❌ Error in useHomepageContextSafe useContext call:', error);
+    // Don't return here - continue with fallback logic below
   }
+  
+  if (!context) {
+    console.warn('⚠️ HomepageContext not available, providing fallback');
+    return fallbackValue;
+  }
+  
+  return context;
 };
 
 /**
@@ -143,16 +143,26 @@ export const useHomepageContextSafe = (): HomepageContextValue => {
  */
 export const useHomepageContextOptional = (): HomepageContextValue | null => {
   try {
-    return useHomepageContextSafe();
+    const context = useContext(HomepageContext);
+    return context || null;
   } catch (error) {
     console.error('❌ Error in useHomepageContextOptional:', error);
     return null;
   }
 };
 
+// Alternative non-hook approach for components that can't use hooks
+export const getHomepageManagerDirect = () => {
+  return {
+    manager: homepageManager,
+    isReady: true
+  };
+};
+
 // For debugging
-if (typeof window !== 'undefined' && import.meta.env.DEV) {
-  window.HomepageContext = HomepageContext;
+if (typeof window !== 'undefined' && import.meta.env?.DEV) {
+  (window as any).HomepageContext = HomepageContext;
+  (window as any).getHomepageManagerDirect = getHomepageManagerDirect;
   console.log('🔧 HomepageContext available globally in development mode');
 }
 

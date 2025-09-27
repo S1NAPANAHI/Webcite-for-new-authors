@@ -22,15 +22,39 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const metricsRefreshCallbacks = useRef<Set<() => void>>(new Set());
   const quotesRefreshCallbacks = useRef<Set<() => void>>(new Set());
 
+  // CRITICAL FIX: Enhanced callback execution with error boundaries
+  const executeCallbacks = useCallback((callbacks: Set<() => void>, type: string) => {
+    console.log(`🔄 Executing ${callbacks.size} ${type} callbacks...`);
+    
+    callbacks.forEach(callback => {
+      try {
+        // CRITICAL FIX: Use setTimeout to defer callback execution and avoid hook timing issues
+        setTimeout(() => {
+          try {
+            callback();
+          } catch (error) {
+            console.error(`❌ Error in deferred ${type} callback:`, error);
+          }
+        }, 0);
+      } catch (error) {
+        console.error(`❌ Error preparing ${type} callback:`, error);
+      }
+    });
+  }, []);
+
   // Register callbacks for data refresh
   const registerDataRefresh = useCallback((callback: () => void) => {
     dataRefreshCallbacks.current.add(callback);
     console.log('📝 Registered homepage data refresh callback');
     
-    // Return cleanup function
+    // Return cleanup function with enhanced error handling
     return () => {
-      dataRefreshCallbacks.current.delete(callback);
-      console.log('🗑️ Unregistered homepage data refresh callback');
+      try {
+        dataRefreshCallbacks.current.delete(callback);
+        console.log('🗑️ Unregistered homepage data refresh callback');
+      } catch (error) {
+        console.error('❌ Error unregistering data refresh callback:', error);
+      }
     };
   }, []);
 
@@ -39,8 +63,12 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('📊 Registered metrics refresh callback');
     
     return () => {
-      metricsRefreshCallbacks.current.delete(callback);
-      console.log('🗑️ Unregistered metrics refresh callback');
+      try {
+        metricsRefreshCallbacks.current.delete(callback);
+        console.log('🗑️ Unregistered metrics refresh callback');
+      } catch (error) {
+        console.error('❌ Error unregistering metrics refresh callback:', error);
+      }
     };
   }, []);
 
@@ -49,50 +77,52 @@ export const HomepageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     console.log('💬 Registered quotes refresh callback');
     
     return () => {
-      quotesRefreshCallbacks.current.delete(callback);
-      console.log('🗑️ Unregistered quotes refresh callback');
+      try {
+        quotesRefreshCallbacks.current.delete(callback);
+        console.log('🗑️ Unregistered quotes refresh callback');
+      } catch (error) {
+        console.error('❌ Error unregistering quotes refresh callback:', error);
+      }
     };
   }, []);
 
-  // Cache invalidation functions
+  // CRITICAL FIX: Enhanced cache invalidation functions with better error handling
   const invalidateHomepageData = useCallback(() => {
-    console.log('🔄 Invalidating homepage data cache...');
-    dataRefreshCallbacks.current.forEach(callback => {
-      try {
-        callback();
-      } catch (error) {
-        console.error('❌ Error in data refresh callback:', error);
-      }
-    });
-  }, []);
+    try {
+      console.log('🔄 Invalidating homepage data cache...');
+      executeCallbacks(dataRefreshCallbacks.current, 'data refresh');
+    } catch (error) {
+      console.error('❌ Error invalidating homepage data:', error);
+    }
+  }, [executeCallbacks]);
 
   const invalidateMetrics = useCallback(() => {
-    console.log('📊 Invalidating metrics cache...');
-    metricsRefreshCallbacks.current.forEach(callback => {
-      try {
-        callback();
-      } catch (error) {
-        console.error('❌ Error in metrics refresh callback:', error);
-      }
-    });
-  }, []);
+    try {
+      console.log('📊 Invalidating metrics cache...');
+      executeCallbacks(metricsRefreshCallbacks.current, 'metrics refresh');
+    } catch (error) {
+      console.error('❌ Error invalidating metrics:', error);
+    }
+  }, [executeCallbacks]);
 
   const invalidateQuotes = useCallback(() => {
-    console.log('💬 Invalidating quotes cache...');
-    quotesRefreshCallbacks.current.forEach(callback => {
-      try {
-        callback();
-      } catch (error) {
-        console.error('❌ Error in quotes refresh callback:', error);
-      }
-    });
-  }, []);
+    try {
+      console.log('💬 Invalidating quotes cache...');
+      executeCallbacks(quotesRefreshCallbacks.current, 'quotes refresh');
+    } catch (error) {
+      console.error('❌ Error invalidating quotes:', error);
+    }
+  }, [executeCallbacks]);
 
   const invalidateAll = useCallback(() => {
-    console.log('🔄 Invalidating ALL homepage caches...');
-    invalidateHomepageData();
-    invalidateMetrics();
-    invalidateQuotes();
+    try {
+      console.log('🔄 Invalidating ALL homepage caches...');
+      invalidateHomepageData();
+      invalidateMetrics();
+      invalidateQuotes();
+    } catch (error) {
+      console.error('❌ Error invalidating all caches:', error);
+    }
   }, [invalidateHomepageData, invalidateMetrics, invalidateQuotes]);
 
   const value: HomepageContextValue = {
@@ -121,9 +151,14 @@ export const useHomepageContext = (): HomepageContextValue => {
   return context;
 };
 
-// Optional hook that gracefully handles missing context
+// CRITICAL FIX: Enhanced optional hook with better error handling
 export const useHomepageContextOptional = (): HomepageContextValue | null => {
-  return useContext(HomepageContext);
+  try {
+    return useContext(HomepageContext);
+  } catch (error) {
+    console.error('❌ Error accessing homepage context:', error);
+    return null;
+  }
 };
 
 export default HomepageContext;

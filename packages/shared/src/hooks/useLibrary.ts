@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ContentService } from '../services/content';
-import { Database, Tables } from '../database.types';
+import { Tables } from '../database.types';
 
 export function useLibrary(userId?: string) {
   const [libraryBooks, setLibraryBooks] = useState<Tables<'content_items'>[]>([]);

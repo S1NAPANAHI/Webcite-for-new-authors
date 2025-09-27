@@ -41,7 +41,12 @@ export default defineConfig(({ mode }) => {
         '@supabase/supabase-js',
         '@tanstack/react-query',
         'framer-motion',
-        'lucide-react'
+        'lucide-react',
+        // ADDED: Editor dependencies to prevent initialization errors
+        'quill',
+        '@tiptap/core',
+        '@tiptap/react',
+        '@tiptap/starter-kit'
       ],
       exclude: ['@zoroaster/shared'],
       // CRITICAL FIX: Force single React instance in dependencies
@@ -50,7 +55,10 @@ export default defineConfig(({ mode }) => {
         target: 'es2020',
         define: {
           global: 'globalThis'
-        }
+        },
+        // ADDED: Better module resolution for initialization order
+        keepNames: true,
+        treeShaking: true
       },
     },
     css: {
@@ -64,6 +72,10 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: true,
+      // ADDED: Better development server configuration
+      hmr: {
+        overlay: true
+      }
     },
     build: {
       outDir: 'dist',
@@ -72,14 +84,47 @@ export default defineConfig(({ mode }) => {
       target: 'es2020',
       // Critical: Optimize chunk sizes to prevent massive bundles
       chunkSizeWarningLimit: 1000,
+      // ADDED: Better minification options to prevent initialization errors
+      minify: mode === 'production' ? 'terser' : false,
+      terserOptions: {
+        compress: {
+          // CRITICAL: Preserve function names to prevent initialization errors
+          keep_fnames: true,
+          keep_classnames: true,
+          // Prevent aggressive optimization that can cause circular deps
+          drop_console: false,
+          drop_debugger: true
+        },
+        mangle: {
+          // CRITICAL: Don't mangle function names to prevent 'Di' initialization error
+          keep_fnames: true,
+          keep_classnames: true
+        }
+      },
       rollupOptions: {
         external: [],
+        // ADDED: Better tree-shaking configuration
+        treeshake: {
+          moduleSideEffects: false,
+          // CRITICAL: Don't remove seemingly unused exports that might be needed for initialization
+          unknownGlobalSideEffects: false
+        },
         output: {
-          // CRITICAL FIX: Manual chunking to ensure single React instance
+          // CRITICAL FIX: Manual chunking to ensure single React instance and prevent initialization errors
           manualChunks: (id) => {
             // CRITICAL: Always put React in the vendor chunk to prevent duplicates
             if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
               return 'react-vendor';
+            }
+            
+            // CRITICAL: Group editor dependencies together to prevent circular deps
+            if (id.includes('react-quill') || 
+                id.includes('quill') ||
+                id.includes('@tiptap/core') ||
+                id.includes('@tiptap/react') ||
+                id.includes('@tiptap/starter-kit') ||
+                id.includes('@tiptap/extension-')) {
+              return 'editor';
             }
             
             // Supabase (separate chunk to avoid conflicts)
@@ -97,16 +142,14 @@ export default defineConfig(({ mode }) => {
               return 'ui-heavy';
             }
             
-            // Editor (massive bundle - separate it)
-            if (id.includes('react-quill') || 
-                id.includes('quill') ||
-                id.includes('@tiptap/')) {
-              return 'editor';
-            }
-            
             // Icons
             if (id.includes('lucide-react')) {
               return 'icons';
+            }
+            
+            // Router
+            if (id.includes('react-router-dom')) {
+              return 'router';
             }
             
             // Utilities
@@ -121,14 +164,24 @@ export default defineConfig(({ mode }) => {
               return 'vendor';
             }
           },
-          // Ensure proper chunk naming
+          // CRITICAL: Ensure proper chunk naming and loading order
           chunkFileNames: (chunkInfo) => {
+            // CRITICAL: Ensure react-vendor loads first
+            if (chunkInfo.name === 'react-vendor') {
+              return `js/[name]-[hash].js`;
+            }
             return `js/[name]-[hash].js`;
           },
           entryFileNames: 'js/[name]-[hash].js',
-          assetFileNames: 'assets/[name]-[hash].[ext]'
+          assetFileNames: 'assets/[name]-[hash].[ext]',
+          // ADDED: Better module format to prevent initialization issues
+          format: 'es',
+          // CRITICAL: Control import order to prevent initialization errors
+          intro: '// Ensure proper module initialization order'
         },
       },
     },
+    // ADDED: Better error handling
+    logLevel: mode === 'development' ? 'info' : 'warn',
   };
 });

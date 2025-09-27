@@ -57,6 +57,23 @@ export const buildApiUrl = (endpoint: string): string => {
 };
 
 /**
+ * Log API configuration for debugging - Required by CheckoutPage
+ */
+export const logApiConfig = () => {
+  console.log('🔧 API Configuration:');
+  console.log('📍 Base URL:', API_CONFIG.BASE_URL);
+  console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+  console.log('🔗 Full API endpoint example:', buildApiUrl('api/homepage/hero'));
+  console.log('💳 Stripe endpoint:', buildApiUrl('stripe/create-subscription'));
+  console.log('⚙️ Config details:', {
+    baseUrl: API_CONFIG.BASE_URL,
+    isRenderBackend: API_CONFIG.BASE_URL.includes('onrender.com'),
+    isLocalhost: API_CONFIG.BASE_URL.includes('localhost'),
+    environment: process.env.NODE_ENV,
+  });
+};
+
+/**
  * Create fetch configuration with default settings
  * @param options - Additional fetch options
  * @returns Complete fetch configuration

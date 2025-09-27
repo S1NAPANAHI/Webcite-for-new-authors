@@ -37,29 +37,53 @@ const HeroEditor: React.FC = () => {
       setIsLoading(true);
       setError(null);
       
-      console.log('🔄 Loading hero data from /api/homepage/content...');
+      console.log('🔄 Loading hero data from /api/homepage/hero...');
       
-      // Use the correct API endpoint that matches your backend
-      const response = await fetch('/api/homepage/content');
+      // Use the dedicated hero endpoint for better performance
+      const response = await fetch('/api/homepage/hero');
       
       if (!response.ok) {
-        // If API fails, use fallback content that matches your live site
-        console.warn('⚠️ API failed, using fallback content');
-        const fallbackContent: HeroContent = {
-          hero_title: 'ZOROASTERVERSE',
-          hero_subtitle: '',
-          hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
-          hero_quote: 'Happiness comes to them who bring happiness to others.',
-          cta_button_text: 'Learn More',
-          cta_button_link: '/blog/about'
-        };
-        setHeroData(fallbackContent);
-        setError('Using current live content (API not available)');
-        return;
+        // If dedicated endpoint fails, try the general content endpoint
+        console.warn('⚠️ Hero endpoint failed, trying content endpoint...');
+        const fallbackResponse = await fetch('/api/homepage/content');
+        
+        if (!fallbackResponse.ok) {
+          // If both APIs fail, use fallback content that matches your live site
+          console.warn('⚠️ Both APIs failed, using fallback content');
+          const fallbackContent: HeroContent = {
+            hero_title: 'ZOROASTERVERSE',
+            hero_subtitle: '',
+            hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
+            hero_quote: 'Happiness comes to them who bring happiness to others.',
+            cta_button_text: 'Learn More',
+            cta_button_link: '/blog/about'
+          };
+          setHeroData(fallbackContent);
+          setError('Using current live content (API not available)');
+          return;
+        }
+        
+        // Process fallback response
+        const fallbackResult = await fallbackResponse.json();
+        const fallbackData = fallbackResult.data || fallbackResult;
+        
+        if (fallbackData) {
+          setHeroData({
+            hero_title: fallbackData.hero_title || '',
+            hero_subtitle: fallbackData.hero_subtitle || '',
+            hero_description: fallbackData.hero_description || '',
+            hero_quote: fallbackData.hero_quote || '',
+            cta_button_text: fallbackData.cta_button_text || '',
+            cta_button_link: fallbackData.cta_button_link || ''
+          });
+          setError('Loaded from content API (hero API unavailable)');
+          console.log('✅ Hero data loaded from fallback content API');
+          return;
+        }
       }
       
       const result = await response.json();
-      console.log('✅ API Response received:', result);
+      console.log('✅ Hero API Response received:', result);
       
       // Handle both direct data and wrapped response formats
       const data = result.data || result;
@@ -73,7 +97,7 @@ const HeroEditor: React.FC = () => {
           cta_button_text: data.cta_button_text || '',
           cta_button_link: data.cta_button_link || ''
         });
-        console.log('✅ Hero data loaded successfully');
+        console.log('✅ Hero data loaded successfully from dedicated endpoint');
       } else {
         throw new Error('No hero data found in response');
       }
@@ -111,11 +135,11 @@ const HeroEditor: React.FC = () => {
       setError(null);
       setSuccess(null);
       
-      console.log('💾 Saving hero data to /api/homepage/content...');
+      console.log('💾 Saving hero data to /api/homepage/hero...');
       console.log('📤 Data being sent:', heroData);
       
-      // Use the correct API endpoint that matches your backend  
-      const response = await fetch('/api/homepage/content', {
+      // Use the dedicated hero endpoint for better performance
+      const response = await fetch('/api/homepage/hero', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -123,15 +147,38 @@ const HeroEditor: React.FC = () => {
         body: JSON.stringify(heroData)
       });
       
-      const result = await response.json();
-      console.log('📥 Save response:', result);
+      let result = null;
       
       if (!response.ok) {
-        throw new Error(result.error || `Server error: ${response.status}`);
+        // If dedicated endpoint fails, try the general content endpoint
+        console.warn('⚠️ Hero save endpoint failed, trying content endpoint...');
+        const fallbackResponse = await fetch('/api/homepage/content', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(heroData)
+        });
+        
+        if (!fallbackResponse.ok) {
+          const fallbackResult = await fallbackResponse.json();
+          throw new Error(fallbackResult.error || `Server error: ${fallbackResponse.status}`);
+        }
+        
+        result = await fallbackResponse.json();
+        console.log('📥 Save response from content API:', result);
+        setSuccess('Hero content saved successfully via content API!');
+      } else {
+        result = await response.json();
+        console.log('📥 Save response from hero API:', result);
+        setSuccess('Hero content saved successfully!');
+      }
+      
+      if (!result.success && result.error) {
+        throw new Error(result.error);
       }
       
       setLastSaved(new Date());
-      setSuccess('Hero content saved successfully!');
       console.log('✅ Hero content saved successfully');
       
       // Clear success message after 3 seconds
@@ -352,7 +399,8 @@ const HeroEditor: React.FC = () => {
         <div className="bg-gray-50 p-4 rounded-md border">
           <h4 className="text-sm font-medium text-gray-700 mb-2">Debug Info</h4>
           <div className="text-xs text-gray-600 space-y-1">
-            <div>API Endpoint: /api/homepage/content</div>
+            <div>Primary API: /api/homepage/hero</div>
+            <div>Fallback API: /api/homepage/content</div>
             <div>Loading: {isLoading.toString()}</div>
             <div>Saving: {isSaving.toString()}</div>
             <div>Has Error: {!!error}</div>

@@ -20,8 +20,12 @@ import {
   Grid,
   List,
   Trash2,
-  FileText
+  FileText,
+  Crop,
+  Edit3
 } from 'lucide-react';
+// Import the SimpleCropModal component
+import SimpleCropModal from '../../../components/SimpleCropModal';
 
 // HTML sanitization function to preserve paragraph structure
 const sanitizeHtml = (html: string): string => {
@@ -110,6 +114,11 @@ const BlogPostEditor = () => {
   const [author, setAuthor] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [showPreview, setShowPreview] = useState(false); // NEW: Preview toggle
+  
+  // Image cropping states
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // Content stats
   const [wordCount, setWordCount] = useState(0);
@@ -412,6 +421,60 @@ const BlogPostEditor = () => {
     return '';
   };
 
+  // NEW: Handle image selection from media picker with crop option
+  const handleImageSelect = (file: FileRecord) => {
+    const imageUrl = getFileUrl(file);
+    setImageToCrop(imageUrl);
+    setShowMediaPicker(false);
+    setShowCropModal(true);
+  };
+
+  // NEW: Handle cropped image
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    try {
+      setIsUploadingImage(true);
+      
+      // Upload cropped image to blog-images bucket
+      const timestamp = Date.now();
+      const fileName = `blog-featured-${timestamp}.jpg`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('blog-images')
+        .upload(filePath, croppedBlob, {
+          contentType: 'image/jpeg',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('blog-images')
+        .getPublicUrl(filePath);
+
+      // Set as cover image
+      setCoverUrl(publicUrl);
+      setShowCropModal(false);
+      setImageToCrop(null);
+      
+      console.log('✅ Image cropped and uploaded successfully:', publicUrl);
+    } catch (error) {
+      console.error('❌ Error uploading cropped image:', error);
+      alert('Failed to upload cropped image. Please try again.');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  // NEW: Handle crop image from existing cover
+  const handleCropExistingImage = () => {
+    if (coverUrl) {
+      setImageToCrop(coverUrl);
+      setShowCropModal(true);
+    }
+  };
+
   // 🔥 CRITICAL FIX: Simplified save function with HTML content
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
@@ -631,33 +694,69 @@ const BlogPostEditor = () => {
                 />
               </div>
 
-              {/* Featured Image Section */}
+              {/* Enhanced Featured Image Section with Cropping */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Featured Image
+                  <span className="ml-2 px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded-full">
+                    ✂️ Cropping Available
+                  </span>
                 </label>
                 {coverUrl ? (
-                  <div className="relative">
+                  <div className="relative group">
                     <img
                       src={coverUrl}
                       alt="Featured image"
                       className="w-full h-48 object-cover rounded-lg"
                     />
-                    <button
-                      onClick={() => setCoverUrl('')}
-                      className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    {/* Image Action Overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center rounded-lg">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowMediaPicker(true)}
+                          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                          title="Change image"
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCropExistingImage}
+                          className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                          title="Crop image"
+                        >
+                          <Crop className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCoverUrl('')}
+                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                          title="Remove image"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   <button
                     onClick={() => setShowMediaPicker(true)}
-                    className="w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-colors"
+                    disabled={isUploadingImage}
+                    className="w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:border-purple-500 hover:text-purple-500 transition-colors disabled:opacity-50"
                   >
-                    <ImageIcon className="w-8 h-8 mb-2" />
-                    <span>Choose from Media Library</span>
-                    <span className="text-sm">Or paste image URL below</span>
+                    {isUploadingImage ? (
+                      <>
+                        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mb-2" />
+                        <span>Processing cropped image...</span>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon className="w-8 h-8 mb-2" />
+                        <span>Choose from Media Library</span>
+                        <span className="text-sm">✂️ Automatic cropping available</span>
+                      </>
+                    )}
                   </button>
                 )}
                 
@@ -963,6 +1062,9 @@ const BlogPostEditor = () => {
             <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
               <div className="flex items-center gap-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Choose Image from Media Library</h3>
+                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm rounded-full">
+                  ✂️ Images will be cropped automatically
+                </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setMediaViewMode('grid')}
@@ -1016,11 +1118,8 @@ const BlogPostEditor = () => {
                     return (
                       <button
                         key={file.id}
-                        onClick={() => {
-                          setCoverUrl(fileUrl);
-                          setShowMediaPicker(false);
-                        }}
-                        className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all"
+                        onClick={() => handleImageSelect(file)}
+                        className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition-all"
                       >
                         <img
                           src={fileUrl}
@@ -1028,6 +1127,9 @@ const BlogPostEditor = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
+                        <div className="absolute top-2 right-2 bg-purple-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Crop className="w-3 h-3" />
+                        </div>
                         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                           <p className="text-white text-xs truncate">{file.name}</p>
                         </div>
@@ -1042,11 +1144,8 @@ const BlogPostEditor = () => {
                     return (
                       <button
                         key={file.id}
-                        onClick={() => {
-                          setCoverUrl(fileUrl);
-                          setShowMediaPicker(false);
-                        }}
-                        className="w-full flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
+                        onClick={() => handleImageSelect(file)}
+                        className="w-full flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
                       >
                         <img
                           src={fileUrl}
@@ -1060,6 +1159,10 @@ const BlogPostEditor = () => {
                             {file.folder || 'misc'}
                           </p>
                         </div>
+                        <div className="flex items-center gap-2 text-purple-600">
+                          <Crop className="w-4 h-4" />
+                          <span className="text-sm">Crop</span>
+                        </div>
                       </button>
                     );
                   })}
@@ -1069,7 +1172,7 @@ const BlogPostEditor = () => {
             
             <div className="px-6 py-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                💡 <strong>Tip:</strong> You can also upload new images at 
+                💡 <strong>Tip:</strong> Choose any image and it will automatically open the cropping tool. You can also upload new images at 
                 <a href="/admin/content/files" className="text-blue-600 dark:text-blue-400 hover:underline ml-1">
                   /admin/content/files
                 </a>
@@ -1077,6 +1180,22 @@ const BlogPostEditor = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image Cropping Modal */}
+      {showCropModal && imageToCrop && (
+        <SimpleCropModal
+          isOpen={showCropModal}
+          onClose={() => {
+            setShowCropModal(false);
+            setImageToCrop(null);
+          }}
+          imageUrl={imageToCrop}
+          onCropComplete={handleCropComplete}
+          aspectRatio={16/9} // Blog featured images look best in landscape
+          title="Crop Featured Image"
+          loading={isUploadingImage}
+        />
       )}
     </div>
   );

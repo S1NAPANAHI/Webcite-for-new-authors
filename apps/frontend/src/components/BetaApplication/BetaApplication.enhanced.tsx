@@ -1,9 +1,9 @@
 /**
- * Enhanced Beta Application Form - Drop-in Replacement
- * Maintains all existing functionality with improved UX/UI
+ * Enhanced Beta Application Form - Fixed for React Error #301
+ * FIXED: Infinite loop issue with validateStep function
  */
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { SupabaseClient, User } from ' @supabase/supabase-js';
+import { SupabaseClient, User } from '@supabase/supabase-js';
 import { 
     ChevronLeft, 
     ChevronRight, 
@@ -96,6 +96,8 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
     const [error, setError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
+    // FIXED: Add validation state tracking to prevent infinite loops
+    const [hasValidatedCurrentStep, setHasValidatedCurrentStep] = useState(false);
     
     const [formData, setFormData] = useState<FormData>({
         fullName: '',
@@ -168,16 +170,22 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
         }
+        // FIXED: Reset validation state when form changes to prevent stale validation
+        setHasValidatedCurrentStep(false);
     }, [errors]);
 
-    const validateStep = useCallback((stepId: number): boolean => {
+    // FIXED: Pure validation function that doesn't set state during render
+    const validateStepFields = useCallback((stepId: number, formValues: FormData): {
+        isValid: boolean;
+        errors: Partial<Record<keyof FormData, string>>;
+    } => {
         const step = STEPS.find(s => s.id === stepId);
-        if (!step) return false;
+        if (!step) return { isValid: false, errors: {} };
         
         const newErrors: Partial<Record<keyof FormData, string>> = {};
         
         step.fields.forEach(field => {
-            const value = formData[field];
+            const value = formValues[field];
             
             switch (field) {
                 case 'fullName':
@@ -195,10 +203,13 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
                 case 'interestStatement':
                     if (!value || (typeof value === 'string' && !value.trim())) {
                         newErrors[field] = 'This field is required';
-                    } else if (interestWordCount < 150) {
-                        newErrors[field] = `Please write at least 150 words (currently ${interestWordCount})`;
-                    } else if (interestWordCount > 250) {
-                        newErrors[field] = `Please keep it under 250 words (currently ${interestWordCount})`;
+                    } else {
+                        const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
+                        if (wordCount < 150) {
+                            newErrors[field] = `Please write at least 150 words (currently ${wordCount})`;
+                        } else if (wordCount > 250) {
+                            newErrors[field] = `Please keep it under 250 words (currently ${wordCount})`;
+                        }
                     }
                     break;
                 case 'devices':
@@ -209,43 +220,89 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
             }
         });
         
-        setErrors(prev => ({ ...prev, ...newErrors }));
-        return Object.keys(newErrors).length === 0;
-    }, [formData, interestWordCount]);
+        return {
+            isValid: Object.keys(newErrors).length === 0,
+            errors: newErrors
+        };
+    }, []);
+
+    // FIXED: Separate validation trigger function that can set errors
+    const validateCurrentStep = useCallback(() => {
+        const validation = validateStepFields(currentStep, formData);
+        setErrors(prev => ({ ...prev, ...validation.errors }));
+        setHasValidatedCurrentStep(true);
+        return validation.isValid;
+    }, [currentStep, formData, validateStepFields]);
+
+    // FIXED: Safe canProceed calculation that doesn't trigger re-renders
+    const canProceed = useMemo(() => {
+        if (!hasValidatedCurrentStep) {
+            // Only check if there are no obvious missing required fields
+            const step = STEPS.find(s => s.id === currentStep);
+            if (!step) return false;
+            
+            return step.fields.every(field => {
+                const value = formData[field];
+                if (field === 'devices') {
+                    return Array.isArray(value) && value.length > 0;
+                }
+                return value && (typeof value !== 'string' || value.trim());
+            });
+        }
+        
+        // If we've validated, check current errors for this step's fields
+        const step = STEPS.find(s => s.id === currentStep);
+        if (!step) return false;
+        
+        return step.fields.every(field => !errors[field]);
+    }, [currentStep, formData, errors, hasValidatedCurrentStep]);
 
     const goToStep = useCallback((stepId: number) => {
         const isAccessible = completedSteps.has(stepId) || stepId === currentStep || 
                            completedSteps.has(stepId - 1) || stepId === 1;
         if (isAccessible) {
             setCurrentStep(stepId);
+            // FIXED: Reset validation state when navigating
+            setHasValidatedCurrentStep(false);
         }
     }, [currentStep, completedSteps]);
 
     const goToNextStep = useCallback(() => {
-        if (validateStep(currentStep)) {
+        if (validateCurrentStep()) {
             setCompletedSteps(prev => new Set([...prev, currentStep]));
             if (currentStep < STEPS.length) {
                 setCurrentStep(prev => prev + 1);
+                // FIXED: Reset validation state when navigating
+                setHasValidatedCurrentStep(false);
             }
         }
-    }, [currentStep, validateStep]);
+    }, [currentStep, validateCurrentStep]);
 
     const goToPreviousStep = useCallback(() => {
         if (currentStep > 1) {
             setCurrentStep(prev => prev - 1);
+            // FIXED: Reset validation state when navigating
+            setHasValidatedCurrentStep(false);
         }
     }, [currentStep]);
 
-    // Submit handler - same logic as original
+    // FIXED: Updated submit handler to use new validation system
     const handleSubmit = useCallback(async () => {
         if (!user?.id) return;
         
         let allValid = true;
+        const allErrors: Partial<Record<keyof FormData, string>> = {};
+        
+        // Validate all steps using the new validation function
         for (let i = 1; i <= STEPS.length; i++) {
-            if (!validateStep(i)) {
+            const validation = validateStepFields(i, formData);
+            if (!validation.isValid) {
                 allValid = false;
+                Object.assign(allErrors, validation.errors);
             }
         }
+        
+        setErrors(allErrors);
         
         if (!allValid) {
             setError('Please complete all required fields correctly.');
@@ -285,7 +342,7 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
         } finally {
             setLoading(false);
         }
-    }, [formData, row, user?.id, supabaseClient, validateStep]);
+    }, [formData, row, user?.id, supabaseClient, validateStepFields]);
 
     // Loading state
     if (loading && !row) {
@@ -380,7 +437,6 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
 
     const currentStepConfig = STEPS.find(s => s.id === currentStep)!;
     const isLastStep = currentStep === STEPS.length;
-    const canProceed = validateStep(currentStep);
 
     return (
         <div className="enhanced-beta-app">
@@ -478,7 +534,7 @@ const BetaApplicationEnhanced: React.FC<BetaApplicationProps> = ({ supabaseClien
                                         type="email"
                                         value={formData.email}
                                         onChange={(e) => handleInputChange('email', e.target.value)}
-                                        placeholder="your.email @example.com"
+                                        placeholder="your.email@example.com"
                                         className={errors.email ? 'error' : ''}
                                     />
                                     {errors.email && (

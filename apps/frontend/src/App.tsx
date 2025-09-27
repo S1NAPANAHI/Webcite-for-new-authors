@@ -10,7 +10,8 @@ import {
 import { AuthProvider, useAuth, supabase } from '@zoroaster/shared';
 import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, TimelinesPage } from '@zoroaster/ui';
 import AdminLayout from './components/admin/AdminLayout';
-import LearnPage from './pages/LearnPage';
+// UPDATED: Import enhanced Learn page
+import LearnPageEnhanced from './pages/LearnPageEnhanced';
 import AuthorJourneyPostPage from './pages/learn/AuthorJourneyPostPage';
 import WritingGuidePage from './pages/learn/WritingGuidePage';
 import BlogPage from './pages/BlogPage';
@@ -198,7 +199,8 @@ const AppContent: React.FC = () => {
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />
-        <Route path="/learn" element={<LearnPage />} />
+        {/* UPDATED: Use enhanced Learn page */}
+        <Route path="/learn" element={<LearnPageEnhanced />} />
         <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />
         <Route path="/learn/writing-guides/:slug" element={<WritingGuidePage />} />
         
@@ -264,6 +266,9 @@ const AppContent: React.FC = () => {
         <Route path="content/works" element={<WorksManager />} />
         <Route path="content/works/new" element={<WorkEditor />} />
         <Route path="content/works/:id/edit" element={<WorkEditor />} />
+
+        {/* CRITICAL FIX: Add missing Learn admin route */}
+        <Route path="learn" element={<LearnPageAdmin />} />
 
         <Route path="commerce/shop" element={<PlaceholderPage title="Shop" />} />
         <Route path="commerce/orders" element={<OrderManagementPage />} />

@@ -2,6 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@zoroaster/shared/supabaseClient';
 import { Link } from 'react-router-dom';
+// Import CSS for proper paragraph spacing
+import '../apps/frontend/src/styles/chapter-content.css';
 
 // Define the type for our posts (should match the one in PostsManager.tsx)
 type Post = {
@@ -56,7 +58,7 @@ export const BlogPage: React.FC = () => {
                 <h2 className="text-2xl font-semibold text-gray-800 mb-2">{post.title}</h2>
                 <p className="text-sm text-gray-500 mb-4">Published on {new Date(post.created_at).toLocaleDateString()}</p>
                 <div 
-                  className="text-gray-700 leading-relaxed line-clamp-3"
+                  className="text-gray-700 leading-relaxed line-clamp-3 chapter-content-render"
                   dangerouslySetInnerHTML={{ __html: post.content }}
                 />
                 <Link to={`/blog/${post.slug}`} className="mt-4 inline-block text-blue-600 hover:text-blue-800 font-medium">Read More &rarr;</Link>
@@ -73,4 +75,3 @@ export const BlogPage: React.FC = () => {
     </div>
   );
 };
-

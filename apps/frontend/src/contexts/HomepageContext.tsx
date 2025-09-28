@@ -1,8 +1,10 @@
 // REACT HOOK ERROR #321 FIX - Simplified Homepage Context
 // This simplified context eliminates the complex hook usage that was causing React error #321
+// ADDED: Comprehensive null safety for image URLs to prevent getPublicUrl errors
 
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { homepageManager } from '../lib/HomepageManager';
+import { getSafeImageUrl, getBlogImageUrl } from '../utils/imageUtils';
 
 /**
  * Simplified context interface - only provides access to the manager
@@ -14,6 +16,10 @@ interface HomepageContextValue {
   
   // Simple status indicator
   isReady: boolean;
+
+  // Safe image URL helper functions
+  getImageUrl: (imagePath: string | null | undefined, bucketName?: string, fallback?: string) => string;
+  getBlogImageUrl: (imagePath: string | null | undefined) => string;
 }
 
 const HomepageContext = createContext<HomepageContextValue | null>(null);
@@ -32,6 +38,11 @@ class HomepageContextErrorBoundary extends React.Component<
 
   static getDerivedStateFromError(error: Error) {
     console.error('❌ Homepage Context Error Boundary caught error:', error);
+    
+    // Check if this is the specific getPublicUrl error we're fixing
+    if (error.message.includes('Cannot read properties of null (reading \'replace\')')) {
+      console.error('🚨 DETECTED: getPublicUrl null path error - This should be fixed with the new image utilities!');
+    }
     
     // Check if this is the specific React hook error we're fixing
     if (error.message.includes('Invalid hook call') || error.message.includes('hook call')) {
@@ -75,7 +86,10 @@ export const HomepageProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Use useMemo to create stable value object
   const value = useMemo<HomepageContextValue>(() => ({
     manager: homepageManager,
-    isReady: true
+    isReady: true,
+    // Safe image URL helper functions using our new utilities
+    getImageUrl: getSafeImageUrl,
+    getBlogImageUrl: getBlogImageUrl
   }), []);
 
   console.log('✅ HomepageProvider rendering with simplified context');
@@ -116,7 +130,9 @@ export const useHomepageContextSafe = (): HomepageContextValue => {
   // Create fallback outside of hook call
   const fallbackValue = useMemo<HomepageContextValue>(() => ({
     manager: homepageManager,
-    isReady: false
+    isReady: false,
+    getImageUrl: getSafeImageUrl,
+    getBlogImageUrl: getBlogImageUrl
   }), []);
 
   let context: HomepageContextValue | null = null;
@@ -130,7 +146,7 @@ export const useHomepageContextSafe = (): HomepageContextValue => {
   }
   
   if (!context) {
-    console.warn('⚠️ HomepageContext not available, providing fallback');
+    console.warn('⚠️ HomepageContext not available, providing fallback with safe image utilities');
     return fallbackValue;
   }
   
@@ -155,7 +171,9 @@ export const useHomepageContextOptional = (): HomepageContextValue | null => {
 export const getHomepageManagerDirect = () => {
   return {
     manager: homepageManager,
-    isReady: true
+    isReady: true,
+    getImageUrl: getSafeImageUrl,
+    getBlogImageUrl: getBlogImageUrl
   };
 };
 
@@ -163,7 +181,9 @@ export const getHomepageManagerDirect = () => {
 if (typeof window !== 'undefined' && import.meta.env?.DEV) {
   (window as any).HomepageContext = HomepageContext;
   (window as any).getHomepageManagerDirect = getHomepageManagerDirect;
-  console.log('🔧 HomepageContext available globally in development mode');
+  (window as any).getSafeImageUrl = getSafeImageUrl;
+  (window as any).getBlogImageUrl = getBlogImageUrl;
+  console.log('🔧 HomepageContext available globally in development mode with safe image utilities');
 }
 
 export default HomepageContext;

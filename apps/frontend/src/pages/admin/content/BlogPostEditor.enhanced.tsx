@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase, useAuth } from '@zoroaster/shared';
 import { AdvancedEditor } from '../../../components/editor/AdvancedEditor';
+import { getSafeImageUrl } from '../../../utils/imageUtils'; // EMERGENCY FIX: Import safe image utilities
 import { 
   Save, 
   Eye, 
@@ -124,13 +125,19 @@ const BlogPostEditor = () => {
 
   const loadMediaFiles = async () => {
     try {
+      console.log('🔍 BlogPostEditor: Loading media files...');
       const { data, error } = await supabase
         .from('files')
         .select('*')
         .or('mime_type.like.image%,type.eq.images')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ BlogPostEditor: Error loading media files:', error);
+        throw error;
+      }
+      
+      console.log('✅ BlogPostEditor: Loaded media files:', data?.length || 0);
       setMediaFiles(data || []);
     } catch (error) {
       console.error('Error loading media files:', error);
@@ -217,17 +224,38 @@ const BlogPostEditor = () => {
     }
   };
 
+  /**
+   * EMERGENCY FIX: Safe file URL function with comprehensive null checking
+   * This prevents the "Cannot read properties of null (reading 'replace')" error
+   */
   const getFileUrl = (file: FileRecord): string => {
-    if (file.url) return file.url;
+    console.log('🖼️ BlogPostEditor: Processing file URL for:', file.name, {
+      url: file.url,
+      path: file.path,
+      storage_path: file.storage_path,
+      bucket: file.bucket
+    });
     
-    if (file.path || file.storage_path) {
-      const path = file.path || file.storage_path;
-      const bucket = file.bucket || 'media';
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path!);
-      return data.publicUrl;
+    // CRITICAL FIX: Check for existing URL first
+    if (file.url) {
+      console.log('✅ BlogPostEditor: Using existing URL:', file.url);
+      return file.url;
     }
     
-    return '';
+    // CRITICAL FIX: Use safe image utilities instead of direct getPublicUrl
+    const imagePath = file.path || file.storage_path;
+    const bucketName = file.bucket || 'media';
+    
+    if (!imagePath) {
+      console.warn('⚠️ BlogPostEditor: No path available for file:', file.name);
+      return '/images/default-blog-cover.jpg';
+    }
+    
+    // Use our safe image utility function
+    const safeUrl = getSafeImageUrl(imagePath, bucketName, '/images/default-blog-cover.jpg');
+    
+    console.log('✅ BlogPostEditor: Generated safe URL:', safeUrl);
+    return safeUrl;
   };
 
   const saveBlogPost = async (publishNow = false) => {
@@ -420,6 +448,10 @@ const BlogPostEditor = () => {
                       src={coverUrl}
                       alt="Featured image"
                       className="w-full h-48 object-cover rounded-lg"
+                      onError={(e) => {
+                        console.warn('🖼️ BlogPostEditor: Cover image failed to load, using fallback');
+                        (e.target as HTMLImageElement).src = '/images/default-blog-cover.jpg';
+                      }}
                     />
                     <button
                       onClick={() => setCoverUrl('')}
@@ -666,11 +698,19 @@ const BlogPostEditor = () => {
               ) : mediaViewMode === 'grid' ? (
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                   {filteredMediaFiles.map(file => {
+                    // CRITICAL FIX: Use safe file URL function
                     const fileUrl = getFileUrl(file);
+                    
+                    console.log('🖼️ BlogPostEditor: Rendering grid item:', {
+                      fileName: file.name,
+                      fileUrl: fileUrl
+                    });
+                    
                     return (
                       <button
                         key={file.id}
                         onClick={() => {
+                          console.log('📸 BlogPostEditor: Image selected:', fileUrl);
                           setCoverUrl(fileUrl);
                           setShowMediaPicker(false);
                         }}
@@ -680,6 +720,10 @@ const BlogPostEditor = () => {
                           src={fileUrl}
                           alt={file.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          onError={(e) => {
+                            console.warn('🖼️ BlogPostEditor: Grid image failed to load, using fallback:', fileUrl);
+                            (e.target as HTMLImageElement).src = '/images/default-blog-cover.jpg';
+                          }}
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
                         <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
@@ -692,11 +736,19 @@ const BlogPostEditor = () => {
               ) : (
                 <div className="space-y-2">
                   {filteredMediaFiles.map(file => {
+                    // CRITICAL FIX: Use safe file URL function
                     const fileUrl = getFileUrl(file);
+                    
+                    console.log('🖼️ BlogPostEditor: Rendering list item:', {
+                      fileName: file.name,
+                      fileUrl: fileUrl
+                    });
+                    
                     return (
                       <button
                         key={file.id}
                         onClick={() => {
+                          console.log('📸 BlogPostEditor: List image selected:', fileUrl);
                           setCoverUrl(fileUrl);
                           setShowMediaPicker(false);
                         }}
@@ -706,6 +758,10 @@ const BlogPostEditor = () => {
                           src={fileUrl}
                           alt={file.name}
                           className="w-12 h-12 object-cover rounded"
+                          onError={(e) => {
+                            console.warn('🖼️ BlogPostEditor: List image failed to load, using fallback:', fileUrl);
+                            (e.target as HTMLImageElement).src = '/images/default-blog-cover.jpg';
+                          }}
                         />
                         <div className="flex-1 text-left">
                           <p className="text-sm font-medium text-gray-900">{file.name}</p>

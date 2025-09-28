@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { Database } from '../types/supabase';
+import { User } from '@supabase/supabase-js';
+import { Database } from '../lib/database.types';
 import { supabase } from '../lib/supabase';
 
 type Product = Database['public']['Tables']['products']['Row'];

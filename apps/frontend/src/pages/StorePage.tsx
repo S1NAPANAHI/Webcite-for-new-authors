@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, ShoppingCart, Star, Eye, Book, Scroll, Crown } from 'lucide-react';
 import { useAuth } from '../../packages/shared/src/hooks/useAuth';
-import { Database } from '../../packages/shared/src/database.types';
+import { Database } from '../lib/database.types';
 import { ProductCard } from '../components/shop/ProductCard';
 import { CartProvider } from '../contexts/CartContext';
 import { LoadingSkeleton } from '../components/shop/LoadingSkeleton';
 import { ShoppingCart as CartSidebar } from '../components/shop/ShoppingCart';
-import { supabase } from '../../packages/shared/src/lib/supabase';
+import { supabase } from '../lib/supabase';
 
 type Product = Database['public']['Tables']['products']['Row'];
 type ProductWithVariants = Product & {
@@ -153,8 +153,8 @@ function StorePageContent() {
         {/* Sacred Fire Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-radial from-amber-500/30 to-transparent rounded-full animate-pulse" />
-          <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-radial from-red-500/30 to-transparent rounded-full animate-pulse delay-1000" />
-          <div className="absolute bottom-40 left-1/3 w-28 h-28 bg-gradient-radial from-amber-400/30 to-transparent rounded-full animate-pulse delay-2000" />
+          <div className="absolute top-40 right-32 w-24 h-24 bg-gradient-radial from-red-500/30 to-transparent rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute bottom-40 left-1/3 w-28 h-28 bg-gradient-radial from-amber-400/30 to-transparent rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
         </div>
         
         <div className="relative z-10 container mx-auto px-4 py-16 text-center">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, ShoppingCart, Eye, Download, Book, Scroll, Crown, Sparkles } from 'lucide-react';
-import { Database } from '../../types/supabase';
+import { Database } from '../../lib/database.types';
 import { useCart } from '../../contexts/CartContext';
 
 type Product = Database['public']['Tables']['products']['Row'];
@@ -212,7 +212,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
                 className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-medium rounded-lg transition-all shadow-lg hover:shadow-amber-500/25"
               >
                 <Download className="w-4 h-4" />
-                {isFree ? 'Download' : 'Buy Now'}
+                {isFree ? 'Download Free' : 'Buy Now'}
               </button>
             </div>
           </div>

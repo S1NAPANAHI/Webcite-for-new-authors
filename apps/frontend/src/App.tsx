@@ -68,6 +68,8 @@ import CharacterDetailPage from './pages/CharacterDetailPage';
 import UserManagementPage from './pages/admin/settings/UserManagementPage';
 // NEW: Learn Categories Manager Import
 import LearnCategoriesManager from './pages/admin/learn/LearnCategoriesManager';
+// NEW: Store Page Import
+import StorePage from './pages/StorePage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -190,7 +192,7 @@ const AppContent: React.FC = () => {
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/store" element={<PlaceholderPage title="Store" />} />
+        <Route path="/store" element={<StorePage />} />
         <Route path="/wiki" element={<WikiViewer />} />
         <Route path="/wiki/:folderSlug" element={<WikiViewer />} />
         <Route path="/wiki/:folderSlug/:pageSlug" element={<WikiViewer />} />

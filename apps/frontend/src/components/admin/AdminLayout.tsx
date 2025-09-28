@@ -38,7 +38,8 @@ const sidebarItems = [
       { label: 'Chapters', href: '/admin/content/chapters' },
       { label: 'Works', href: '/admin/content/works' },
       { label: 'Homepage', href: '/admin/content/homepage' },
-      { label: 'About', href: '/admin/content/about' }
+      { label: 'About', href: '/admin/content/about' },
+      { label: 'Social Media', href: '/admin/social-media' }
     ]
   },
   // NEW: Learn Management Section
@@ -171,7 +172,7 @@ export default function AdminLayout() {
                           key={child.href}
                           to={child.href}
                           className={`block px-3 py-2 text-sm rounded-md transition-colors duration-200 ${
-                            pathname === child.href
+                            pathname === child.href || pathname.startsWith(child.href + '/')
                               ? 'bg-primary/10 text-primary font-medium'
                               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                           }`}
@@ -238,6 +239,7 @@ export default function AdminLayout() {
               <div className="hidden lg:block">
                 <h2 className="text-xl font-semibold text-foreground">
                   {pathname === '/admin' ? 'Dashboard' : 
+                   pathname.includes('/admin/social-media') ? 'Social Media Generator' :
                    pathname.split('/').pop()?.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) || 'Admin'}
                 </h2>
               </div>

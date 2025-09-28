@@ -24,8 +24,8 @@ import {
   Crop,
   Edit3
 } from 'lucide-react';
-// Import the SimpleCropModal component
-import SimpleCropModal from '../../../components/SimpleCropModal';
+// Import the enhanced MediaPicker component
+import MediaPicker from '../../../components/admin/MediaPicker';
 
 // HTML sanitization function to preserve paragraph structure
 const sanitizeHtml = (html: string): string => {
@@ -36,7 +36,7 @@ const sanitizeHtml = (html: string): string => {
   tempDiv.innerHTML = html;
   
   // Remove empty paragraphs
-  const emptyPs = tempDiv.querySelectorAll('p:empty, p:not([class]):not([id]):not([style]):not(:has(*))');
+  const emptyPs = tempDiv.querySelectorAll('p:empty, p:not([class]):not([id]):not([style]):not(:has(*)))');
   emptyPs.forEach(p => {
     if (!p.textContent?.trim()) {
       p.remove();
@@ -76,6 +76,14 @@ const textToParagraphs = (text: string): string => {
     .join('');
 };
 
+interface CropSettings {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  scale?: number;
+}
+
 interface FileRecord {
   id: string;
   name: string;
@@ -111,14 +119,11 @@ const BlogPostEditor = () => {
   const [htmlContent, setHtmlContent] = useState(''); // NEW: HTML content for editor
   const [status, setStatus] = useState('draft');
   const [coverUrl, setCoverUrl] = useState('');
+  const [coverFileId, setCoverFileId] = useState(''); // NEW: Store selected file ID
+  const [coverCropSettings, setCoverCropSettings] = useState<CropSettings | null>(null); // NEW: Store crop settings
   const [author, setAuthor] = useState('');
   const [isFeatured, setIsFeatured] = useState(false);
   const [showPreview, setShowPreview] = useState(false); // NEW: Preview toggle
-  
-  // Image cropping states
-  const [showCropModal, setShowCropModal] = useState(false);
-  const [imageToCrop, setImageToCrop] = useState<string | null>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
   
   // Content stats
   const [wordCount, setWordCount] = useState(0);
@@ -130,12 +135,6 @@ const BlogPostEditor = () => {
   const [availableTags, setAvailableTags] = useState<BlogTag[]>([]);
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [availablePosts, setAvailablePosts] = useState<any[]>([]);
-  
-  // Media picker
-  const [showMediaPicker, setShowMediaPicker] = useState(false);
-  const [mediaFiles, setMediaFiles] = useState<FileRecord[]>([]);
-  const [mediaSearch, setMediaSearch] = useState('');
-  const [mediaViewMode, setMediaViewMode] = useState<'grid' | 'list'>('grid');
   
   // Meta
   const [saving, setSaving] = useState(false);
@@ -199,8 +198,7 @@ const BlogPostEditor = () => {
   const loadInitialData = async () => {
     await Promise.all([
       loadTags(),
-      loadAvailablePosts(),
-      loadMediaFiles()
+      loadAvailablePosts()
     ]);
   };
 
@@ -233,24 +231,6 @@ const BlogPostEditor = () => {
       setAvailablePosts(data || []);
     } catch (error) {
       console.warn('Error loading posts:', error);
-    }
-  };
-
-  const loadMediaFiles = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('files')
-        .select('*')
-        .or('mime_type.like.image%,type.eq.images')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.warn('Error loading media files:', error);
-        return;
-      }
-      setMediaFiles(data || []);
-    } catch (error) {
-      console.warn('Error loading media files:', error);
     }
   };
 
@@ -308,6 +288,22 @@ const BlogPostEditor = () => {
         
         setStatus(data.status || 'draft');
         setCoverUrl(data.cover_url || data.featured_image || '');
+        
+        // NEW: Load cover image metadata if available
+        if (data.cover_file_id) {
+          setCoverFileId(data.cover_file_id);
+        }
+        if (data.cover_crop_settings) {
+          try {
+            const cropSettings = typeof data.cover_crop_settings === 'string' 
+              ? JSON.parse(data.cover_crop_settings)
+              : data.cover_crop_settings;
+            setCoverCropSettings(cropSettings);
+          } catch (err) {
+            console.warn('Error parsing crop settings:', err);
+          }
+        }
+        
         setAuthor(data.author || '');
         setIsFeatured(data.is_featured || false);
         setMetaTitle(data.meta_title || '');
@@ -408,74 +404,27 @@ const BlogPostEditor = () => {
     console.log(`❌ Removed tag: ${tagToRemove}`);
   };
 
-  const getFileUrl = (file: FileRecord): string => {
-    if (file.url) return file.url;
+  // NEW: Handle enhanced media picker selection with crop settings
+  const handleCoverImageSelect = (fileId: string, fileUrl: string, cropSettings?: CropSettings) => {
+    setCoverFileId(fileId);
+    setCoverUrl(fileUrl);
+    setCoverCropSettings(cropSettings || null);
     
-    if (file.path || file.storage_path) {
-      const path = file.path || file.storage_path;
-      const bucket = file.bucket || 'media';
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path!);
-      return data.publicUrl;
-    }
-    
-    return '';
+    console.log('✅ Cover image selected:', {
+      fileId,
+      fileUrl,
+      cropSettings
+    });
   };
 
-  // NEW: Handle image selection from media picker with crop option
-  const handleImageSelect = (file: FileRecord) => {
-    const imageUrl = getFileUrl(file);
-    setImageToCrop(imageUrl);
-    setShowMediaPicker(false);
-    setShowCropModal(true);
+  // NEW: Handle clearing cover image
+  const handleClearCoverImage = () => {
+    setCoverFileId('');
+    setCoverUrl('');
+    setCoverCropSettings(null);
   };
 
-  // NEW: Handle cropped image
-  const handleCropComplete = async (croppedBlob: Blob) => {
-    try {
-      setIsUploadingImage(true);
-      
-      // Upload cropped image to blog-images bucket
-      const timestamp = Date.now();
-      const fileName = `blog-featured-${timestamp}.jpg`;
-      const filePath = `${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('blog-images')
-        .upload(filePath, croppedBlob, {
-          contentType: 'image/jpeg',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('blog-images')
-        .getPublicUrl(filePath);
-
-      // Set as cover image
-      setCoverUrl(publicUrl);
-      setShowCropModal(false);
-      setImageToCrop(null);
-      
-      console.log('✅ Image cropped and uploaded successfully:', publicUrl);
-    } catch (error) {
-      console.error('❌ Error uploading cropped image:', error);
-      alert('Failed to upload cropped image. Please try again.');
-    } finally {
-      setIsUploadingImage(false);
-    }
-  };
-
-  // NEW: Handle crop image from existing cover
-  const handleCropExistingImage = () => {
-    if (coverUrl) {
-      setImageToCrop(coverUrl);
-      setShowCropModal(true);
-    }
-  };
-
-  // 🔥 CRITICAL FIX: Simplified save function with HTML content
+  // 🔥 ENHANCED SAVE: Save function with crop settings and smart image handling
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
 
@@ -483,8 +432,11 @@ const BlogPostEditor = () => {
       if (!user) throw new Error('Not authenticated');
       if (!title.trim()) throw new Error('Title is required');
 
-      console.log('🔄 Preparing post data with tags:', selectedTags);
-      console.log('🔄 HTML content length:', htmlContent.length);
+      console.log('🔄 Preparing post data with enhanced image handling:', {
+        coverFileId,
+        coverCropSettings,
+        selectedTags
+      });
 
       const postData = {
         title: title.trim(),
@@ -494,6 +446,8 @@ const BlogPostEditor = () => {
         excerpt: excerpt || null,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null,
+        cover_file_id: coverFileId || null, // NEW: Store file ID for media picker
+        cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings
         author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
@@ -507,7 +461,7 @@ const BlogPostEditor = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📦 Saving post data with proper HTML:', postData);
+      console.log('📦 Saving post data with enhanced media handling:', postData);
 
       let postId = id;
       let response;
@@ -538,11 +492,11 @@ const BlogPostEditor = () => {
         throw response.error;
       }
 
-      console.log('✅ Post saved successfully with proper paragraph spacing:', response.data);
+      console.log('✅ Post saved successfully with enhanced media handling:', response.data);
 
       // Show success message
       const actionText = publishNow ? 'published' : 'saved';
-      const statusText = publishNow ? 'Your post is now live with proper paragraph spacing!' : 'Content saved with proper formatting.';
+      const statusText = publishNow ? 'Your post is now live with proper image handling!' : 'Content saved with enhanced media support.';
       
       alert(`✅ Post ${actionText} successfully!\n\n${statusText}`);
       
@@ -557,12 +511,6 @@ const BlogPostEditor = () => {
       setSaving(false);
     }
   };
-
-  const filteredMediaFiles = mediaFiles.filter(file => 
-    !mediaSearch || 
-    file.name.toLowerCase().includes(mediaSearch.toLowerCase()) ||
-    file.original_name?.toLowerCase().includes(mediaSearch.toLowerCase())
-  );
 
   if (loading) {
     return (
@@ -584,7 +532,7 @@ const BlogPostEditor = () => {
             {id && id !== 'new' ? 'Edit Blog Post' : 'New Blog Post'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {id && id !== 'new' ? 'Update your blog post with proper paragraph formatting' : 'Create a new blog post with enhanced formatting'}
+            {id && id !== 'new' ? 'Update your blog post with enhanced media handling' : 'Create a new blog post with visual cropping support'}
           </p>
           
           {/* Live Stats */}
@@ -596,6 +544,7 @@ const BlogPostEditor = () => {
               <span>•</span>
               <span>📄 {(htmlContent.match(/<p>/g) || []).length} paragraphs</span>
               {isFeatured && <span>• ⭐ Featured</span>}
+              {coverCropSettings && <span>• ✂️ Cropped Cover</span>}
             </div>
           )}
         </div>
@@ -694,71 +643,27 @@ const BlogPostEditor = () => {
                 />
               </div>
 
-              {/* Enhanced Featured Image Section with Cropping */}
+              {/* NEW: Enhanced Featured Image Section with MediaPicker */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Featured Image
-                  <span className="ml-2 px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded-full">
-                    ✂️ Cropping Available
+                  <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
+                    ✂️ Smart Cropping - No Duplicates
                   </span>
                 </label>
-                {coverUrl ? (
-                  <div className="relative group">
-                    <img
-                      src={coverUrl}
-                      alt="Featured image"
-                      className="w-full h-48 object-cover rounded-lg"
-                    />
-                    {/* Image Action Overlay */}
-                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200 flex items-center justify-center rounded-lg">
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setShowMediaPicker(true)}
-                          className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-                          title="Change image"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleCropExistingImage}
-                          className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-                          title="Crop image"
-                        >
-                          <Crop className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCoverUrl('')}
-                          className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                          title="Remove image"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowMediaPicker(true)}
-                    disabled={isUploadingImage}
-                    className="w-full h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 hover:border-purple-500 hover:text-purple-500 transition-colors disabled:opacity-50"
-                  >
-                    {isUploadingImage ? (
-                      <>
-                        <div className="w-8 h-8 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mb-2" />
-                        <span>Processing cropped image...</span>
-                      </>
-                    ) : (
-                      <>
-                        <ImageIcon className="w-8 h-8 mb-2" />
-                        <span>Choose from Media Library</span>
-                        <span className="text-sm">✂️ Automatic cropping available</span>
-                      </>
-                    )}
-                  </button>
-                )}
+                
+                {/* Enhanced MediaPicker with Cropping */}
+                <MediaPicker
+                  selectedFileId={coverFileId}
+                  selectedCropSettings={coverCropSettings}
+                  onSelect={handleCoverImageSelect}
+                  onClear={handleClearCoverImage}
+                  preferredFolder="blog-images"
+                  enableCropping={true}
+                  cropAspectRatio={16/9}
+                  accept="image/*"
+                  className="w-full"
+                />
                 
                 {/* URL Input as fallback */}
                 <div className="mt-2">
@@ -770,6 +675,21 @@ const BlogPostEditor = () => {
                     placeholder="Or paste image URL here"
                   />
                 </div>
+                
+                {/* Image Metadata Display */}
+                {(coverFileId || coverCropSettings) && (
+                  <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                    <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">🎯 Smart Image Handling Active</h4>
+                    <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
+                      {coverFileId && <div>• File ID: {coverFileId}</div>}
+                      {coverCropSettings && (
+                        <div>• Crop: {Math.round(coverCropSettings.width)}×{Math.round(coverCropSettings.height)}px @ ({Math.round(coverCropSettings.x)}, {Math.round(coverCropSettings.y)})</div>
+                      )}
+                      <div>• Original image preserved in media bucket</div>
+                      <div>• Visual cropping applied for display only</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -840,7 +760,7 @@ const BlogPostEditor = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Publish Settings */}
+          {/* Content Statistics */}
           <div className="bg-white dark:bg-gray-800 rounded-lg border dark:border-gray-700 p-6">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">📊 Content Statistics</h3>
             
@@ -864,6 +784,13 @@ const BlogPostEditor = () => {
                 <span className="text-sm text-gray-600 dark:text-gray-400">Format:</span>
                 <span className="font-medium text-green-600">✅ Proper Spacing</span>
               </div>
+              
+              {coverCropSettings && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Cover Image:</span>
+                  <span className="font-medium text-green-600">✂️ Smart Cropped</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1054,149 +981,6 @@ const BlogPostEditor = () => {
           </div>
         </div>
       </div>
-
-      {/* Media Picker Modal */}
-      {showMediaPicker && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b dark:border-gray-700">
-              <div className="flex items-center gap-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Choose Image from Media Library</h3>
-                <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm rounded-full">
-                  ✂️ Images will be cropped automatically
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setMediaViewMode('grid')}
-                    className={`p-2 rounded ${mediaViewMode === 'grid' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                  >
-                    <Grid className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setMediaViewMode('list')}
-                    className={`p-2 rounded ${mediaViewMode === 'list' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <input
-                    type="text"
-                    placeholder="Search images..."
-                    value={mediaSearch}
-                    onChange={(e) => setMediaSearch(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 w-64"
-                  />
-                </div>
-                <button
-                  onClick={() => setShowMediaPicker(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[70vh]">
-              {filteredMediaFiles.length === 0 ? (
-                <div className="text-center py-12">
-                  <ImageIcon className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-300 mb-2">
-                    {mediaSearch ? 'No images found matching your search' : 'No images in your media library'}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {mediaSearch ? 'Try different search terms' : 'Upload some images to /admin/content/files first'}
-                  </p>
-                </div>
-              ) : mediaViewMode === 'grid' ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {filteredMediaFiles.map(file => {
-                    const fileUrl = getFileUrl(file);
-                    return (
-                      <button
-                        key={file.id}
-                        onClick={() => handleImageSelect(file)}
-                        className="group relative aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition-all"
-                      >
-                        <img
-                          src={fileUrl}
-                          alt={file.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all" />
-                        <div className="absolute top-2 right-2 bg-purple-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Crop className="w-3 h-3" />
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                          <p className="text-white text-xs truncate">{file.name}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredMediaFiles.map(file => {
-                    const fileUrl = getFileUrl(file);
-                    return (
-                      <button
-                        key={file.id}
-                        onClick={() => handleImageSelect(file)}
-                        className="w-full flex items-center gap-4 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors"
-                      >
-                        <img
-                          src={fileUrl}
-                          alt={file.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        <div className="flex-1 text-left">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{file.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {file.width && file.height && `${file.width}×${file.height} • `}
-                            {file.folder || 'misc'}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 text-purple-600">
-                          <Crop className="w-4 h-4" />
-                          <span className="text-sm">Crop</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            
-            <div className="px-6 py-4 border-t dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                💡 <strong>Tip:</strong> Choose any image and it will automatically open the cropping tool. You can also upload new images at 
-                <a href="/admin/content/files" className="text-blue-600 dark:text-blue-400 hover:underline ml-1">
-                  /admin/content/files
-                </a>
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Image Cropping Modal */}
-      {showCropModal && imageToCrop && (
-        <SimpleCropModal
-          isOpen={showCropModal}
-          onClose={() => {
-            setShowCropModal(false);
-            setImageToCrop(null);
-          }}
-          imageUrl={imageToCrop}
-          onCropComplete={handleCropComplete}
-          aspectRatio={16/9} // Blog featured images look best in landscape
-          title="Crop Featured Image"
-          loading={isUploadingImage}
-        />
-      )}
     </div>
   );
 };

@@ -16,7 +16,8 @@ import {
   ClipboardList,
   Book,
   Clock,
-  ScrollText
+  ScrollText,
+  Smartphone
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -33,6 +34,7 @@ const adminNavigation = [
       { name: 'Pages', href: '/admin/content/pages', icon: File },
       { name: 'Chapters', href: '/admin/content/chapters', icon: Book },
       { name: 'Files & Media', href: '/admin/content/files', icon: ScrollText },
+      { name: 'Social Media', href: '/admin/social-media', icon: Smartphone },
     ],
   },
   {

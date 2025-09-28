@@ -27,33 +27,39 @@ import {
 // Import the enhanced MediaPicker component
 import MediaPicker from '../../../components/admin/MediaPicker';
 
-// HTML sanitization function to preserve paragraph structure
+// FIXED: HTML sanitization function with valid CSS selectors
 const sanitizeHtml = (html: string): string => {
   if (!html) return '';
   
-  // Create a temporary div to work with the HTML
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  
-  // Remove empty paragraphs
-  const emptyPs = tempDiv.querySelectorAll('p:empty, p:not([class]):not([id]):not([style]):not(:has(*)))');
-  emptyPs.forEach(p => {
-    if (!p.textContent?.trim()) {
-      p.remove();
-    }
-  });
-  
-  // Convert any div elements to paragraphs for consistency
-  const divs = tempDiv.querySelectorAll('div');
-  divs.forEach(div => {
-    if (!div.querySelector('p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol')) {
-      const p = document.createElement('p');
-      p.innerHTML = div.innerHTML;
-      div.parentNode?.replaceChild(p, div);
-    }
-  });
-  
-  return tempDiv.innerHTML;
+  try {
+    // Create a temporary div to work with the HTML
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    
+    // FIXED: Remove empty paragraphs with simpler, valid selectors
+    const emptyPs = tempDiv.querySelectorAll('p');
+    emptyPs.forEach(p => {
+      // Check if paragraph is empty or only contains whitespace
+      if (!p.textContent?.trim() && !p.querySelector('img, br, hr')) {
+        p.remove();
+      }
+    });
+    
+    // Convert any div elements to paragraphs for consistency
+    const divs = tempDiv.querySelectorAll('div');
+    divs.forEach(div => {
+      if (!div.querySelector('p, h1, h2, h3, h4, h5, h6, blockquote, ul, ol')) {
+        const p = document.createElement('p');
+        p.innerHTML = div.innerHTML;
+        div.parentNode?.replaceChild(p, div);
+      }
+    });
+    
+    return tempDiv.innerHTML;
+  } catch (error) {
+    console.warn('Error sanitizing HTML:', error);
+    return html; // Return original HTML if sanitization fails
+  }
 };
 
 // Convert plain text with line breaks to proper HTML paragraphs

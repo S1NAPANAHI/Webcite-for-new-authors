@@ -1,3 +1,8 @@
+/**
+ * FIXED: LatestPosts component with comprehensive null safety for image URLs
+ * This prevents the "Cannot read properties of null (reading 'replace')" error
+ */
+
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -16,8 +21,9 @@ interface BlogPost {
   slug: string;
   excerpt?: string;
   content: string;
-  featured_image?: string;
-  cover_url?: string;
+  featured_image?: string | null;
+  cover_url?: string | null;
+  image_url?: string | null;
   author?: string;
   category?: string;
   published_at: string;
@@ -30,6 +36,39 @@ interface BlogPost {
 interface LatestPostsProps {
   limit?: number;
   supabaseClient?: any;
+}
+
+/**
+ * SAFE image URL helper that prevents null/undefined crashes
+ * This is the key fix for the getPublicUrl error
+ */
+function getSafeImageUrl(imagePath: string | null | undefined): string {
+  // Check for null, undefined, or empty string
+  if (!imagePath || imagePath === null || imagePath === undefined || imagePath.trim() === '') {
+    console.log('🖼️ getSafeImageUrl: Using fallback for null/undefined path');
+    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
+  }
+
+  // If it's already a full URL (like Unsplash), return it as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    console.log('🖼️ getSafeImageUrl: Using full URL as-is:', imagePath);
+    return imagePath;
+  }
+
+  // SAFE Supabase storage URL generation with null protection
+  try {
+    const { data } = supabase.storage.from('media').getPublicUrl(imagePath);
+    if (data?.publicUrl) {
+      console.log('🖼️ getSafeImageUrl: Generated Supabase URL successfully');
+      return data.publicUrl;
+    } else {
+      console.warn('🖼️ getSafeImageUrl: No public URL returned, using fallback');
+      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
+    }
+  } catch (error) {
+    console.error('🖼️ getSafeImageUrl: Error generating URL, using fallback:', error);
+    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
+  }
 }
 
 // Professional fallback posts with high-quality images
@@ -178,6 +217,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
             content,
             featured_image,
             cover_url,
+            image_url,
             author,
             category,
             published_at,
@@ -196,7 +236,12 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           hasError: !!error,
           errorMessage: error?.message,
           firstPostTitle: data?.[0]?.title,
-          firstPostStatus: data?.[0]?.status
+          firstPostStatus: data?.[0]?.status,
+          firstPostImageFields: data?.[0] ? {
+            featured_image: data[0].featured_image,
+            cover_url: data[0].cover_url,
+            image_url: data[0].image_url
+          } : null
         });
 
         if (error) {
@@ -206,9 +251,32 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         } else if (data && data.length > 0) {
           console.log('🎉 LatestPosts: SUCCESS! Found real blog posts, replacing fallback!');
           console.log('📝 LatestPosts: Post titles:', data.map(p => p.title));
-          setPosts(data as BlogPost[]);
+          
+          // CRITICAL FIX: Process posts with safe image URL handling
+          const processedPosts = data.map(post => {
+            const safeImageUrl = getSafeImageUrl(
+              post.featured_image || post.cover_url || post.image_url
+            );
+            
+            console.log('🖼️ LatestPosts: Processing image for post:', {
+              title: post.title,
+              original_featured_image: post.featured_image,
+              original_cover_url: post.cover_url,
+              original_image_url: post.image_url,
+              processed_safe_url: safeImageUrl
+            });
+            
+            return {
+              ...post,
+              featured_image: safeImageUrl,
+              cover_url: safeImageUrl,
+              image_url: safeImageUrl
+            };
+          });
+          
+          setPosts(processedPosts as BlogPost[]);
           setUsingFallback(false);
-          setDebugInfo(`Successfully loaded ${data.length} real posts`);
+          setDebugInfo(`Successfully loaded ${data.length} real posts with safe image URLs`);
         } else {
           console.log('⚠️ LatestPosts: No published posts found in database');
           setDebugInfo('No published posts found');
@@ -319,48 +387,48 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           >
             {posts.map((post, index) => {
               const readingTime = getReadingTime(post.content, post.reading_time);
-              const imageUrl = post.featured_image || post.cover_url;
+              
+              // CRITICAL FIX: Use safe image URL function for all image sources
+              const safeImageUrl = getSafeImageUrl(
+                post.featured_image || post.cover_url || post.image_url
+              );
+              
+              console.log('🖼️ LatestPosts: Slide', index, 'image processing:', {
+                postTitle: post.title,
+                originalPaths: {
+                  featured_image: post.featured_image,
+                  cover_url: post.cover_url,
+                  image_url: post.image_url
+                },
+                safeUrl: safeImageUrl
+              });
               
               return (
                 <SwiperSlide key={post.id}>
                   <div className="flex flex-col md:flex-row">
-                    {/* FIXED: Image Section - Left side with proper sizing */}
+                    {/* FIXED: Image Section - Left side with SAFE URL handling */}
                     <div className="relative md:w-1/2 h-64 md:h-96 overflow-hidden">
-                      {imageUrl ? (
-                        <>
-                          {/* Main image with full coverage */}
-                          <img
-                            src={imageUrl}
-                            alt={post.title}
-                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                            style={{
-                              minWidth: '100%',
-                              minHeight: '100%',
-                              objectFit: 'cover',
-                              objectPosition: 'center'
-                            }}
-                            onError={(e) => {
-                              // Replace with gradient fallback on image error
-                              const target = e.currentTarget;
-                              target.style.display = 'none';
-                              // Show the fallback div instead
-                              const fallback = target.nextElementSibling as HTMLElement;
-                              if (fallback) fallback.style.display = 'flex';
-                            }}
-                          />
-                          {/* Fallback gradient (hidden by default) */}
-                          <div 
-                            className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center"
-                            style={{ display: 'none' }}
-                          >
-                            <div className="text-white text-6xl opacity-30">📰</div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
-                          <div className="text-white text-6xl opacity-30">📰</div>
-                        </div>
-                      )}
+                      {/* SAFE image rendering with comprehensive error handling */}
+                      <img
+                        src={safeImageUrl}
+                        alt={post.title || 'Blog post image'}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        style={{
+                          minWidth: '100%',
+                          minHeight: '100%',
+                          objectFit: 'cover',
+                          objectPosition: 'center'
+                        }}
+                        onError={(e) => {
+                          console.warn('🖼️ LatestPosts: Image failed to load for post:', post.title);
+                          const target = e.currentTarget;
+                          // Set to a guaranteed working fallback
+                          target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
+                        }}
+                        onLoad={() => {
+                          console.log('✅ LatestPosts: Image loaded successfully for:', post.title);
+                        }}
+                      />
                       
                       {/* Overlay gradient for better text readability */}
                       <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/40"></div>

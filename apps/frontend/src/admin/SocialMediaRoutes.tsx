@@ -1,14 +1,12 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { EnhancedSocialMediaGenerator } from './components/EnhancedSocialMediaGenerator';
-import { SocialMediaGenerator } from './components/SocialMediaGenerator';
+import ImprovedSocialMediaGenerator from './components/ImprovedSocialMediaGenerator';
 
 export const SocialMediaRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route index element={<EnhancedSocialMediaGenerator />} />
-      <Route path="generator" element={<EnhancedSocialMediaGenerator />} />
-      <Route path="basic" element={<SocialMediaGenerator />} />
+      <Route index element={<ImprovedSocialMediaGenerator />} />
+      <Route path="generator" element={<ImprovedSocialMediaGenerator />} />
     </Routes>
   );
 };

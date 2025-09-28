@@ -1,6 +1,7 @@
 /**
- * FIXED: LatestPosts component with comprehensive null safety for image URLs
+ * CRITICAL FIX: LatestPosts component - NO direct getPublicUrl calls
  * This prevents the "Cannot read properties of null (reading 'replace')" error
+ * ALL image URLs are processed through safe utilities ONLY
  */
 
 import React, { useState, useEffect } from 'react';
@@ -39,7 +40,7 @@ interface LatestPostsProps {
   supabaseClient?: any;
 }
 
-// Professional fallback posts with high-quality images
+// SAFE fallback posts with external URLs (no getPublicUrl needed)
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: 'sample-1',
@@ -108,6 +109,37 @@ const FALLBACK_POSTS: BlogPost[] = [
   }
 ];
 
+/**
+ * CRITICAL: Safe image processing function
+ * This function NEVER calls getPublicUrl directly - only uses the safe utility
+ */
+function processBlogPostSafely(post: any): BlogPost {
+  // Use ONLY the safe image utility - never direct getPublicUrl calls  
+  const safeImageUrl = getSafeImageUrl(
+    post.featured_image || post.cover_url || post.image_url,
+    'media', // bucket name
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center' // fallback
+  );
+  
+  console.log('🛡️ Safe image processing:', {
+    title: post.title,
+    originalPaths: {
+      featured_image: post.featured_image,
+      cover_url: post.cover_url,
+      image_url: post.image_url
+    },
+    processedSafeUrl: safeImageUrl,
+    method: 'getSafeImageUrl (no direct getPublicUrl)'
+  });
+  
+  return {
+    ...post,
+    featured_image: safeImageUrl,
+    cover_url: safeImageUrl,
+    image_url: safeImageUrl
+  };
+}
+
 // Main component
 export const LatestPosts: React.FC<LatestPostsProps> = ({ 
   limit = 5, 
@@ -174,7 +206,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         console.log('✅ LatestPosts: Supabase client found! Testing connection...');
         setDebugInfo('Supabase client found, querying database...');
 
-        // FIXED: Correct database query without syntax errors
+        // Database query
         const { data, error } = await client
           .from('blog_posts')
           .select(`
@@ -202,14 +234,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           hasData: !!data,
           dataLength: data?.length || 0,
           hasError: !!error,
-          errorMessage: error?.message,
-          firstPostTitle: data?.[0]?.title,
-          firstPostStatus: data?.[0]?.status,
-          firstPostImageFields: data?.[0] ? {
-            featured_image: data[0].featured_image,
-            cover_url: data[0].cover_url,
-            image_url: data[0].image_url
-          } : null
+          errorMessage: error?.message
         });
 
         if (error) {
@@ -217,36 +242,15 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           setDebugInfo(`Database error: ${error.message}`);
           // Keep fallback posts
         } else if (data && data.length > 0) {
-          console.log('🎉 LatestPosts: SUCCESS! Found real blog posts, replacing fallback!');
-          console.log('📝 LatestPosts: Post titles:', data.map(p => p.title));
+          console.log('🎉 LatestPosts: SUCCESS! Found real blog posts, processing safely!');
           
-          // CRITICAL FIX: Process posts with SAFE image URL handling
-          const processedPosts = data.map(post => {
-            // Use the safe image utility instead of direct getPublicUrl calls
-            const safeImageUrl = getSafeImageUrl(
-              post.featured_image || post.cover_url || post.image_url,
-              'blog-images'
-            );
-            
-            console.log('🖼️ LatestPosts: Processing image for post:', {
-              title: post.title,
-              original_featured_image: post.featured_image,
-              original_cover_url: post.cover_url,
-              original_image_url: post.image_url,
-              processed_safe_url: safeImageUrl
-            });
-            
-            return {
-              ...post,
-              featured_image: safeImageUrl,
-              cover_url: safeImageUrl,
-              image_url: safeImageUrl
-            };
-          });
+          // CRITICAL: Process ALL posts through the safe function
+          const processedPosts = data.map(processBlogPostSafely);
           
+          console.log('✅ LatestPosts: All posts processed safely, updating state');
           setPosts(processedPosts as BlogPost[]);
           setUsingFallback(false);
-          setDebugInfo(`Successfully loaded ${data.length} real posts with safe image URLs`);
+          setDebugInfo(`Successfully loaded ${data.length} real posts with SAFE image processing`);
         } else {
           console.log('⚠️ LatestPosts: No published posts found in database');
           setDebugInfo('No published posts found');
@@ -255,7 +259,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
       } catch (error) {
         console.error('💥 LatestPosts: Critical error:', error);
         setDebugInfo(`Critical error: ${(error as Error).message}`);
-        // Keep fallback posts
+        // Keep fallback posts - they're already safe
       } finally {
         setLoading(false);
         console.log('🏁 LatestPosts: Fetch process completed');
@@ -325,7 +329,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         </div>
       )}
       
-      {/* Single-Card Carousel Container - FIXED IMAGE SIZING */}
+      {/* Single-Card Carousel Container */}
       <div className="relative max-w-4xl mx-auto">
         <div className={`rounded-xl shadow-2xl overflow-hidden ${
           isDark ? 'bg-gray-800' : 'bg-white'
@@ -358,30 +362,23 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
             {posts.map((post, index) => {
               const readingTime = getReadingTime(post.content, post.reading_time);
               
-              // CRITICAL FIX: Use safe image URL function for all image sources
-              const safeImageUrl = getSafeImageUrl(
-                post.featured_image || post.cover_url || post.image_url,
-                'blog-images'
-              );
+              // SAFE: Posts are already processed through safe utilities
+              const imageUrl = post.featured_image || post.cover_url || post.image_url || 
+                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
               
               console.log('🖼️ LatestPosts: Slide', index, 'image processing:', {
                 postTitle: post.title,
-                originalPaths: {
-                  featured_image: post.featured_image,
-                  cover_url: post.cover_url,
-                  image_url: post.image_url
-                },
-                safeUrl: safeImageUrl
+                finalImageUrl: imageUrl,
+                isAlreadyProcessed: true
               });
               
               return (
                 <SwiperSlide key={post.id}>
                   <div className="flex flex-col md:flex-row">
-                    {/* FIXED: Image Section - Left side with SAFE URL handling */}
+                    {/* Image Section - Left side */}
                     <div className="relative md:w-1/2 h-64 md:h-96 overflow-hidden">
-                      {/* SAFE image rendering with comprehensive error handling */}
                       <img
-                        src={safeImageUrl}
+                        src={imageUrl}
                         alt={post.title || 'Blog post image'}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                         style={{
@@ -394,8 +391,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                           console.log('✅ LatestPosts: Image loaded successfully for:', post.title);
                         }}
                         onError={(e) => {
-                          console.warn('⚠️ LatestPosts: Image failed to load, using fallback for:', post.title);
-                          // Fallback to default image on error
+                          console.warn('⚠️ LatestPosts: Image error, using fallback for:', post.title);
                           (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
                         }}
                       />

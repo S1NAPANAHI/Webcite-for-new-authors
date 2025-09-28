@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Grid, List, ShoppingCart, Star, Eye, Book, Scroll, Crown } from 'lucide-react';
-import { useAuth } from '../../packages/shared/src/hooks/useAuth';
+import { useAuth } from '@zoroaster/shared/hooks/useAuth';
 import { Database } from '../lib/database.types';
 import { ProductCard } from '../components/shop/ProductCard';
 import { CartProvider } from '../contexts/CartContext';

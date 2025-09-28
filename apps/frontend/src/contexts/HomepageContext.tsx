@@ -4,7 +4,8 @@
 
 import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { homepageManager } from '../lib/HomepageManager';
-import { getSafeImageUrl, getBlogImageUrl } from '../utils/imageUtils';
+import { getSafeImageUrl } from '@zoroaster/shared';
+import { getBlogImageUrl } from '../utils/imageUtils';
 
 /**
  * Simplified context interface - only provides access to the manager

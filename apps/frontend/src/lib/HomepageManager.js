@@ -1,5 +1,8 @@
 // REACT HOOK ERROR #321 FIX - Non-hook-based homepage manager to avoid React error #321
 // This class-based approach separates business logic from React hooks to prevent hook violations
+// EMERGENCY UPDATE: Added database query methods to prevent 400 errors
+
+import { supabase } from './supabase.ts';
 
 /**
  * Non-hook-based homepage manager to avoid React error #321
@@ -7,6 +10,9 @@
  * This class provides homepage management functionality without using React hooks,
  * eliminating the "Invalid hook call" errors that occur when hooks are called
  * outside the body of a function component.
+ * 
+ * CRITICAL UPDATE: Added database query methods to prevent 400 Bad Request errors
+ * when components try to fetch blog posts from homepage components.
  */
 class HomepageManager {
   constructor() {
@@ -20,7 +26,144 @@ class HomepageManager {
       quotes: []
     };
     
-    console.log('🏠 HomepageManager initialized (non-hook version)');
+    console.log('🏠 HomepageManager initialized (non-hook version with database methods)');
+  }
+
+  /**
+   * CRITICAL FIX: Get latest blog posts with proper database query and error handling
+   * This prevents the 400 Bad Request errors that were occurring
+   * 
+   * @param {number} limit - Maximum number of posts to return (default: 5)
+   * @returns {Promise<{data: Array|null, error: Object|null}>}
+   */
+  async getLatestBlogPosts(limit = 5) {
+    try {
+      console.log('📰 HomepageManager: Fetching latest blog posts, limit:', limit);
+      
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select(`
+          id, title, slug, excerpt, content,
+          featured_image, cover_url, image_url,
+          author, category, published_at, views, reading_time, status
+        `)
+        .eq('status', 'published')
+        .not('published_at', 'is', null)
+        .order('published_at', { ascending: false })
+        .limit(limit);
+      
+      if (error) {
+        console.error('❌ HomepageManager.getLatestBlogPosts: Database error:', error);
+        return { data: null, error };
+      }
+      
+      // Return empty array if no data instead of null to prevent map errors
+      const safeData = data || [];
+      console.log('✅ HomepageManager.getLatestBlogPosts: Successfully fetched', safeData.length, 'posts');
+      return { data: safeData, error: null };
+      
+    } catch (err) {
+      console.error('❌ HomepageManager.getLatestBlogPosts: Unexpected error:', err);
+      return { 
+        data: null, 
+        error: { 
+          message: err.message || 'Failed to fetch blog posts',
+          code: 'FETCH_ERROR' 
+        } 
+      };
+    }
+  }
+
+  /**
+   * CRITICAL FIX: Get featured blog posts with proper database query and error handling
+   * This prevents the 400 Bad Request errors in FeaturedContent component
+   * 
+   * @param {number} limit - Maximum number of posts to return (default: 3)
+   * @returns {Promise<{data: Array|null, error: Object|null}>}
+   */
+  async getFeaturedBlogPosts(limit = 3) {
+    try {
+      console.log('⭐ HomepageManager: Fetching featured blog posts, limit:', limit);
+      
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select(`
+          id, title, slug, excerpt, content,
+          featured_image, cover_url, image_url,
+          author, category, published_at, views, reading_time, status
+        `)
+        .eq('status', 'published')
+        .not('published_at', 'is', null)
+        .eq('featured', true) // Try to get featured posts first
+        .order('published_at', { ascending: false })
+        .limit(limit);
+      
+      if (error) {
+        console.error('❌ HomepageManager.getFeaturedBlogPosts: Database error:', error);
+        return { data: null, error };
+      }
+      
+      let safeData = data || [];
+      
+      // If no featured posts found, get latest posts instead
+      if (safeData.length === 0) {
+        console.log('⚠️ HomepageManager.getFeaturedBlogPosts: No featured posts found, getting latest posts instead');
+        const fallbackResult = await this.getLatestBlogPosts(limit);
+        return fallbackResult;
+      }
+      
+      console.log('✅ HomepageManager.getFeaturedBlogPosts: Successfully fetched', safeData.length, 'featured posts');
+      return { data: safeData, error: null };
+      
+    } catch (err) {
+      console.error('❌ HomepageManager.getFeaturedBlogPosts: Unexpected error:', err);
+      return { 
+        data: null, 
+        error: { 
+          message: err.message || 'Failed to fetch featured blog posts',
+          code: 'FETCH_ERROR' 
+        } 
+      };
+    }
+  }
+
+  /**
+   * OPTIONAL: Get featured works (if works table exists)
+   * This is for future use when works/stories are implemented
+   * 
+   * @param {number} limit - Maximum number of works to return (default: 2)
+   * @returns {Promise<{data: Array|null, error: Object|null}>}
+   */
+  async getFeaturedWorks(limit = 2) {
+    try {
+      console.log('📚 HomepageManager: Attempting to fetch featured works, limit:', limit);
+      
+      // Check if works table exists first
+      const { data, error } = await supabase
+        .from('works')
+        .select(`
+          id, title, slug, description,
+          cover_url, cover_image, image_url,
+          author, genre, published_at, views, status
+        `)
+        .eq('status', 'published')
+        .eq('featured', true)
+        .order('published_at', { ascending: false })
+        .limit(limit);
+      
+      if (error) {
+        console.warn('⚠️ HomepageManager.getFeaturedWorks: Works table may not exist or error:', error);
+        return { data: [], error: null }; // Return empty array, not error
+      }
+      
+      const safeData = data || [];
+      console.log('✅ HomepageManager.getFeaturedWorks: Successfully fetched', safeData.length, 'works');
+      return { data: safeData, error: null };
+      
+    } catch (err) {
+      console.warn('⚠️ HomepageManager.getFeaturedWorks: Works not available:', err);
+      return { data: [], error: null }; // Return empty array for graceful degradation
+    }
   }
 
   /**

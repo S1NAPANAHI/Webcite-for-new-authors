@@ -1,6 +1,6 @@
 // Existing exports
 export { supabase, debugSupabaseClient } from './supabaseClient';
-export { supabaseAdmin } from './supabaseAdminClient';
+// REMOVED: export { supabaseAdmin } from './supabaseAdminClient'; // ❌ SECURITY FIX: Admin client should not be exported to frontend
 export type { Database } from './database.types';
 export * from './types';
 export * from './profile';

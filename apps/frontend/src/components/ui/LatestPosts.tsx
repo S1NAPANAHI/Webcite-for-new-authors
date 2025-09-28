@@ -1,6 +1,6 @@
 /**
- * Fixed LatestPosts component with comprehensive null safety for image URLs
- * This prevents the "Cannot read properties of null (reading 'replace')" error
+ * Fixed LatestPosts component with corrected database query and null safety
+ * This prevents the 400 error and "Cannot read properties of null (reading 'replace')" error
  */
 
 import React, { useState, useEffect } from 'react';
@@ -17,16 +17,12 @@ interface BlogPost {
   created_at: string;
   updated_at?: string;
   published_at?: string;
-  image_url?: string | null;
-  cover_image?: string | null;
   featured_image?: string | null;
-  author?: {
-    id: string;
-    name: string;
-    avatar_url?: string;
-  } | null;
+  cover_url?: string | null;
+  author?: string | null;
   reading_time?: number;
-  published?: boolean;
+  status?: string;
+  category?: string;
 }
 
 interface LatestPostsProps {
@@ -42,39 +38,53 @@ interface LatestPostsProps {
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: '1',
-    title: 'Welcome to the Zoroasterverse',
-    excerpt: 'Discover the ancient wisdom of Zarathustra and explore the rich tapestry of Persian mythology in our literary universe.',
+    title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
+    excerpt: 'Discover the profound teachings of Zoroaster and explore the rich tapestry of Persian mythology in our literary universe.',
     slug: 'welcome-to-zoroasterverse',
     created_at: new Date().toISOString(),
-    image_url: null, // This will use fallback image
-    author: {
-      id: '1',
-      name: 'Sina Panahi'
-    }
+    featured_image: null, // Will use fallback image
+    author: 'Sina Panahi',
+    category: 'Philosophy'
   },
   {
     id: '2',
-    title: 'The Sacred Fire of Truth',
-    excerpt: 'Understanding the symbolism and significance of fire in Zoroastrian teachings.',
-    slug: 'sacred-fire-of-truth',
-    created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    image_url: null,
-    author: {
-      id: '1',
-      name: 'Sina Panahi'
-    }
+    title: 'The Sacred Fire: Symbol of Divine Light and Purity',
+    excerpt: 'Understanding the symbolism and significance of the sacred fire in Zoroastrian teachings and daily practice.',
+    slug: 'sacred-fire-divine-light',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    featured_image: null,
+    author: 'Sina Panahi',
+    category: 'Spirituality'
   },
   {
     id: '3',
-    title: 'Good Thoughts, Good Words, Good Deeds',
-    excerpt: 'The foundational principles that guide every aspect of Zoroastrian life and philosophy.',
+    title: 'Good Thoughts, Good Words, Good Deeds: The Zoroastrian Way',
+    excerpt: 'The foundational principles that guide every aspect of Zoroastrian life and philosophy in the modern world.',
     slug: 'good-thoughts-words-deeds',
-    created_at: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-    image_url: null,
-    author: {
-      id: '1',
-      name: 'Sina Panahi'
-    }
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    featured_image: null,
+    author: 'Sina Panahi',
+    category: 'Philosophy'
+  },
+  {
+    id: '4',
+    title: 'The History of Zoroastrianism',
+    excerpt: 'Trace the ancient roots and evolution of one of the world\'s oldest monotheistic religions.',
+    slug: 'history-of-zoroastrianism',
+    created_at: new Date(Date.now() - 259200000).toISOString(),
+    featured_image: null,
+    author: 'Sina Panahi',
+    category: 'History'
+  },
+  {
+    id: '5',
+    title: 'Modern Applications of Ancient Wisdom',
+    excerpt: 'How Zoroastrian principles continue to guide and inspire people in contemporary society.',
+    slug: 'modern-applications-ancient-wisdom',
+    created_at: new Date(Date.now() - 345600000).toISOString(),
+    featured_image: null,
+    author: 'Sina Panahi',
+    category: 'Modern Life'
   }
 ];
 
@@ -136,7 +146,8 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
 
       console.log('✅ LatestPosts: Database connection successful, fetching posts...');
       
-      // Fetch blog posts with author information
+      // FIXED: Corrected database query - removed non-existent image_url field
+      // FIXED: Use only existing fields from the actual database schema
       const { data, error } = await supabaseClient
         .from('blog_posts')
         .select(`
@@ -148,15 +159,16 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           created_at,
           updated_at,
           published_at,
-          image_url,
-          cover_image,
           featured_image,
+          cover_url,
+          author,
+          category,
           reading_time,
-          published,
-          author:profiles(id, full_name)
+          status
         `)
-        .eq('published', true)
-        .order('created_at', { ascending: false })
+        .eq('status', 'published')
+        .not('published_at', 'is', null)
+        .order('published_at', { ascending: false })
         .limit(limit);
 
       console.log('📥 LatestPosts: Database query result:', {
@@ -177,13 +189,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         console.log('🎉 LatestPosts: SUCCESS! Found real blog posts, replacing fallback!');
         
         // Process posts to ensure safe image URLs
-        const processedPosts = processBlogPostsImages(data.map(post => ({
-          ...post,
-          author: post.author ? {
-            id: post.author.id,
-            name: post.author.full_name || 'Anonymous'
-          } : null
-        })));
+        const processedPosts = processBlogPostsImages(data);
         
         console.log('📝 LatestPosts: Post titles:', processedPosts.map(p => p.title));
         setPosts(processedPosts);
@@ -265,8 +271,16 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         </div>
       ) : (
         <div className="grid gap-6 md:gap-8">
-          {posts.map((post) => {
-            const safeImageUrl = getBlogImageUrl(post.image_url || post.cover_image || post.featured_image);
+          {posts.map((post, index) => {
+            // FIXED: Safely get image URL with proper null checks
+            console.log(`🖼️ LatestPosts: Slide ${index} image processing:`, {
+              post_title: post.title,
+              featured_image: post.featured_image,
+              cover_url: post.cover_url,
+              will_use_fallback: !post.featured_image && !post.cover_url
+            });
+            
+            const safeImageUrl = getBlogImageUrl(post.featured_image || post.cover_url);
             
             return (
               <article key={post.id} className="flex flex-col md:flex-row gap-4 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
@@ -277,6 +291,9 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                         src={safeImageUrl}
                         alt={post.title || 'Blog post image'}
                         className="w-full h-48 md:h-32 object-cover rounded-lg hover:opacity-90 transition-opacity duration-200"
+                        onLoad={() => {
+                          console.log('✅ LatestPosts: Image loaded successfully for:', post.title);
+                        }}
                         onError={(e) => {
                           console.warn('🖼️ LatestPosts: Image load failed for post:', post.title);
                           const target = e.target as HTMLImageElement;
@@ -296,8 +313,8 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                     </h3>
                     
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      {post.author?.name && (
-                        <span className="mr-4">By {post.author.name}</span>
+                      {post.author && (
+                        <span className="mr-4">By {post.author}</span>
                       )}
                       <time dateTime={post.created_at}>
                         {formatDate(post.created_at)}

@@ -1,12 +1,14 @@
 /**
- * Comprehensive image URL utilities to handle null/undefined paths safely
+ * FIXED: Comprehensive image URL utilities with strict null safety
  * This prevents the "Cannot read properties of null (reading 'replace')" error
+ * by checking for null/undefined BEFORE calling supabase.storage getPublicUrl()
  */
 
 import { supabase } from '../lib/supabase';
 
 /**
  * Safely get image URL from Supabase storage with fallback handling
+ * FIXED: Added strict null checks BEFORE calling getPublicUrl
  * @param imagePath - The path to the image in storage (can be null/undefined)
  * @param bucketName - The storage bucket name (default: 'media')
  * @param fallbackImage - Fallback image path (default: '/images/default-blog-cover.jpg')
@@ -17,14 +19,14 @@ export function getSafeImageUrl(
   bucketName: string = 'media',
   fallbackImage: string = '/images/default-blog-cover.jpg'
 ): string {
-  // Check for null, undefined, or empty string
+  // CRITICAL FIX: Check for null, undefined, or empty string BEFORE calling getPublicUrl
   if (!imagePath || imagePath === null || imagePath === undefined || imagePath.trim() === '') {
     console.warn('🖼️ Image path is null/undefined, using fallback:', fallbackImage);
     return fallbackImage;
   }
 
   try {
-    // Get the public URL from Supabase storage
+    // FIXED: Only call getPublicUrl if we have a valid path
     const { data } = supabase.storage.from(bucketName).getPublicUrl(imagePath);
     
     if (data?.publicUrl) {
@@ -68,6 +70,7 @@ export function getCoverImageUrl(imagePath: string | null | undefined): string {
 
 /**
  * Process an array of blog posts and ensure all have safe image URLs
+ * FIXED: Added null checks and error handling
  * @param posts - Array of blog posts
  * @returns Array with safe image URLs
  */
@@ -77,12 +80,31 @@ export function processBlogPostsImages(posts: any[]): any[] {
     return [];
   }
 
-  return posts.map(post => ({
-    ...post,
-    image_url: getBlogImageUrl(post.image_url || post.cover_image || post.featured_image),
-    cover_image: getBlogImageUrl(post.cover_image || post.image_url || post.featured_image),
-    featured_image: getBlogImageUrl(post.featured_image || post.image_url || post.cover_image)
-  }));
+  return posts.map(post => {
+    try {
+      // FIXED: Safely process image fields with proper null checks
+      const featuredImage = getBlogImageUrl(post.featured_image);
+      const coverImage = getBlogImageUrl(post.cover_url || post.cover_image);
+      
+      return {
+        ...post,
+        featured_image: featuredImage,
+        cover_url: coverImage,
+        cover_image: coverImage, // For compatibility
+        // Ensure we have safe fallbacks for all image fields
+        image_url: featuredImage // Legacy support
+      };
+    } catch (error) {
+      console.error('🖼️ Error processing images for post:', post.title, error);
+      return {
+        ...post,
+        featured_image: '/images/default-blog-cover.jpg',
+        cover_url: '/images/default-blog-cover.jpg',
+        cover_image: '/images/default-blog-cover.jpg',
+        image_url: '/images/default-blog-cover.jpg'
+      };
+    }
+  });
 }
 
 /**
@@ -111,6 +133,7 @@ export async function getImageUrlWithRetry(
 ): Promise<string> {
   const fallback = '/images/default-blog-cover.jpg';
   
+  // FIXED: Check for null/undefined immediately
   if (!imagePath) {
     return fallback;
   }

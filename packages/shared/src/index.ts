@@ -1,27 +1,23 @@
-// Export authentication context and hooks
-export { AuthProvider, useAuth } from './AuthContext';
-
-// Export Supabase client singleton
+// Existing exports
 export { supabase, debugSupabaseClient } from './supabaseClient';
-
-// Export auth utilities for debugging
-export * from './lib/auth-utils';
-
-// Export cart context
-export { CartProvider, useCart } from './CartContext';
-
-// Export types
-export type { UserProfile } from './profile';
+export { supabaseAdmin } from './supabaseAdminClient';
 export type { Database } from './database.types';
-
-// Export functions that exist
-export * from './subscription';
+export * from './types';
+export * from './profile';
 export * from './storage';
+export * from './subscription';
 export * from './userStats';
 export * from './wiki';
-
-// Export utilities
+export * from './product';
+export * from './AuthContext';
+export * from './CartContext';
 export * from './utils';
 
-// NOTE: Admin client is exported separately in './server.ts'
-// Import from '@zoroaster/shared/server' for server-side operations
+// NEW: Export safe image utilities
+export {
+  getSafeImageUrl,
+  getSafeBlogImageUrl, 
+  getSafeCharacterImageUrl,
+  getSafeCoverImageUrl,
+  debugImageUrl
+} from './utils/imageUtils';

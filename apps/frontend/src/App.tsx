@@ -70,6 +70,8 @@ import UserManagementPage from './pages/admin/settings/UserManagementPage';
 import LearnCategoriesManager from './pages/admin/learn/LearnCategoriesManager';
 // NEW: Store Page Import
 import StorePage from './pages/StorePage';
+// NEW: Social Media Generator Import
+import { SocialMediaRoutes } from './admin/SocialMediaRoutes';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -289,6 +291,9 @@ const AppContent: React.FC = () => {
         <Route path="settings/users" element={<UserManagementPage />} />
         <Route path="settings/roles" element={<PlaceholderPage title="Roles" />} />
         <Route path="settings/integrations" element={<PlaceholderPage title="Integrations" />} />
+        
+        {/* NEW: Social Media Generator Routes */}
+        <Route path="social-media/*" element={<SocialMediaRoutes />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

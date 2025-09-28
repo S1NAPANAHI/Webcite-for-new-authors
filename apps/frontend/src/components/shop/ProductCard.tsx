@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, ShoppingCart, Eye, Download, Book, Scroll, Crown, Sparkles } from 'lucide-react';
 import { Database } from '../../types/supabase';
+import { useCart } from '../../contexts/CartContext';
 
 type Product = Database['public']['Tables']['products']['Row'];
 type ProductWithVariants = Product & {
@@ -15,6 +16,8 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, user }) => {
+  const { addItem, toggleCart } = useCart();
+
   // Calculate average rating
   const averageRating = product.product_reviews.length > 0
     ? product.product_reviews.reduce((sum, review) => sum + review.rating, 0) / product.product_reviews.length
@@ -57,19 +60,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
   };
 
   const handleAddToCart = () => {
-    // TODO: Implement add to cart functionality
-    console.log('Add to cart:', product.id);
+    const variant = product.product_variants[0]; // Use first variant or undefined
+    addItem(product, variant, 1);
+    
+    // Show success feedback with toast or similar
+    // You could add a toast notification system here
   };
 
   const handlePreview = () => {
-    // TODO: Implement preview functionality
-    console.log('Preview product:', product.id);
+    // TODO: Implement preview functionality - could open a modal or navigate to preview page
+    console.log('Preview product:', product.id, product.preview_url);
+    if (product.preview_url) {
+      window.open(product.preview_url, '_blank');
+    }
   };
 
   const handlePurchase = () => {
-    // TODO: Implement direct purchase
-    console.log('Purchase product:', product.id);
+    // Add to cart and open cart sidebar for immediate checkout
+    const variant = product.product_variants[0];
+    addItem(product, variant, 1);
+    toggleCart(); // Open cart sidebar
   };
+
+  // Special handling for free products
+  const isFree = price === 0;
 
   if (viewMode === 'list') {
     return (
@@ -95,6 +109,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
                 <div className="absolute top-2 right-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs px-2 py-1 rounded-full">
                   <Crown className="w-3 h-3 inline mr-1" />
                   Premium
+                </div>
+              )}
+              
+              {/* Free Badge */}
+              {isFree && (
+                <div className="absolute top-2 right-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs px-2 py-1 rounded-full">
+                  Free
                 </div>
               )}
             </div>
@@ -153,7 +174,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
 
               {/* Price */}
               <div className="text-right">
-                <div className="text-2xl font-bold text-amber-400">${formattedPrice}</div>
+                <div className="text-2xl font-bold text-amber-400">
+                  {isFree ? 'Free' : `$${formattedPrice}`}
+                </div>
                 {product.product_variants[0]?.compare_at_amount && (
                   <div className="text-slate-500 line-through text-sm">
                     ${(Number(product.product_variants[0].compare_at_amount) / 100).toFixed(2)}
@@ -174,20 +197,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
                 </button>
               )}
               
-              <button 
-                onClick={handleAddToCart}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-500/50 rounded-lg transition-all"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                Add to Cart
-              </button>
+              {!isFree && (
+                <button 
+                  onClick={handleAddToCart}
+                  className="flex items-center gap-2 px-4 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-500/50 rounded-lg transition-all"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  Add to Cart
+                </button>
+              )}
               
               <button 
                 onClick={handlePurchase}
                 className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-medium rounded-lg transition-all shadow-lg hover:shadow-amber-500/25"
               >
                 <Download className="w-4 h-4" />
-                Buy Now
+                {isFree ? 'Download' : 'Buy Now'}
               </button>
             </div>
           </div>
@@ -217,7 +242,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
         
         {/* Badges */}
         <div className="absolute top-2 right-2 flex flex-col gap-1">
-          {product.is_premium && (
+          {isFree && (
+            <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-xs px-2 py-1 rounded-full">
+              Free
+            </div>
+          )}
+          {product.is_premium && !isFree && (
             <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
               <Crown className="w-3 h-3" />
               Premium
@@ -278,7 +308,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
         {/* Price */}
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-xl font-bold text-amber-400">${formattedPrice}</div>
+            <div className="text-xl font-bold text-amber-400">
+              {isFree ? 'Free' : `$${formattedPrice}`}
+            </div>
             {product.product_variants[0]?.compare_at_amount && (
               <div className="text-slate-500 line-through text-xs">
                 ${(Number(product.product_variants[0].compare_at_amount) / 100).toFixed(2)}
@@ -300,13 +332,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
               </button>
             )}
             
-            <button 
-              onClick={handleAddToCart}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-500/50 text-sm rounded-lg transition-all"
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Add to Cart
-            </button>
+            {!isFree && (
+              <button 
+                onClick={handleAddToCart}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-500/50 text-sm rounded-lg transition-all"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                Add to Cart
+              </button>
+            )}
           </div>
           
           <button 
@@ -314,7 +348,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, viewMode, use
             className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-medium text-sm rounded-lg transition-all shadow-lg hover:shadow-amber-500/25"
           >
             <Download className="w-4 h-4" />
-            Buy Now
+            {isFree ? 'Download Free' : 'Buy Now'}
           </button>
         </div>
       </div>

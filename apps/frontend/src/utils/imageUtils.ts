@@ -115,55 +115,6 @@ export function processBlogPostsImages(posts: any[]): any[] {
 }
 
 /**
- * EMERGENCY: Universal image component wrapper - use this for any image display
- * @param props - Standard img props plus imagePath
- */
-export const SafeImage: React.FC<{
-  imagePath: string | null | undefined;
-  bucketName?: string;
-  fallbackImage?: string;
-  alt: string;
-  className?: string;
-  onLoad?: () => void;
-  onError?: () => void;
-  [key: string]: any;
-}> = ({ 
-  imagePath, 
-  bucketName = 'media', 
-  fallbackImage = '/images/default-blog-cover.jpg',
-  alt,
-  className = '',
-  onLoad,
-  onError,
-  ...props 
-}) => {
-  const safeUrl = getSafeImageUrl(imagePath, bucketName, fallbackImage);
-  
-  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    console.warn('🖼️ SafeImage: Image load failed, using fallback for:', imagePath);
-    const target = e.target as HTMLImageElement;
-    target.src = fallbackImage;
-    if (onError) onError();
-  };
-  
-  const handleLoad = () => {
-    console.log('✅ SafeImage: Image loaded successfully:', imagePath);
-    if (onLoad) onLoad();
-  };
-  
-  return (
-    <img
-      src={safeUrl}
-      alt={alt}
-      className={className}
-      onLoad={handleLoad}
-      onError={handleError}
-      {...props}
-    />
-  );
-};
-
-/**
  * Check if an image URL is valid (not a fallback)
  * @param imageUrl - The image URL to check
  * @returns Whether the URL is a valid Supabase storage URL
@@ -253,7 +204,6 @@ export default {
   getAvatarUrl,
   getCoverImageUrl,
   processBlogPostsImages,
-  SafeImage,
   isValidImageUrl,
   getImageUrlWithRetry,
   preloadImage

@@ -1,5 +1,5 @@
 /**
- * FIXED: Comprehensive image URL utilities with strict null safety
+ * EMERGENCY FIX: Comprehensive image URL utilities with strict null safety
  * This prevents the "Cannot read properties of null (reading 'replace')" error
  * by checking for null/undefined BEFORE calling supabase.storage getPublicUrl()
  */
@@ -7,8 +7,8 @@
 import { supabase } from '../lib/supabase';
 
 /**
- * Safely get image URL from Supabase storage with fallback handling
- * FIXED: Added strict null checks BEFORE calling getPublicUrl
+ * CRITICAL: Safe wrapper for any Supabase getPublicUrl call
+ * ALWAYS use this instead of calling getPublicUrl directly
  * @param imagePath - The path to the image in storage (can be null/undefined)
  * @param bucketName - The storage bucket name (default: 'media')
  * @param fallbackImage - Fallback image path (default: '/images/default-blog-cover.jpg')
@@ -21,7 +21,7 @@ export function getSafeImageUrl(
 ): string {
   // CRITICAL FIX: Check for null, undefined, or empty string BEFORE calling getPublicUrl
   if (!imagePath || imagePath === null || imagePath === undefined || imagePath.trim() === '') {
-    console.warn('🖼️ Image path is null/undefined, using fallback:', fallbackImage);
+    console.warn('🖼️ getSafeImageUrl: Path is null/undefined, using fallback:', fallbackImage);
     return fallbackImage;
   }
 
@@ -30,19 +30,20 @@ export function getSafeImageUrl(
     const { data } = supabase.storage.from(bucketName).getPublicUrl(imagePath);
     
     if (data?.publicUrl) {
+      console.log('✅ getSafeImageUrl: Success for path:', imagePath);
       return data.publicUrl;
     } else {
-      console.warn('🖼️ No public URL returned from Supabase, using fallback for path:', imagePath);
+      console.warn('🖼️ getSafeImageUrl: No public URL returned from Supabase, using fallback for path:', imagePath);
       return fallbackImage;
     }
   } catch (error) {
-    console.error('🖼️ Error getting image URL for path:', imagePath, error);
+    console.error('🖼️ getSafeImageUrl: Error getting image URL for path:', imagePath, error);
     return fallbackImage;
   }
 }
 
 /**
- * Get blog post image URL with blog-specific fallback
+ * EMERGENCY: Safe wrapper specifically for blog images - use this in ALL blog components
  * @param imagePath - The image path from blog post data
  * @returns Safe image URL with blog fallback
  */
@@ -69,8 +70,8 @@ export function getCoverImageUrl(imagePath: string | null | undefined): string {
 }
 
 /**
- * Process an array of blog posts and ensure all have safe image URLs
- * FIXED: Added null checks and error handling
+ * CRITICAL: Process blog posts and ensure ALL have safe image URLs
+ * Use this in every component that displays blog post images
  * @param posts - Array of blog posts
  * @returns Array with safe image URLs
  */
@@ -82,20 +83,26 @@ export function processBlogPostsImages(posts: any[]): any[] {
 
   return posts.map(post => {
     try {
-      // FIXED: Safely process image fields with proper null checks
+      // FIXED: Safely process ALL possible image fields
       const featuredImage = getBlogImageUrl(post.featured_image);
       const coverImage = getBlogImageUrl(post.cover_url || post.cover_image);
+      
+      console.log('🖼️ processBlogPostsImages: Processing post:', post.title, {
+        original_featured_image: post.featured_image,
+        original_cover_url: post.cover_url,
+        safe_featured_image: featuredImage,
+        safe_cover_image: coverImage
+      });
       
       return {
         ...post,
         featured_image: featuredImage,
         cover_url: coverImage,
         cover_image: coverImage, // For compatibility
-        // Ensure we have safe fallbacks for all image fields
-        image_url: featuredImage // Legacy support
+        image_url: featuredImage // Legacy support - ALWAYS use safe URL
       };
     } catch (error) {
-      console.error('🖼️ Error processing images for post:', post.title, error);
+      console.error('🖼️ processBlogPostsImages: Error processing images for post:', post.title, error);
       return {
         ...post,
         featured_image: '/images/default-blog-cover.jpg',
@@ -106,6 +113,55 @@ export function processBlogPostsImages(posts: any[]): any[] {
     }
   });
 }
+
+/**
+ * EMERGENCY: Universal image component wrapper - use this for any image display
+ * @param props - Standard img props plus imagePath
+ */
+export const SafeImage: React.FC<{
+  imagePath: string | null | undefined;
+  bucketName?: string;
+  fallbackImage?: string;
+  alt: string;
+  className?: string;
+  onLoad?: () => void;
+  onError?: () => void;
+  [key: string]: any;
+}> = ({ 
+  imagePath, 
+  bucketName = 'media', 
+  fallbackImage = '/images/default-blog-cover.jpg',
+  alt,
+  className = '',
+  onLoad,
+  onError,
+  ...props 
+}) => {
+  const safeUrl = getSafeImageUrl(imagePath, bucketName, fallbackImage);
+  
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    console.warn('🖼️ SafeImage: Image load failed, using fallback for:', imagePath);
+    const target = e.target as HTMLImageElement;
+    target.src = fallbackImage;
+    if (onError) onError();
+  };
+  
+  const handleLoad = () => {
+    console.log('✅ SafeImage: Image loaded successfully:', imagePath);
+    if (onLoad) onLoad();
+  };
+  
+  return (
+    <img
+      src={safeUrl}
+      alt={alt}
+      className={className}
+      onLoad={handleLoad}
+      onError={handleError}
+      {...props}
+    />
+  );
+};
 
 /**
  * Check if an image URL is valid (not a fallback)
@@ -153,9 +209,9 @@ export async function getImageUrlWithRetry(
         return imageUrl;
       }
       
-      console.warn(`🖼️ Image load attempt ${attempt} failed for:`, imageUrl);
+      console.warn(`🖼️ getImageUrlWithRetry: Attempt ${attempt} failed for:`, imageUrl);
     } catch (error) {
-      console.warn(`🖼️ Image URL retry attempt ${attempt} failed:`, error);
+      console.warn(`🖼️ getImageUrlWithRetry: Attempt ${attempt} failed:`, error);
     }
     
     // Wait before retrying (exponential backoff)
@@ -164,7 +220,7 @@ export async function getImageUrlWithRetry(
     }
   }
   
-  console.error('🖼️ All image URL attempts failed for:', imagePath);
+  console.error('🖼️ getImageUrlWithRetry: All attempts failed for:', imagePath);
   return fallback;
 }
 
@@ -190,12 +246,14 @@ export function preloadImage(imageUrl: string): Promise<boolean> {
   });
 }
 
+// EMERGENCY: Default export with all safe functions
 export default {
   getSafeImageUrl,
   getBlogImageUrl,
   getAvatarUrl,
   getCoverImageUrl,
   processBlogPostsImages,
+  SafeImage,
   isValidImageUrl,
   getImageUrlWithRetry,
   preloadImage

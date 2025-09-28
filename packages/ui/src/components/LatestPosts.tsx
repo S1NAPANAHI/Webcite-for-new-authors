@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay, A11y } from 'swiper/modules';
 import { supabase } from '../lib/supabaseClient';
+import { getSafeImageUrl } from '@zoroaster/shared';
 
 // Swiper styles
 import 'swiper/css';
@@ -36,39 +37,6 @@ interface BlogPost {
 interface LatestPostsProps {
   limit?: number;
   supabaseClient?: any;
-}
-
-/**
- * SAFE image URL helper that prevents null/undefined crashes
- * This is the key fix for the getPublicUrl error
- */
-function getSafeImageUrl(imagePath: string | null | undefined): string {
-  // Check for null, undefined, or empty string
-  if (!imagePath || imagePath === null || imagePath === undefined || imagePath.trim() === '') {
-    console.log('🖼️ getSafeImageUrl: Using fallback for null/undefined path');
-    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
-  }
-
-  // If it's already a full URL (like Unsplash), return it as-is
-  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-    console.log('🖼️ getSafeImageUrl: Using full URL as-is:', imagePath);
-    return imagePath;
-  }
-
-  // SAFE Supabase storage URL generation with null protection
-  try {
-    const { data } = supabase.storage.from('media').getPublicUrl(imagePath);
-    if (data?.publicUrl) {
-      console.log('🖼️ getSafeImageUrl: Generated Supabase URL successfully');
-      return data.publicUrl;
-    } else {
-      console.warn('🖼️ getSafeImageUrl: No public URL returned, using fallback');
-      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
-    }
-  } catch (error) {
-    console.error('🖼️ getSafeImageUrl: Error generating URL, using fallback:', error);
-    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
-  }
 }
 
 // Professional fallback posts with high-quality images
@@ -206,7 +174,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
         console.log('✅ LatestPosts: Supabase client found! Testing connection...');
         setDebugInfo('Supabase client found, querying database...');
 
-        // Query the blog_posts table
+        // FIXED: Correct database query without syntax errors
         const { data, error } = await client
           .from('blog_posts')
           .select(`
@@ -252,10 +220,12 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
           console.log('🎉 LatestPosts: SUCCESS! Found real blog posts, replacing fallback!');
           console.log('📝 LatestPosts: Post titles:', data.map(p => p.title));
           
-          // CRITICAL FIX: Process posts with safe image URL handling
+          // CRITICAL FIX: Process posts with SAFE image URL handling
           const processedPosts = data.map(post => {
+            // Use the safe image utility instead of direct getPublicUrl calls
             const safeImageUrl = getSafeImageUrl(
-              post.featured_image || post.cover_url || post.image_url
+              post.featured_image || post.cover_url || post.image_url,
+              'blog-images'
             );
             
             console.log('🖼️ LatestPosts: Processing image for post:', {
@@ -390,7 +360,8 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
               
               // CRITICAL FIX: Use safe image URL function for all image sources
               const safeImageUrl = getSafeImageUrl(
-                post.featured_image || post.cover_url || post.image_url
+                post.featured_image || post.cover_url || post.image_url,
+                'blog-images'
               );
               
               console.log('🖼️ LatestPosts: Slide', index, 'image processing:', {
@@ -419,212 +390,107 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                           objectFit: 'cover',
                           objectPosition: 'center'
                         }}
-                        onError={(e) => {
-                          console.warn('🖼️ LatestPosts: Image failed to load for post:', post.title);
-                          const target = e.currentTarget;
-                          // Set to a guaranteed working fallback
-                          target.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
-                        }}
                         onLoad={() => {
                           console.log('✅ LatestPosts: Image loaded successfully for:', post.title);
                         }}
+                        onError={(e) => {
+                          console.warn('⚠️ LatestPosts: Image failed to load, using fallback for:', post.title);
+                          // Fallback to default image on error
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop&crop=center';
+                        }}
                       />
                       
-                      {/* Overlay gradient for better text readability */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/40"></div>
-                      
-                      {/* Category Badge */}
-                      {post.category && (
-                        <div className="absolute top-4 left-4 bg-black bg-opacity-90 text-white px-3 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm">
-                          {post.category}
-                        </div>
-                      )}
-                      
-                      {/* Latest Badge */}
-                      {index === 0 && !usingFallback && (
-                        <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1.5 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                          ✨ LATEST
-                        </div>
-                      )}
+                      {/* Category badge */}
+                      <div className="absolute top-4 left-4">
+                        <span className="bg-orange-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                          {post.category || 'Featured'}
+                        </span>
+                      </div>
                     </div>
-
+                    
                     {/* Content Section - Right side */}
-                    <div className="md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
-                      {/* Title */}
-                      <h3 className={`text-2xl md:text-3xl font-bold mb-4 leading-tight ${
-                        isDark ? 'text-white' : 'text-gray-900'
-                      }`}>
-                        {post.title}
-                      </h3>
-
-                      {/* Excerpt */}
-                      <p className={`text-base md:text-lg mb-6 leading-relaxed ${
-                        isDark ? 'text-gray-300' : 'text-gray-600'
-                      }`}>
-                        {post.excerpt || (post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content)}
-                      </p>
-
-                      {/* Meta Information */}
-                      <div className={`flex flex-wrap items-center gap-3 text-sm mb-6 ${
-                        isDark ? 'text-gray-400' : 'text-gray-500'
-                      }`}>
-                        <span className="flex items-center gap-1">
-                          👤 {post.author || 'Zoroasterverse Team'}
-                        </span>
-                        <span className="w-1 h-1 bg-current rounded-full"></span>
-                        <span className="flex items-center gap-1">
-                          📅 {formatDate(post.published_at)}
-                        </span>
-                        <span className="w-1 h-1 bg-current rounded-full"></span>
-                        <span className="flex items-center gap-1">
-                          ⏱️ {readingTime}m read
-                        </span>
+                    <div className="md:w-1/2 p-6 md:p-8 flex flex-col justify-center">
+                      <div className="space-y-4">
+                        {/* Meta info */}
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            {post.author || 'Zoroasterverse Team'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {readingTime} min read
+                          </span>
+                          <span>{formatDate(post.published_at)}</span>
+                        </div>
+                        
+                        {/* Title */}
+                        <h3 className={`text-2xl md:text-3xl font-bold leading-tight ${
+                          isDark ? 'text-white' : 'text-gray-900'
+                        }`}>
+                          {post.title}
+                        </h3>
+                        
+                        {/* Excerpt */}
+                        <p className={`text-lg leading-relaxed ${
+                          isDark ? 'text-gray-300' : 'text-gray-600'
+                        }`}>
+                          {post.excerpt || post.content.substring(0, 150) + '...'}
+                        </p>
+                        
+                        {/* Read more button */}
+                        <div className="pt-4">
+                          <Link
+                            to={`/blog/${post.slug}`}
+                            className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
+                          >
+                            Read Full Article
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                          </Link>
+                        </div>
+                        
+                        {/* Stats */}
                         {post.views && (
-                          <>
-                            <span className="w-1 h-1 bg-current rounded-full"></span>
+                          <div className="flex items-center gap-4 text-sm text-gray-500 pt-2">
                             <span className="flex items-center gap-1">
-                              👁️ {post.views.toLocaleString()}
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                              {post.views.toLocaleString()} views
                             </span>
-                          </>
+                          </div>
                         )}
                       </div>
-
-                      {/* Read More Button */}
-                      <Link 
-                        to={usingFallback ? '/blog' : `/blog/${post.slug}`}
-                        className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg self-start ${
-                          isDark 
-                            ? 'bg-orange-600 hover:bg-orange-700 text-white' 
-                            : 'bg-orange-600 hover:bg-orange-700 text-white'
-                        }`}
-                      >
-                        {usingFallback ? 'Explore Blog' : 'Read Full Article'}
-                        <span className="transform transition-transform group-hover:translate-x-1">→</span>
-                      </Link>
                     </div>
                   </div>
                 </SwiperSlide>
               );
             })}
           </Swiper>
-
-          {/* ENHANCED Navigation Buttons - Larger and more visible */}
-          <button className={`custom-prev-btn absolute left-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-            isDark 
-              ? 'bg-gray-900/90 hover:bg-gray-900 text-white border-2 border-gray-600 hover:border-orange-500' 
-              : 'bg-white/95 hover:bg-white text-gray-700 shadow-xl border-2 border-gray-200 hover:border-orange-500'
-          } ${currentSlide === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}>
-            <span className="text-xl font-bold">‹</span>
-          </button>
           
-          <button className={`custom-next-btn absolute right-6 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
-            isDark 
-              ? 'bg-gray-900/90 hover:bg-gray-900 text-white border-2 border-gray-600 hover:border-orange-500' 
-              : 'bg-white/95 hover:bg-white text-gray-700 shadow-xl border-2 border-gray-200 hover:border-orange-500'
-          } ${currentSlide === posts.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}`}>
-            <span className="text-xl font-bold">›</span>
-          </button>
+          {/* Custom Navigation */}
+          <div className="custom-prev-btn absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg cursor-pointer transition-all duration-200">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+          <div className="custom-next-btn absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 shadow-lg cursor-pointer transition-all duration-200">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
         </div>
-
-        {/* Pagination Dots - Below the card */}
-        <div className="custom-pagination flex justify-center items-center mt-6 gap-1"></div>
         
-        {/* Slide Counter */}
-        <div className={`text-center mt-2 text-sm ${
-          isDark ? 'text-gray-400' : 'text-gray-500'
-        }`}>
-          {currentSlide + 1} of {posts.length}
-        </div>
+        {/* Custom Pagination */}
+        <div className="custom-pagination flex justify-center mt-6"></div>
       </div>
-      
-      {/* Explore all articles CTA */}
-      <div className="text-center mt-12">
-        <Link 
-          to="/blog"
-          className={`inline-flex items-center gap-3 px-8 py-4 rounded-lg font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl ${
-            isDark ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white' : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white'
-          }`}
-        >
-          🔥 Explore All Articles
-          <span>→</span>
-        </Link>
-        
-        <p className={`mt-4 text-sm ${
-          isDark ? 'text-gray-400' : 'text-gray-600'
-        }`}>
-          {usingFallback ? 'Sample content shown' : `Latest ${posts.length} articles`} from your blog
-          {usingFallback && (
-            <span className={`block mt-2 ${
-              isDark ? 'text-blue-400' : 'text-blue-600'
-            }`}>
-              💡 You have real blog posts! They'll appear here once the data connection is established.
-            </span>
-          )}
-        </p>
-      </div>
-
-      {/* CRITICAL: Custom CSS to ensure proper image sizing */}
-      <style jsx>{`
-        /* Ensure Swiper slides maintain proper height */
-        .single-card-slider .swiper-slide {
-          height: auto !important;
-        }
-        
-        /* Custom pagination styling */
-        .custom-pagination .swiper-pagination-bullet {
-          width: 8px;
-          height: 8px;
-          margin: 0 4px;
-          opacity: 0.4;
-          transition: all 0.3s ease;
-        }
-        
-        .custom-pagination .swiper-pagination-bullet-active {
-          opacity: 1;
-          transform: scale(1.3);
-          width: 24px;
-          border-radius: 4px;
-        }
-        
-        /* Dark mode pagination */
-        ${isDark ? `
-          .custom-pagination .swiper-pagination-bullet {
-            background: #6B7280 !important;
-          }
-          .custom-pagination .swiper-pagination-bullet-active {
-            background: #F97316 !important;
-          }
-        ` : `
-          .custom-pagination .swiper-pagination-bullet {
-            background: #D1D5DB !important;
-          }
-          .custom-pagination .swiper-pagination-bullet-active {
-            background: #EA580C !important;
-          }
-        `}
-        
-        /* CRITICAL FIX: Ensure images always fill their container */
-        .single-card-slider img {
-          width: 100% !important;
-          height: 100% !important;
-          object-fit: cover !important;
-          object-position: center !important;
-          display: block !important;
-        }
-        
-        /* Prevent image container from shrinking */
-        .single-card-slider .swiper-slide > div {
-          min-height: 400px;
-        }
-        
-        @media (max-width: 768px) {
-          .single-card-slider .swiper-slide > div {
-            min-height: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 };
-
-export default LatestPosts;

@@ -195,6 +195,7 @@ const AppContent: React.FC = () => {
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/store" element={<StorePage />} />
+        <Route path="/store/:categorySlug" element={<StorePage />} />
         <Route path="/wiki" element={<WikiViewer />} />
         <Route path="/wiki/:folderSlug" element={<WikiViewer />} />
         <Route path="/wiki/:folderSlug/:pageSlug" element={<WikiViewer />} />

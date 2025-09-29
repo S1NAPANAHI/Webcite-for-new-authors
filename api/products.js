@@ -21,7 +21,12 @@ module.exports = async function handler(req, res) {
   try {
     switch (method) {
       case 'GET':
-        await handleGetProducts(req, res);
+        // Add a simple router for different GET requests
+        if (req.url.includes('/user/loyalty')) {
+          await handleGetUserLoyalty(req, res);
+        } else {
+          await handleGetProducts(req, res);
+        }
         break;
       case 'POST':
         await handleCreateProduct(req, res);
@@ -40,37 +45,71 @@ module.exports = async function handler(req, res) {
 }
 
 async function handleGetProducts(req, res) {
-  const { active, product_type, work_id, limit = 50, offset = 0 } = req.query;
+  const {
+    limit = 50, 
+    offset = 0, 
+    category, 
+    subcategory, 
+    price_max, 
+    difficulty_level, 
+    language, 
+    related_characters, 
+    mythology_themes,
+    active = true,
+  } = req.query;
   
   let query = `
-    SELECT p.id, p.name, p.description, p.product_type, p.active, p.created_at, p.updated_at, p.work_id, p.content_grants,
-           COALESCE(array_agg(DISTINCT pr.id) FILTER (WHERE pr.id IS NOT NULL), '{}') as price_ids,
-           COALESCE(array_agg(DISTINCT pr.unit_amount) FILTER (WHERE pr.unit_amount IS NOT NULL), '{}') as unit_amounts,
-           COALESCE(array_agg(DISTINCT pr.currency) FILTER (WHERE pr.currency IS NOT NULL), '{}') as currencies
+    SELECT p.*,
+           pc.name as category_name,
+           pc.color_scheme,
+           (SELECT AVG(pr.rating) FROM product_reviews pr WHERE pr.product_id = p.id) as avg_rating,
+           (SELECT COUNT(pr.id) FROM product_reviews pr WHERE pr.product_id = p.id) as review_count
     FROM products p
-    LEFT JOIN prices pr ON p.id = pr.product_id AND pr.active = true
+    LEFT JOIN product_categories pc ON pc.slug = p.category
   `;
   
   const whereConditions = [];
   const queryParams = [];
-  let paramCount = 0;
-  
+  let paramCount = 1;
+
   if (active !== undefined) {
-    paramCount++;
-    whereConditions.push(`p.active = $${paramCount}`);
+    whereConditions.push(`p.active = $${paramCount++}`);
     queryParams.push(active === 'true');
   }
-  
-  if (product_type) {
-    paramCount++;
-    whereConditions.push(`p.product_type = ${paramCount}`);
-    queryParams.push(product_type);
+
+  if (category) {
+    whereConditions.push(`p.category = $${paramCount++}`);
+    queryParams.push(category);
   }
 
-  if (work_id) {
-    paramCount++;
-    whereConditions.push(`p.work_id = ${paramCount}`);
-    queryParams.push(work_id);
+  if (subcategory) {
+    whereConditions.push(`p.subcategory = $${paramCount++}`);
+    queryParams.push(subcategory);
+  }
+
+  if (price_max) {
+    whereConditions.push(`p.price <= $${paramCount++}`);
+    queryParams.push(price_max);
+  }
+
+  if (difficulty_level) {
+    whereConditions.push(`p.difficulty_level = $${paramCount++}`);
+    queryParams.push(difficulty_level);
+  }
+
+  if (language) {
+    whereConditions.push(`p.language = $${paramCount++}`);
+    queryParams.push(language);
+  }
+
+  if (related_characters) {
+    whereConditions.push(`$${paramCount++} = ANY(p.related_characters)`);
+    queryParams.push(related_characters);
+  }
+
+  if (mythology_themes) {
+    whereConditions.push(`$${paramCount++} = ANY(p.mythology_themes)`);
+    queryParams.push(mythology_themes);
   }
   
   if (whereConditions.length > 0) {
@@ -78,9 +117,9 @@ async function handleGetProducts(req, res) {
   }
   
   query += `
-    GROUP BY p.id
+    GROUP BY p.id, pc.id
     ORDER BY p.created_at DESC
-    LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
+    LIMIT $${paramCount++} OFFSET $${paramCount++}
   `;
   
   queryParams.push(parseInt(limit), parseInt(offset));
@@ -94,6 +133,21 @@ async function handleGetProducts(req, res) {
       offset: parseInt(offset),
       total: products.length
     }
+  });
+}
+
+async function handleGetUserLoyalty(req, res) {
+  // In a real application, you would get the user ID from the request
+  // and fetch the loyalty data from the database.
+  // For now, we'll return static data.
+  res.json({
+    user_id: 'static_user_id',
+    sacred_fire_points: 150,
+    current_tier: 'initiate',
+    tier_progress: 30, // 30% to next tier
+    total_purchases: 42.50,
+    total_orders: 2,
+    achievements: ['first_purchase']
   });
 }
 

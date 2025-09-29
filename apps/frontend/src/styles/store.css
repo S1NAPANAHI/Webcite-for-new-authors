@@ -1,0 +1,51 @@
+:root {
+  /* Persian Color Palette */
+  --persian-gold: #D97706;
+  --persian-gold-light: #F59E0B;
+  --persian-blue: #1E40AF;
+  --persian-blue-light: #3B82F6;
+  --persian-crimson: #DC2626;
+  --persian-crimson-light: #EF4444;
+  --persian-emerald: #059669;
+  --persian-purple: #7C3AED;
+  --persian-rose: #E11D48;
+  --persian-amber: #D97706;
+  
+  /* Sacred Fire Colors */
+  --fire-orange: #FF6B35;
+  --fire-yellow: #F7931E;
+  --fire-red: #FF4500;
+  
+  /* Persian Gradients */
+  --gradient-gold: linear-gradient(135deg, var(--persian-gold) 0%, var(--persian-gold-light) 100%);
+  --gradient-blue: linear-gradient(135deg, var(--persian-blue) 0%, var(--persian-blue-light) 100%);
+  --gradient-crimson: linear-gradient(135deg, var(--persian-crimson) 0%, var(--persian-crimson-light) 100%);
+  --gradient-fire: linear-gradient(135deg, var(--fire-red) 0%, var(--fire-orange) 50%, var(--fire-yellow) 100%);
+  
+  /* Persian Shadows */
+  --glow-gold: 0 0 20px rgba(217, 119, 6, 0.3);
+  --glow-fire: 0 0 30px rgba(255, 107, 53, 0.4);
+  --glow-blue: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0px) scale(1);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-20px) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0);
+    opacity: 0;
+  }
+}

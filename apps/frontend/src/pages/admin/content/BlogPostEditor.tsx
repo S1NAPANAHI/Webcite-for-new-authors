@@ -410,27 +410,35 @@ const BlogPostEditor = () => {
     console.log(`❌ Removed tag: ${tagToRemove}`);
   };
 
-  // NEW: Handle enhanced media picker selection with crop settings
+  // FIXED: Simplified media picker selection handler
   const handleCoverImageSelect = (fileId: string, fileUrl: string, cropSettings?: CropSettings) => {
+    console.log('🖼️ MediaPicker selection received:', { fileId, fileUrl, cropSettings });
+    
+    // Update state with the selected image
     setCoverFileId(fileId);
     setCoverUrl(fileUrl);
-    setCoverCropSettings(cropSettings || null);
     
-    console.log('✅ Cover image selected:', {
+    // Only set crop settings if they are provided
+    if (cropSettings) {
+      setCoverCropSettings(cropSettings);
+    }
+    
+    console.log('✅ Cover image updated:', {
       fileId,
       fileUrl,
-      cropSettings
+      cropSettings: cropSettings || 'none'
     });
   };
 
   // NEW: Handle clearing cover image
   const handleClearCoverImage = () => {
+    console.log('🗑️ Clearing cover image');
     setCoverFileId('');
     setCoverUrl('');
     setCoverCropSettings(null);
   };
 
-  // 🔥 ENHANCED SAVE: Save function with crop settings and smart image handling
+  // 🔥 ENHANCED SAVE: Save function with better error handling
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
 
@@ -438,7 +446,7 @@ const BlogPostEditor = () => {
       if (!user) throw new Error('Not authenticated');
       if (!title.trim()) throw new Error('Title is required');
 
-      console.log('🔄 Preparing post data with enhanced image handling:', {
+      console.log('🔄 Preparing post data:', {
         coverFileId,
         coverCropSettings,
         selectedTags
@@ -452,8 +460,6 @@ const BlogPostEditor = () => {
         excerpt: excerpt || null,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null,
-        // cover_file_id: coverFileId || null, // NEW: Store file ID for media picker - REMOVED as column does not exist
-        // cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings - REMOVED as column does not exist
         author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
@@ -467,7 +473,7 @@ const BlogPostEditor = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📦 Saving post data with enhanced media handling:', postData);
+      console.log('📦 Saving post data:', postData);
 
       let postId = id;
       let response;
@@ -499,11 +505,11 @@ const BlogPostEditor = () => {
         throw response.error;
       }
 
-      console.log('✅ Post saved successfully with enhanced media handling:', response.data);
+      console.log('✅ Post saved successfully:', response.data);
 
       // Show success message
       const actionText = publishNow ? 'published' : 'saved';
-      const statusText = publishNow ? 'Your post is now live with proper image handling!' : 'Content saved with enhanced media support.';
+      const statusText = publishNow ? 'Your post is now live!' : 'Content saved successfully.';
       
       alert(`✅ Post ${actionText} successfully!\n\n${statusText}`);
       
@@ -539,7 +545,7 @@ const BlogPostEditor = () => {
             {id && id !== 'new' ? 'Edit Blog Post' : 'New Blog Post'}
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {id && id !== 'new' ? 'Update your blog post with enhanced media handling' : 'Create a new blog post with visual cropping support'}
+            {id && id !== 'new' ? 'Update your blog post' : 'Create a new blog post'}
           </p>
           
           {/* Live Stats */}
@@ -551,7 +557,7 @@ const BlogPostEditor = () => {
               <span>•</span>
               <span>📄 {(htmlContent.match(/<p>/g) || []).length} paragraphs</span>
               {isFeatured && <span>• ⭐ Featured</span>}
-              {coverCropSettings && <span>• ✂️ Cropped Cover</span>}
+              {coverFileId && <span>• 🖼️ Cover Image</span>}
             </div>
           )}
         </div>
@@ -650,24 +656,21 @@ const BlogPostEditor = () => {
                 />
               </div>
 
-              {/* NEW: Enhanced Featured Image Section with MediaPicker */}
+              {/* FIXED: Simplified Featured Image Section with correct folder */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Featured Image
-                  <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
-                    ✂️ Smart Cropping - No Duplicates
+                  <span className="ml-2 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full">
+                    📁 Blog Images
                   </span>
                 </label>
                 
-                {/* Enhanced MediaPicker with Cropping */}
+                {/* FIXED: Simplified MediaPicker with correct folder */}
                 <MediaPicker
-                  selectedFileId={coverFileId}
-                  selectedCropSettings={coverCropSettings}
+                  selectedFileId={coverFileId || ''}
                   onSelect={handleCoverImageSelect}
                   onClear={handleClearCoverImage}
-                  preferredFolder="blog-images"
-                  enableCropping={true}
-                  cropAspectRatio={16/9}
+                  preferredFolder="blog"
                   accept="image/*"
                   className="w-full"
                 />
@@ -683,17 +686,14 @@ const BlogPostEditor = () => {
                   />
                 </div>
                 
-                {/* Image Metadata Display */}
-                {(coverFileId || coverCropSettings) && (
+                {/* Image Status Display */}
+                {coverFileId && (
                   <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">🎯 Smart Image Handling Active</h4>
+                    <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">✅ Image Selected</h4>
                     <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                      {coverFileId && <div>• File ID: {coverFileId}</div>}
-                      {coverCropSettings && (
-                        <div>• Crop: {Math.round(coverCropSettings.width)}×{Math.round(coverCropSettings.height)}px @ ({Math.round(coverCropSettings.x)}, {Math.round(coverCropSettings.y)})</div>
-                      )}
-                      <div>• Original image preserved in media bucket</div>
-                      <div>• Visual cropping applied for display only</div>
+                      <div>• File ID: {coverFileId}</div>
+                      <div>• URL: {coverUrl}</div>
+                      <div>• Stored in blog folder</div>
                     </div>
                   </div>
                 )}
@@ -792,10 +792,10 @@ const BlogPostEditor = () => {
                 <span className="font-medium text-green-600">✅ Proper Spacing</span>
               </div>
               
-              {coverCropSettings && (
+              {coverFileId && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Cover Image:</span>
-                  <span className="font-medium text-green-600">✂️ Smart Cropped</span>
+                  <span className="font-medium text-green-600">✅ Selected</span>
                 </div>
               )}
             </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { FileUploadDialog, FOLDERS } from './FileUploadDialog';
+import { getSafeImageUrl } from '../../utils/imageUtils';
 import {
   Search,
   Image as ImageIcon,
@@ -152,8 +153,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
   // Get file URL
   const getFileUrl = (file: FileRecord): string => {
-    const { data } = supabase.storage.from(file.bucket).getPublicUrl(file.path);
-    return data.publicUrl;
+    return getSafeImageUrl(file.path, file.bucket);
   };
 
   // Filter files by search query

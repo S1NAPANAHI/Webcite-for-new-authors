@@ -24,6 +24,7 @@ import {
   FileText,
   BarChart3
 } from 'lucide-react';
+import { getBlogImageUrl } from '../../../utils/imageUtils';
 
 interface BlogPost {
   id: string;
@@ -523,7 +524,7 @@ const BlogManager = () => {
                         {(post.featured_image || post.cover_url) && (
                           <div className="flex-shrink-0">
                             <img
-                              src={post.featured_image || post.cover_url}
+                              src={getBlogImageUrl(post.featured_image || post.cover_url)}
                               alt={post.title}
                               className="w-16 h-12 object-cover rounded-lg border"
                               onError={(e) => {

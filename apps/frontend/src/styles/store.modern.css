@@ -1,0 +1,445 @@
+/* Modern Store Styles - Clean & Minimal Design System */
+
+/* Base utilities and improvements over Tailwind */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Enhanced focus states for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800;
+}
+
+/* Product grid responsive improvements */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+  }
+}
+
+/* Enhanced card hover effects */
+.product-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Smooth animations for interactive elements */
+.animate-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+.animate-out {
+  animation: slideOut 0.2s ease-in;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Custom scrollbar for better UX */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156 163 175) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgb(156 163 175);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(107 114 128);
+}
+
+/* Dark mode custom scrollbar */
+@media (prefers-color-scheme: dark) {
+  .custom-scrollbar {
+    scrollbar-color: rgb(75 85 99) transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgb(75 85 99);
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(107 114 128);
+  }
+}
+
+/* Enhanced button styles */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 focus-ring;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 active:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 text-gray-900 dark:text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 focus-ring;
+}
+
+.btn-outline {
+  @apply border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium px-4 py-2 rounded-lg transition-all duration-200 focus-ring;
+}
+
+/* Enhanced form controls */
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+.form-select {
+  @apply form-input appearance-none bg-no-repeat bg-right bg-origin-content;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  padding-right: 2.5rem;
+}
+
+/* Enhanced badges */
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-blue {
+  @apply badge bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+}
+
+.badge-green {
+  @apply badge bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+}
+
+.badge-red {
+  @apply badge bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+}
+
+.badge-yellow {
+  @apply badge bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+}
+
+/* Loading states */
+.loading-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  @apply bg-gray-200 dark:bg-gray-700 rounded animate-pulse;
+}
+
+/* Enhanced spacing utilities */
+.container-padding {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+.section-padding {
+  @apply py-12 sm:py-16 lg:py-20;
+}
+
+/* Improved typography */
+.heading-xl {
+  @apply text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight;
+}
+
+.heading-lg {
+  @apply text-2xl sm:text-3xl font-bold tracking-tight;
+}
+
+.heading-md {
+  @apply text-xl sm:text-2xl font-semibold tracking-tight;
+}
+
+.heading-sm {
+  @apply text-lg sm:text-xl font-semibold;
+}
+
+.body-lg {
+  @apply text-lg leading-relaxed;
+}
+
+.body-base {
+  @apply text-base leading-relaxed;
+}
+
+.body-sm {
+  @apply text-sm leading-relaxed;
+}
+
+/* Enhanced cards */
+.card {
+  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm;
+}
+
+.card-hover {
+  @apply card transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/25 dark:hover:shadow-gray-900/25;
+}
+
+.card-padding {
+  @apply p-6;
+}
+
+/* Enhanced modals and overlays */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4;
+}
+
+.modal-content {
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar;
+}
+
+/* Enhanced tooltips */
+.tooltip {
+  @apply absolute z-50 px-2 py-1 text-xs text-white bg-gray-900 rounded shadow-lg opacity-0 invisible transition-all duration-200 pointer-events-none;
+}
+
+.tooltip.show {
+  @apply opacity-100 visible;
+}
+
+/* Enhanced filters and search */
+.search-container {
+  @apply relative flex-1 max-w-lg;
+}
+
+.search-input {
+  @apply w-full pl-10 pr-4 py-2 form-input;
+}
+
+.search-icon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none;
+}
+
+.filter-panel {
+  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 space-y-6;
+}
+
+/* Enhanced navigation */
+.nav-link {
+  @apply text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 font-medium;
+}
+
+.nav-link.active {
+  @apply text-blue-600 dark:text-blue-400;
+}
+
+/* Enhanced responsive utilities */
+@media (max-width: 640px) {
+  .mobile-hide {
+    display: none;
+  }
+  
+  .mobile-show {
+    display: block;
+  }
+}
+
+@media (min-width: 641px) {
+  .mobile-hide {
+    display: block;
+  }
+  
+  .mobile-show {
+    display: none;
+  }
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-auto {
+  will-change: auto;
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    @apply border-2 border-gray-400;
+  }
+  
+  .btn-primary {
+    @apply border-2 border-blue-800;
+  }
+  
+  .btn-secondary {
+    @apply border-2 border-gray-600;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .product-card:hover {
+    transform: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none;
+  }
+  
+  .print-only {
+    display: block;
+  }
+  
+  .card {
+    @apply border border-gray-400 shadow-none;
+  }
+}
+
+/* Enhanced focus indicators for keyboard navigation */
+.keyboard-focus:focus-visible {
+  @apply outline-2 outline-offset-2 outline-blue-500;
+}
+
+/* Enhanced loading states */
+.loading-overlay {
+  @apply absolute inset-0 bg-white bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75 flex items-center justify-center z-10;
+}
+
+.spinner {
+  @apply w-8 h-8 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin;
+}
+
+/* Enhanced empty states */
+.empty-state {
+  @apply text-center py-16 px-6;
+}
+
+.empty-state-icon {
+  @apply w-16 h-16 mx-auto mb-4 text-gray-400;
+}
+
+.empty-state-title {
+  @apply text-lg font-semibold text-gray-900 dark:text-white mb-2;
+}
+
+.empty-state-description {
+  @apply text-gray-600 dark:text-gray-300 mb-6;
+}
+
+/* Enhanced alerts and notifications */
+.alert {
+  @apply p-4 rounded-lg border;
+}
+
+.alert-success {
+  @apply alert bg-green-50 border-green-200 text-green-800 dark:bg-green-900 dark:border-green-700 dark:text-green-200;
+}
+
+.alert-error {
+  @apply alert bg-red-50 border-red-200 text-red-800 dark:bg-red-900 dark:border-red-700 dark:text-red-200;
+}
+
+.alert-warning {
+  @apply alert bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-200;
+}
+
+.alert-info {
+  @apply alert bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900 dark:border-blue-700 dark:text-blue-200;
+}
+
+/* Custom utility classes */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+/* Enhanced gradients */
+.gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, #6b7280 0%, #374151 100%);
+}
+
+/* Enhanced shadows */
+.shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-glow {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}

@@ -453,7 +453,7 @@ const BlogPostEditor = () => {
         cover_url: coverUrl || null,
         featured_image: coverUrl || null,
         cover_file_id: coverFileId || null, // NEW: Store file ID for media picker
-        cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings
+        // cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings - REMOVED as column does not exist
         author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
@@ -495,6 +495,7 @@ const BlogPostEditor = () => {
 
       if (response.error) {
         console.error('❌ Supabase error:', response.error);
+        console.error('❌ Supabase error (details):', JSON.stringify(response.error, Object.getOwnPropertyNames(response.error), 2));
         throw response.error;
       }
 

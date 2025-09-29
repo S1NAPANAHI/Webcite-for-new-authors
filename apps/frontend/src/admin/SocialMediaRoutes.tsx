@@ -1,12 +1,13 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import OptimizedSocialMediaGenerator from './components/OptimizedSocialMediaGenerator';
+import CanvasBasedSocialMediaStudio from './components/CanvasBasedSocialMediaStudio';
 
 export const SocialMediaRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route index element={<OptimizedSocialMediaGenerator />} />
-      <Route path="generator" element={<OptimizedSocialMediaGenerator />} />
+      <Route index element={<CanvasBasedSocialMediaStudio />} />
+      <Route path="generator" element={<CanvasBasedSocialMediaStudio />} />
+      <Route path="canvas" element={<CanvasBasedSocialMediaStudio />} />
     </Routes>
   );
 };

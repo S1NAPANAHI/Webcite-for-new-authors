@@ -277,30 +277,25 @@ const EnhancedStorePage: React.FC = () => {
             <div className="fire-orb orb-5"></div>
         </div>
 
-        <header className="header">
-            <div className="container mx-auto">
-                <div className="header-content">
-                    <div className="logo">
-                        <span className="fire-symbol">🔥</span>
-                        <span className="logo-text">Sacred Treasury</span>
-                    </div>
-                    <nav className="navigation">
-                        <div className="search-container">
-                            <input type="text" className="search-input" placeholder="Search the sacred treasury..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                            <button className="search-btn">🔍</button>
-                        </div>
-                        <div className="nav-actions">
-                            <button className="nav-btn wishlist-btn">💖 <span className="badge">0</span></button>
-                            <button className="nav-btn cart-btn">🛍️ <span className="badge">0</span></button>
-                            <div className="user-profile">
-                                <span className="tier-badge">{tierBenefits[userTier as keyof typeof tierBenefits].badge}</span>
-                                <span className="username">Seeker</span>
-                            </div>
-                        </div>
-                    </nav>
-                </div>
-            </div>
-        </header>
+import StoreSidebar from '../components/shop/StoreSidebar';
+
+  return (
+    <div className="bg-gray-900 text-white flex">
+        <StoreSidebar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          userTier={userTier}
+          sacredFirePoints={sacredFirePoints}
+          tierBenefits={tierBenefits}
+        />
+        <div className="flex-1">
+        <div className="sacred-fire-orbs">
+            <div className="fire-orb orb-1"></div>
+            <div className="fire-orb orb-2"></div>
+            <div className="fire-orb orb-3"></div>
+            <div className="fire-orb orb-4"></div>
+            <div className="fire-orb orb-5"></div>
+        </div>
 
         <section className="hero">
             <div className="hero-background"></div>

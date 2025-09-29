@@ -743,6 +743,75 @@ select.form-control {
 }
 
 /* END PERPLEXITY DESIGN SYSTEM */
+
+/* Store Sidebar Styles */
+.store-sidebar {
+  width: 280px; /* Adjust as needed */
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(217, 119, 6, 0.2);
+  padding: var(--space-24);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.sidebar-section {
+  padding-bottom: var(--space-16);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.1);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+}
+
+.sidebar-navigation .nav-actions {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+
+.sidebar-navigation .nav-btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.sidebar-navigation .user-profile {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+/* Adjust main content to flow next to sidebar */
+.flex-1 {
+  flex-grow: 1;
+}
+
+@media (max-width: 768px) {
+  .store-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid rgba(217, 119, 6, 0.2);
+  }
+
+  .sidebar-navigation .nav-actions {
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+
+  .sidebar-navigation .nav-btn,
+  .sidebar-navigation .user-profile {
+    width: auto;
+  }
+}
+
+/* Persian Mythology Theme Overrides */
 /* Persian Mythology Theme Overrides */
 :root {
   /* Persian Color Palette */

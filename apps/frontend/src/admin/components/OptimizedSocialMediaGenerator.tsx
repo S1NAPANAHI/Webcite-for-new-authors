@@ -140,7 +140,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [showImageEditor, setShowImageEditor] = useState(false);
-  const [previewScale, setPreviewScale] = useState(0.35);
+  const [previewScale, setPreviewScale] = useState(0.25); // FIXED: Reduced from 0.35 to 0.25 for better fit
 
   const filteredTemplates = selectedCategory === 'all' 
     ? ENHANCED_TEMPLATES 
@@ -249,6 +249,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
     }
   }, [postContent.hashtags]);
 
+  // FIXED: Improved download function with better error handling and canvas configuration
   const downloadPost = async () => {
     if (!canvasRef.current) {
       alert('Preview not ready. Please wait and try again.');
@@ -258,32 +259,56 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
     setIsGenerating(true);
     
     try {
+      console.log('Starting image generation...');
+      console.log('Canvas element:', canvasRef.current);
+      console.log('Template dimensions:', selectedTemplate.width, 'x', selectedTemplate.height);
+      
+      // FIXED: Better html2canvas configuration
       const canvas = await html2canvas(canvasRef.current, {
         width: selectedTemplate.width,
         height: selectedTemplate.height,
-        scale: 3,
+        scale: 2, // FIXED: Reduced scale from 3 to 2 for better performance
         useCORS: true,
+        allowTaint: false, // FIXED: Set to false for better compatibility
         backgroundColor: null,
-        logging: false,
-        allowTaint: true,
-        foreignObjectRendering: true,
-        imageTimeout: 15000,
-        removeContainer: true
+        logging: true, // FIXED: Enable logging for debugging
+        foreignObjectRendering: false, // FIXED: Disable for better compatibility
+        imageTimeout: 0, // FIXED: Disable timeout
+        removeContainer: false, // FIXED: Keep container
+        onclone: (clonedDoc, element) => {
+          // FIXED: Ensure fonts are loaded in cloned document
+          const style = clonedDoc.createElement('style');
+          style.textContent = `
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+            * { font-family: 'Inter', sans-serif !important; }
+          `;
+          clonedDoc.head.appendChild(style);
+          console.log('Cloned document prepared');
+        }
       });
       
+      console.log('Canvas generated:', canvas.width, 'x', canvas.height);
+      
+      if (canvas.width === 0 || canvas.height === 0) {
+        throw new Error('Generated canvas has zero dimensions');
+      }
+      
+      // FIXED: Create and download image
       const link = document.createElement('a');
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
       link.download = `${selectedTemplate.name.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.png`;
       link.href = canvas.toDataURL('image/png', 1.0);
       
+      // Trigger download
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
+      console.log('Download completed successfully');
       alert('✅ High-quality image downloaded successfully!');
     } catch (error) {
       console.error('Error generating image:', error);
-      alert('❌ Error generating image. Please try again or use a different browser.');
+      alert(`❌ Error generating image: ${error.message || 'Unknown error'}. Please try again or refresh the page.`);
     } finally {
       setIsGenerating(false);
     }
@@ -1044,7 +1069,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                     ) : (
                       <>
                         <Download className="w-6 h-6 mr-3" />
-                        <span>Download PNG (3x Quality)</span>
+                        <span>Download PNG (2x Quality)</span>
                       </>
                     )}
                   </button>
@@ -1068,7 +1093,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             )}
           </div>
 
-          {/* Right Panel - Live Preview */}
+          {/* Right Panel - Live Preview - FIXED: Better height control */}
           <div className="xl:col-span-2">
             <div className="sticky top-24">
               <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 p-6">
@@ -1087,7 +1112,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                     </div>
                     <div className="flex items-center space-x-1">
                       <button
-                        onClick={() => setPreviewScale(Math.max(0.2, previewScale - 0.05))}
+                        onClick={() => setPreviewScale(Math.max(0.15, previewScale - 0.05))}
                         className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
                         title="Zoom Out"
                       >
@@ -1097,7 +1122,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                         {Math.round(previewScale * 100)}%
                       </span>
                       <button
-                        onClick={() => setPreviewScale(Math.min(0.6, previewScale + 0.05))}
+                        onClick={() => setPreviewScale(Math.min(0.5, previewScale + 0.05))}
                         className="p-1 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
                         title="Zoom In"
                       >
@@ -1107,8 +1132,16 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6 flex items-center justify-center min-h-96">
-                  <div className="relative">
+                {/* FIXED: Better container with height constraints */}
+                <div 
+                  className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6 flex items-center justify-center"
+                  style={{
+                    minHeight: '400px',
+                    maxHeight: '600px', // FIXED: Added max height to prevent stretching
+                    height: 'auto'
+                  }}
+                >
+                  <div className="relative flex items-center justify-center">
                     <div 
                       className="border-4 border-white rounded-2xl overflow-hidden shadow-2xl bg-white"
                       style={{
@@ -1116,7 +1149,16 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                         transformOrigin: 'center center'
                       }}
                     >
-                      <div ref={canvasRef}>
+                      {/* FIXED: Canvas container with proper sizing */}
+                      <div 
+                        ref={canvasRef}
+                        style={{
+                          width: selectedTemplate.width,
+                          height: selectedTemplate.height,
+                          maxWidth: '100%',
+                          maxHeight: '100%'
+                        }}
+                      >
                         {renderPostContent()}
                       </div>
                     </div>

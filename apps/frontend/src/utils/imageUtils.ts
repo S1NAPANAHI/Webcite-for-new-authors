@@ -2,6 +2,8 @@
  * EMERGENCY FIX: Comprehensive image URL utilities with strict null safety
  * This prevents the "Cannot read properties of null (reading 'replace')" error
  * by checking for null/undefined BEFORE calling supabase.storage getPublicUrl()
+ * 
+ * Updated: Console warnings now only show in development mode for cleaner production output
  */
 
 import { supabase } from '../lib/supabase';
@@ -21,7 +23,10 @@ export function getSafeImageUrl(
 ): string {
   // CRITICAL FIX: Check for null, undefined, or empty string BEFORE calling getPublicUrl
   if (typeof imagePath !== 'string' || imagePath.trim() === '') {
-    console.warn('🖼️ getSafeImageUrl: Invalid imagePath (not a string or empty), using fallback:', imagePath, fallbackImage);
+    // UPDATED: Only show warnings in development mode to reduce console noise
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🖼️ getSafeImageUrl: Invalid imagePath (not a string or empty), using fallback:', imagePath, fallbackImage);
+    }
     return fallbackImage;
   }
 
@@ -30,13 +35,18 @@ export function getSafeImageUrl(
     const { data } = supabase.storage.from(bucketName).getPublicUrl(imagePath);
     
     if (data?.publicUrl) {
-      console.log('✅ getSafeImageUrl: Success for path:', imagePath);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ getSafeImageUrl: Success for path:', imagePath);
+      }
       return data.publicUrl;
     } else {
-      console.warn('🖼️ getSafeImageUrl: No public URL returned from Supabase, using fallback for path:', imagePath);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('🖼️ getSafeImageUrl: No public URL returned from Supabase, using fallback for path:', imagePath);
+      }
       return fallbackImage;
     }
   } catch (error) {
+    // Always log actual errors, even in production
     console.error('🖼️ getSafeImageUrl: Error getting image URL for path:', imagePath, error);
     return fallbackImage;
   }
@@ -70,6 +80,15 @@ export function getCoverImageUrl(imagePath: string | null | undefined): string {
 }
 
 /**
+ * Get character portrait URL with character-specific fallback
+ * @param imagePath - The character image path from character data  
+ * @returns Safe character URL with character fallback
+ */
+export function getCharacterImageUrl(imagePath: string | null | undefined): string {
+  return getSafeImageUrl(imagePath, 'media', '/images/default-character.jpg');
+}
+
+/**
  * CRITICAL: Process blog posts and ensure ALL have safe image URLs
  * Use this in every component that displays blog post images
  * @param posts - Array of blog posts
@@ -77,7 +96,9 @@ export function getCoverImageUrl(imagePath: string | null | undefined): string {
  */
 export function processBlogPostsImages(posts: any[]): any[] {
   if (!Array.isArray(posts)) {
-    console.warn('📝 processBlogPostsImages: posts is not an array:', posts);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('📄 processBlogPostsImages: posts is not an array:', posts);
+    }
     return [];
   }
 
@@ -87,12 +108,14 @@ export function processBlogPostsImages(posts: any[]): any[] {
       const featuredImage = getBlogImageUrl(post.featured_image as string | null | undefined);
       const coverImage = getBlogImageUrl((post.cover_url || post.cover_image) as string | null | undefined);
       
-      console.log('🖼️ processBlogPostsImages: Processing post:', post.title, {
-        original_featured_image: post.featured_image,
-        original_cover_url: post.cover_url,
-        safe_featured_image: featuredImage,
-        safe_cover_image: coverImage
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🖼️ processBlogPostsImages: Processing post:', post.title, {
+          original_featured_image: post.featured_image,
+          original_cover_url: post.cover_url,
+          safe_featured_image: featuredImage,
+          safe_cover_image: coverImage
+        });
+      }
       
       return {
         ...post,
@@ -109,6 +132,46 @@ export function processBlogPostsImages(posts: any[]): any[] {
         cover_url: '/images/default-blog-cover.jpg',
         cover_image: '/images/default-blog-cover.jpg',
         image_url: '/images/default-blog-cover.jpg'
+      };
+    }
+  });
+}
+
+/**
+ * Process character records and ensure ALL have safe image URLs
+ * @param characters - Array of character records
+ * @returns Array with safe image URLs
+ */
+export function processCharactersImages(characters: any[]): any[] {
+  if (!Array.isArray(characters)) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🧙 processCharactersImages: characters is not an array:', characters);
+    }
+    return [];
+  }
+
+  return characters.map(character => {
+    try {
+      const safeImageUrl = getCharacterImageUrl(character.image_path as string | null | undefined);
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🧙 processCharactersImages: Processing character:', character.name, {
+          original_image_path: character.image_path,
+          safe_image_url: safeImageUrl
+        });
+      }
+      
+      return {
+        ...character,
+        image_path: safeImageUrl,
+        image_url: safeImageUrl // Alternative field name
+      };
+    } catch (error) {
+      console.error('🧙 processCharactersImages: Error processing image for character:', character.name, error);
+      return {
+        ...character,
+        image_path: '/images/default-character.jpg',
+        image_url: '/images/default-character.jpg'
       };
     }
   });
@@ -160,9 +223,13 @@ export async function getImageUrlWithRetry(
         return imageUrl;
       }
       
-      console.warn(`🖼️ getImageUrlWithRetry: Attempt ${attempt} failed for:`, imageUrl);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`🖼️ getImageUrlWithRetry: Attempt ${attempt} failed for:`, imageUrl);
+      }
     } catch (error) {
-      console.warn(`🖼️ getImageUrlWithRetry: Attempt ${attempt} failed:`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`🖼️ getImageUrlWithRetry: Attempt ${attempt} failed:`, error);
+      }
     }
     
     // Wait before retrying (exponential backoff)
@@ -197,14 +264,32 @@ export function preloadImage(imageUrl: string): Promise<boolean> {
   });
 }
 
+/**
+ * Batch process multiple image paths safely
+ * @param imagePaths - Array of image paths to process
+ * @param bucketName - Storage bucket name
+ * @param fallbackImage - Fallback image URL
+ * @returns Array of safe image URLs
+ */
+export function batchProcessImageUrls(
+  imagePaths: (string | null | undefined)[],
+  bucketName: string = 'media',
+  fallbackImage: string = '/images/default-image.jpg'
+): string[] {
+  return imagePaths.map(path => getSafeImageUrl(path, bucketName, fallbackImage));
+}
+
 // EMERGENCY: Default export with all safe functions
 export default {
   getSafeImageUrl,
   getBlogImageUrl,
   getAvatarUrl,
   getCoverImageUrl,
+  getCharacterImageUrl,
   processBlogPostsImages,
+  processCharactersImages,
   isValidImageUrl,
   getImageUrlWithRetry,
-  preloadImage
+  preloadImage,
+  batchProcessImageUrls
 };

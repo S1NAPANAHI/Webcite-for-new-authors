@@ -54,12 +54,14 @@ class HomepageManager {
       
       if (error) {
         console.error('❌ HomepageManager.getLatestBlogPosts: Database error:', error);
+        console.error('❌ HomepageManager.getLatestBlogPosts: Supabase query response (error):', { data, error });
         return { data: null, error };
       }
       
       // Return empty array if no data instead of null to prevent map errors
       const safeData = data || [];
       console.log('✅ HomepageManager.getLatestBlogPosts: Successfully fetched', safeData.length, 'posts');
+      console.log('✅ HomepageManager.getLatestBlogPosts: Supabase query response (success):', { data, error });
       return { data: safeData, error: null };
       
     } catch (err) {

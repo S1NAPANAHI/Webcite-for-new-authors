@@ -10,6 +10,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from '@zoroaster/shared';
 // Use our fixed singleton Supabase client
 import { supabase } from './lib/supabase';
+import { CartProvider } from './contexts/CartContext';
 
 import './lib/axios';
 
@@ -29,7 +30,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <AuthProvider supabaseClient={supabase}>
-          <App />
+          <CartProvider>
+            <App />
+          </CartProvider>
         </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>

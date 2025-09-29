@@ -20,8 +20,8 @@ export function getSafeImageUrl(
   fallbackImage: string = '/images/default-blog-cover.jpg'
 ): string {
   // CRITICAL FIX: Check for null, undefined, or empty string BEFORE calling getPublicUrl
-  if (!imagePath || imagePath === null || imagePath === undefined || imagePath.trim() === '') {
-    console.warn('🖼️ getSafeImageUrl: Path is null/undefined, using fallback:', fallbackImage);
+  if (typeof imagePath !== 'string' || imagePath.trim() === '') {
+    console.warn('🖼️ getSafeImageUrl: Invalid imagePath (not a string or empty), using fallback:', imagePath, fallbackImage);
     return fallbackImage;
   }
 
@@ -84,8 +84,8 @@ export function processBlogPostsImages(posts: any[]): any[] {
   return posts.map(post => {
     try {
       // FIXED: Safely process ALL possible image fields
-      const featuredImage = getBlogImageUrl(post.featured_image);
-      const coverImage = getBlogImageUrl(post.cover_url || post.cover_image);
+      const featuredImage = getBlogImageUrl(post.featured_image as string | null | undefined);
+      const coverImage = getBlogImageUrl((post.cover_url || post.cover_image) as string | null | undefined);
       
       console.log('🖼️ processBlogPostsImages: Processing post:', post.title, {
         original_featured_image: post.featured_image,

@@ -138,7 +138,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState<'templates' | 'content' | 'design'>('templates');
   const [showImageEditor, setShowImageEditor] = useState(false);
-  const [previewScale, setPreviewScale] = useState(0.25); // Smaller default scale
+  const [previewScale, setPreviewScale] = useState(0.15); // FIXED: Reduced default scale from 0.25 to 0.15
 
   const filteredTemplates = selectedCategory === 'all' 
     ? ENHANCED_TEMPLATES 
@@ -628,7 +628,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="text-xs text-gray-500">Preview Size:</span>
               <button
-                onClick={() => setPreviewScale(Math.max(0.15, previewScale - 0.05))}
+                onClick={() => setPreviewScale(Math.max(0.1, previewScale - 0.05))} // FIXED: Updated min scale to 0.1
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200"
                 title="Zoom Out"
               >
@@ -638,7 +638,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                 {Math.round(previewScale * 100)}%
               </span>
               <button
-                onClick={() => setPreviewScale(Math.min(0.6, previewScale + 0.05))}
+                onClick={() => setPreviewScale(Math.min(0.5, previewScale + 0.05))} // FIXED: Updated max scale to 0.5
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200"
                 title="Zoom In"
               >
@@ -1062,57 +1062,62 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             </div>
           </div>
 
-          {/* Preview Panel - Now only gets 1/3 of the space */}
+          {/* Preview Panel - Now only gets 1/3 of the space - FIXED: Sticky container with max height and overflow */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sticky top-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                  <Eye className="w-4 h-4 mr-2 text-blue-600" />
-                  Preview
-                </h3>
-                <div className="flex flex-col items-end space-y-1">
-                  <div className={`px-2 py-1 rounded text-xs font-semibold ${
-                    selectedTemplate.type === 'story' 
-                      ? 'bg-purple-100 text-purple-700' 
-                      : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {selectedTemplate.type === 'story' ? '📱 Story' : '📷 Post'}
-                  </div>
-                  <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {selectedTemplate.width}×{selectedTemplate.height}px
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
-                <div className="relative">
-                  <div 
-                    className="border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg bg-white"
-                    style={{
-                      transform: `scale(${previewScale})`,
-                      transformOrigin: 'center center'
-                    }}
-                  >
-                    <div ref={canvasRef}>
-                      {renderPostContent()}
+            <div className="sticky top-4 max-h-96 overflow-auto"> {/* FIXED: Added max-h-96 overflow-auto */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                    <Eye className="w-4 h-4 mr-2 text-blue-600" />
+                    Preview
+                  </h3>
+                  <div className="flex flex-col items-end space-y-1">
+                    <div className={`px-2 py-1 rounded text-xs font-semibold ${
+                      selectedTemplate.type === 'story' 
+                        ? 'bg-purple-100 text-purple-700' 
+                        : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {selectedTemplate.type === 'story' ? '📱 Story' : '📷 Post'}
+                    </div>
+                    <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      {selectedTemplate.width}×{selectedTemplate.height}px
                     </div>
                   </div>
-                  
-                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black text-white text-xs rounded font-semibold whitespace-nowrap">
-                    {selectedTemplate.name}
+                </div>
+                
+                {/* FIXED: Canvas Container with max height */}
+                <div className="max-h-80 overflow-hidden rounded-lg border"> {/* FIXED: Added max-h-80 overflow-hidden */}
+                  <div className="flex justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
+                    <div className="relative">
+                      <div 
+                        className="border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg bg-white"
+                        style={{
+                          transform: `scale(${previewScale})`,
+                          transformOrigin: 'center center'
+                        }}
+                      >
+                        <div ref={canvasRef}>
+                          {renderPostContent()}
+                        </div>
+                      </div>
+                      
+                      <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black text-white text-xs rounded font-semibold whitespace-nowrap">
+                        {selectedTemplate.name}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Quality indicators */}
-              <div className="mt-4 flex justify-center space-x-3 text-xs text-gray-600">
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                  Live preview
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                  3x export
+                
+                {/* Quality indicators */}
+                <div className="mt-4 flex justify-center space-x-3 text-xs text-gray-600">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+                    Live preview
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                    3x export
+                  </div>
                 </div>
               </div>
             </div>

@@ -452,7 +452,7 @@ const BlogPostEditor = () => {
         excerpt: excerpt || null,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null,
-        cover_file_id: coverFileId || null, // NEW: Store file ID for media picker
+        // cover_file_id: coverFileId || null, // NEW: Store file ID for media picker - REMOVED as column does not exist
         // cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings - REMOVED as column does not exist
         author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,

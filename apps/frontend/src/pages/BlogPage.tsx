@@ -167,9 +167,25 @@ export default function BlogPage() {
 
   const handlePostClick = async (postId: string) => {
     try {
+      // Fetch current views count
+      const { data: currentPost, error: fetchError } = await supabase
+        .from('blog_posts')
+        .select('views')
+        .eq('id', postId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current view count:', fetchError);
+        return; // Exit if we can't fetch current views
+      }
+
+      const currentViews = currentPost?.views || 0;
+      const newViews = currentViews + 1;
+
+      // Update with the incremented views count
       await supabase
         .from('blog_posts')
-        .update({ views: supabase.sql`views + 1` })
+        .update({ views: newViews })
         .eq('id', postId);
     } catch (error) {
       console.error('Error updating view count:', error);

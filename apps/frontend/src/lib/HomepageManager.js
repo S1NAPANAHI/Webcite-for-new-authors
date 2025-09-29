@@ -55,6 +55,7 @@ class HomepageManager {
       if (error) {
         console.error('❌ HomepageManager.getLatestBlogPosts: Database error:', error);
         console.error('❌ HomepageManager.getLatestBlogPosts: Supabase error details - Code:', error.code, 'Message:', error.message);
+        console.error('❌ HomepageManager.getLatestBlogPosts: Raw error object:', error);
         return { data: null, error };
       }
       

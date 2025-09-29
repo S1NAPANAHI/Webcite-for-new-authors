@@ -3,8 +3,10 @@ import { useParams } from 'react-router-dom';
 import { 
   Book, GraduationCap, Shirt, Briefcase, Palette, 
   Music, Star, Filter, Search, ShoppingCart, Heart,
-  Grid3X3, List, SlidersHorizontal
+  Grid3X3, List, SlidersHorizontal, TrendingUp
 } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
+import { CartDrawer } from '../components/cart/CartDrawer';
 
 interface Product {
   id: string;
@@ -20,6 +22,9 @@ interface Product {
   isPhysical: boolean;
   language: string;
   previewAvailable: boolean;
+  isPopular?: boolean;
+  name?: string; // For cart compatibility
+  price_cents?: number; // For cart compatibility
 }
 
 interface Category {
@@ -33,12 +38,16 @@ const StorePage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(categorySlug || 'all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState<boolean>(false);
+  
+  const { addItem, getTotalItems } = useCart();
 
   const categories: Category[] = [
     {
@@ -90,42 +99,70 @@ const StorePage: React.FC = () => {
     {
       id: '1',
       title: 'The Art of Creative Writing',
+      name: 'The Art of Creative Writing', // For cart
       price: 29.99,
+      price_cents: 2999, // For cart
       originalPrice: 39.99,
       category: 'books',
       badges: ['Popular'],
       rating: 4.8,
       reviewCount: 124,
-      description: 'Master the fundamentals of creative writing with this comprehensive guide.',
+      description: 'Master the fundamentals of creative writing with this comprehensive guide that covers everything from character development to plot structure.',
       isPhysical: false,
       language: 'English',
-      previewAvailable: true
+      previewAvailable: true,
+      isPopular: true,
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop'
     },
     {
       id: '2',
       title: 'Writing Masterclass',
+      name: 'Writing Masterclass',
       price: 79.99,
+      price_cents: 7999,
       category: 'courses',
       badges: ['New'],
       rating: 4.9,
       reviewCount: 87,
-      description: 'Complete video course on advanced writing techniques.',
+      description: 'Complete video course on advanced writing techniques with industry professionals.',
       isPhysical: false,
       language: 'English',
-      previewAvailable: true
+      previewAvailable: true,
+      isPopular: true,
+      image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=600&fit=crop'
     },
     {
       id: '3',
       title: 'Author T-Shirt',
+      name: 'Author T-Shirt',
       price: 24.99,
+      price_cents: 2499,
       category: 'merchandise',
       badges: [],
       rating: 4.6,
       reviewCount: 45,
-      description: 'High-quality cotton t-shirt with author branding.',
+      description: 'High-quality cotton t-shirt with author branding and inspiring quotes.',
       isPhysical: true,
       language: 'N/A',
-      previewAvailable: false
+      previewAvailable: false,
+      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=600&fit=crop'
+    },
+    {
+      id: '4',
+      title: 'Character Development Workshop',
+      name: 'Character Development Workshop',
+      price: 49.99,
+      price_cents: 4999,
+      category: 'courses',
+      badges: ['Bestseller'],
+      rating: 4.7,
+      reviewCount: 156,
+      description: 'Learn to create compelling characters that readers will love and remember.',
+      isPhysical: false,
+      language: 'English',
+      previewAvailable: true,
+      isPopular: true,
+      image: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&h=600&fit=crop'
     }
   ];
 
@@ -133,6 +170,7 @@ const StorePage: React.FC = () => {
     // Use mock data for now - replace with actual API call
     setProducts(mockProducts);
     setFilteredProducts(mockProducts);
+    setPopularProducts(mockProducts.filter(p => p.isPopular).slice(0, 4));
   }, []);
 
   useEffect(() => {
@@ -168,15 +206,38 @@ const StorePage: React.FC = () => {
     setFilteredProducts(filtered);
   }, [searchQuery, sortBy, selectedCategory, products]);
 
+  const handleAddToCart = (product: Product) => {
+    // Convert to format expected by CartContext
+    const cartProduct = {
+      id: product.id,
+      name: product.name || product.title,
+      price_cents: product.price_cents || Math.round(product.price * 100),
+      category: product.category,
+      description: product.description
+    };
+    
+    addItem(cartProduct);
+    // Optional: Show success feedback
+    console.log(`Added ${product.title} to cart`);
+  };
+
   const ProductCard = ({ product }: { product: Product }) => (
     <div 
       className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => setModalProduct(product)}
     >
-      <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center mb-4">
-        <div className="text-4xl opacity-40">
-          {categories.find(c => c.id === product.category)?.icon}
-        </div>
+      <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center mb-4 overflow-hidden">
+        {product.image ? (
+          <img 
+            src={product.image} 
+            alt={product.title} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="text-4xl opacity-40">
+            {categories.find(c => c.id === product.category)?.icon}
+          </div>
+        )}
       </div>
       
       <div className="space-y-3">
@@ -219,9 +280,53 @@ const StorePage: React.FC = () => {
             )}
           </div>
           
-          <button className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart(product);
+            }}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
+          >
             Add to Cart
           </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const PopularProductCard = ({ product }: { product: Product }) => (
+    <div 
+      className="relative rounded-xl overflow-hidden cursor-pointer group aspect-[16/9]"
+      onClick={() => setModalProduct(product)}
+    >
+      <img 
+        src={product.image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&h=450&fit=crop'} 
+        alt={product.title}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 p-6">
+        <div className="flex items-end justify-between">
+          <div className="flex-1">
+            <h3 className="text-xl font-bold text-white mb-2">{product.title}</h3>
+            <div className="flex items-center gap-2 mb-3">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-white text-sm font-medium">{product.rating}</span>
+              <span className="text-white/80 text-sm">({product.reviewCount})</span>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-white mb-2">${product.price}</div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAddToCart(product);
+              }}
+              className="px-4 py-2 bg-white text-gray-900 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Add to Cart
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -275,16 +380,24 @@ const StorePage: React.FC = () => {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{product.title}</h2>
             <button 
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl"
             >
               ×
             </button>
           </div>
           
-          <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-6">
-            <div className="text-6xl opacity-40">
-              {categories.find(c => c.id === product.category)?.icon}
-            </div>
+          <div className="aspect-video bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-6 overflow-hidden">
+            {product.image ? (
+              <img 
+                src={product.image} 
+                alt={product.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-6xl opacity-40">
+                {categories.find(c => c.id === product.category)?.icon}
+              </div>
+            )}
           </div>
           
           <div className="space-y-4">
@@ -318,7 +431,13 @@ const StorePage: React.FC = () => {
                 <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
                   <Heart className="w-4 h-4" />
                 </button>
-                <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg">
+                <button 
+                  onClick={() => {
+                    handleAddToCart(product);
+                    onClose();
+                  }}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                >
                   Add to Cart
                 </button>
               </div>
@@ -341,6 +460,19 @@ const StorePage: React.FC = () => {
                 {filteredProducts.length} products available
               </p>
             </div>
+            
+            {/* Cart Button */}
+            <button
+              onClick={() => setCartDrawerOpen(true)}
+              className="relative p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+            </button>
           </div>
           
           {/* Controls */}
@@ -428,8 +560,26 @@ const StorePage: React.FC = () => {
           </main>
         </div>
         
+        {/* Popular Products Section */}
+        {popularProducts.length > 0 && (
+          <section className="mt-16">
+            <div className="flex items-center gap-3 mb-8">
+              <TrendingUp className="w-6 h-6 text-blue-600" />
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Popular Right Now</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {popularProducts.map(product => (
+                <PopularProductCard key={`popular-${product.id}`} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
+        
         {modalProduct && <Modal product={modalProduct} onClose={() => setModalProduct(null)} />}
       </div>
+      
+      {/* Cart Drawer */}
+      <CartDrawer isOpen={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />
     </div>
   );
 };

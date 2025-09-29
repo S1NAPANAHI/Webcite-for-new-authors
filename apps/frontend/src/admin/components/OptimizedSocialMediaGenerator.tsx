@@ -138,7 +138,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState<'templates' | 'content' | 'design'>('templates');
   const [showImageEditor, setShowImageEditor] = useState(false);
-  const [previewScale, setPreviewScale] = useState(0.4);
+  const [previewScale, setPreviewScale] = useState(0.25); // Smaller default scale
 
   const filteredTemplates = selectedCategory === 'all' 
     ? ENHANCED_TEMPLATES 
@@ -628,7 +628,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="text-xs text-gray-500">Preview Size:</span>
               <button
-                onClick={() => setPreviewScale(Math.max(0.2, previewScale - 0.1))}
+                onClick={() => setPreviewScale(Math.max(0.15, previewScale - 0.05))}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200"
                 title="Zoom Out"
               >
@@ -638,7 +638,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                 {Math.round(previewScale * 100)}%
               </span>
               <button
-                onClick={() => setPreviewScale(Math.min(1, previewScale + 0.1))}
+                onClick={() => setPreviewScale(Math.min(0.6, previewScale + 0.05))}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200"
                 title="Zoom In"
               >
@@ -650,9 +650,10 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto p-4">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Control Panel - Optimized width */}
-          <div className="xl:col-span-1 space-y-4">
+        {/* Changed from xl:grid-cols-4 to lg:grid-cols-3 for better balance */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Control Panel - Now gets 2/3 of the space */}
+          <div className="lg:col-span-2 space-y-4">
             {/* Section Navigation */}
             <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-2">
               <div className="flex space-x-1">
@@ -666,13 +667,13 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                     <button
                       key={section.id}
                       onClick={() => setActiveSection(section.id as any)}
-                      className={`flex-1 flex items-center justify-center px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                      className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg text-sm font-semibold transition-all ${
                         isActive
                           ? 'bg-blue-500 text-white shadow-md'
                           : 'text-gray-600 hover:bg-gray-50'
                       }`}
                     >
-                      <section.icon className="w-3 h-3 mr-1" />
+                      <section.icon className="w-4 h-4 mr-2" />
                       {section.label}
                     </button>
                   );
@@ -682,7 +683,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
 
             {/* Templates Section */}
             {activeSection === 'templates' && (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Categories */}
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
                   <h3 className="text-lg font-bold text-gray-900 mb-3">Categories</h3>
@@ -713,7 +714,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                   <h3 className="text-lg font-bold text-gray-900 mb-3">
                     Templates ({filteredTemplates.length})
                   </h3>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
                     {filteredTemplates.map((template) => {
                       const isSelected = selectedTemplate.id === template.id;
                       return (
@@ -752,67 +753,54 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
 
             {/* Content Section */}
             {activeSection === 'content' && (
-              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Content Editor</h3>
-                <div className="space-y-3">
+              <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Content Editor</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       📚 Book Title
                     </label>
                     <input
                       type="text"
                       value={postContent.title}
                       onChange={(e) => handleContentChange('title', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                       placeholder="Your book title"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       ✨ Subtitle
                     </label>
                     <input
                       type="text"
                       value={postContent.subtitle}
                       onChange={(e) => handleContentChange('subtitle', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                       placeholder="A compelling subtitle"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       👤 Author Name
                     </label>
                     <input
                       type="text"
                       value={postContent.author}
                       onChange={(e) => handleContentChange('author', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                       placeholder="Your name"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      💬 Featured Quote
-                    </label>
-                    <textarea
-                      value={postContent.quote}
-                      onChange={(e) => handleContentChange('quote', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                      placeholder="An inspiring quote..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1 flex items-center justify-between">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center justify-between">
                       <span>🏷️ Hashtags</span>
                       <button
                         onClick={copyHashtags}
-                        className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 flex items-center transition-colors"
+                        className="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded hover:bg-blue-200 flex items-center transition-colors"
                       >
                         {copied ? <Check className="w-3 h-3 mr-1" /> : <Copy className="w-3 h-3 mr-1" />}
                         {copied ? 'Copied!' : 'Copy'}
@@ -822,8 +810,21 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                       type="text"
                       value={postContent.hashtags}
                       onChange={(e) => handleContentChange('hashtags', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                       placeholder="#newbook #author #fantasy"
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      💬 Featured Quote
+                    </label>
+                    <textarea
+                      value={postContent.quote}
+                      onChange={(e) => handleContentChange('quote', e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      placeholder="An inspiring quote..."
                     />
                   </div>
                 </div>
@@ -832,7 +833,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
 
             {/* Design Section */}
             {activeSection === 'design' && (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Color Schemes */}
                 <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
                   <h3 className="text-lg font-bold text-gray-900 mb-3">Color Schemes</h3>
@@ -902,7 +903,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
 
                 {/* Image Editor */}
                 {showImageEditor && postContent.backgroundImage && (
-                  <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
+                  <div className="md:col-span-2 bg-white rounded-xl shadow-lg border border-gray-100 p-4">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="text-lg font-bold text-gray-900">Image Adjustments</h3>
                       <div className="flex space-x-1">
@@ -923,7 +924,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="space-y-3 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {/* Brightness */}
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -1035,42 +1036,42 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             )}
 
             {/* Download Section */}
-            <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-lg border border-green-200 p-4">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">Export</h3>
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-xl shadow-lg border border-green-200 p-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Export</h3>
               <button
                 onClick={downloadPost}
                 disabled={isGenerating}
-                className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-all shadow-lg text-sm"
+                className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold py-4 px-6 rounded-lg flex items-center justify-center transition-all shadow-lg text-base"
               >
                 {isGenerating ? (
                   <>
-                    <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2" />
+                    <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-3" />
                     <span>Creating High-Quality Image...</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4 mr-2" />
+                    <Download className="w-5 h-5 mr-3" />
                     <span>Download High-Quality PNG</span>
                   </>
                 )}
               </button>
               
-              <div className="mt-2 text-xs text-gray-600 text-center">
+              <div className="mt-3 text-sm text-gray-600 text-center">
                 💎 3x resolution • Instagram ready • Professional quality
               </div>
             </div>
           </div>
 
-          {/* Preview Panel - Optimized width and better layout */}
-          <div className="xl:col-span-3">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+          {/* Preview Panel - Now only gets 1/3 of the space */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4 sticky top-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 flex items-center">
-                  <Eye className="w-5 h-5 mr-2 text-blue-600" />
-                  Live Preview
+                <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                  <Eye className="w-4 h-4 mr-2 text-blue-600" />
+                  Preview
                 </h3>
-                <div className="flex items-center space-x-2">
-                  <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                <div className="flex flex-col items-end space-y-1">
+                  <div className={`px-2 py-1 rounded text-xs font-semibold ${
                     selectedTemplate.type === 'story' 
                       ? 'bg-purple-100 text-purple-700' 
                       : 'bg-blue-100 text-blue-700'
@@ -1080,16 +1081,13 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                   <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                     {selectedTemplate.width}×{selectedTemplate.height}px
                   </div>
-                  <div className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded font-semibold">
-                    ✨ Live Updates
-                  </div>
                 </div>
               </div>
               
-              <div className="flex justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-8 rounded-xl min-h-[600px] items-center">
+              <div className="flex justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
                 <div className="relative">
                   <div 
-                    className="border-4 border-gray-300 rounded-xl overflow-hidden shadow-2xl bg-white"
+                    className="border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg bg-white"
                     style={{
                       transform: `scale(${previewScale})`,
                       transformOrigin: 'center center'
@@ -1100,25 +1098,21 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 px-4 py-2 bg-black text-white text-sm rounded-lg font-semibold">
+                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-black text-white text-xs rounded font-semibold whitespace-nowrap">
                     {selectedTemplate.name}
                   </div>
                 </div>
               </div>
               
               {/* Quality indicators */}
-              <div className="mt-4 flex justify-center space-x-4 text-xs text-gray-600">
+              <div className="mt-4 flex justify-center space-x-3 text-xs text-gray-600">
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
-                  Real-time preview
+                  Live preview
                 </div>
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                  High-resolution export
-                </div>
-                <div className="flex items-center">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-1"></div>
-                  Instagram optimized
+                  3x export
                 </div>
               </div>
             </div>

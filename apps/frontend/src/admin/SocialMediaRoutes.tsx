@@ -1,13 +1,14 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import CanvasBasedSocialMediaStudio from './components/CanvasBasedSocialMediaStudio';
+import EnhancedSocialMediaStudio from './components/EnhancedSocialMediaStudio';
 
 export const SocialMediaRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route index element={<CanvasBasedSocialMediaStudio />} />
-      <Route path="generator" element={<CanvasBasedSocialMediaStudio />} />
-      <Route path="canvas" element={<CanvasBasedSocialMediaStudio />} />
+      <Route index element={<EnhancedSocialMediaStudio />} />
+      <Route path="generator" element={<EnhancedSocialMediaStudio />} />
+      <Route path="studio" element={<EnhancedSocialMediaStudio />} />
+      <Route path="enhanced" element={<EnhancedSocialMediaStudio />} />
     </Routes>
   );
 };

@@ -46,7 +46,7 @@ const FileManagerPage: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({});
   const [editingFile, setEditingFile] = useState<FileRecord | null>(null);
 
-  const folders = ['all', 'covers', 'heroes', 'banners', 'characters', 'backgrounds', 'misc'];
+  const folders = ['all', 'covers', 'heroes', 'banners', 'characters', 'backgrounds', 'blog', 'misc'];
   const fileTypes = ['all', 'images', 'videos', 'audio', 'documents'];
 
   useEffect(() => {
@@ -694,6 +694,7 @@ const FileManagerPage: React.FC = () => {
                   <option value="banners">Banners</option>
                   <option value="characters">Characters</option>
                   <option value="backgrounds">Backgrounds</option>
+                  <option value="blog">Blog</option>
                   <option value="misc">Miscellaneous</option>
                 </select>
               </div>

@@ -10,6 +10,7 @@ export const FOLDERS = [
   'banners',
   'covers',
   'heroes',
+  'blog',
   'misc',
 ] as const;
 

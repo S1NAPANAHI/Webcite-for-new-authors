@@ -93,22 +93,33 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
   const loadSelectedFile = async (fileId: string) => {
     try {
+      console.log('🔍 MediaPicker: Loading selected file:', fileId);
+      
       const { data, error } = await supabase
         .from('files')
         .select('*')
         .eq('id', fileId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ MediaPicker: Error loading selected file:', error);
+        throw error;
+      }
+      
       if (data) {
+        console.log('✅ MediaPicker: Loaded file data:', data);
         setSelectedFile(data);
-        setSelectedUrl(getFileUrl(data));
+        
+        const url = getFileUrl(data);
+        console.log('🔗 MediaPicker: Generated URL for selected file:', url);
+        setSelectedUrl(url);
+        
         if (selectedCropSettings) {
           setCropSettings(selectedCropSettings);
         }
       }
     } catch (err) {
-      console.error('Error loading selected file:', err);
+      console.error('❌ MediaPicker: Error loading selected file:', err);
     }
   };
 
@@ -118,6 +129,8 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
     try {
       setLoading(true);
       setError(null);
+
+      console.log('📂 MediaPicker: Loading files with filter:', folderFilter);
 
       let query = supabase
         .from('files')
@@ -136,11 +149,19 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
       const { data, error: filesError } = await query;
 
-      if (filesError) throw filesError;
+      if (filesError) {
+        console.error('❌ MediaPicker: Error loading files:', filesError);
+        throw filesError;
+      }
 
+      console.log('✅ MediaPicker: Loaded files:', data?.length || 0, 'files');
+      if (data && data.length > 0) {
+        console.log('📄 MediaPicker: Sample file data:', data[0]);
+      }
+      
       setFiles(data || []);
     } catch (err) {
-      console.error('Error loading files:', err);
+      console.error('❌ MediaPicker: Error loading files:', err);
       setError(err instanceof Error ? err.message : 'Failed to load files');
     } finally {
       setLoading(false);
@@ -151,9 +172,35 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
     loadFiles();
   }, [loadFiles]);
 
-  // Get file URL
+  // FIXED: Enhanced file URL generation with better error handling
   const getFileUrl = (file: FileRecord): string => {
-    return getSafeImageUrl(file.path, file.bucket);
+    console.log('🔗 MediaPicker: Generating URL for file:', {
+      id: file.id,
+      name: file.name,
+      path: file.path,
+      bucket: file.bucket,
+      folder: file.folder
+    });
+    
+    // Handle different possible path formats
+    let imagePath = file.path;
+    
+    // If path is missing but we have folder and name, construct it
+    if (!imagePath && file.folder && file.name) {
+      imagePath = `${file.folder}/${file.name}`;
+      console.log('🔧 MediaPicker: Constructed path from folder/name:', imagePath);
+    }
+    
+    // Use bucket from file record, or default to 'media'
+    const bucket = file.bucket || 'media';
+    
+    console.log('🎯 MediaPicker: Calling getSafeImageUrl with:', { imagePath, bucket });
+    
+    const url = getSafeImageUrl(imagePath, bucket);
+    
+    console.log('✅ MediaPicker: Generated final URL:', url);
+    
+    return url;
   };
 
   // Filter files by search query
@@ -167,11 +214,15 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
     );
   });
 
-  // NEW: Handle file selection with optional cropping
+  // FIXED: Enhanced file selection with better logging
   const handleFileSelect = (file: FileRecord) => {
+    console.log('🖱️ MediaPicker: File selected:', file);
+    
     const url = getFileUrl(file);
+    console.log('🔗 MediaPicker: Generated URL for selection:', url);
     
     if (enableCropping) {
+      console.log('✂️ MediaPicker: Opening cropping interface');
       // Open cropping interface
       setSelectedFile(file);
       setCropPreviewImage(url);
@@ -194,11 +245,17 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
       };
       img.src = url;
     } else {
+      console.log('📤 MediaPicker: Direct selection without cropping');
+      
       // Direct selection without cropping
+      console.log('📞 MediaPicker: Calling onSelect with:', { fileId: file.id, fileUrl: url });
       onSelect(file.id, url);
+      
       setSelectedFile(file);
       setSelectedUrl(url);
       setIsOpen(false);
+      
+      console.log('✅ MediaPicker: Selection completed');
     }
   };
 
@@ -206,6 +263,9 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
   const handleApplyCrop = () => {
     if (selectedFile && cropSettings) {
       const url = getFileUrl(selectedFile);
+      console.log('✂️ MediaPicker: Applying crop with settings:', cropSettings);
+      console.log('📞 MediaPicker: Calling onSelect with crop:', { fileId: selectedFile.id, fileUrl: url, cropSettings });
+      
       onSelect(selectedFile.id, url, cropSettings);
       setSelectedUrl(url);
       setIsOpen(false);
@@ -215,6 +275,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
   // NEW: Cancel cropping
   const handleCancelCrop = () => {
+    console.log('❌ MediaPicker: Cancelling crop');
     setShowCropInterface(false);
     setCropSettings(null);
     setCropPreviewImage('');
@@ -223,6 +284,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
   // Handle clear selection
   const handleClear = () => {
+    console.log('🗑️ MediaPicker: Clearing selection');
     if (onClear) onClear();
     setSelectedFile(null);
     setSelectedUrl('');
@@ -282,6 +344,13 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                 src={selectedUrl} 
                 alt={selectedFile.alt_text || selectedFile.name}
                 className="w-full h-48 object-cover"
+                onError={(e) => {
+                  console.error('❌ MediaPicker: Image failed to load:', selectedUrl);
+                  console.error('❌ MediaPicker: Image error event:', e);
+                }}
+                onLoad={() => {
+                  console.log('✅ MediaPicker: Image loaded successfully:', selectedUrl);
+                }}
               />
             )}
             <div className="absolute top-2 right-2 flex gap-2">
@@ -327,6 +396,10 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
               {cropSettings && (
                 <span className="text-green-600">✂️ Cropped: {Math.round(cropSettings.width)}×{Math.round(cropSettings.height)}</span>
               )}
+            </div>
+            {/* DEBUG: Show generated URL */}
+            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 font-mono break-all">
+              🔗 {selectedUrl}
             </div>
           </div>
           
@@ -500,6 +573,12 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                                 alt={file.alt_text || file.name}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                 loading="lazy"
+                                onError={(e) => {
+                                  console.error('❌ MediaPicker: Grid image failed to load:', fileUrl, file);
+                                }}
+                                onLoad={() => {
+                                  console.log('✅ MediaPicker: Grid image loaded:', file.name);
+                                }}
                               />
                             </div>
 
@@ -531,6 +610,10 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                               <div className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-1">
                                 {file.folder}
                                 {enableCropping && <span className="ml-2 text-green-500">✂️</span>}
+                              </div>
+                              {/* DEBUG: Show file path */}
+                              <div className="text-xs text-blue-500 dark:text-blue-400 mt-1 font-mono truncate">
+                                📂 {file.path || `${file.folder}/${file.name}`}
                               </div>
                             </div>
                           </div>

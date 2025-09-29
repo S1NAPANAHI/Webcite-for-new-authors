@@ -138,7 +138,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [activeSection, setActiveSection] = useState<'templates' | 'content' | 'design'>('templates');
   const [showImageEditor, setShowImageEditor] = useState(false);
-  const [previewScale, setPreviewScale] = useState(0.15); // FIXED: Reduced default scale from 0.25 to 0.15
+  const [previewScale, setPreviewScale] = useState(0.2); // FIXED: Increased from 0.15 to 0.2 for better visibility
 
   const filteredTemplates = selectedCategory === 'all' 
     ? ENHANCED_TEMPLATES 
@@ -628,7 +628,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             <div className="flex items-center space-x-2">
               <span className="text-xs text-gray-500">Preview Size:</span>
               <button
-                onClick={() => setPreviewScale(Math.max(0.1, previewScale - 0.05))} // FIXED: Updated min scale to 0.1
+                onClick={() => setPreviewScale(Math.max(0.1, previewScale - 0.05))}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200"
                 title="Zoom Out"
               >
@@ -638,7 +638,7 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                 {Math.round(previewScale * 100)}%
               </span>
               <button
-                onClick={() => setPreviewScale(Math.min(0.5, previewScale + 0.05))} // FIXED: Updated max scale to 0.5
+                onClick={() => setPreviewScale(Math.min(0.5, previewScale + 0.05))}
                 className="p-1 rounded bg-gray-100 hover:bg-gray-200"
                 title="Zoom In"
               >
@@ -1062,9 +1062,9 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
             </div>
           </div>
 
-          {/* Preview Panel - Now only gets 1/3 of the space - FIXED: Sticky container with max height and overflow */}
+          {/* Preview Panel - FIXED: Remove height restrictions that were hiding content */}
           <div className="lg:col-span-1">
-            <div className="sticky top-4 max-h-96 overflow-auto"> {/* FIXED: Added max-h-96 overflow-auto */}
+            <div className="sticky top-4"> {/* FIXED: Removed max-h-96 overflow-auto that was clipping content */}
               <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -1085,8 +1085,8 @@ export const OptimizedSocialMediaGenerator: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* FIXED: Canvas Container with max height */}
-                <div className="max-h-80 overflow-hidden rounded-lg border"> {/* FIXED: Added max-h-80 overflow-hidden */}
+                {/* FIXED: Remove height constraint that was clipping preview */}
+                <div className="overflow-auto rounded-lg border"> {/* FIXED: Removed max-h-80 overflow-hidden */}
                   <div className="flex justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4 rounded-xl">
                     <div className="relative">
                       <div 

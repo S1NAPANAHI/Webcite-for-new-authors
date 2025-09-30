@@ -11,7 +11,11 @@ import {
   Filter,
   Check,
   ExternalLink,
-  Crop
+  Crop,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Move
 } from 'lucide-react';
 
 interface FileRecord {
@@ -75,14 +79,17 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
   const [selectedUrl, setSelectedUrl] = useState<string>('');
   const [cropSettings, setCropSettings] = useState<CropSettings | null>(selectedCropSettings || null);
   
-  // NEW: Cropping interface states
+  // NEW: Enhanced cropping interface states
   const [showCropInterface, setShowCropInterface] = useState(false);
   const [cropPreviewImage, setCropPreviewImage] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageElement, setImageElement] = useState<HTMLImageElement | null>(null);
+  const [cropZoom, setCropZoom] = useState(1);
+  const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
   const previewRef = React.useRef<HTMLDivElement>(null);
+  const cropRef = React.useRef<HTMLDivElement>(null);
 
   // Load selected file info on mount
   useEffect(() => {
@@ -258,16 +265,35 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
       const img = new Image();
       img.onload = () => {
         setImageElement(img);
+        
+        // Calculate container size to fit image
+        const maxWidth = 800;
+        const maxHeight = 600;
+        
+        let containerWidth = img.naturalWidth;
+        let containerHeight = img.naturalHeight;
+        
+        if (containerWidth > maxWidth || containerHeight > maxHeight) {
+          const scale = Math.min(maxWidth / containerWidth, maxHeight / containerHeight);
+          containerWidth = containerWidth * scale;
+          containerHeight = containerHeight * scale;
+        }
+        
+        setContainerSize({ width: containerWidth, height: containerHeight });
+        
         // Set initial crop to center with desired aspect ratio
-        const cropWidth = Math.min(300, img.naturalWidth * 0.8);
+        const cropWidth = Math.min(containerWidth * 0.8, 400);
         const cropHeight = cropAspectRatio ? cropWidth / cropAspectRatio : cropWidth * 0.75;
+        
         setCropSettings({
-          x: (img.naturalWidth - cropWidth) / 2,
-          y: (img.naturalHeight - cropHeight) / 2,
+          x: (containerWidth - cropWidth) / 2,
+          y: (containerHeight - cropHeight) / 2,
           width: cropWidth,
           height: cropHeight,
           scale: 1
         });
+        
+        setCropZoom(1);
       };
       img.src = url;
     } else {
@@ -285,14 +311,111 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
     }
   };
 
+  // NEW: Mouse event handlers for cropping interface
+  const handleMouseDown = (e: React.MouseEvent, type: 'move' | 'resize') => {
+    e.preventDefault();
+    if (type === 'move') {
+      setIsDragging(true);
+    } else {
+      setIsResizing(true);
+    }
+    setDragStart({ x: e.clientX, y: e.clientY });
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging && !isResizing || !cropSettings || !previewRef.current) return;
+    
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    
+    if (isDragging) {
+      // Move crop area
+      const newX = Math.max(0, Math.min(containerSize.width - cropSettings.width, cropSettings.x + deltaX));
+      const newY = Math.max(0, Math.min(containerSize.height - cropSettings.height, cropSettings.y + deltaY));
+      
+      setCropSettings(prev => prev ? { ...prev, x: newX, y: newY } : null);
+    } else if (isResizing) {
+      // Resize crop area while maintaining aspect ratio
+      const newWidth = Math.max(50, cropSettings.width + deltaX);
+      const newHeight = cropAspectRatio ? newWidth / cropAspectRatio : cropSettings.height + deltaY;
+      
+      // Ensure crop area stays within image bounds
+      const maxWidth = containerSize.width - cropSettings.x;
+      const maxHeight = containerSize.height - cropSettings.y;
+      
+      const finalWidth = Math.min(newWidth, maxWidth);
+      const finalHeight = Math.min(newHeight, maxHeight);
+      
+      setCropSettings(prev => prev ? { ...prev, width: finalWidth, height: finalHeight } : null);
+    }
+    
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, [isDragging, isResizing, cropSettings, containerSize, dragStart, cropAspectRatio]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+    setIsResizing(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging || isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
+
+  // NEW: Zoom functionality
+  const handleZoomChange = (newZoom: number) => {
+    const zoom = Math.max(0.1, Math.min(3, newZoom));
+    setCropZoom(zoom);
+    
+    if (cropSettings && imageElement) {
+      // Adjust crop settings based on zoom
+      const zoomFactor = zoom / (cropSettings.scale || 1);
+      setCropSettings(prev => prev ? { ...prev, scale: zoom } : null);
+    }
+  };
+
   // NEW: Apply crop settings and finalize selection
   const handleApplyCrop = () => {
-    if (selectedFile && cropSettings) {
+    if (selectedFile && cropSettings && imageElement) {
       const url = getFileUrl(selectedFile);
-      console.log('✂️ MediaPicker: Applying crop with settings:', cropSettings);
-      console.log('📞 MediaPicker: Calling onSelect with crop:', { fileId: selectedFile.id, fileUrl: url, cropSettings });
       
-      onSelect(selectedFile.id, url, cropSettings);
+      // Calculate actual crop coordinates based on image natural size vs display size
+      const scaleX = imageElement.naturalWidth / containerSize.width;
+      const scaleY = imageElement.naturalHeight / containerSize.height;
+      
+      const actualCropSettings = {
+        x: cropSettings.x * scaleX,
+        y: cropSettings.y * scaleY,
+        width: cropSettings.width * scaleX,
+        height: cropSettings.height * scaleY,
+        scale: cropZoom
+      };
+      
+      console.log('✂️ MediaPicker: Applying crop with settings:', actualCropSettings);
+      console.log('📞 MediaPicker: Calling onSelect with crop:', { fileId: selectedFile.id, fileUrl: url, cropSettings: actualCropSettings });
+      
+      onSelect(selectedFile.id, url, actualCropSettings);
+      setSelectedUrl(url);
+      setCropSettings(actualCropSettings);
+      setIsOpen(false);
+      setShowCropInterface(false);
+    }
+  };
+
+  // NEW: Skip cropping and use original
+  const handleSkipCrop = () => {
+    if (selectedFile) {
+      const url = getFileUrl(selectedFile);
+      console.log('⏭️ MediaPicker: Skipping crop, using original');
+      
+      onSelect(selectedFile.id, url);
       setSelectedUrl(url);
       setIsOpen(false);
       setShowCropInterface(false);
@@ -306,6 +429,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
     setCropSettings(null);
     setCropPreviewImage('');
     setImageElement(null);
+    setCropZoom(1);
   };
 
   // Handle clear selection
@@ -361,8 +485,9 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
               >
                 {/* Cropped view overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10" />
-                <div className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full">
-                  ✂️ Cropped
+                <div className="absolute top-2 left-2 px-2 py-1 bg-green-500 text-white text-xs rounded-full flex items-center gap-1">
+                  <Crop className="w-3 h-3" />
+                  Cropped {cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)}
                 </div>
               </div>
             ) : (
@@ -420,7 +545,10 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
               )}
               <span className="capitalize">{selectedFile.folder}</span>
               {cropSettings && (
-                <span className="text-green-600">✂️ Cropped: {Math.round(cropSettings.width)}×{Math.round(cropSettings.height)}</span>
+                <span className="text-green-600 flex items-center gap-1">
+                  <Crop className="w-3 h-3" />
+                  Cropped: {Math.round(cropSettings.width)}×{Math.round(cropSettings.height)}
+                </span>
               )}
             </div>
             {/* DEBUG: Show generated URL */}
@@ -448,7 +576,10 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
             {enableCropping ? 'Choose from media library (with cropping)' : 'Choose from your media library'}
           </span>
           {enableCropping && (
-            <span className="text-xs text-green-600 dark:text-green-400">✂️ Visual cropping available</span>
+            <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+              <Crop className="w-3 h-3" />
+              Visual cropping available ({cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)} ratio)
+            </span>
           )}
         </button>
       )}
@@ -463,8 +594,9 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                 <FolderOpen className="w-5 h-5" />
                 Select Image
                 {enableCropping && (
-                  <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm rounded-full">
-                    ✂️ Cropping Enabled
+                  <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-sm rounded-full flex items-center gap-1">
+                    <Crop className="w-3 h-3" />
+                    Cropping Enabled
                   </span>
                 )}
               </h2>
@@ -617,7 +749,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
                             {/* Crop Indicator */}
                             {enableCropping && (
-                              <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center">
+                              <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center" title={`Cropping enabled (${cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)} ratio)`}>
                                 <Crop className="w-3 h-3" />
                               </div>
                             )}
@@ -633,9 +765,9 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                                   <span>{file.width}×{file.height}</span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-1">
-                                {file.folder}
-                                {enableCropping && <span className="ml-2 text-green-500">✂️</span>}
+                              <div className="text-xs text-gray-400 dark:text-gray-500 capitalize mt-1 flex items-center justify-between">
+                                <span>{file.folder}</span>
+                                {enableCropping && <span className="text-green-500" title="Will open crop interface"><Crop className="w-3 h-3" /></span>}
                               </div>
                               {/* DEBUG: Show file path and what URL will be generated */}
                               <div className="text-xs text-blue-500 dark:text-blue-400 mt-1 space-y-1">
@@ -668,18 +800,25 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
         </div>
       )}
 
-      {/* NEW: Visual Cropping Interface */}
+      {/* NEW: Advanced Visual Cropping Interface */}
       {showCropInterface && cropPreviewImage && imageElement && cropSettings && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-5xl w-full max-h-[95vh] mx-4 flex flex-col overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] mx-4 flex flex-col overflow-hidden">
             
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-              <div className="flex items-center gap-2">
-                <Crop className="w-5 h-5 text-green-600" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Crop Image for Display</h3>
-                <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
-                  ✂️ Visual cropping - No new uploads needed
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                  <Crop className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Crop Image for Blog</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Perfect {cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)} aspect ratio for blog featured images
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full">
+                  ✂️ Visual cropping - Display only
                 </span>
               </div>
               <button
@@ -692,13 +831,13 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
 
             {/* Cropping Area */}
             <div className="flex-1 p-6 bg-gray-900 overflow-auto">
-              <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex items-center justify-center min-h-[500px]">
                 <div 
                   ref={previewRef}
                   className="relative border border-gray-600 rounded-lg overflow-hidden"
                   style={{
-                    width: Math.min(800, imageElement.naturalWidth),
-                    height: Math.min(600, imageElement.naturalHeight),
+                    width: containerSize.width,
+                    height: containerSize.height,
                     backgroundImage: `url(${cropPreviewImage})`,
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
@@ -714,31 +853,51 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                   
                   {/* Crop Selection Overlay */}
                   <div
+                    ref={cropRef}
                     className="absolute border-2 border-green-500 cursor-move"
                     style={{
-                      left: `${(cropSettings.x / imageElement.naturalWidth) * 100}%`,
-                      top: `${(cropSettings.y / imageElement.naturalHeight) * 100}%`,
-                      width: `${(cropSettings.width / imageElement.naturalWidth) * 100}%`,
-                      height: `${(cropSettings.height / imageElement.naturalHeight) * 100}%`,
+                      left: `${cropSettings.x}px`,
+                      top: `${cropSettings.y}px`,
+                      width: `${cropSettings.width}px`,
+                      height: `${cropSettings.height}px`,
                       backgroundColor: 'rgba(34, 197, 94, 0.1)',
                       boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.6)'
                     }}
+                    onMouseDown={(e) => handleMouseDown(e, 'move')}
                   >
                     {/* Corner handles */}
-                    <div className="absolute -top-2 -left-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-nw-resize" />
-                    <div className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-ne-resize" />
-                    <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-sw-resize" />
-                    <div className="absolute -bottom-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-se-resize" />
+                    <div 
+                      className="absolute -top-2 -left-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-nw-resize" 
+                      onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(e, 'resize'); }}
+                    />
+                    <div 
+                      className="absolute -top-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-ne-resize" 
+                      onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(e, 'resize'); }}
+                    />
+                    <div 
+                      className="absolute -bottom-2 -left-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-sw-resize" 
+                      onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(e, 'resize'); }}
+                    />
+                    <div 
+                      className="absolute -bottom-2 -right-2 w-4 h-4 bg-green-500 border-2 border-white rounded cursor-se-resize" 
+                      onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(e, 'resize'); }}
+                    />
                     
                     {/* Center indicator */}
                     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
                     
-                    {/* Grid lines */}
+                    {/* Grid lines for rule of thirds */}
                     <div className="absolute inset-0 opacity-40">
                       <div className="absolute top-1/3 left-0 right-0 h-px bg-white" />
                       <div className="absolute top-2/3 left-0 right-0 h-px bg-white" />
                       <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white" />
                       <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white" />
+                    </div>
+                    
+                    {/* Move indicator */}
+                    <div className="absolute top-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded flex items-center gap-1">
+                      <Move className="w-3 h-3" />
+                      Drag to move
                     </div>
                   </div>
                 </div>
@@ -748,12 +907,41 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
             {/* Controls */}
             <div className="p-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
               <div className="flex justify-between items-center mb-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <div>Crop Area: {Math.round(cropSettings.width)} × {Math.round(cropSettings.height)}px</div>
-                  <div className="mt-1">Aspect Ratio: {cropAspectRatio === 1 ? '1:1' : cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                  <div className="flex items-center gap-4">
+                    <span>Crop Area: {Math.round(cropSettings.width)} × {Math.round(cropSettings.height)}px</span>
+                    <span>Aspect Ratio: {cropAspectRatio === 1 ? '1:1' : cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)}</span>
+                  </div>
+                  <div className="text-xs text-green-600 dark:text-green-400">
+                    💡 This crops for display only - original image stays in media bucket
+                  </div>
                 </div>
-                <div className="text-sm text-green-600 dark:text-green-400">
-                  💡 This crops for display only - original image stays in media bucket
+                
+                {/* Zoom Controls */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-gray-600 dark:text-gray-400">Zoom:</label>
+                  <button
+                    onClick={() => handleZoomChange(cropZoom - 0.1)}
+                    className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </button>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max="3"
+                    step="0.1"
+                    value={cropZoom}
+                    onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
+                    className="w-24"
+                  />
+                  <button
+                    onClick={() => handleZoomChange(cropZoom + 0.1)}
+                    className="p-1 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </button>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 w-12">{(cropZoom * 100).toFixed(0)}%</span>
                 </div>
               </div>
               
@@ -763,6 +951,13 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                 </div>
                 
                 <div className="flex gap-3">
+                  <button
+                    onClick={handleSkipCrop}
+                    className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Skip Crop (Use Original)
+                  </button>
+                  
                   <button
                     onClick={handleCancelCrop}
                     className="px-6 py-2 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
@@ -775,7 +970,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                     className="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                   >
                     <Check className="w-4 h-4" />
-                    Apply Visual Crop
+                    Apply Crop ({cropAspectRatio === 16/9 ? '16:9' : cropAspectRatio.toFixed(2)})
                   </button>
                 </div>
               </div>

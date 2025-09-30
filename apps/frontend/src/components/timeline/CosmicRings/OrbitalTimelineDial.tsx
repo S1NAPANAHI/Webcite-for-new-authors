@@ -16,6 +16,7 @@ interface OrbitingPlanet {
   speed: number;
   size: number;
   planetType: string;
+  initialAngle: number;
 }
 
 export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
@@ -43,30 +44,34 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     'Sixth Age', 'Seventh Age', 'Eighth Age', 'Ninth Age'
   ];
 
-  // Initialize orbiting planets
+  // Initialize orbiting planets with randomized starting positions
   useEffect(() => {
     if (ages.length === 0) return;
 
     const planets: OrbitingPlanet[] = ages.map((age, index) => {
+      // Randomize initial position along the arc for each planet
+      const randomStartAngle = Math.random() * Math.PI; // Random position from 0 to π
+      
       return {
         age,
         orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
-        angle: -Math.PI / 2, // Start at top (-90 degrees)
-        speed: 0.005 + (index * 0.001), // Different speeds for each orbit
+        angle: randomStartAngle,
+        speed: 0.015 + (index * 0.003), // Faster speeds with variation
         size: NODE_RADIUS,
-        planetType: ageNames[index] || `${age.age_number} Age`
+        planetType: ageNames[index] || `${age.age_number} Age`,
+        initialAngle: randomStartAngle
       };
     });
 
     setOrbitingPlanets(planets);
   }, [ages]);
 
-  // Animation loop - FIXED to actually animate
+  // Animation loop - FASTER animation
   useEffect(() => {
     let animationId: number;
     
     const animate = () => {
-      setAnimationTime(prev => prev + 0.008); // Smooth animation increment
+      setAnimationTime(prev => prev + 0.02); // Much faster animation
       animationId = requestAnimationFrame(animate);
     };
     
@@ -86,7 +91,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   // Calculate position for VERTICAL half-circle (top to bottom, opening to the right)
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
     // Vertical half-circle: from -π/2 (top) to π/2 (bottom) going clockwise on RIGHT side
-    const currentAngle = -Math.PI / 2 + ((animationTime * planet.speed) % Math.PI);
+    const currentAngle = -Math.PI / 2 + ((planet.initialAngle + animationTime * planet.speed) % Math.PI);
     
     const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
     const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
@@ -104,9 +109,10 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   };
 
-  // Create segmented orbit path with cut-outs for text
+  // Create segmented orbit path with SMALLER cut-outs for text
   const createSegmentedOrbitPath = (radius: number, textLength: number) => {
-    const textSegmentLength = Math.max(textLength * 0.12, 0.8); // Convert text length to radians
+    // Much smaller text gap - just enough for the text with minimal padding
+    const textSegmentLength = Math.max(textLength * 0.06, 0.3); // Reduced from 0.12 to 0.06
     const textCenterAngle = 0; // Center the text at the rightmost point of arc
     
     const startAngle = -Math.PI / 2; // Top
@@ -155,7 +161,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             ))}
           </defs>
 
-          {/* Orbit lines with cut-outs for text */}
+          {/* Orbit lines with SMALLER cut-outs for text */}
           {orbitingPlanets.map((planet, index) => {
             const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType.length);
             return (
@@ -186,7 +192,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           {orbitingPlanets.map((planet, index) => (
             <text
               key={`orbit-text-${index}`}
-              fontSize="14"
+              fontSize="13"
               fontFamily="Georgia, serif"
               fill={GOLD}
               fontWeight="bold"
@@ -212,7 +218,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             className="central-sun-flat static"
           />
 
-          {/* MOVING Planets */}
+          {/* MOVING Planets with randomized starting positions */}
           {orbitingPlanets.map((planet, index) => {
             const position = calculatePlanetPosition(planet);
             const selected = isSelected(planet);

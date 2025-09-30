@@ -52,7 +52,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
         age,
         orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
         angle: -Math.PI / 2, // Start at top (-90 degrees)
-        speed: 0.003 + (index * 0.0005), // Very slow, smooth speeds
+        speed: 0.005 + (index * 0.001), // Different speeds for each orbit
         size: NODE_RADIUS,
         planetType: ageNames[index] || `${age.age_number} Age`
       };
@@ -61,17 +61,12 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     setOrbitingPlanets(planets);
   }, [ages]);
 
-  // Smooth animation loop
+  // Animation loop - FIXED to actually animate
   useEffect(() => {
     let animationId: number;
-    let lastTime = 0;
     
-    const animate = (currentTime: number) => {
-      const deltaTime = currentTime - lastTime;
-      lastTime = currentTime;
-      
-      // Smooth, consistent animation speed
-      setAnimationTime(prev => prev + 0.002);
+    const animate = () => {
+      setAnimationTime(prev => prev + 0.008); // Smooth animation increment
       animationId = requestAnimationFrame(animate);
     };
     
@@ -109,6 +104,32 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   };
 
+  // Create segmented orbit path with cut-outs for text
+  const createSegmentedOrbitPath = (radius: number, textLength: number) => {
+    const textSegmentLength = Math.max(textLength * 0.12, 0.8); // Convert text length to radians
+    const textCenterAngle = 0; // Center the text at the rightmost point of arc
+    
+    const startAngle = -Math.PI / 2; // Top
+    const endAngle = Math.PI / 2; // Bottom
+    const textStartAngle = textCenterAngle - textSegmentLength / 2;
+    const textEndAngle = textCenterAngle + textSegmentLength / 2;
+    
+    // Calculate coordinates
+    const startX = CENTER_X + Math.cos(startAngle) * radius;
+    const startY = CENTER_Y + Math.sin(startAngle) * radius;
+    const cutStartX = CENTER_X + Math.cos(textStartAngle) * radius;
+    const cutStartY = CENTER_Y + Math.sin(textStartAngle) * radius;
+    const cutEndX = CENTER_X + Math.cos(textEndAngle) * radius;
+    const cutEndY = CENTER_Y + Math.sin(textEndAngle) * radius;
+    const endX = CENTER_X + Math.cos(endAngle) * radius;
+    const endY = CENTER_Y + Math.sin(endAngle) * radius;
+    
+    return {
+      beforeText: `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${cutStartX} ${cutStartY}`,
+      afterText: `M ${cutEndX} ${cutEndY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`
+    };
+  };
+
   const isSelected = (planet: OrbitingPlanet) => {
     return selectedAge?.id === planet.age.id;
   };
@@ -122,7 +143,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
           className="orbital-svg vertical"
         >
-          {/* Define STATIC paths for textPath (these DON'T rotate) */}
+          {/* Define paths for textPath */}
           <defs>
             {orbitingPlanets.map((planet, index) => (
               <path
@@ -134,16 +155,52 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             ))}
           </defs>
 
-          {/* STATIC Orbit lines (these DON'T move) */}
+          {/* Orbit lines with cut-outs for text */}
+          {orbitingPlanets.map((planet, index) => {
+            const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType.length);
+            return (
+              <g key={`orbit-segments-${index}`}>
+                {/* Segment before text */}
+                <path
+                  d={segments.beforeText}
+                  stroke={GOLD}
+                  strokeWidth={3}
+                  fill="none"
+                  className="orbit-line static"
+                  strokeLinecap="round"
+                />
+                {/* Segment after text */}
+                <path
+                  d={segments.afterText}
+                  stroke={GOLD}
+                  strokeWidth={3}
+                  fill="none"
+                  className="orbit-line static"
+                  strokeLinecap="round"
+                />
+              </g>
+            );
+          })}
+
+          {/* Static text integrated into orbit lines using textPath */}
           {orbitingPlanets.map((planet, index) => (
-            <path
-              key={`orbit-${index}`}
-              d={createVerticalHalfCirclePath(planet.orbitRadius)}
-              stroke={GOLD}
-              strokeWidth={3}
-              fill="none"
-              className="orbit-line static"
-            />
+            <text
+              key={`orbit-text-${index}`}
+              fontSize="14"
+              fontFamily="Georgia, serif"
+              fill={GOLD}
+              fontWeight="bold"
+              className="orbit-text static"
+            >
+              <textPath
+                href={`#vertical-orbit-path-${index}`}
+                startOffset="50%" // Center the text on the right side of arc
+                dominantBaseline="middle"
+                textAnchor="middle"
+              >
+                {planet.planetType}
+              </textPath>
+            </text>
           ))}
 
           {/* Central Sun (STATIC) */}
@@ -155,15 +212,10 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             className="central-sun-flat static"
           />
 
-          {/* MOVING Planets and rotating text */}
+          {/* MOVING Planets */}
           {orbitingPlanets.map((planet, index) => {
             const position = calculatePlanetPosition(planet);
             const selected = isSelected(planet);
-            
-            // Calculate text offset to avoid overlap with orbit lines
-            const textOffset = planet.orbitRadius + 25; // Push text outside the orbit
-            const textX = CENTER_X + Math.cos(position.angle) * textOffset;
-            const textY = CENTER_Y + Math.sin(position.angle) * textOffset;
             
             return (
               <g key={`planet-group-${index}`}>
@@ -191,21 +243,6 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
                     opacity="0.8"
                   />
                 )}
-                
-                {/* Age text positioned OUTSIDE orbit lines */}
-                <text
-                  x={textX}
-                  y={textY}
-                  fontSize="14"
-                  fontFamily="Georgia, serif"
-                  fill={GOLD}
-                  fontWeight="bold"
-                  className="orbit-text moving"
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                >
-                  {planet.planetType}
-                </text>
               </g>
             );
           })}

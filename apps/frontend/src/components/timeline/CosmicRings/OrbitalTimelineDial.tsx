@@ -15,7 +15,6 @@ interface OrbitingPlanet {
   angle: number;
   speed: number;
   size: number;
-  color: string;
   planetType: string;
 }
 
@@ -28,56 +27,46 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const [orbitingPlanets, setOrbitingPlanets] = useState<OrbitingPlanet[]>([]);
   const [animationTime, setAnimationTime] = useState(0);
 
-  // Simplified planet properties for stone wall aesthetic
-  const getPlanetProperties = (age: Age, index: number) => {
-    const colorSchemes = [
-      { color: '#D4AF37', type: 'Golden' },      // Golden Age
-      { color: '#CD7F32', type: 'Bronze' },      // Bronze
-      { color: '#B8860B', type: 'Brass' },       // Brass
-      { color: '#DAA520', type: 'Copper' },      // Copper
-      { color: '#C0C0C0', type: 'Silver' },      // Silver
-      { color: '#708090', type: 'Iron' },        // Iron
-      { color: '#F4A460', type: 'Stone' },       // Sandy Brown
-      { color: '#BC8F8F', type: 'Clay' },        // Rosy Brown
-      { color: '#DEB887', type: 'Amber' }        // Burlywood
-    ];
+  // Constants for half-circle design
+  const GOLD = '#CEB548';
+  const SVG_SIZE = 600;
+  const CENTER_X = 300; // Center of the half-circle
+  const CENTER_Y = 300;
+  const SUN_RADIUS = 32;
+  const NODE_RADIUS = 20;
+  const ORBIT_STEP = 45;
+  const MIN_ORBIT_RADIUS = 80;
 
-    const scheme = colorSchemes[index % colorSchemes.length];
-    return {
-      ...scheme,
-      orbitRadius: 90 + (index * 40), // More spaced out orbits
-      speed: 0.08 + (index * 0.02), // Much slower speeds
-      size: 24 + (index % 3) * 6, // Bigger planet sizes
-      angle: (index * (360 / ages.length)) * (Math.PI / 180) // Initial positions spread out
-    };
-  };
+  // Age names for text rotation
+  const ageNames = [
+    'First Age', 'Second Age', 'Third Age', 'Fourth Age', 'Fifth Age',
+    'Sixth Age', 'Seventh Age', 'Eighth Age', 'Ninth Age'
+  ];
 
   // Initialize orbiting planets
   useEffect(() => {
     if (ages.length === 0) return;
 
     const planets: OrbitingPlanet[] = ages.map((age, index) => {
-      const props = getPlanetProperties(age, index);
       return {
         age,
-        orbitRadius: props.orbitRadius,
-        angle: props.angle,
-        speed: props.speed,
-        size: props.size,
-        color: props.color,
-        planetType: props.type
+        orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
+        angle: 0, // Starting angle for half-circle
+        speed: 0.008 + (index * 0.002), // Very slow speeds
+        size: NODE_RADIUS,
+        planetType: ageNames[index] || `${age.age_number} Age`
       };
     });
 
     setOrbitingPlanets(planets);
   }, [ages]);
 
-  // Much slower animation loop
+  // Slow animation loop
   useEffect(() => {
     let animationId: number;
     
     const animate = () => {
-      setAnimationTime(prev => prev + 0.008); // Much slower: ~120fps but smaller increments
+      setAnimationTime(prev => prev + 0.003); // Very slow animation
       animationId = requestAnimationFrame(animate);
     };
     
@@ -94,11 +83,21 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
+  // Calculate position for half-circle (π radians, 180 degrees)
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
-    const currentAngle = planet.angle + (animationTime * planet.speed);
-    const x = Math.cos(currentAngle) * planet.orbitRadius;
-    const y = Math.sin(currentAngle) * planet.orbitRadius;
+    const currentAngle = Math.PI - ((animationTime * planet.speed) % Math.PI); // Half-circle from π to 0
+    const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
+    const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
     return { x, y, angle: currentAngle };
+  };
+
+  // Create half-circle arc path
+  const createHalfCirclePath = (radius: number) => {
+    const startX = CENTER_X - radius;
+    const startY = CENTER_Y;
+    const endX = CENTER_X + radius;
+    const endY = CENTER_Y;
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   };
 
   const isSelected = (planet: OrbitingPlanet) => {
@@ -106,89 +105,111 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   };
 
   return (
-    <div className={`orbital-timeline-dial stone-wall-aesthetic ${className}`}>
-      <div className="orbital-container">
-        {/* Simplified Central Sun */}
-        <div className="central-sun">
-          <div className="sun-core stone-carved">
-            <div className="sun-symbol">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
-              </svg>
-            </div>
-          </div>
-        </div>
+    <div className={`orbital-timeline-dial half-circle-design ${className}`}>
+      <div className="half-circle-container">
+        <svg 
+          width={SVG_SIZE}
+          height={SVG_SIZE}
+          viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
+          className="orbital-svg"
+        >
+          {/* Define paths for textPath */}
+          <defs>
+            {orbitingPlanets.map((planet, index) => (
+              <path
+                key={`textpath-${index}`}
+                id={`orbit-path-${index}`}
+                d={createHalfCirclePath(planet.orbitRadius)}
+                fill="none"
+              />
+            ))}
+          </defs>
 
-        {/* Thicker Orbit Paths */}
-        {orbitingPlanets.map((planet, index) => (
-          <div
-            key={`orbit-${index}`}
-            className="orbit-path thick-carved-line"
-            style={{
-              width: `${planet.orbitRadius * 2}px`,
-              height: `${planet.orbitRadius * 2}px`,
-            }}
+          {/* Orbit lines */}
+          {orbitingPlanets.map((planet, index) => (
+            <path
+              key={`orbit-${index}`}
+              d={createHalfCirclePath(planet.orbitRadius)}
+              stroke={GOLD}
+              strokeWidth={4}
+              fill="none"
+              className="orbit-line"
+            />
+          ))}
+
+          {/* Central Sun */}
+          <circle
+            cx={CENTER_X}
+            cy={CENTER_Y}
+            r={SUN_RADIUS}
+            fill={GOLD}
+            className="central-sun-flat"
           />
-        ))}
 
-        {/* Larger Orbiting Planets */}
-        {orbitingPlanets.map((planet, index) => {
-          const position = calculatePlanetPosition(planet);
-          const selected = isSelected(planet);
-          
-          return (
-            <div
-              key={`planet-${index}`}
-              className={`orbiting-planet stone-planet ${selected ? 'selected' : ''}`}
-              style={{
-                left: `calc(50% + ${position.x}px)`,
-                top: `calc(50% + ${position.y}px)`,
-                width: `${planet.size}px`,
-                height: `${planet.size}px`,
-                transform: 'translate(-50%, -50%)',
-                cursor: 'pointer'
-              }}
-              onClick={() => handlePlanetClick(planet)}
-              title={`${planet.age.name || planet.age.title} - ${planet.planetType} Node`}
-            >
-              {/* Simplified Planet Core */}
-              <div 
-                className="planet-core stone-carved"
-                style={{
-                  backgroundColor: planet.color,
-                  borderColor: planet.color,
-                }}
-              >
-                {/* Age number indicator */}
-                <div className="age-indicator stone-text">
-                  {planet.age.age_number}
-                </div>
+          {/* Orbiting Planets */}
+          {orbitingPlanets.map((planet, index) => {
+            const position = calculatePlanetPosition(planet);
+            const selected = isSelected(planet);
+            
+            return (
+              <g key={`planet-group-${index}`}>
+                {/* Planet node */}
+                <circle
+                  cx={position.x}
+                  cy={position.y}
+                  r={NODE_RADIUS}
+                  fill={GOLD}
+                  className={`planet-node ${selected ? 'selected' : ''}`}
+                  onClick={() => handlePlanetClick(planet)}
+                  style={{ cursor: 'pointer' }}
+                />
                 
-                {/* Selection indicator */}
+                {/* Selection ring */}
                 {selected && (
-                  <div className="selection-ring"></div>
+                  <circle
+                    cx={position.x}
+                    cy={position.y}
+                    r={NODE_RADIUS + 8}
+                    stroke={GOLD}
+                    strokeWidth={2}
+                    fill="none"
+                    className="selection-ring"
+                    opacity="0.7"
+                  />
                 )}
-              </div>
+                
+                {/* Rotating age text along orbit path */}
+                <text
+                  fontSize="16"
+                  fontFamily="Georgia, serif"
+                  fill={GOLD}
+                  fontWeight="bold"
+                  className="orbit-text"
+                >
+                  <textPath
+                    href={`#orbit-path-${index}`}
+                    startOffset={`${((position.angle / Math.PI) * 100).toFixed(1)}%`}
+                    dominantBaseline="middle"
+                    textAnchor="middle"
+                  >
+                    {planet.planetType}
+                  </textPath>
+                </text>
+              </g>
+            );
+          })}
+        </svg>
 
-              {/* Simplified Planet Label */}
-              <div className="planet-label stone-inscription">
-                <span className="planet-name">
-                  {planet.age.name || planet.age.title}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Minimal Central Information Display */}
+        {/* Age info panel */}
         {selectedAge && (
-          <div className="central-info stone-tablet">
-            <div className="info-content">
-              <h3 className="age-title">{selectedAge.name || selectedAge.title}</h3>
-              <p className="age-years">
-                {selectedAge.start_year ? `${selectedAge.start_year}` : '∞'} - {selectedAge.end_year || '∞'}
-              </p>
-            </div>
+          <div className="selected-age-info">
+            <h3 className="age-title">{selectedAge.name || selectedAge.title}</h3>
+            <p className="age-years">
+              {selectedAge.start_year ? `${selectedAge.start_year}` : '∞'} - {selectedAge.end_year || '∞'}
+            </p>
+            <p className="age-description">
+              {selectedAge.description?.substring(0, 150)}...
+            </p>
           </div>
         )}
       </div>

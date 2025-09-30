@@ -41,6 +41,19 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
     "#dcdcdc"  // Gainsboro
   ];
 
+  // Texture parameters for each ring
+  const ringTextures = [
+    { type: 'golden-grain', frequency: 0.6, seed: 42 },
+    { type: 'bronze-weave', frequency: 0.5, seed: 17 },
+    { type: 'copper-striations', frequency: 0.45, seed: 91 },
+    { type: 'iron-hammered', frequency: 0.38, seed: 63 },
+    { type: 'steel-crosshatch', frequency: 0.32, seed: 28 },
+    { type: 'weathered-metal', frequency: 0.27, seed: 74 },
+    { type: 'pewter-grain', frequency: 0.22, seed: 39 },
+    { type: 'lead-crossweave', frequency: 0.18, seed: 55 },
+    { type: 'silver-filigree', frequency: 0.15, seed: 83 }
+  ];
+
   // Generate text path ID for each ring
   const getTextPathId = (index: number): string => {
     return `text-path-${index}`;
@@ -170,6 +183,49 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
             );
           })}
 
+          {/* Procedural texture filters for each ring */}
+          {ringTextures.map((texture, index) => (
+            <filter key={`texture-filter-${index}`} id={`textureFilter${index}`} x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence 
+                type="fractalNoise" 
+                baseFrequency={texture.frequency} 
+                numOctaves="2" 
+                seed={texture.seed} 
+                result="noise"
+              />
+              <feColorMatrix type="saturate" values="0" in="noise" result="mono" />
+              <feComponentTransfer in="mono" result="textureNoise">
+                <feFuncA type="discrete" tableValues="0 0.05 0.1 0.15 0.2 0.1 0.05 0" />
+              </feComponentTransfer>
+            </filter>
+          ))}
+
+          {/* Texture masks for each ring */}
+          {ringTextures.map((_, index) => (
+            <mask key={`texture-mask-${index}`} id={`textureMask${index}`}>
+              <rect x="-250" y="-250" width="1300" height="1300" fill="white" filter={`url(#textureFilter${index})`} />
+            </mask>
+          ))}
+
+          {/* Hatch patterns for additional texture variety */}
+          <pattern id="hatchPattern1" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(35)">
+            <rect width="12" height="12" fill="transparent" />
+            <path d="M 0 0 L 0 12" stroke="#fff" strokeOpacity="0.08" strokeWidth="1" />
+            <path d="M 6 0 L 6 12" stroke="#fff" strokeOpacity="0.06" strokeWidth="0.8" />
+          </pattern>
+
+          <pattern id="hatchPattern2" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(-25)">
+            <rect width="10" height="10" fill="transparent" />
+            <path d="M 0 0 L 0 10" stroke="#fff" strokeOpacity="0.07" strokeWidth="0.9" />
+            <path d="M 5 0 L 5 10" stroke="#fff" strokeOpacity="0.05" strokeWidth="0.7" />
+          </pattern>
+
+          <pattern id="hatchPattern3" patternUnits="userSpaceOnUse" width="14" height="14" patternTransform="rotate(15)">
+            <rect width="14" height="14" fill="transparent" />
+            <path d="M 0 0 L 0 14" stroke="#fff" strokeOpacity="0.06" strokeWidth="1.1" />
+            <path d="M 7 0 L 7 14" stroke="#fff" strokeOpacity="0.04" strokeWidth="0.9" />
+          </pattern>
+
           {/* Text paths for labels */}
           {sortedAges.map((_, index) => {
             const radius = generateRingRadius(index);
@@ -261,13 +317,14 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
           </text>
         </g>
 
-        {/* Ring disks - VISUAL ONLY, NO CLICK HANDLERS */}
+        {/* Ring disks with enhanced textures */}
         <g id="rings">
           {sortedAges.map((age, index) => {
             const radius = generateRingRadius(index);
             const isSelected = selectedAge?.id === age.id;
             const isHovered = hoveredAge === age.id;
             const ringClasses = `ring-disk ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''}`;
+            const hatchPattern = `hatchPattern${(index % 3) + 1}`;
 
             return (
               <g 
@@ -287,6 +344,31 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   className="ring-stroke"
                 />
                 
+                {/* Procedural texture overlay */}
+                <circle 
+                  cx="400" 
+                  cy="400" 
+                  r={radius} 
+                  fill="none"
+                  stroke="#000"
+                  strokeWidth={RING_THICKNESS}
+                  mask={`url(#textureMask${index})`}
+                  className="ring-texture-noise"
+                  pointerEvents="none"
+                />
+
+                {/* Hatch pattern texture overlay */}
+                <circle 
+                  cx="400" 
+                  cy="400" 
+                  r={radius} 
+                  fill="none"
+                  stroke={`url(#${hatchPattern})`}
+                  strokeWidth={RING_THICKNESS}
+                  className="ring-texture-hatch"
+                  pointerEvents="none"
+                />
+                
                 {/* Inner highlight ring */}
                 <circle 
                   cx="400" 
@@ -296,6 +378,7 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   stroke={`url(#highlight-gradient-${index})`}
                   strokeWidth={RING_THICKNESS * 0.6}
                   className="ring-highlight"
+                  pointerEvents="none"
                 />
                 
                 {/* Outer rim definition */}
@@ -307,6 +390,7 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   stroke="rgba(255,255,255,0.2)" 
                   strokeWidth="1"
                   className="outer-rim"
+                  pointerEvents="none"
                 />
 
                 {/* Inner rim definition */}
@@ -318,6 +402,7 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   stroke="rgba(255,255,255,0.1)" 
                   strokeWidth="1"
                   className="inner-rim"
+                  pointerEvents="none"
                 />
 
                 {/* Age label */}

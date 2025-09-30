@@ -1,5 +1,5 @@
 import React from 'react';
-import { AgeGlyphs } from '../../../assets/glyphs';
+import { AgeGlyphs } from '../../../assets/glyphs/index.tsx';
 import { TimelineEvent } from '../../../lib/api-timeline';
 
 interface CodexEntryProps {

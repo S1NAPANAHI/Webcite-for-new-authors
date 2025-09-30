@@ -1,5 +1,5 @@
 import React from 'react';
-import { AgeGlyphs } from '../../../assets/glyphs';
+import { AgeGlyphs } from '../../../assets/glyphs/index.tsx';
 import { useTimelineContext } from '../../../contexts/TimelineContext';
 import { Age } from '../../../lib/api-timeline';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookGlyphs } from '../../../assets/glyphs';
+import { BookGlyphs } from '../../../assets/glyphs/index.tsx';
 import { Book } from '../../../lib/api-timeline';
 
 interface BookOverlayProps {

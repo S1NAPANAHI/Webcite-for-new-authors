@@ -27,21 +27,22 @@ export const RingDial: React.FC<RingDialProps> = ({
 
   if (loading) {
     return (
-      <div className={`relative w-96 h-96 mx-auto flex items-center justify-center ${className}`}>
+      <div className={`relative w-80 h-80 mx-auto flex items-center justify-center ${className}`}>
         <div className="cosmic-loading-container">
           {/* Spinning Rings */}
-          {Array.from({ length: 3 }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={`loading-ring-${index}`}
               className="absolute border-2 border-timeline-gold/30 rounded-full"
               style={{
-                width: `${120 + (index * 40)}px`,
-                height: `${120 + (index * 40)}px`,
+                width: `${80 + (index * 50)}px`,
+                height: `${80 + (index * 50)}px`,
                 left: '50%',
                 top: '50%',
                 transform: 'translate(-50%, -50%)',
-                animation: `spin ${3 + index}s linear infinite ${index === 1 ? 'reverse' : ''}`,
-                borderTopColor: index === 0 ? 'var(--timeline-gold)' : 'transparent'
+                animation: `spin ${2 + index}s linear infinite ${index % 2 === 1 ? 'reverse' : ''}`,
+                borderTopColor: index % 2 === 0 ? 'var(--timeline-gold)' : 'transparent',
+                borderRightColor: index % 2 === 1 ? 'var(--timeline-gold)' : 'transparent'
               }}
             />
           ))}
@@ -58,51 +59,61 @@ export const RingDial: React.FC<RingDialProps> = ({
     );
   }
 
+  // Calculate ring positions for better distribution
+  const ringConfig = [
+    { radius: 60, opacity: 0.8, strokeWidth: 3 },   // Innermost ring
+    { radius: 90, opacity: 0.7, strokeWidth: 2 },   // Second ring  
+    { radius: 120, opacity: 0.6, strokeWidth: 2 },  // Third ring
+    { radius: 150, opacity: 0.5, strokeWidth: 1 },  // Outermost ring
+  ];
+
   return (
-    <div className={`relative w-96 h-96 mx-auto ${className}`}>
+    <div className={`relative w-80 h-80 mx-auto ${className}`}>
       <svg
-        width="384"
-        height="384"
-        viewBox="0 0 384 384"
-        className="cosmic-ring transition-transform duration-700 ease-out"
+        width="320"
+        height="320"
+        viewBox="0 0 320 320"
+        className="cosmic-ring transition-transform duration-1000 ease-out"
         style={{
           transform: `rotate(${rotationAngle}deg)`,
-          filter: 'drop-shadow(0 0 20px rgba(var(--timeline-gold-rgb), 0.3))'
+          filter: 'drop-shadow(0 0 30px rgba(255, 215, 0, 0.3))'
         }}
       >
-        {/* Enhanced Background Cosmic Circles */}
-        {Array.from({ length: 12 }).map((_, index) => {
-          const radius = 30 + (index * 15);
-          const opacity = 0.05 + (index * 0.02);
-          const strokeWidth = index % 3 === 0 ? 2 : 1;
+        {/* Enhanced Background Cosmic Circles - More rings for fuller look */}
+        {Array.from({ length: 16 }).map((_, index) => {
+          const radius = 20 + (index * 10);
+          const opacity = 0.03 + (index * 0.015);
+          const strokeWidth = index % 4 === 0 ? 2 : 1;
+          const isDashed = index % 3 === 0;
           
           return (
             <circle
               key={`bg-ring-${index}`}
-              cx="192"
-              cy="192"
+              cx="160"
+              cy="160"
               r={radius}
               fill="none"
               stroke="var(--timeline-gold)"
               strokeWidth={strokeWidth}
               opacity={opacity}
-              strokeDasharray={index % 4 === 0 ? '5,5' : undefined}
+              strokeDasharray={isDashed ? '3,3' : undefined}
             >
               {/* Subtle rotation animation for background rings */}
               <animateTransform
                 attributeName="transform"
                 type="rotate"
-                values={`0 192 192;${index % 2 === 0 ? 360 : -360} 192 192`}
-                dur={`${20 + (index * 2)}s`}
+                values={`0 160 160;${index % 2 === 0 ? 360 : -360} 160 160`}
+                dur={`${30 + (index * 3)}s`}
                 repeatCount="indefinite"
               />
             </circle>
           );
         })}
 
-        {/* Age Rings with Enhanced Styling */}
+        {/* Main Age Rings */}
         {ages.map((age, index) => {
-          const ringRadius = 80 + (index * 30);
+          const config = ringConfig[index % ringConfig.length];
+          const ringRadius = config.radius;
           const angleStep = 360 / ages.length;
           const angle = index * angleStep;
           const isSelected = selectedAgeId === age.id;
@@ -111,24 +122,33 @@ export const RingDial: React.FC<RingDialProps> = ({
             <g key={age.id}>
               {/* Main Age Ring */}
               <circle
-                cx="192"
-                cy="192"
+                cx="160"
+                cy="160"
                 r={ringRadius}
                 fill="none"
                 stroke="var(--timeline-gold)"
-                strokeWidth={isSelected ? "3" : "2"}
-                opacity={isSelected ? "0.9" : "0.6"}
-                className="age-ring transition-all duration-300"
-                strokeDasharray={isSelected ? undefined : "10,5"}
+                strokeWidth={isSelected ? config.strokeWidth + 1 : config.strokeWidth}
+                opacity={isSelected ? config.opacity + 0.3 : config.opacity}
+                className="age-ring transition-all duration-500 cursor-pointer"
+                strokeDasharray={isSelected ? undefined : "8,4"}
+                onClick={() => handleAgeClick(age)}
               >
                 {/* Pulse animation for selected ring */}
                 {isSelected && (
-                  <animate
-                    attributeName="stroke-width"
-                    values="3;5;3"
-                    dur="2s"
-                    repeatCount="indefinite"
-                  />
+                  <>
+                    <animate
+                      attributeName="stroke-width"
+                      values={`${config.strokeWidth + 1};${config.strokeWidth + 3};${config.strokeWidth + 1}`}
+                      dur="2s"
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="opacity"
+                      values={`${config.opacity + 0.3};${config.opacity + 0.6};${config.opacity + 0.3}`}
+                      dur="2s"
+                      repeatCount="indefinite"
+                    />
+                  </>
                 )}
               </circle>
 
@@ -142,114 +162,150 @@ export const RingDial: React.FC<RingDialProps> = ({
                 onClick={() => handleAgeClick(age)}
               />
               
-              {/* Age Label Arc Path (for curved text) */}
-              <defs>
-                <path
-                  id={`age-path-${age.id}`}
-                  d={`M ${192 + (ringRadius + 25) * Math.cos((angle - 30) * Math.PI / 180)} ${192 + (ringRadius + 25) * Math.sin((angle - 30) * Math.PI / 180)} A ${ringRadius + 25} ${ringRadius + 25} 0 0 1 ${192 + (ringRadius + 25) * Math.cos((angle + 30) * Math.PI / 180)} ${192 + (ringRadius + 25) * Math.sin((angle + 30) * Math.PI / 180)}`}
-                />
-              </defs>
-              
-              {/* Curved Age Title */}
+              {/* Age Label - Positioned around the ring */}
               <text 
-                className={`text-xs font-medium transition-all duration-300 ${
-                  isSelected ? 'fill-timeline-gold' : 'fill-timeline-text/70'
-                }`}
+                x={160 + (ringRadius + 20) * Math.cos((angle - 90) * Math.PI / 180)}
+                y={160 + (ringRadius + 20) * Math.sin((angle - 90) * Math.PI / 180)}
                 textAnchor="middle"
+                dominantBaseline="middle"
+                className={`text-xs font-medium transition-all duration-300 cursor-pointer ${
+                  isSelected ? 'fill-timeline-gold font-bold' : 'fill-timeline-text/70'
+                }`}
+                onClick={() => handleAgeClick(age)}
+                transform={`rotate(${angle < 180 ? 0 : 180}, ${160 + (ringRadius + 20) * Math.cos((angle - 90) * Math.PI / 180)}, ${160 + (ringRadius + 20) * Math.sin((angle - 90) * Math.PI / 180)})`}
               >
-                <textPath 
-                  href={`#age-path-${age.id}`} 
-                  startOffset="50%"
-                >
-                  {age.title}
-                </textPath>
+                {age.title}
               </text>
+              
+              {/* Selected Age Highlight Ring */}
+              {isSelected && (
+                <circle
+                  cx="160"
+                  cy="160"
+                  r={ringRadius + 8}
+                  fill="none"
+                  stroke="var(--timeline-gold)"
+                  strokeWidth="1"
+                  opacity="0.4"
+                  strokeDasharray="2,2"
+                >
+                  <animate
+                    attributeName="r"
+                    values={`${ringRadius + 8};${ringRadius + 12};${ringRadius + 8}`}
+                    dur="3s"
+                    repeatCount="indefinite"
+                  />
+                </circle>
+              )}
             </g>
           );
         })}
 
         {/* Enhanced Center Hub */}
         <g className="center-hub">
-          {/* Outer glow ring */}
-          <circle
-            cx="192"
-            cy="192"
-            r="40"
-            fill="none"
-            stroke="var(--timeline-gold)"
-            strokeWidth="1"
-            opacity="0.3"
-          >
-            <animate
-              attributeName="r"
-              values="35;45;35"
-              dur="3s"
-              repeatCount="indefinite"
-            />
-          </circle>
+          {/* Outer glow rings */}
+          {Array.from({ length: 3 }).map((_, index) => (
+            <circle
+              key={`glow-${index}`}
+              cx="160"
+              cy="160"
+              r={30 + (index * 8)}
+              fill="none"
+              stroke="var(--timeline-gold)"
+              strokeWidth="1"
+              opacity={0.2 - (index * 0.05)}
+            >
+              <animate
+                attributeName="r"
+                values={`${30 + (index * 8)};${35 + (index * 8)};${30 + (index * 8)}`}
+                dur={`${3 + index}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          ))}
           
           {/* Main hub */}
           <circle
-            cx="192"
-            cy="192"
-            r="32"
+            cx="160"
+            cy="160"
+            r="28"
             fill="var(--timeline-gold)"
-            opacity="0.8"
+            opacity="0.9"
           />
           
           {/* Inner circle */}
           <circle
-            cx="192"
-            cy="192"
-            r="24"
+            cx="160"
+            cy="160"
+            r="20"
             fill="var(--timeline-bg)"
             stroke="var(--timeline-gold)"
-            strokeWidth="3"
+            strokeWidth="2"
           />
           
           {/* Center text */}
           <text
-            x="192"
-            y="190"
+            x="160"
+            y="155"
             textAnchor="middle"
+            dominantBaseline="middle"
             className="fill-current text-timeline-gold font-bold text-xs"
           >
             COSMIC
           </text>
           <text
-            x="192"
-            y="202"
+            x="160"
+            y="168"
             textAnchor="middle"
+            dominantBaseline="middle"
             className="fill-current text-timeline-gold font-bold text-xs"
           >
             AXIS
           </text>
         </g>
+
+        {/* Constellation Dots - Random cosmic dots */}
+        {Array.from({ length: 12 }).map((_, index) => {
+          const angle = (index * 30) * Math.PI / 180;
+          const radius = 180 + Math.random() * 20;
+          const x = 160 + radius * Math.cos(angle);
+          const y = 160 + radius * Math.sin(angle);
+          
+          return (
+            <circle
+              key={`constellation-${index}`}
+              cx={x}
+              cy={y}
+              r="1"
+              fill="var(--timeline-gold)"
+              opacity="0.6"
+            >
+              <animate
+                attributeName="opacity"
+                values="0.3;0.8;0.3"
+                dur={`${2 + Math.random() * 3}s`}
+                repeatCount="indefinite"
+                begin={`${Math.random() * 2}s`}
+              />
+            </circle>
+          );
+        })}
       </svg>
 
       {/* Book Overlay with enhanced positioning */}
-      <BookOverlay books={books} selectedAgeId={selectedAgeId} />
-      
-      {/* Selection Indicator */}
-      {selectedAgeId && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-            <div className="w-80 h-80 border-2 border-timeline-gold/20 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-      )}
+      <BookOverlay books={books} selectedAgeId={selectedAgeId} />      
 
       {/* Cosmic Particle Effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-full">
-        {Array.from({ length: 8 }).map((_, index) => (
+        {Array.from({ length: 6 }).map((_, index) => (
           <div
             key={`particle-${index}`}
             className="absolute w-1 h-1 bg-timeline-gold rounded-full opacity-60"
             style={{
-              left: `${20 + Math.random() * 60}%`,
-              top: `${20 + Math.random() * 60}%`,
+              left: `${25 + Math.random() * 50}%`,
+              top: `${25 + Math.random() * 50}%`,
               animationDelay: `${Math.random() * 5}s`,
-              animation: `float ${3 + Math.random() * 4}s ease-in-out infinite alternate`
+              animation: `float ${4 + Math.random() * 4}s ease-in-out infinite alternate`
             }}
           />
         ))}
@@ -268,18 +324,22 @@ export const RingDial: React.FC<RingDialProps> = ({
             opacity: 0.6;
           }
           to {
-            transform: translateY(-20px) scale(1.2);
+            transform: translateY(-15px) scale(1.1);
             opacity: 0.2;
           }
         }
         
         .age-ring:hover {
-          stroke-width: 3;
+          stroke-width: 4;
           opacity: 0.9;
         }
         
         .center-hub:hover circle {
-          filter: drop-shadow(0 0 10px var(--timeline-gold));
+          filter: drop-shadow(0 0 15px var(--timeline-gold));
+        }
+        
+        .cosmic-ring {
+          overflow: visible;
         }
       `}</style>
     </div>

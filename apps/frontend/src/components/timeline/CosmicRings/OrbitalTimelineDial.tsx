@@ -27,15 +27,15 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const [orbitingPlanets, setOrbitingPlanets] = useState<OrbitingPlanet[]>([]);
   const [animationTime, setAnimationTime] = useState(0);
 
-  // Constants for VERTICAL half-circle design
+  // Constants for VERTICAL half-circle design opening to the RIGHT
   const GOLD = '#CEB548';
   const SVG_SIZE = 800;
-  const CENTER_X = 400; // Right edge of the half-circle (since it's vertical on left)
+  const CENTER_X = 100; // LEFT side of viewport - this is the center of the half-circle
   const CENTER_Y = 400; // Center vertically
-  const SUN_RADIUS = 32;
-  const NODE_RADIUS = 20;
-  const ORBIT_STEP = 45;
-  const MIN_ORBIT_RADIUS = 80;
+  const SUN_RADIUS = 28;
+  const NODE_RADIUS = 18;
+  const ORBIT_STEP = 40;
+  const MIN_ORBIT_RADIUS = 70;
 
   // Age names for text rotation
   const ageNames = [
@@ -51,8 +51,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
       return {
         age,
         orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
-        angle: Math.PI / 2, // Start at top (90 degrees)
-        speed: 0.008 + (index * 0.002), // Very slow speeds
+        angle: 0, // Start at rightmost point (0 radians)
+        speed: 0.004 + (index * 0.001), // Very slow speeds, inner orbits faster
         size: NODE_RADIUS,
         planetType: ageNames[index] || `${age.age_number} Age`
       };
@@ -66,7 +66,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     let animationId: number;
     
     const animate = () => {
-      setAnimationTime(prev => prev + 0.003); // Very slow animation
+      setAnimationTime(prev => prev + 0.008); // Slow, contemplative animation
       animationId = requestAnimationFrame(animate);
     };
     
@@ -83,25 +83,25 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
-  // Calculate position for VERTICAL half-circle (left side, π/2 to 3π/2 radians)
+  // Calculate position for VERTICAL half-circle opening to the RIGHT
+  // Planets move from 0 (right) to π (left) - i.e., semicircle on the right side
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
-    // Vertical half-circle: from π/2 (top) to 3π/2 (bottom) going counter-clockwise
-    const baseAngle = Math.PI / 2; // Start at top
-    const angleRange = Math.PI; // Half circle (π radians)
-    const currentAngle = baseAngle + ((animationTime * planet.speed) % angleRange);
+    // Right-opening half-circle: from 0 (right) to π (left) going counter-clockwise
+    const currentAngle = (animationTime * planet.speed) % Math.PI;
     
     const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
     const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
     return { x, y, angle: currentAngle };
   };
 
-  // Create VERTICAL half-circle arc path (static orbit lines)
-  const createVerticalHalfCirclePath = (radius: number) => {
-    const startX = CENTER_X;
-    const startY = CENTER_Y - radius; // Top
-    const endX = CENTER_X;
-    const endY = CENTER_Y + radius; // Bottom
-    // Vertical half-circle going left (counter-clockwise)
+  // Create VERTICAL half-circle arc path opening to the RIGHT (static orbit lines)
+  const createRightOpeningHalfCirclePath = (radius: number) => {
+    const startX = CENTER_X + radius; // Start at rightmost point
+    const startY = CENTER_Y;
+    const endX = CENTER_X - radius; // End at leftmost point
+    const endY = CENTER_Y;
+    
+    // Half-circle arc from right to left (top half)
     return `M ${startX} ${startY} A ${radius} ${radius} 0 0 0 ${endX} ${endY}`;
   };
 
@@ -124,7 +124,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
               <path
                 key={`textpath-${index}`}
                 id={`vertical-orbit-path-${index}`}
-                d={createVerticalHalfCirclePath(planet.orbitRadius)}
+                d={createRightOpeningHalfCirclePath(planet.orbitRadius)}
                 fill="none"
               />
             ))}
@@ -134,7 +134,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           {orbitingPlanets.map((planet, index) => (
             <path
               key={`orbit-${index}`}
-              d={createVerticalHalfCirclePath(planet.orbitRadius)}
+              d={createRightOpeningHalfCirclePath(planet.orbitRadius)}
               stroke={GOLD}
               strokeWidth={4}
               fill="none"
@@ -193,7 +193,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
                 >
                   <textPath
                     href={`#vertical-orbit-path-${index}`}
-                    startOffset={`${((position.angle - Math.PI/2) / Math.PI * 100).toFixed(1)}%`}
+                    startOffset={`${(position.angle / Math.PI * 100).toFixed(1)}%`}
                     dominantBaseline="middle"
                     textAnchor="middle"
                   >

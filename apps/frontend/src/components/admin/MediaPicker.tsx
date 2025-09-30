@@ -172,33 +172,59 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
     loadFiles();
   }, [loadFiles]);
 
-  // FIXED: Enhanced file URL generation with better error handling
+  // CRITICAL FIX: Smart file URL generation that handles incorrect database records
   const getFileUrl = (file: FileRecord): string => {
     console.log('🔗 MediaPicker: Generating URL for file:', {
       id: file.id,
       name: file.name,
+      original_name: file.original_name,
       path: file.path,
       bucket: file.bucket,
       folder: file.folder
     });
     
-    // Handle different possible path formats
-    let imagePath = file.path;
-    
-    // If path is missing but we have folder and name, construct it
-    if (!imagePath && file.folder && file.name) {
-      imagePath = `${file.folder}/${file.name}`;
-      console.log('🔧 MediaPicker: Constructed path from folder/name:', imagePath);
-    }
-    
-    // Use bucket from file record, or default to 'media'
+    let imagePath = '';
     const bucket = file.bucket || 'media';
+    
+    // CRITICAL FIX: Smart path determination
+    if (file.path && file.path.trim() !== '') {
+      // Use the stored path directly if it exists and looks valid
+      imagePath = file.path;
+      console.log('✅ MediaPicker: Using stored path:', imagePath);
+    } else {
+      // CRITICAL: Handle the case where file.name is incorrect (like 'blog')
+      let fileName = file.name;
+      
+      // If name equals folder name, it's likely incorrect - use original_name instead
+      if (file.name === file.folder && file.original_name) {
+        fileName = file.original_name.replaceAll(' ', '_').replaceAll(/[^a-zA-Z0-9._-]/g, '');
+        console.log('🔧 MediaPicker: Name equals folder, using original_name:', fileName);
+      }
+      
+      // If name is still just the folder name or doesn't have an extension, try to fix it
+      if (fileName === file.folder || !fileName.includes('.')) {
+        // Generate a filename based on file type
+        const extension = file.mime_type?.split('/')[1] || 'jpg';
+        fileName = `${file.id}.${extension}`;
+        console.log('🔧 MediaPicker: Generated filename from mime_type:', fileName);
+      }
+      
+      imagePath = `${file.folder}/${fileName}`;
+      console.log('🔧 MediaPicker: Constructed path:', imagePath);
+    }
     
     console.log('🎯 MediaPicker: Calling getSafeImageUrl with:', { imagePath, bucket });
     
     const url = getSafeImageUrl(imagePath, bucket);
     
     console.log('✅ MediaPicker: Generated final URL:', url);
+    
+    // EMERGENCY: If we're still getting the wrong URL pattern, construct it directly
+    if (url === '/images/default-blog-cover.jpg' || !url.includes('supabase.co')) {
+      const directUrl = `https://opukvvmumyegtkukqint.supabase.co/storage/v1/object/public/${bucket}/${imagePath}`;
+      console.log('🚨 MediaPicker: getSafeImageUrl failed, trying direct URL:', directUrl);
+      return directUrl;
+    }
     
     return url;
   };
@@ -386,7 +412,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
           </div>
           
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            <div className="font-medium">{selectedFile.name}</div>
+            <div className="font-medium">{selectedFile.original_name || selectedFile.name}</div>
             <div className="flex items-center gap-4 text-xs">
               <span>{formatFileSize(selectedFile.size)}</span>
               {selectedFile.width && selectedFile.height && (
@@ -570,14 +596,14 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                             <div className="aspect-square bg-gray-100 dark:bg-gray-600 rounded-t-lg overflow-hidden">
                               <img
                                 src={fileUrl}
-                                alt={file.alt_text || file.name}
+                                alt={file.alt_text || file.original_name || file.name}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                                 loading="lazy"
                                 onError={(e) => {
                                   console.error('❌ MediaPicker: Grid image failed to load:', fileUrl, file);
                                 }}
                                 onLoad={() => {
-                                  console.log('✅ MediaPicker: Grid image loaded:', file.name);
+                                  console.log('✅ MediaPicker: Grid image loaded:', file.original_name || file.name);
                                 }}
                               />
                             </div>
@@ -599,7 +625,7 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                             {/* File Info */}
                             <div className="p-3">
                               <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                {file.name}
+                                {file.original_name || file.name}
                               </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-1">
                                 <span>{formatFileSize(file.size)}</span>
@@ -611,9 +637,13 @@ const MediaPicker: React.FC<MediaPickerProps> = ({
                                 {file.folder}
                                 {enableCropping && <span className="ml-2 text-green-500">✂️</span>}
                               </div>
-                              {/* DEBUG: Show file path */}
-                              <div className="text-xs text-blue-500 dark:text-blue-400 mt-1 font-mono truncate">
-                                📂 {file.path || `${file.folder}/${file.name}`}
+                              {/* DEBUG: Show file path and what URL will be generated */}
+                              <div className="text-xs text-blue-500 dark:text-blue-400 mt-1 space-y-1">
+                                <div className="font-mono truncate">📂 path: {file.path || 'missing'}</div>
+                                <div className="font-mono truncate">📛 name: {file.name}</div>
+                                {file.name === file.folder && (
+                                  <div className="text-red-500 font-bold">⚠️ NAME = FOLDER (BROKEN)</div>
+                                )}
                               </div>
                             </div>
                           </div>

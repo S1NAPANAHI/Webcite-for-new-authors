@@ -258,6 +258,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
                   className="orbit-line static high-quality"
                   strokeLinecap="round"
                   filter="url(#subtleChalkyTexture)" // Very subtle texture
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
                 />
                 {/* Segment after text */}
                 <path
@@ -268,6 +270,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
                   className="orbit-line static high-quality"
                   strokeLinecap="round"
                   filter="url(#subtleChalkyTexture)" // Very subtle texture
+                  vectorEffect="non-scaling-stroke"
+                  shapeRendering="geometricPrecision"
                 />
               </g>
             );

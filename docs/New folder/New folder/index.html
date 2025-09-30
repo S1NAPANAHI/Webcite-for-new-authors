@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sacred Treasury - Persian Mythology Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Sacred Fire Orbs Animation Container -->
+    <div class="sacred-fire-orbs">
+        <div class="fire-orb orb-1"></div>
+        <div class="fire-orb orb-2"></div>
+        <div class="fire-orb orb-3"></div>
+        <div class="fire-orb orb-4"></div>
+        <div class="fire-orb orb-5"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span class="fire-symbol">🔥</span>
+                    <span class="logo-text">Sacred Treasury</span>
+                </div>
+                <nav class="navigation">
+                    <div class="search-container">
+                        <input type="text" class="search-input" placeholder="Search the sacred treasury...">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <div class="nav-actions">
+                        <button class="nav-btn wishlist-btn">💖 <span class="badge">3</span></button>
+                        <button class="nav-btn cart-btn">🛍️ <span class="badge">0</span></button>
+                        <div class="user-profile">
+                            <span class="tier-badge">🔰</span>
+                            <span class="username">Seeker</span>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Sacred Treasury</h1>
+                <p class="hero-subtitle">Good Thoughts, Good Words, Good Deeds</p>
+                <p class="hero-description">Discover treasures of ancient Persian wisdom in our sacred digital temple</p>
+                
+                <div class="loyalty-display">
+                    <div class="tier-info">
+                        <div class="current-tier">
+                            <span class="tier-badge-large">🔰</span>
+                            <div class="tier-details">
+                                <span class="tier-name">Initiate</span>
+                                <span class="tier-description">Beginning your sacred journey</span>
+                            </div>
+                        </div>
+                        <div class="sacred-points">
+                            <div class="points-display">
+                                <span class="fire-icon">🔥</span>
+                                <span class="points-count">150</span>
+                                <span class="points-label">Sacred Fire Points</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 43%"></div>
+                                </div>
+                                <span class="progress-text">200 points to ⭐ Devotee</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories">
+        <div class="container">
+            <h2 class="section-title">Explore Sacred Categories</h2>
+            <div class="categories-grid" id="categoriesGrid">
+                <!-- Categories will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section class="products">
+        <div class="container">
+            <div class="products-header">
+                <h2 class="section-title">Featured Treasures</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="literature">Literature</button>
+                    <button class="filter-btn" data-filter="learning">Learning</button>
+                    <button class="filter-btn" data-filter="merchandise">Merchandise</button>
+                    <button class="filter-btn" data-filter="services">Services</button>
+                    <button class="filter-btn" data-filter="digital-art">Digital Art</button>
+                    <button class="filter-btn" data-filter="audio">Audio</button>
+                </div>
+            </div>
+            <div class="products-grid" id="productsGrid">
+                <!-- Products will be populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Achievements Section -->
+    <section class="achievements">
+        <div class="container">
+            <h2 class="section-title">Sacred Achievements</h2>
+            <div class="achievements-container">
+                <div class="achievement earned">
+                    <span class="achievement-icon">🔥</span>
+                    <div class="achievement-info">
+                        <h3>Sacred Beginning</h3>
+                        <p>Made your first purchase</p>
+                    </div>
+                    <div class="achievement-status earned-status">✓</div>
+                </div>
+                <div class="achievement in-progress">
+                    <span class="achievement-icon">📚</span>
+                    <div class="achievement-info">
+                        <h3>Epic Reader</h3>
+                        <p>Purchase 10 books</p>
+                        <div class="progress-small">
+                            <div class="progress-bar-small">
+                                <div class="progress-fill-small" style="width: 30%"></div>
+                            </div>
+                            <span class="progress-count">3/10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Activity -->
+    <section class="activity">
+        <div class="container">
+            <h3 class="activity-title">Sacred Temple Activity</h3>
+            <div class="activity-feed">
+                <div class="activity-item">
+                    <span class="activity-icon">⚡</span>
+                    <span class="activity-text">Someone just purchased Fire Temple Chronicles 2 minutes ago</span>
+                </div>
+                <div class="activity-item">
+                    <span class="activity-icon">🏆</span>
+                    <span class="activity-text">Aria_Writer earned the 'Helpful Reviewer' achievement</span>
+                </div>
+                <div class="activity-item">
+                    <span class="activity-icon">💖</span>
+                    <span class="activity-text">5 people have this item in their wishlist</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-blessing">
+                    <p class="persian-quote">"The best fire does not flare up suddenly"</p>
+                    <p class="quote-attribution">- Persian Wisdom</p>
+                </div>
+                <div class="footer-links">
+                    <div class="link-group">
+                        <h4>Sacred Treasury</h4>
+                        <a href="#" target="_blank">About Our Mission</a>
+                        <a href="#" target="_blank">Persian Culture</a>
+                        <a href="#" target="_blank">Community</a>
+                    </div>
+                    <div class="link-group">
+                        <h4>Support</h4>
+                        <a href="#" target="_blank">Help Center</a>
+                        <a href="#" target="_blank">Contact Us</a>
+                        <a href="#" target="_blank">Cultural Guidelines</a>
+                    </div>
+                </div>
+                <div class="footer-flame">🔥</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modals -->
+    <div class="modal hidden" id="productModal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <div class="modal-body" id="modalBody">
+                <!-- Product details will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

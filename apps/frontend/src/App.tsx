@@ -8,7 +8,8 @@ import {
   HomePage
 } from '@zoroaster/ui';
 import { AuthProvider, useAuth, supabase } from '@zoroaster/shared';
-import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage, TimelinesPage } from '@zoroaster/ui';
+import { SubscriptionPage, SubscriptionSuccessPage, LibraryPage } from '@zoroaster/ui';
+import TimelinesPage from './pages/Timelines'; // Use the new local cosmic timeline
 import AdminLayout from './components/admin/AdminLayout';
 // UPDATED: Import enhanced Learn page
 import LearnPageEnhanced from './pages/LearnPageEnhanced';

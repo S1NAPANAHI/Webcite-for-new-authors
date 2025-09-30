@@ -14,7 +14,8 @@
 .cosmic-rings-dial {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.4));
+  shape-rendering: geometricPrecision;
 }
 
 /* Center label styling */
@@ -24,6 +25,7 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   pointer-events: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Ring styling */
@@ -31,19 +33,10 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Clickable area - invisible but covers full ring thickness */
-.click-area {
-  opacity: 0;
-  cursor: pointer;
-}
-
-.click-area:hover {
-  opacity: 0; /* Keep invisible but ensure it's clickable */
-}
-
 /* Main ring stroke */
 .ring-stroke {
   transition: filter 0.3s ease, stroke-opacity 0.3s ease;
+  stroke-linecap: round;
 }
 
 .ring-disk:hover .ring-stroke {
@@ -55,66 +48,66 @@
   animation: selectedPulse 2s ease-in-out infinite;
 }
 
+/* Metallic sheen overlay */
+.ring-sheen {
+  pointer-events: none;
+  opacity: 0.6;
+  mix-blend-mode: soft-light;
+  transition: opacity 0.3s ease;
+}
+
+.ring-disk:hover .ring-sheen {
+  opacity: 0.8;
+}
+
+.ring-disk.selected .ring-sheen {
+  opacity: 1;
+}
+
+/* Subtle texture overlay */
+.ring-texture-subtle {
+  pointer-events: none;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  transition: opacity 0.3s ease;
+}
+
+.ring-disk:hover .ring-texture-subtle {
+  opacity: 0.4;
+}
+
+.ring-disk.selected .ring-texture-subtle {
+  opacity: 0.5;
+}
+
 /* Ring highlight */
 .ring-highlight {
   transition: stroke-opacity 0.3s ease;
 }
 
 .ring-disk:hover .ring-highlight {
-  stroke-opacity: 1.2;
+  stroke-opacity: 1.3;
 }
 
 .ring-disk.selected .ring-highlight {
-  stroke-opacity: 1.4;
-}
-
-/* Texture overlays */
-.ring-texture-noise {
-  pointer-events: none;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
-  transition: opacity 0.3s ease;
-}
-
-.ring-texture-hatch {
-  pointer-events: none;
-  opacity: 0.08;
-  mix-blend-mode: overlay;
-  transition: opacity 0.3s ease;
-}
-
-/* Enhanced texture visibility on hover and selection */
-.ring-disk:hover .ring-texture-noise {
-  opacity: 0.15;
-}
-
-.ring-disk:hover .ring-texture-hatch {
-  opacity: 0.12;
-}
-
-.ring-disk.selected .ring-texture-noise {
-  opacity: 0.18;
-}
-
-.ring-disk.selected .ring-texture-hatch {
-  opacity: 0.15;
+  stroke-opacity: 1.5;
 }
 
 /* Rim styling */
 .inner-rim, .outer-rim {
   pointer-events: none;
-  transition: stroke-opacity 0.3s ease;
+  transition: stroke-opacity 0.3s ease, stroke 0.3s ease;
 }
 
 .ring-disk:hover .inner-rim,
 .ring-disk:hover .outer-rim {
-  stroke-opacity: 0.4;
+  stroke-opacity: 0.5;
 }
 
 .ring-disk.selected .inner-rim,
 .ring-disk.selected .outer-rim {
-  stroke: rgba(212, 175, 55, 0.8);
-  stroke-opacity: 0.9;
+  stroke: rgba(212, 175, 55, 0.9);
+  stroke-opacity: 1;
 }
 
 /* Text styling */
@@ -123,25 +116,39 @@
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.1em;
-  fill: rgba(234, 231, 223, 0.85);
+  fill: rgba(234, 231, 223, 0.9);
   text-transform: uppercase;
   pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s ease;
 }
 
 .ring-disk:hover .ring-label {
   fill: rgba(241, 222, 172, 1);
   font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .ring-disk.selected .ring-label {
   fill: #f1deac;
   font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9), 0 0 10px rgba(241, 222, 172, 0.3);
 }
 
 .age-number {
   font-family: 'Cinzel', serif;
   font-weight: 600;
   pointer-events: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  transition: fill 0.3s ease;
+}
+
+.ring-disk:hover .age-number {
+  fill: rgba(255, 255, 255, 0.8);
+}
+
+.ring-disk.selected .age-number {
+  fill: rgba(241, 222, 172, 0.9);
 }
 
 /* Animation for selected ring */
@@ -150,77 +157,22 @@
     opacity: 1;
   }
   50% { 
-    opacity: 0.85;
+    opacity: 0.9;
   }
 }
 
-/* Texture-specific enhancements */
-.ring-disk.selected .ring-texture-noise {
-  animation: textureShimmer 3s ease-in-out infinite;
+/* Subtle shimmer animation for selected metallic sheen */
+.ring-disk.selected .ring-sheen {
+  animation: metallicShimmer 4s ease-in-out infinite;
 }
 
-@keyframes textureShimmer {
+@keyframes metallicShimmer {
   0%, 100% {
-    opacity: 0.18;
+    opacity: 1;
   }
   50% {
-    opacity: 0.22;
+    opacity: 0.7;
   }
-}
-
-/* Enhanced metallic effect for different ring types */
-.ring-disk:nth-child(1) .ring-texture-hatch,
-.ring-disk:nth-child(1) .ring-texture-noise {
-  /* Golden ring - warmer texture */
-  filter: sepia(0.3) saturate(1.1);
-}
-
-.ring-disk:nth-child(2) .ring-texture-hatch,
-.ring-disk:nth-child(2) .ring-texture-noise {
-  /* Bronze ring - copper tones */
-  filter: sepia(0.4) hue-rotate(20deg);
-}
-
-.ring-disk:nth-child(3) .ring-texture-hatch,
-.ring-disk:nth-child(3) .ring-texture-noise {
-  /* Copper ring - reddish tones */
-  filter: sepia(0.3) hue-rotate(30deg) saturate(1.2);
-}
-
-.ring-disk:nth-child(4) .ring-texture-hatch,
-.ring-disk:nth-child(4) .ring-texture-noise {
-  /* Iron ring - neutral metallic */
-  filter: desaturate(0.2) contrast(1.1);
-}
-
-.ring-disk:nth-child(5) .ring-texture-hatch,
-.ring-disk:nth-child(5) .ring-texture-noise {
-  /* Steel ring - cool metallic */
-  filter: hue-rotate(200deg) saturate(0.8);
-}
-
-.ring-disk:nth-child(6) .ring-texture-hatch,
-.ring-disk:nth-child(6) .ring-texture-noise {
-  /* Weathered metal - aged effect */
-  filter: sepia(0.2) contrast(0.9) brightness(0.95);
-}
-
-.ring-disk:nth-child(7) .ring-texture-hatch,
-.ring-disk:nth-child(7) .ring-texture-noise {
-  /* Pewter ring - muted metallic */
-  filter: desaturate(0.3) brightness(0.9);
-}
-
-.ring-disk:nth-child(8) .ring-texture-hatch,
-.ring-disk:nth-child(8) .ring-texture-noise {
-  /* Lead ring - dark metallic */
-  filter: brightness(0.85) contrast(1.1);
-}
-
-.ring-disk:nth-child(9) .ring-texture-hatch,
-.ring-disk:nth-child(9) .ring-texture-noise {
-  /* Silver ring - bright metallic */
-  filter: brightness(1.1) saturate(0.7) hue-rotate(180deg);
 }
 
 /* Responsive design */
@@ -238,13 +190,8 @@
     font-size: 10px;
   }
   
-  /* Reduce texture intensity on smaller screens for clarity */
-  .ring-texture-noise {
-    opacity: 0.08;
-  }
-  
-  .ring-texture-hatch {
-    opacity: 0.06;
+  .cosmic-rings-dial {
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.4));
   }
 }
 
@@ -258,13 +205,8 @@
     font-size: 9px;
   }
   
-  /* Further reduce texture intensity on very small screens */
-  .ring-texture-noise {
-    opacity: 0.06;
-  }
-  
-  .ring-texture-hatch {
-    opacity: 0.05;
+  .cosmic-rings-dial {
+    filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.4));
   }
 }
 
@@ -292,26 +234,41 @@
   display: none !important;
 }
 
-/* Performance optimization for texture rendering */
-.ring-texture-noise,
-.ring-texture-hatch {
-  will-change: opacity;
-  transform: translateZ(0); /* GPU acceleration */
-}
-
-/* Anti-aliasing for smooth texture rendering */
-.cosmic-rings-dial {
-  shape-rendering: geometricPrecision;
-}
-
+/* Performance optimization */
 .ring-stroke,
-.ring-highlight,
-.ring-texture-noise,
-.ring-texture-hatch {
+.ring-sheen,
+.ring-texture-subtle,
+.ring-highlight {
+  will-change: opacity, filter;
+  transform: translateZ(0); /* GPU acceleration */
   vector-effect: non-scaling-stroke;
 }
 
-/* Subtle glow for texture layers when selected */
-.ring-disk.selected .ring-texture-hatch {
-  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.1));
+/* Enhanced depth and lighting */
+.cosmic-rings-dial {
+  background: radial-gradient(circle at center, 
+    rgba(26, 31, 46, 0.1) 0%, 
+    rgba(15, 20, 31, 0.3) 50%, 
+    rgba(8, 9, 12, 0.5) 100%);
+}
+
+/* Improved visual hierarchy */
+.ring-disk.selected {
+  z-index: 10;
+}
+
+.ring-disk:hover {
+  z-index: 5;
+}
+
+/* Clean, cosmic aesthetic preservation */
+.ring-stroke {
+  stroke-dasharray: none;
+  stroke-linejoin: round;
+}
+
+/* Subtle glow for better cosmic feel */
+.cosmic-rings-dial {
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.4)) 
+          drop-shadow(0 0 40px rgba(212, 175, 55, 0.02));
 }

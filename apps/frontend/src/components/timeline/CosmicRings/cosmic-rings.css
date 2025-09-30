@@ -1,0 +1,156 @@
+/* Cosmic Rings Dial Styles - Stone/Metal/Glass Materials */
+
+:root {
+  --cosmic-bg: #0b0e12;
+  --cosmic-text: #eae7df;
+  --cosmic-accent: #d4af37;
+  --rim-light: #f1deac;
+  --rim-mid: #8a6a3a;
+  --rim-dark: #2e2213;
+  --glass-light: rgba(255, 255, 255, 0.35);
+  --glass-faint: rgba(255, 255, 255, 0.12);
+}
+
+.cosmic-rings-container {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.cosmic-rings-dial {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+}
+
+/* Center label styling */
+.center-label {
+  font-family: 'Cinzel', 'Trajan Pro', serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  fill: var(--cosmic-text);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* Ring labels */
+.ring-label {
+  font-family: 'Cinzel', 'Trajan Pro', serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  fill: rgba(234, 231, 223, 0.9);
+  text-transform: uppercase;
+  pointer-events: none;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Etched text effect */
+.etched {
+  filter: url(#etchShadow);
+}
+
+/* Ring interaction states */
+.ring-group {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ring-group:hover .ring-rim {
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.55));
+  stroke-width: 16;
+  transition: all 0.3s ease;
+}
+
+.ring-group.selected .ring-rim {
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.7));
+  stroke-width: 18;
+  stroke: #f1deac;
+}
+
+.ring-group:hover .ring-glass {
+  stroke: rgba(255, 255, 255, 0.25);
+  stroke-width: 12;
+}
+
+.ring-group.selected .ring-glass {
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 14;
+}
+
+.ring-group:hover .ring-label {
+  fill: rgba(241, 222, 172, 0.95);
+  filter: url(#etchShadow) drop-shadow(0 0 4px rgba(212, 175, 55, 0.4));
+}
+
+.ring-group.selected .ring-label {
+  fill: #f1deac;
+  filter: url(#etchShadow) drop-shadow(0 0 6px rgba(212, 175, 55, 0.6));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cosmic-rings-container {
+    max-width: 90vw;
+  }
+  
+  .ring-label {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+  
+  .center-label {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ring-label {
+    font-size: 8px;
+    letter-spacing: 0.1em;
+  }
+  
+  .center-label {
+    font-size: 9px;
+  }
+}
+
+/* Animation for ring selection */
+@keyframes ringPulse {
+  0% { 
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+  }
+  50% { 
+    filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.8));
+  }
+  100% { 
+    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+  }
+}
+
+.ring-group.selected .ring-rim {
+  animation: ringPulse 2s ease-in-out infinite;
+}
+
+/* Accessibility improvements */
+.ring-group:focus {
+  outline: 2px solid var(--cosmic-accent);
+  outline-offset: 4px;
+}
+
+.ring-group:focus .ring-rim {
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.7));
+}
+
+/* Ensure no container backgrounds override the pure circular design */
+.cosmic-rings-container,
+.cosmic-rings-dial {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.cosmic-rings-container::before,
+.cosmic-rings-container::after {
+  display: none !important;
+}

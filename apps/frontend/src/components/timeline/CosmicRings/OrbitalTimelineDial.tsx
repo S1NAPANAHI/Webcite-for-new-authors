@@ -40,13 +40,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   
   // Animation speed constants - FIXED VALUES
   const FULL_CIRCLE = 2 * Math.PI;
-  const BASE_SPEED = 0.008;               // Slower base speed for contemplative visible movement
+  const BASE_SPEED = 0.008;               // Slow base speed for contemplative visible movement
   const HIDDEN_SPEED_MULTIPLIER = 3;      // 3x faster when hidden
-  
-  // Define visible arc range (right half-circle)
-  // For our display: top (270°) to bottom (90°) going clockwise
-  const VISIBLE_TOP = -Math.PI / 2;       // 270° = -π/2 (top of arc)
-  const VISIBLE_BOTTOM = Math.PI / 2;     // 90° = π/2 (bottom of arc)
 
   // Age names for text rotation
   const ageNames = [
@@ -78,26 +73,29 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     setPlanetAngles(planets.map(p => p.initialAngle));
   }, [ages]);
 
-  // Animation loop with proper variable speed
+  // Animation loop with CORRECTED variable speed logic
   useEffect(() => {
     let animationId: number;
     
     const animate = () => {
       setPlanetAngles(prevAngles => 
         prevAngles.map((angle) => {
-          // Normalize angle to -π to π for easier calculation
-          let normalizedAngle = ((angle + Math.PI) % FULL_CIRCLE) - Math.PI;
+          // Normalize angle to 0 to 2π range
+          let normalizedAngle = (angle % FULL_CIRCLE + FULL_CIRCLE) % FULL_CIRCLE;
           
-          // Check if planet is in the VISIBLE range (right half-circle)
-          // Visible range: from top (-π/2) to bottom (π/2)
-          const isInVisibleRange = normalizedAngle >= VISIBLE_TOP && normalizedAngle <= VISIBLE_BOTTOM;
+          // CORRECTED LOGIC: Check if planet is in VISIBLE range
+          // Visible arc: 0° to 180° (right half-circle that we can see)
+          // Hidden arc: 180° to 360° (left half-circle behind the mask)
+          const isInVisibleRange = normalizedAngle >= 0 && normalizedAngle <= Math.PI;
           
-          // Apply appropriate speed
+          // Apply appropriate speed based on position
           let delta;
           if (isInVisibleRange) {
-            delta = BASE_SPEED;  // Slow, contemplative speed on visible side
+            // On visible right half: slow, contemplative speed
+            delta = BASE_SPEED;
           } else {
-            delta = BASE_SPEED * HIDDEN_SPEED_MULTIPLIER;  // Faster on hidden side
+            // On hidden left half: fast speed to "rush" behind the mask
+            delta = BASE_SPEED * HIDDEN_SPEED_MULTIPLIER;
           }
 
           // Apply clockwise rotation (positive delta)

@@ -26,7 +26,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   className = ''
 }) => {
   const [orbitingPlanets, setOrbitingPlanets] = useState<OrbitingPlanet[]>([]);
-  const [animationTime, setAnimationTime] = useState(0);
+  const [planetAngles, setPlanetAngles] = useState<number[]>([]);
 
   // Constants for VERTICAL half-circle design (top to bottom on left side)
   const GOLD = '#CEB548';
@@ -37,6 +37,13 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const NODE_RADIUS = 16;
   const ORBIT_STEP = 35;
   const MIN_ORBIT_RADIUS = 60;
+  
+  // Animation speed constants
+  const FULL_CIRCLE = 2 * Math.PI;
+  const VISIBLE_START = 3 * Math.PI / 2;  // 270° (top of visible arc)
+  const VISIBLE_END = Math.PI / 2;        // 90° (bottom of visible arc)
+  const BASE_SPEED = 0.02;                // Original speed
+  const HIDDEN_SPEED_MULTIPLIER = 3;      // 3x faster when hidden
 
   // Age names for text rotation
   const ageNames = [
@@ -64,14 +71,34 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     });
 
     setOrbitingPlanets(planets);
+    // Initialize angles array
+    setPlanetAngles(planets.map(p => p.initialAngle));
   }, [ages]);
 
-  // Animation loop
+  // Animation loop with variable speed
   useEffect(() => {
     let animationId: number;
     
     const animate = () => {
-      setAnimationTime(prev => prev + 0.02);
+      setPlanetAngles(prevAngles => 
+        prevAngles.map((angle, index) => {
+          let delta = BASE_SPEED;  // Default normal speed
+
+          // Normalize angle to 0-2π
+          let normalized = (angle % FULL_CIRCLE + FULL_CIRCLE) % FULL_CIRCLE;
+
+          // Check if in visible range (right half)
+          if (normalized >= VISIBLE_START || normalized <= VISIBLE_END) {
+            delta = BASE_SPEED;  // Normal speed on visible side
+          } else {
+            delta = BASE_SPEED * HIDDEN_SPEED_MULTIPLIER;  // Faster on hidden side
+          }
+
+          // Apply clockwise rotation (positive delta)
+          return (angle + delta) % FULL_CIRCLE;
+        })
+      );
+      
       animationId = requestAnimationFrame(animate);
     };
     
@@ -88,10 +115,14 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
-  // Calculate position for FULL orbit - no visibility checks, just pure orbital math
-  const calculatePlanetPosition = (planet: OrbitingPlanet) => {
-    // Calculate current angle in full orbit (0 to 2π)
-    const currentAngle = (planet.initialAngle + animationTime * planet.speed) % (2 * Math.PI);
+  // Calculate position for FULL orbit with current angle from state
+  const calculatePlanetPosition = (planetIndex: number) => {
+    if (!planetAngles[planetIndex] || !orbitingPlanets[planetIndex]) {
+      return { x: CENTER_X, y: CENTER_Y, angle: 0 };
+    }
+    
+    const planet = orbitingPlanets[planetIndex];
+    const currentAngle = planetAngles[planetIndex];
     
     // Convert full orbit to our coordinate system
     // We want to show the right side of the orbit as our half-circle
@@ -166,13 +197,13 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
               />
             ))}
             
-            {/* CORRECTED MASKING: Define clip path for the visible right half */}
+            {/* FIXED MASKING: Extended clip path to cover orbit line overflow */}
             <clipPath id="rightHalfClip">
-              {/* Rectangle covering the right side from center line to edge */}
+              {/* Rectangle covering the right side, extended 4px left to mask overflows */}
               <rect 
-                x={CENTER_X} 
+                x={CENTER_X - 4}  // Extended 4px left to cover overflows
                 y={0} 
-                width={SVG_SIZE - CENTER_X} 
+                width={SVG_SIZE - (CENTER_X - 4)}  // Adjusted width accordingly
                 height={SVG_SIZE} 
                 fill="white"
               />
@@ -238,9 +269,9 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
 
           {/* CLIPPED GROUP: Planets with smooth masking transition */}
           <g clipPath="url(#rightHalfClip)">
-            {/* MOVING Planets - ALL planets render, clipping handles visibility */}
+            {/* MOVING Planets with variable speed - ALL planets render, clipping handles visibility */}
             {orbitingPlanets.map((planet, index) => {
-              const position = calculatePlanetPosition(planet);
+              const position = calculatePlanetPosition(index);
               const selected = isSelected(planet);
               
               return (

@@ -1,4 +1,4 @@
-/* Cosmic Rings Dial Styles - Stone/Metal/Glass Materials */
+/* Cosmic Rings Dial - Thick Textured Disks */
 
 :root {
   --cosmic-bg: #0b0e12;
@@ -13,136 +13,262 @@
 
 .cosmic-rings-container {
   width: 100%;
-  max-width: 620px;
+  max-width: 650px;
   margin: 0 auto;
 }
 
 .cosmic-rings-dial {
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.4));
 }
 
 /* Center label styling */
 .center-label {
   font-family: 'Cinzel', 'Trajan Pro', serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
   fill: var(--cosmic-text);
   text-transform: uppercase;
   pointer-events: none;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
 }
 
-/* Ring labels */
-.ring-label {
-  font-family: 'Cinzel', 'Trajan Pro', serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  fill: rgba(234, 231, 223, 0.9);
-  text-transform: uppercase;
-  pointer-events: none;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+/* Disk group interactions */
+.disk-group {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Etched text effect */
-.etched {
-  filter: url(#etchShadow);
-}
-
-/* Ring interaction states */
-.ring-group {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ring-group:hover .ring-rim {
-  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.55));
-  stroke-width: 16;
+/* Main disk styling */
+.disk-main {
   transition: all 0.3s ease;
+  stroke-linecap: round;
 }
 
-.ring-group.selected .ring-rim {
-  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.7));
-  stroke-width: 18;
-  stroke: #f1deac;
+.disk-group:hover .disk-main {
+  filter: url(#stoneTexture) drop-shadow(0 0 12px rgba(212, 175, 55, 0.4));
 }
 
-.ring-group:hover .ring-glass {
-  stroke: rgba(255, 255, 255, 0.25);
+.disk-group.selected .disk-main {
+  filter: url(#stoneTexture) drop-shadow(0 0 20px rgba(212, 175, 55, 0.8));
+  animation: diskPulse 3s ease-in-out infinite;
+}
+
+/* Disk shadow for depth */
+.disk-shadow {
+  transition: opacity 0.3s ease;
+  stroke-linecap: round;
+}
+
+.disk-group:hover .disk-shadow {
+  opacity: 0.8;
+}
+
+.disk-group.selected .disk-shadow {
+  opacity: 1;
+}
+
+/* Highlight overlay */
+.disk-highlight {
+  transition: all 0.3s ease;
+  stroke-linecap: round;
+}
+
+.disk-group:hover .disk-highlight {
+  opacity: 1;
   stroke-width: 12;
 }
 
-.ring-group.selected .ring-glass {
-  stroke: rgba(255, 255, 255, 0.35);
+.disk-group.selected .disk-highlight {
+  opacity: 1;
   stroke-width: 14;
 }
 
-.ring-group:hover .ring-label {
-  fill: rgba(241, 222, 172, 0.95);
-  filter: url(#etchShadow) drop-shadow(0 0 4px rgba(212, 175, 55, 0.4));
+/* Metal rim styling */
+.disk-rim {
+  transition: all 0.3s ease;
+  stroke-linecap: round;
 }
 
-.ring-group.selected .ring-label {
+.disk-group:hover .disk-rim {
+  stroke-width: 4;
+  opacity: 0.9;
+}
+
+.disk-group.selected .disk-rim {
+  stroke-width: 5;
+  opacity: 1;
+  animation: rimGlow 2.5s ease-in-out infinite alternate;
+}
+
+/* Disk labels */
+.disk-label {
+  font-family: 'Cinzel', 'Trajan Pro', serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  fill: rgba(234, 231, 223, 0.85);
+  text-transform: uppercase;
+  pointer-events: none;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+  transition: all 0.3s ease;
+}
+
+.disk-group:hover .disk-label {
+  fill: rgba(241, 222, 172, 0.95);
+  font-size: 13px;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+}
+
+.disk-group.selected .disk-label {
   fill: #f1deac;
-  filter: url(#etchShadow) drop-shadow(0 0 6px rgba(212, 175, 55, 0.6));
+  font-size: 14px;
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.8);
+}
+
+/* Age numbers */
+.age-number {
+  font-family: 'Cinzel', 'Trajan Pro', serif;
+  font-size: 16px;
+  font-weight: 700;
+  fill: var(--cosmic-accent);
+  text-anchor: middle;
+  pointer-events: none;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+  transition: all 0.3s ease;
+}
+
+.disk-group:hover .age-number {
+  fill: var(--rim-light);
+  font-size: 18px;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+}
+
+.disk-group.selected .age-number {
+  fill: #f4e4b8;
+  font-size: 20px;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.9);
+}
+
+/* Stars styling */
+.stars circle {
+  filter: drop-shadow(0 0 3px rgba(212, 175, 55, 0.4));
+}
+
+/* Center core styling */
+.center-core {
+  filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.3));
+}
+
+/* Animations */
+@keyframes diskPulse {
+  0% { 
+    filter: url(#stoneTexture) drop-shadow(0 0 20px rgba(212, 175, 55, 0.8));
+  }
+  50% { 
+    filter: url(#stoneTexture) drop-shadow(0 0 32px rgba(212, 175, 55, 1));
+  }
+  100% { 
+    filter: url(#stoneTexture) drop-shadow(0 0 20px rgba(212, 175, 55, 0.8));
+  }
+}
+
+@keyframes rimGlow {
+  0% { 
+    opacity: 1;
+    stroke-width: 5;
+  }
+  100% { 
+    opacity: 0.7;
+    stroke-width: 6;
+  }
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .cosmic-rings-container {
-    max-width: 90vw;
+    max-width: 95vw;
   }
   
-  .ring-label {
-    font-size: 9px;
+  .disk-label {
+    font-size: 10px;
     letter-spacing: 0.12em;
   }
   
+  .disk-group:hover .disk-label {
+    font-size: 11px;
+  }
+  
+  .disk-group.selected .disk-label {
+    font-size: 12px;
+  }
+  
   .center-label {
-    font-size: 10px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+  }
+  
+  .age-number {
+    font-size: 14px;
+  }
+  
+  .disk-group:hover .age-number {
+    font-size: 16px;
+  }
+  
+  .disk-group.selected .age-number {
+    font-size: 18px;
   }
 }
 
 @media (max-width: 480px) {
-  .ring-label {
+  .disk-label {
     font-size: 8px;
     letter-spacing: 0.1em;
   }
   
-  .center-label {
+  .disk-group:hover .disk-label {
     font-size: 9px;
   }
-}
-
-/* Animation for ring selection */
-@keyframes ringPulse {
-  0% { 
-    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+  
+  .disk-group.selected .disk-label {
+    font-size: 10px;
   }
-  50% { 
-    filter: drop-shadow(0 0 16px rgba(212, 175, 55, 0.8));
+  
+  .center-label {
+    font-size: 9px;
+    letter-spacing: 0.16em;
   }
-  100% { 
-    filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+  
+  .age-number {
+    font-size: 12px;
   }
-}
-
-.ring-group.selected .ring-rim {
-  animation: ringPulse 2s ease-in-out infinite;
+  
+  .disk-group:hover .age-number {
+    font-size: 14px;
+  }
+  
+  .disk-group.selected .age-number {
+    font-size: 16px;
+  }
 }
 
 /* Accessibility improvements */
-.ring-group:focus {
-  outline: 2px solid var(--cosmic-accent);
-  outline-offset: 4px;
+.disk-group:focus {
+  outline: 3px solid var(--cosmic-accent);
+  outline-offset: 6px;
+  border-radius: 50%;
 }
 
-.ring-group:focus .ring-rim {
-  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.7));
+.disk-group:focus .disk-rim {
+  stroke-width: 6;
+  opacity: 1;
+  filter: url(#diskGlow);
 }
 
-/* Ensure no container backgrounds override the pure circular design */
+/* Ensure no background interference */
 .cosmic-rings-container,
 .cosmic-rings-dial {
   background: none !important;
@@ -150,7 +276,21 @@
   box-shadow: none !important;
 }
 
+/* Hide any container artifacts */
 .cosmic-rings-container::before,
 .cosmic-rings-container::after {
   display: none !important;
+}
+
+/* Material depth enhancements */
+.disk-main {
+  paint-order: stroke fill markers;
+}
+
+.disk-highlight {
+  mix-blend-mode: screen;
+}
+
+.disk-shadow {
+  mix-blend-mode: multiply;
 }

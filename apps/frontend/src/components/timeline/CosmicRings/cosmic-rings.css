@@ -7,7 +7,7 @@
 
 .cosmic-rings-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 650px;
   margin: 0 auto;
 }
 
@@ -31,23 +31,44 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.disk-base {
-  transition: all 0.3s ease;
+/* Clickable area - invisible but covers full ring thickness */
+.click-area {
+  opacity: 0;
+  cursor: pointer;
 }
 
-.disk-highlight {
-  transition: all 0.3s ease;
-  opacity: 0.7;
+.click-area:hover {
+  opacity: 0; /* Keep invisible but ensure it's clickable */
 }
 
-.ring-disk:hover .disk-highlight {
-  opacity: 1;
+/* Main ring stroke */
+.ring-stroke {
+  transition: filter 0.3s ease, stroke-opacity 0.3s ease;
 }
 
-.ring-disk.selected .disk-highlight {
-  opacity: 1;
+.ring-disk:hover .ring-stroke {
+  filter: url(#hoverGlow) !important;
 }
 
+.ring-disk.selected .ring-stroke {
+  filter: url(#selectionGlow) !important;
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
+/* Ring highlight */
+.ring-highlight {
+  transition: stroke-opacity 0.3s ease;
+}
+
+.ring-disk:hover .ring-highlight {
+  stroke-opacity: 1.2;
+}
+
+.ring-disk.selected .ring-highlight {
+  stroke-opacity: 1.4;
+}
+
+/* Rim styling */
 .inner-rim, .outer-rim {
   pointer-events: none;
   transition: stroke-opacity 0.3s ease;
@@ -60,66 +81,44 @@
 
 .ring-disk.selected .inner-rim,
 .ring-disk.selected .outer-rim {
-  stroke: rgba(212, 175, 55, 0.6);
-  stroke-opacity: 0.8;
-}
-
-/* Selection ring for hover/selected states */
-.selection-ring {
-  transition: all 0.3s ease;
-}
-
-.ring-disk.selected .selection-ring {
-  animation: selectedPulse 2s ease-in-out infinite;
+  stroke: rgba(212, 175, 55, 0.8);
+  stroke-opacity: 0.9;
 }
 
 /* Text styling */
 .ring-label {
   font-family: 'Cinzel', 'Trajan Pro', serif;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.1em;
-  fill: rgba(234, 231, 223, 0.8);
+  fill: rgba(234, 231, 223, 0.85);
   text-transform: uppercase;
   pointer-events: none;
-  transition: all 0.3s ease;
 }
 
 .ring-disk:hover .ring-label {
-  fill: rgba(241, 222, 172, 0.95);
-  font-size: 11px;
+  fill: rgba(241, 222, 172, 1);
+  font-weight: 600;
 }
 
 .ring-disk.selected .ring-label {
   fill: #f1deac;
-  font-weight: 600;
-  font-size: 11px;
+  font-weight: 700;
 }
 
 .age-number {
   font-family: 'Cinzel', serif;
   font-weight: 600;
   pointer-events: none;
-  transition: all 0.3s ease;
-}
-
-.ring-disk:hover .age-number {
-  fill: rgba(241, 222, 172, 0.9);
-  font-size: 11px;
-}
-
-.ring-disk.selected .age-number {
-  fill: #f1deac;
-  font-size: 12px;
 }
 
 /* Animation for selected ring */
 @keyframes selectedPulse {
   0%, 100% { 
-    opacity: 0.8;
+    opacity: 1;
   }
   50% { 
-    opacity: 0.4;
+    opacity: 0.85;
   }
 }
 
@@ -130,42 +129,23 @@
   }
   
   .ring-label {
-    font-size: 8px;
+    font-size: 9px;
     letter-spacing: 0.08em;
   }
   
-  .ring-disk:hover .ring-label,
-  .ring-disk.selected .ring-label {
-    font-size: 9px;
-  }
-  
   .center-label {
-    font-size: 9px;
+    font-size: 10px;
   }
 }
 
 @media (max-width: 480px) {
   .ring-label {
-    font-size: 7px;
+    font-size: 8px;
     letter-spacing: 0.06em;
   }
   
-  .ring-disk:hover .ring-label,
-  .ring-disk.selected .ring-label {
-    font-size: 8px;
-  }
-  
   .center-label {
-    font-size: 8px;
-  }
-  
-  .age-number {
     font-size: 9px;
-  }
-  
-  .ring-disk:hover .age-number,
-  .ring-disk.selected .age-number {
-    font-size: 10px;
   }
 }
 
@@ -175,8 +155,8 @@
   outline-offset: 4px;
 }
 
-.ring-disk:focus .disk-base {
-  opacity: 1;
+.ring-disk:focus .ring-stroke {
+  filter: url(#selectionGlow) !important;
 }
 
 /* Ensure clean rendering */

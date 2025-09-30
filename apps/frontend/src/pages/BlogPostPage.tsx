@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 // Import CSS for proper paragraph spacing
 import '../styles/chapter-content.css';
+// Import the BlogCoverImage component for proper cropping support
+import BlogCoverImage from '../components/blog/BlogCoverImage';
 
 interface BlogPost {
   id: string;
@@ -24,6 +26,7 @@ interface BlogPost {
   excerpt?: string;
   content: string;
   cover_url?: string;
+  cover_crop_settings?: any; // JSON crop settings
   featured_image?: string;
   author?: string;
   status?: string;
@@ -74,7 +77,7 @@ export default function BlogPostPage() {
       
       console.log(`🔍 Fetching blog post with slug: ${slug}`);
       
-      // Fetch post by slug
+      // FIXED: Fetch post by slug including crop settings
       const { data, error } = await supabase
         .from('blog_posts')
         .select('*')
@@ -98,6 +101,7 @@ export default function BlogPostPage() {
       }
 
       console.log('✅ Post found:', data);
+      console.log('🎨 Cover crop settings:', data.cover_crop_settings);
 
       // Process post data
       let tags = [];
@@ -123,13 +127,29 @@ export default function BlogPostPage() {
         // Keep as string if parsing fails
       }
 
+      // FIXED: Process crop settings
+      let cropSettings = null;
+      if (data.cover_crop_settings) {
+        try {
+          cropSettings = typeof data.cover_crop_settings === 'string' 
+            ? JSON.parse(data.cover_crop_settings)
+            : data.cover_crop_settings;
+          console.log('✂️ Parsed crop settings:', cropSettings);
+        } catch (err) {
+          console.warn('⚠️ Failed to parse crop settings:', err);
+          cropSettings = null;
+        }
+      }
+
       const processedPost = {
         ...data,
         tags,
         content: typeof content === 'string' ? content : JSON.stringify(content),
         views: (data.views || 0) + 1, // Increment view count
         author: data.author || 'Zoroastervers Team',
-        featured_image: data.featured_image || data.cover_url
+        cover_url: data.cover_url || data.featured_image, // Use cover_url as primary
+        cover_crop_settings: cropSettings,
+        featured_image: data.cover_url || data.featured_image // For compatibility
       };
 
       setPost(processedPost);
@@ -141,6 +161,8 @@ export default function BlogPostPage() {
         .eq('id', data.id);
 
       console.log('✅ Post loaded and view count updated');
+      console.log('🖼️ Cover URL:', processedPost.cover_url);
+      console.log('✂️ Crop settings applied:', !!cropSettings);
 
     } catch (err) {
       console.error('❌ Error in fetchPost:', err);
@@ -156,9 +178,10 @@ export default function BlogPostPage() {
     try {
       console.log('🔍 Fetching related posts...');
       
+      // FIXED: Also fetch crop settings for related posts
       const { data, error } = await supabase
         .from('blog_posts')
-        .select('id, title, slug, excerpt, cover_url, featured_image, author, published_at, views')
+        .select('id, title, slug, excerpt, cover_url, cover_crop_settings, featured_image, author, published_at, views')
         .eq('status', 'published')
         .neq('id', post.id)
         .limit(3);
@@ -168,7 +191,8 @@ export default function BlogPostPage() {
       if (data && data.length > 0) {
         setRelatedPosts(data.map(p => ({
           ...p,
-          featured_image: p.featured_image || p.cover_url
+          cover_url: p.cover_url || p.featured_image,
+          featured_image: p.cover_url || p.featured_image // For compatibility
         })));
         console.log(`✅ Found ${data.length} related posts`);
       }
@@ -367,17 +391,28 @@ export default function BlogPostPage() {
           </div>
         </header>
 
-        {/* Cover image */}
-        {post.featured_image && (
-          <div className="mb-8 rounded-xl overflow-hidden shadow-lg">
-            <img
-              src={post.featured_image}
-              alt={post.title}
-              className="w-full h-96 object-cover"
-              onError={(e) => {
-                e.currentTarget.src = '/api/placeholder/800/400';
+        {/* ✅ FIXED: Cover image with proper cropping support */}
+        {post.cover_url && (
+          <div className="mb-8">
+            <BlogCoverImage 
+              blogPost={{
+                title: post.title,
+                slug: post.slug,
+                cover_url: post.cover_url,
+                cover_crop_settings: post.cover_crop_settings
               }}
+              size="hero"
+              priority={true}
+              className="rounded-xl overflow-hidden shadow-lg"
+              showPlaceholder={true}
             />
+            
+            {/* Optional: Show crop indicator in development */}
+            {process.env.NODE_ENV === 'development' && post.cover_crop_settings && (
+              <div className="mt-2 text-xs text-green-600 dark:text-green-400">
+                ✂️ Image displayed with 16:9 cropping applied
+              </div>
+            )}
           </div>
         )}
 
@@ -446,7 +481,7 @@ export default function BlogPostPage() {
           </div>
         </div>
 
-        {/* Related posts with dark mode */}
+        {/* ✅ FIXED: Related posts with cropping support */}
         {relatedPosts.length > 0 && (
           <div className="mb-8">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 transition-colors">Related Posts</h3>
@@ -457,15 +492,19 @@ export default function BlogPostPage() {
                   to={`/blog/${relatedPost.slug}`}
                   className="group block bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all border dark:border-gray-700"
                 >
-                  {relatedPost.featured_image && (
+                  {/* Use BlogCoverImage for related posts too */}
+                  {relatedPost.cover_url && (
                     <div className="aspect-video overflow-hidden">
-                      <img
-                        src={relatedPost.featured_image}
-                        alt={relatedPost.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        onError={(e) => {
-                          e.currentTarget.src = '/api/placeholder/300/200';
+                      <BlogCoverImage 
+                        blogPost={{
+                          title: relatedPost.title,
+                          slug: relatedPost.slug || '',
+                          cover_url: relatedPost.cover_url,
+                          cover_crop_settings: relatedPost.cover_crop_settings
                         }}
+                        size="medium"
+                        className="group-hover:scale-105 transition-transform duration-200"
+                        showPlaceholder={false}
                       />
                     </div>
                   )}

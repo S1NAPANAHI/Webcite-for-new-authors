@@ -1,6 +1,6 @@
 /* =======================
-   LAYERED TIMELINE INTERFACE
-   Beautiful glassy card layers with smooth animations
+   TRUE 3D LAYERED TIMELINE INTERFACE
+   Real depth stacking with radius expansion animation
    ======================= */
 
 .layered-timeline-interface {
@@ -14,6 +14,8 @@
     rgba(20, 20, 25, 1) 100%
   );
   overflow: hidden;
+  perspective: 2000px; /* 3D perspective for true depth */
+  perspective-origin: center center;
 }
 
 .timeline-background {
@@ -24,15 +26,15 @@
   bottom: 0;
   background: radial-gradient(
     ellipse at 20% center,
-    rgba(206, 181, 72, 0.05) 0%,
-    rgba(206, 181, 72, 0.02) 40%,
+    rgba(206, 181, 72, 0.08) 0%,
+    rgba(206, 181, 72, 0.03) 40%,
     transparent 70%
   );
   pointer-events: none;
 }
 
 /* =======================
-   LAYER CARDS CONTAINER
+   3D LAYER CARDS CONTAINER
    ======================= */
 
 .layer-cards-container {
@@ -43,155 +45,236 @@
   align-items: center;
   justify-content: flex-start;
   padding-left: 2rem;
+  transform-style: preserve-3d; /* Enable 3D transforms */
 }
 
 .layers-svg {
   max-width: 100%;
   max-height: 100%;
+  transform-style: preserve-3d;
   filter: drop-shadow(0 0 20px rgba(206, 181, 72, 0.1));
 }
 
 /* =======================
-   LAYER CARD ANIMATIONS
+   TRUE 3D LAYER STACKING
    ======================= */
 
 .layer-card {
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: center;
 }
 
-.layer-card:hover .layer-path {
-  fillOpacity: 0.6 !important;
-  strokeOpacity: 0.8 !important;
-  filter: url(#glassy-blur) drop-shadow(0 0 15px rgba(206, 181, 72, 0.3));
+/* Create true depth with translateZ and shadows */
+.layer-card .layer-path {
+  transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: 
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 4px 8px rgba(206, 181, 72, 0.2))
+    drop-shadow(0 0 20px rgba(206, 181, 72, 0.1));
 }
 
-.layer-card:hover .layer-label {
-  opacity: 1 !important;
-  font-size: 18px;
+/* Enhanced depth shadows for stacking effect */
+.layer-card:nth-child(1) .layer-path {
+  filter: 
+    drop-shadow(0 16px 32px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 8px 16px rgba(206, 181, 72, 0.3))
+    drop-shadow(0 0 30px rgba(206, 181, 72, 0.2));
+}
+
+.layer-card:nth-child(2) .layer-path {
+  filter: 
+    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 7px 14px rgba(206, 181, 72, 0.25))
+    drop-shadow(0 0 25px rgba(206, 181, 72, 0.15));
+}
+
+.layer-card:nth-child(3) .layer-path {
+  filter: 
+    drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4))
+    drop-shadow(0 6px 12px rgba(206, 181, 72, 0.2))
+    drop-shadow(0 0 20px rgba(206, 181, 72, 0.1));
+}
+
+/* Continue pattern for deeper layers */
+.layer-card:nth-child(n+4) .layer-path {
+  filter: 
+    drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3))
+    drop-shadow(0 4px 8px rgba(206, 181, 72, 0.15))
+    drop-shadow(0 0 15px rgba(206, 181, 72, 0.08));
+}
+
+/* Hover effects with depth */
+.layer-card:hover .layer-path {
+  filter: 
+    drop-shadow(0 20px 40px rgba(0, 0, 0, 0.6))
+    drop-shadow(0 10px 20px rgba(206, 181, 72, 0.4))
+    drop-shadow(0 0 40px rgba(206, 181, 72, 0.3)) !important;
+  transform: translateZ(20px) scale(1.02);
 }
 
 .layer-card:hover .layer-highlight {
   strokeOpacity: 1 !important;
-  strokeWidth: 2;
+  strokeWidth: 3;
+  filter: drop-shadow(0 0 15px rgba(206, 181, 72, 0.6));
 }
 
+.layer-card:hover .layer-label {
+  opacity: 1 !important;
+  font-size: 20px;
+  filter: drop-shadow(0 0 10px rgba(206, 181, 72, 0.8));
+  transform: translateZ(25px);
+}
+
+/* Selected layer effects */
 .layer-card.selected .layer-path {
-  fillOpacity: 0.7 !important;
-  strokeOpacity: 1 !important;
-  strokeWidth: 4;
-  filter: url(#glassy-blur) drop-shadow(0 0 20px rgba(206, 181, 72, 0.4));
+  stroke: #CEB548;
+  strokeWidth: 5;
+  strokeOpacity: 1;
+  filter: 
+    drop-shadow(0 25px 50px rgba(0, 0, 0, 0.7))
+    drop-shadow(0 12px 25px rgba(206, 181, 72, 0.5))
+    drop-shadow(0 0 50px rgba(206, 181, 72, 0.4)) !important;
 }
 
 .layer-card.selected .layer-label {
-  opacity: 1 !important;
-  font-size: 20px !important;
-  filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6));
+  font-size: 22px !important;
+  filter: drop-shadow(0 0 15px rgba(206, 181, 72, 0.9));
+  transform: translateZ(30px);
 }
 
-.layer-card.dimmed {
-  opacity: 0.3;
+/* Hide non-expanded layers during expansion */
+.layer-card.hidden {
+  opacity: 0;
+  transform: translateZ(-200px) scale(0.8);
+  transition: all 0.8s ease;
   pointer-events: none;
 }
 
-/* Expanded layer animation */
+/* EXPANSION ANIMATION - This is the key! */
 .layer-card.expanded {
-  transform: scale(1.05);
-  filter: drop-shadow(0 0 40px rgba(206, 181, 72, 0.5));
+  transform: translateZ(500px) scale(1.1);
+  transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.layer-card.expanded .layer-path {
+  filter: 
+    drop-shadow(0 0 80px rgba(206, 181, 72, 0.6))
+    drop-shadow(0 0 120px rgba(206, 181, 72, 0.3))
+    drop-shadow(0 0 200px rgba(206, 181, 72, 0.2)) !important;
+  stroke: #CEB548;
+  strokeWidth: 8;
+  strokeOpacity: 1;
 }
 
 /* =======================
-   CENTRAL SUN STYLING
+   CENTRAL SUN WITH 3D DEPTH
    ======================= */
 
 .central-sun {
   box-shadow: 
-    0 0 30px rgba(206, 181, 72, 0.6),
-    inset 0 0 20px rgba(206, 181, 72, 0.2);
+    0 0 40px rgba(206, 181, 72, 0.8),
+    0 0 80px rgba(206, 181, 72, 0.4),
+    inset 0 0 30px rgba(206, 181, 72, 0.3);
   transition: all 0.8s ease;
 }
 
 .central-sun::before {
   content: '';
   position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
   background: radial-gradient(
     circle,
-    rgba(206, 181, 72, 0.3) 0%,
-    transparent 70%
+    rgba(206, 181, 72, 0.4) 0%,
+    rgba(206, 181, 72, 0.2) 50%,
+    transparent 80%
   );
   border-radius: 50%;
   z-index: -1;
+  filter: blur(4px);
+}
+
+.central-sun::after {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  right: -16px;
+  bottom: -16px;
+  background: radial-gradient(
+    circle,
+    rgba(206, 181, 72, 0.2) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  z-index: -2;
+  filter: blur(8px);
 }
 
 /* =======================
-   EXPANDED LAYER OVERLAY
+   EXPANDED LAYER CONTENT
    ======================= */
 
-.expanded-layer-overlay {
+.expanded-layer-content {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 15, 20, 0.95);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: expandIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.expanded-layer-overlay.animating {
+  z-index: 1001;
   pointer-events: none;
+  animation: contentFadeIn 1.2s ease-in-out 0.6s both;
 }
 
-@keyframes expandIn {
+@keyframes contentFadeIn {
   0% {
     opacity: 0;
-    backdrop-filter: blur(0px);
-    transform: scale(0.8);
+    transform: translateY(50px);
   }
   100% {
     opacity: 1;
-    backdrop-filter: blur(10px);
-    transform: scale(1);
+    transform: translateY(0);
   }
 }
 
-.expanded-content {
-  position: relative;
-  width: 90%;
+.expanded-age-content {
+  width: 100%;
+  height: 100%;
+  padding: 4rem 3rem 2rem;
+  overflow-y: auto;
+  background: rgba(15, 15, 20, 0.1); /* Very subtle overlay */
+  backdrop-filter: blur(1px);
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.expanded-age-panel {
   max-width: 1200px;
-  height: 90%;
-  background: linear-gradient(
-    135deg,
-    rgba(25, 25, 30, 0.9) 0%,
-    rgba(35, 35, 40, 0.9) 100%
-  );
-  border: 2px solid rgba(206, 181, 72, 0.4);
+  width: 100%;
+  background: rgba(25, 25, 30, 0.85);
+  border: 2px solid rgba(206, 181, 72, 0.3);
   border-radius: 20px;
   padding: 2rem;
-  overflow-y: auto;
   backdrop-filter: blur(20px);
   box-shadow: 
-    0 0 50px rgba(206, 181, 72, 0.2),
-    inset 0 0 30px rgba(206, 181, 72, 0.1);
+    0 0 60px rgba(206, 181, 72, 0.2),
+    inset 0 0 40px rgba(206, 181, 72, 0.05);
 }
 
 /* Close button for expanded view */
 .close-expanded-btn {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  width: 48px;
-  height: 48px;
-  background: rgba(206, 181, 72, 0.2);
-  border: 2px solid rgba(206, 181, 72, 0.4);
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  background: rgba(206, 181, 72, 0.15);
+  border: 3px solid rgba(206, 181, 72, 0.4);
   border-radius: 50%;
   color: #CEB548;
   cursor: pointer;
@@ -199,14 +282,30 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  z-index: 1001;
+  z-index: 1002;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+  animation: buttonSlideIn 0.6s ease 0.8s both;
+}
+
+@keyframes buttonSlideIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .close-expanded-btn:hover {
-  background: rgba(206, 181, 72, 0.3);
-  border-color: rgba(206, 181, 72, 0.6);
+  background: rgba(206, 181, 72, 0.25);
+  border-color: rgba(206, 181, 72, 0.7);
   transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(206, 181, 72, 0.4);
+  box-shadow: 
+    0 0 30px rgba(206, 181, 72, 0.4),
+    0 0 60px rgba(206, 181, 72, 0.2);
 }
 
 .close-expanded-btn:disabled {
@@ -216,7 +315,7 @@
 }
 
 /* =======================
-   INSTRUCTIONS PANEL
+   ENHANCED INSTRUCTIONS PANEL
    ======================= */
 
 .instructions-panel {
@@ -224,57 +323,82 @@
   top: 50%;
   right: 2rem;
   transform: translateY(-50%);
-  max-width: 400px;
-  padding: 1.5rem;
-  background: rgba(20, 20, 25, 0.9);
+  max-width: 420px;
+  padding: 2rem;
+  background: rgba(25, 25, 30, 0.9);
   border: 2px solid rgba(206, 181, 72, 0.3);
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
   z-index: 10;
+  box-shadow: 
+    0 0 40px rgba(206, 181, 72, 0.1),
+    inset 0 0 20px rgba(206, 181, 72, 0.05);
 }
 
 .instructions-panel h3 {
   color: #CEB548;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: bold;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   font-family: 'Papyrus', Georgia, serif;
+  text-shadow: 0 0 10px rgba(206, 181, 72, 0.3);
 }
 
 .instructions-panel p {
-  color: rgba(206, 181, 72, 0.8);
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin-bottom: 0.5rem;
+  color: rgba(206, 181, 72, 0.85);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
 }
 
-.instructions-panel p:last-child {
-  margin-bottom: 0;
+.instructions-panel p:last-of-type {
+  margin-bottom: 1.5rem;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  background: rgba(206, 181, 72, 0.08);
+  border: 1px solid rgba(206, 181, 72, 0.2);
+  border-radius: 8px;
+  color: rgba(206, 181, 72, 0.9);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.feature:hover {
+  background: rgba(206, 181, 72, 0.12);
+  border-color: rgba(206, 181, 72, 0.3);
+  transform: translateX(4px);
 }
 
 /* =======================
-   LAYER SPECIFIC STYLING
+   ENHANCED TEXT STYLING
    ======================= */
 
-.layer-path {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.layer-highlight {
-  transition: all 0.3s ease;
-}
-
 .layer-label {
-  transition: all 0.3s ease;
-  text-shadow: 0 0 10px rgba(206, 181, 72, 0.5);
+  text-shadow: 
+    0 0 10px rgba(206, 181, 72, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.8);
   letter-spacing: 0.05em;
-}
-
-.layer-number-bg {
-  transition: all 0.3s ease;
+  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .layer-number {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  transition: all 0.3s ease;
+}
+
+.layer-number-bg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   transition: all 0.3s ease;
 }
 
@@ -283,6 +407,10 @@
    ======================= */
 
 @media (max-width: 768px) {
+  .layered-timeline-interface {
+    perspective: 1500px;
+  }
+  
   .layer-cards-container {
     padding-left: 1rem;
   }
@@ -294,19 +422,23 @@
     max-width: none;
   }
   
-  .expanded-content {
-    width: 95%;
-    height: 95%;
-    padding: 1rem;
+  .expanded-age-content {
+    padding: 2rem 1rem;
   }
   
   .close-expanded-btn {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
+    top: 1rem;
+    right: 1rem;
   }
 }
 
 @media (max-width: 480px) {
+  .layered-timeline-interface {
+    perspective: 1000px;
+  }
+  
   .layers-svg {
     width: 90%;
   }
@@ -319,52 +451,62 @@
   .layer-card.selected .layer-label {
     font-size: 16px !important;
   }
+  
+  .expanded-age-content {
+    padding: 1rem 0.5rem;
+  }
 }
 
 /* =======================
-   ACCESSIBILITY
+   ACCESSIBILITY & PERFORMANCE
    ======================= */
 
 .layer-card:focus {
-  outline: 2px solid rgba(206, 181, 72, 0.6);
-  outline-offset: 4px;
+  outline: 3px solid rgba(206, 181, 72, 0.6);
+  outline-offset: 6px;
 }
 
 .close-expanded-btn:focus {
-  outline: 2px solid rgba(206, 181, 72, 0.6);
-  outline-offset: 2px;
+  outline: 3px solid rgba(206, 181, 72, 0.6);
+  outline-offset: 3px;
 }
 
-/* =======================
-   PERFORMANCE OPTIMIZATIONS
-   ======================= */
-
+/* Performance optimizations */
 .layer-card,
 .layer-path,
 .layer-highlight,
 .layer-label {
-  will-change: transform, opacity;
+  will-change: transform, opacity, filter;
 }
 
-.expanded-layer-overlay {
-  will-change: opacity, backdrop-filter;
+.expanded-layer-content {
+  will-change: opacity, transform;
 }
 
-/* Reduce motion for users who prefer it */
+/* Reduce motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .layer-card,
-  .expanded-layer-overlay,
+  .expanded-layer-content,
   .close-expanded-btn {
-    transition-duration: 0.2s;
-    animation-duration: 0.2s;
+    transition-duration: 0.3s;
+    animation-duration: 0.3s;
   }
   
-  @keyframes expandIn {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
+  .layered-timeline-interface {
+    perspective: none;
+  }
+  
+  .layer-card .layer-path {
+    transform: none !important;
+  }
+  
+  @keyframes contentFadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  @keyframes buttonSlideIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
   }
 }

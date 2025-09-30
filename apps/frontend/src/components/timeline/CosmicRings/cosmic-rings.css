@@ -32,16 +32,20 @@
 }
 
 .disk-base {
-  transition: filter 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.ring-disk:hover .disk-base {
-  filter: url(#selectionGlow) !important;
+.disk-highlight {
+  transition: all 0.3s ease;
+  opacity: 0.7;
 }
 
-.ring-disk.selected .disk-base {
-  filter: url(#selectionGlow) !important;
-  animation: selectedPulse 2s ease-in-out infinite;
+.ring-disk:hover .disk-highlight {
+  opacity: 1;
+}
+
+.ring-disk.selected .disk-highlight {
+  opacity: 1;
 }
 
 .inner-rim, .outer-rim {
@@ -60,6 +64,15 @@
   stroke-opacity: 0.8;
 }
 
+/* Selection ring for hover/selected states */
+.selection-ring {
+  transition: all 0.3s ease;
+}
+
+.ring-disk.selected .selection-ring {
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
 /* Text styling */
 .ring-label {
   font-family: 'Cinzel', 'Trajan Pro', serif;
@@ -69,30 +82,44 @@
   fill: rgba(234, 231, 223, 0.8);
   text-transform: uppercase;
   pointer-events: none;
+  transition: all 0.3s ease;
 }
 
 .ring-disk:hover .ring-label {
   fill: rgba(241, 222, 172, 0.95);
+  font-size: 11px;
 }
 
 .ring-disk.selected .ring-label {
   fill: #f1deac;
   font-weight: 600;
+  font-size: 11px;
 }
 
 .age-number {
   font-family: 'Cinzel', serif;
   font-weight: 600;
   pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.ring-disk:hover .age-number {
+  fill: rgba(241, 222, 172, 0.9);
+  font-size: 11px;
+}
+
+.ring-disk.selected .age-number {
+  fill: #f1deac;
+  font-size: 12px;
 }
 
 /* Animation for selected ring */
 @keyframes selectedPulse {
   0%, 100% { 
-    opacity: 1;
+    opacity: 0.8;
   }
   50% { 
-    opacity: 0.8;
+    opacity: 0.4;
   }
 }
 
@@ -107,6 +134,11 @@
     letter-spacing: 0.08em;
   }
   
+  .ring-disk:hover .ring-label,
+  .ring-disk.selected .ring-label {
+    font-size: 9px;
+  }
+  
   .center-label {
     font-size: 9px;
   }
@@ -118,8 +150,22 @@
     letter-spacing: 0.06em;
   }
   
+  .ring-disk:hover .ring-label,
+  .ring-disk.selected .ring-label {
+    font-size: 8px;
+  }
+  
   .center-label {
     font-size: 8px;
+  }
+  
+  .age-number {
+    font-size: 9px;
+  }
+  
+  .ring-disk:hover .age-number,
+  .ring-disk.selected .age-number {
+    font-size: 10px;
   }
 }
 
@@ -130,5 +176,19 @@
 }
 
 .ring-disk:focus .disk-base {
-  filter: url(#selectionGlow) !important;
+  opacity: 1;
+}
+
+/* Ensure clean rendering */
+.cosmic-rings-container,
+.cosmic-rings-dial {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Hide any container artifacts */
+.cosmic-rings-container::before,
+.cosmic-rings-container::after {
+  display: none !important;
 }

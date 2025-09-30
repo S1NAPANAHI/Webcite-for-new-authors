@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { EnhancedCosmicRingsDial } from './CosmicRings/EnhancedCosmicRingsDial';
+import { OrbitalTimelineDial } from './CosmicRings/OrbitalTimelineDial';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
@@ -130,18 +130,18 @@ export const EnhancedCosmicTimeline: React.FC = () => {
       </div>
 
       <div className="enhanced-timeline-layout">
-        {/* Left side: Enhanced Cosmic Rings Dial */}
+        {/* Left side: NEW Orbital Timeline Dial */}
         <div className="enhanced-timeline-dial-section">
           <div className="enhanced-dial-container">
-            <EnhancedCosmicRingsDial
+            <OrbitalTimelineDial
               ages={ages}
               selectedAge={selectedAge}
               onAgeSelect={handleAgeSelect}
-              className="main-enhanced-cosmic-dial"
+              className="main-orbital-cosmic-dial"
             />
           </div>
           
-          {/* Enhanced Age info panel with stone/metal theme */}
+          {/* Enhanced Age info panel with orbital theme */}
           <div className="enhanced-age-info-panel">
             <div className="info-panel-header">
               <div className="selected-age-indicator">
@@ -159,7 +159,7 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                 )}
               </div>
               <h2 className="enhanced-age-title">
-                {selectedAge?.name || selectedAge?.title || 'Select a Cosmic Age'}
+                {selectedAge?.name || selectedAge?.title || 'Select a Cosmic Planet'}
               </h2>
             </div>
             
@@ -174,27 +174,27 @@ export const EnhancedCosmicTimeline: React.FC = () => {
               <div className="age-description-container">
                 <p className="enhanced-age-description">
                   {selectedAge?.description || 
-                   'Navigate through the cosmic ages by selecting the textured rings on the dial. Each ring represents a distinct era in the Zoroasterverse timeline, with stone-like surfaces and metallic accents that rotate slowly like an ancient astronomical instrument.'}
+                   'Navigate through the cosmic ages by selecting the orbiting planets around the central sun. Each planet represents a distinct era in the Zoroasterverse timeline, orbiting at different speeds and distances like a celestial orrery.'}
                 </p>
               </div>
               
               <div className="age-metadata">
                 <div className="metadata-item">
-                  <span className="metadata-label">Ring Material:</span>
+                  <span className="metadata-label">Planet Type:</span>
                   <span className="metadata-value">
                     {selectedAge ? 
-                      `${['Granite', 'Marble', 'Sandstone', 'Slate', 'Limestone', 'Basalt', 'Quartzite', 'Schist', 'Obsidian'][selectedAge.age_number - 1] || 'Stone'} • ${['Gold', 'Bronze', 'Copper', 'Brass', 'Silver', 'Iron', 'Pewter', 'Platinum', 'Titanium'][selectedAge.age_number - 1] || 'Metal'}` : 
-                      'Stone & Metal'
+                      `${['Golden', 'Bronze', 'Crimson', 'Sapphire', 'Amethyst', 'Emerald', 'Ruby', 'Turquoise', 'Amber'][selectedAge.age_number - 1] || 'Cosmic'} Planet` : 
+                      'Celestial Body'
                     }
                   </span>
                 </div>
                 
                 <div className="metadata-item">
-                  <span className="metadata-label">Rotation:</span>
+                  <span className="metadata-label">Orbital Motion:</span>
                   <span className="metadata-value">
                     {selectedAge ? 
-                      `${[8, 12, 10, 15, 18, 22, 25, 30, 35][selectedAge.age_number - 1] || 20}s • ${selectedAge.age_number % 2 === 1 ? 'Clockwise' : 'Counter-clockwise'}` : 
-                      'Celestial Motion'
+                      `${[8, 12, 10, 15, 18, 22, 25, 30, 35][selectedAge.age_number - 1] || 20}s orbit • Distance: ${80 + ((selectedAge.age_number - 1) * 35)}px` : 
+                      'Celestial Dance'
                     }
                   </span>
                 </div>
@@ -204,8 +204,8 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                 <div className="badge-content">
                   {selectedAge ? (
                     <>
-                      <div className="badge-icon">⚡</div>
-                      <span className="badge-text">Cosmic Ring Selected</span>
+                      <div className="badge-icon">🪐</div>
+                      <span className="badge-text">Cosmic Planet Selected</span>
                     </>
                   ) : (
                     <>
@@ -232,35 +232,28 @@ export const EnhancedCosmicTimeline: React.FC = () => {
               <div className="enhanced-welcome-section">
                 <div className="welcome-content">
                   <div className="welcome-illustration">
-                    {/* Enhanced concentric rings preview */}
-                    <div className="preview-rings-container">
+                    {/* Enhanced orbital preview */}
+                    <div className="preview-orbital-container">
+                      <div className="preview-sun"></div>
                       {Array.from({ length: 4 }).map((_, index) => (
                         <div
                           key={index}
-                          className="preview-ring"
+                          className="preview-orbit"
                           style={{
-                            width: `${140 - (index * 25)}px`,
-                            height: `${140 - (index * 25)}px`,
-                            borderColor: `rgba(212, 175, 55, ${0.8 - (index * 0.15)})`,
-                            background: `conic-gradient(from ${index * 45}deg, 
-                              rgba(212, 175, 55, ${0.1 - (index * 0.02)}), 
-                              rgba(205, 127, 50, ${0.08 - (index * 0.015)}), 
-                              rgba(184, 134, 11, ${0.06 - (index * 0.01)}), 
-                              rgba(212, 175, 55, ${0.1 - (index * 0.02)}))`,
+                            width: `${80 + (index * 30)}px`,
+                            height: `${80 + (index * 30)}px`,
                             animationDelay: `${index * 0.5}s`,
-                            animationDuration: `${6 + index * 2}s`
+                            animationDuration: `${8 + index * 2}s`
                           }}
-                        />
+                        >
+                          <div 
+                            className="preview-planet"
+                            style={{
+                              background: ['#FFD700', '#CD7F32', '#4169E1', '#9370DB'][index]
+                            }}
+                          ></div>
+                        </div>
                       ))}
-                      
-                      {/* Center cosmic symbol */}
-                      <div className="preview-center-symbol">
-                        <svg className="w-16 h-16 text-timeline-gold" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" />
-                          <path d="M19 15L20.5 19L24 20.5L20.5 22L19 26L17.5 22L14 20.5L17.5 19L19 15Z" opacity="0.7" />
-                          <path d="M6.5 2L7.5 5.5L11 6.5L7.5 7.5L6.5 11L5.5 7.5L2 6.5L5.5 5.5L6.5 2Z" opacity="0.5" />
-                        </svg>
-                      </div>
                     </div>
                   </div>
                   
@@ -269,40 +262,40 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                       Journey Through the Zoroasterverse
                     </h2>
                     <p className="welcome-description">
-                      Explore the cosmic ages through an ancient astronomical dial enhanced with 
-                      **stone textures** and **metallic finishes**. Each ring rotates slowly like a 
-                      celestial instrument, revealing the deep history of the Zoroasterverse.
+                      Explore the cosmic ages through an **orbital orrery** with planets orbiting 
+                      around a central golden sun. Each planet represents a distinct era, 
+                      moving at different speeds and distances like a living astronomical instrument.
                     </p>
                     
                     <div className="welcome-features">
                       <div className="feature-item">
-                        <div className="feature-icon">🏛️</div>
+                        <div className="feature-icon">🪐</div>
                         <div className="feature-text">
-                          <span className="feature-title">Stone Crafted Rings</span>
-                          <span className="feature-desc">Granite, marble, and sandstone textures</span>
+                          <span className="feature-title">Orbiting Planets</span>
+                          <span className="feature-desc">9 cosmic bodies in golden orbits</span>
                         </div>
                       </div>
                       
                       <div className="feature-item">
-                        <div className="feature-icon">⚙️</div>
+                        <div className="feature-icon">☀️</div>
                         <div className="feature-text">
-                          <span className="feature-title">Metallic Accents</span>
-                          <span className="feature-desc">Bronze, copper, and brass finishes</span>
+                          <span className="feature-title">Central Sun</span>
+                          <span className="feature-desc">Pulsing golden core with energy flares</span>
                         </div>
                       </div>
                       
                       <div className="feature-item">
-                        <div className="feature-icon">🌟</div>
+                        <div className="feature-icon">🌌</div>
                         <div className="feature-text">
                           <span className="feature-title">Celestial Motion</span>
-                          <span className="feature-desc">Slow rotation like an astrolabe</span>
+                          <span className="feature-desc">Continuous orbital animation</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="welcome-interaction-hint">
                       <div className="hint-icon">👆</div>
-                      <span>Click any ring to begin your cosmic journey</span>
+                      <span>Click any orbiting planet to begin your cosmic journey</span>
                     </div>
                   </div>
                 </div>
@@ -327,13 +320,11 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             <div className="card-header">
               <div className="card-age-indicator">
                 <div 
-                  className="age-ring-preview"
+                  className="age-planet-preview"
                   style={{
-                    background: `conic-gradient(from 0deg, 
-                      ${selectedAge.age_number <= 3 ? '#d4af37' : 
-                        selectedAge.age_number <= 6 ? '#cd7f32' : '#9370db'}, 
-                      ${selectedAge.age_number <= 3 ? '#b8860b' : 
-                        selectedAge.age_number <= 6 ? '#a0522d' : '#708090'})`
+                    background: `radial-gradient(circle at 30% 30%, 
+                      ${['#FFD700', '#CD7F32', '#FF6347', '#4169E1', '#9370DB', '#32CD32', '#FF1493', '#20B2AA', '#FF8C00'][selectedAge.age_number - 1] || '#FFD700'}, 
+                      ${['#B8860B', '#A0522D', '#DC143C', '#191970', '#4B0082', '#228B22', '#C71585', '#008B8B', '#FF7F00'][selectedAge.age_number - 1] || '#B8860B'})`
                   }}
                 />
                 <span className="age-number-small">{selectedAge.age_number}</span>
@@ -344,7 +335,7 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                   {selectedAge.name || selectedAge.title}
                 </h3>
                 <span className="card-age-subtitle">
-                  {['Granite•Gold', 'Marble•Bronze', 'Sandstone•Copper', 'Slate•Brass', 'Limestone•Silver', 'Basalt•Iron', 'Quartzite•Pewter', 'Schist•Platinum', 'Obsidian•Titanium'][selectedAge.age_number - 1] || 'Stone•Metal'}
+                  {['Golden', 'Bronze', 'Crimson', 'Sapphire', 'Amethyst', 'Emerald', 'Ruby', 'Turquoise', 'Amber'][selectedAge.age_number - 1] || 'Cosmic'} Planet
                 </span>
               </div>
               
@@ -371,9 +362,9 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                 </div>
                 
                 <div className="metadata-row">
-                  <span className="metadata-icon">🔄</span>
+                  <span className="metadata-icon">🚀</span>
                   <span className="metadata-text">
-                    {[8, 12, 10, 15, 18, 22, 25, 30, 35][selectedAge.age_number - 1]}s rotation
+                    Orbit {80 + ((selectedAge.age_number - 1) * 35)}px • {(0.2 + ((selectedAge.age_number - 1) * 0.1)).toFixed(1)}x speed
                   </span>
                 </div>
               </div>
@@ -390,10 +381,9 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           100% { opacity: 0.4; transform: scale(0.9) rotate(360deg); }
         }
         
-        @keyframes enhancedRingPreview {
-          0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
-          50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.02); }
-          100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); }
+        @keyframes previewOrbit {
+          0% { transform: translate(-50%, -50%) rotate(0deg); }
+          100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
         
         .enhanced-star-field {
@@ -402,6 +392,46 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             rgba(15, 20, 31, 0.9) 40%,
             rgba(8, 9, 12, 0.95) 70%,
             rgba(0, 0, 0, 1) 100%);
+        }
+        
+        .preview-orbital-container {
+          position: relative;
+          width: 160px;
+          height: 160px;
+          margin: 0 auto;
+        }
+        
+        .preview-sun {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #FFD700, #FFA500);
+          box-shadow: 0 0 10px #FFD700;
+          animation: sunPulse 3s ease-in-out infinite;
+        }
+        
+        .preview-orbit {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          border: 1px solid rgba(255, 215, 0, 0.3);
+          border-radius: 50%;
+          animation: previewOrbit linear infinite;
+        }
+        
+        .preview-planet {
+          position: absolute;
+          top: -4px;
+          left: calc(50% - 4px);
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          box-shadow: 0 0 4px currentColor;
         }
         
         .cosmic-nebula-1 {
@@ -444,6 +474,13 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             transparent 100%);
           border-radius: 50%;
           animation: nebulaDrift 100s ease-in-out infinite;
+        }
+        
+        .age-planet-preview {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          box-shadow: 0 0 8px currentColor;
         }
         
         @keyframes nebulaDrift {

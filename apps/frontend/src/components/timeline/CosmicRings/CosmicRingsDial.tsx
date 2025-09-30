@@ -25,32 +25,33 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
     setHoveredAge(ageId);
   }, []);
 
-  // Generate ring radii - 9 concentric rings with proper spacing
+  // Generate ring radii - 9 concentric rings with proper spacing for thick strokes
   const generateRingRadius = (index: number): number => {
-    const baseRadius = 85;
-    const increment = 32;
+    const baseRadius = 100;
+    const increment = 35;
     return baseRadius + (index * increment);
   };
+
+  // Ring thickness - genuinely thick strokes
+  const RING_THICKNESS = 28;
 
   // Color palette for the 9 ages (innermost to outermost)
   const ageColors = [
     "#d4af37", // Gold
     "#cd7f32", // Bronze  
-    "#8b7355", // Dark bronze
+    "#b8860b", // Dark goldenrod
     "#a0522d", // Sienna
-    "#696969", // Dim gray
+    "#8b7355", // Dark khaki
     "#708090", // Slate gray
+    "#9370db", // Medium purple
     "#b0c4de", // Light steel blue
-    "#dcdcdc", // Gainsboro
-    "#f5f5f5"  // White smoke
+    "#dcdcdc"  // Gainsboro
   ];
 
   // Generate text path ID for each ring
   const getTextPathId = (index: number): string => {
     return `text-path-${index}`;
   };
-
-  const thickness = 24; // Thickness of each ring disk
 
   // Sort ages by age_number to ensure correct order
   const sortedAges = [...ages].sort((a, b) => a.age_number - b.age_number);
@@ -72,27 +73,15 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
             <stop offset="100%" stopColor="#08090c"/>
           </radialGradient>
 
-          {/* Ring masks for creating thick disks */}
-          {sortedAges.map((_, index) => {
-            const outerRadius = generateRingRadius(index) + thickness/2;
-            const innerRadius = Math.max(0, generateRingRadius(index) - thickness/2);
-            return (
-              <mask key={`mask-${index}`} id={`ring-mask-${index}`}>
-                <rect width="800" height="800" fill="white" />
-                <circle cx="400" cy="400" r={innerRadius} fill="black" />
-              </mask>
-            );
-          })}
-
-          {/* Clean gradients for each ring - NO NOISE */}
+          {/* Gradients for each ring */}
           {sortedAges.map((_, index) => {
             const color = ageColors[index] || "#d4af37";
-            const transparency = 0.9 - (index * 0.08); // Progressive transparency
+            const transparency = 0.9 - (index * 0.05); // Progressive transparency
             return (
               <radialGradient 
                 key={`gradient-${index}`} 
                 id={`ring-gradient-${index}`} 
-                cx="50%" cy="45%" r="55%"
+                cx="50%" cy="50%" r="100%"
               >
                 <stop offset="0%" stopColor={color} stopOpacity={transparency} />
                 <stop offset="50%" stopColor={color} stopOpacity={transparency * 0.8} />
@@ -101,17 +90,18 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
             );
           })}
 
-          {/* Material highlight gradients */}
+          {/* Inner highlight gradients */}
           {sortedAges.map((_, index) => {
+            const color = ageColors[index] || "#d4af37";
             return (
               <radialGradient 
                 key={`highlight-${index}`} 
-                id={`ring-highlight-${index}`} 
-                cx="35%" cy="30%" r="40%"
+                id={`highlight-gradient-${index}`} 
+                cx="50%" cy="50%" r="100%"
               >
-                <stop offset="0%" stopColor="rgba(255,255,255,0.3)" />
-                <stop offset="50%" stopColor="rgba(255,255,255,0.1)" />
-                <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+                <stop offset="30%" stopColor={color} stopOpacity="0.1" />
+                <stop offset="100%" stopColor={color} stopOpacity="0" />
               </radialGradient>
             );
           })}
@@ -128,8 +118,17 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
             );
           })}
 
-          {/* Clean glow filter for selection - no noise */}
+          {/* Glow filter for selection */}
           <filter id="selectionGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+            <feMerge> 
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/> 
+            </feMerge>
+          </filter>
+
+          {/* Hover glow filter */}
+          <filter id="hoverGlow" x="-15%" y="-15%" width="130%" height="130%">
             <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
             <feMerge> 
               <feMergeNode in="coloredBlur"/>
@@ -155,51 +154,53 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
           <circle 
             cx="400" 
             cy="400" 
-            r="55" 
+            r="60" 
             fill="url(#ring-gradient-0)" 
-            opacity="0.9"
+            opacity="0.95"
           />
           <circle 
             cx="400" 
             cy="400" 
-            r="55" 
-            fill="url(#ring-highlight-0)" 
+            r="60" 
+            fill="url(#highlight-gradient-0)" 
           />
           <circle 
             cx="400" 
             cy="400" 
-            r="55" 
+            r="60" 
             fill="none" 
             stroke="#d4af37" 
             strokeWidth="2" 
-            opacity="0.7"
+            opacity="0.8"
           />
           <text 
             x="400" 
-            y="396" 
+            y="394" 
             textAnchor="middle" 
             className="center-label"
-            fontSize="11"
+            fontSize="12"
             fill="#f1deac"
+            fontWeight="600"
           >
             COSMIC
           </text>
           <text 
             x="400" 
-            y="408" 
+            y="410" 
             textAnchor="middle" 
             className="center-label"
-            fontSize="11"
+            fontSize="12"
             fill="#f1deac"
+            fontWeight="600"
           >
             AGES
           </text>
         </g>
 
-        {/* Ring disks - CLEAN VERSION */}
+        {/* Ring disks - STROKE-BASED APPROACH FOR THICKNESS */}
         <g id="rings">
           {sortedAges.map((age, index) => {
-            const outerRadius = generateRingRadius(index) + thickness/2;
+            const radius = generateRingRadius(index);
             const isSelected = selectedAge?.id === age.id;
             const isHovered = hoveredAge === age.id;
             const ringClasses = `ring-disk ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''}`;
@@ -208,71 +209,73 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
               <g 
                 key={age.id}
                 className={ringClasses}
-                onClick={() => handleRingClick(age)}
-                onMouseEnter={() => handleRingHover(age.id)}
-                onMouseLeave={() => handleRingHover(null)}
                 style={{ cursor: 'pointer' }}
               >
-                {/* Main ring disk - CLEAN gradients only */}
+                {/* Invisible clickable area - FULL COVERAGE */}
                 <circle 
                   cx="400" 
                   cy="400" 
-                  r={outerRadius} 
-                  fill={`url(#ring-gradient-${index})`}
-                  mask={`url(#ring-mask-${index})`}
-                  className="disk-base"
+                  r={radius + RING_THICKNESS/2} 
+                  fill="transparent"
+                  stroke="transparent"
+                  strokeWidth={RING_THICKNESS}
+                  onClick={() => handleRingClick(age)}
+                  onMouseEnter={() => handleRingHover(age.id)}
+                  onMouseLeave={() => handleRingHover(null)}
+                  className="click-area"
                 />
                 
-                {/* Material highlight overlay */}
+                {/* Main thick ring disk */}
                 <circle 
                   cx="400" 
                   cy="400" 
-                  r={outerRadius} 
-                  fill={`url(#ring-highlight-${index})`}
-                  mask={`url(#ring-mask-${index})`}
-                  className="disk-highlight"
+                  r={radius} 
+                  fill="none"
+                  stroke={`url(#ring-gradient-${index})`}
+                  strokeWidth={RING_THICKNESS}
+                  filter={isSelected ? "url(#selectionGlow)" : isHovered ? "url(#hoverGlow)" : "none"}
+                  className="ring-stroke"
+                  pointerEvents="none"
                 />
                 
-                {/* Subtle inner rim */}
+                {/* Inner highlight ring */}
                 <circle 
                   cx="400" 
                   cy="400" 
-                  r={generateRingRadius(index) - thickness/2 + 1} 
+                  r={radius} 
+                  fill="none"
+                  stroke={`url(#highlight-gradient-${index})`}
+                  strokeWidth={RING_THICKNESS * 0.6}
+                  className="ring-highlight"
+                  pointerEvents="none"
+                />
+                
+                {/* Outer rim definition */}
+                <circle 
+                  cx="400" 
+                  cy="400" 
+                  r={radius + RING_THICKNESS/2 - 1} 
                   fill="none" 
-                  stroke="rgba(255,255,255,0.15)" 
-                  strokeWidth="1"
-                  className="inner-rim"
-                />
-                
-                {/* Outer rim */}
-                <circle 
-                  cx="400" 
-                  cy="400" 
-                  r={outerRadius - 1} 
-                  fill="none" 
-                  stroke="rgba(255,255,255,0.25)" 
+                  stroke="rgba(255,255,255,0.2)" 
                   strokeWidth="1"
                   className="outer-rim"
+                  pointerEvents="none"
                 />
 
-                {/* Selection glow effect */}
-                {(isSelected || isHovered) && (
-                  <circle 
-                    cx="400" 
-                    cy="400" 
-                    r={outerRadius} 
-                    fill="none"
-                    stroke={ageColors[index] || "#d4af37"}
-                    strokeWidth="3"
-                    mask={`url(#ring-mask-${index})`}
-                    filter="url(#selectionGlow)"
-                    className="selection-ring"
-                    opacity={isSelected ? "0.8" : "0.5"}
-                  />
-                )}
+                {/* Inner rim definition */}
+                <circle 
+                  cx="400" 
+                  cy="400" 
+                  r={radius - RING_THICKNESS/2 + 1} 
+                  fill="none" 
+                  stroke="rgba(255,255,255,0.1)" 
+                  strokeWidth="1"
+                  className="inner-rim"
+                  pointerEvents="none"
+                />
 
                 {/* Age label */}
-                <text className="ring-label">
+                <text className="ring-label" pointerEvents="none">
                   <textPath 
                     href={`#${getTextPathId(index)}`} 
                     startOffset="50%" 
@@ -284,12 +287,13 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
 
                 {/* Age number */}
                 <text 
-                  x={400 + generateRingRadius(index) * 0.7} 
+                  x={400 + radius * 0.7} 
                   y={400} 
                   textAnchor="middle" 
                   className="age-number"
                   fill="rgba(255,255,255,0.6)"
                   fontSize="10"
+                  pointerEvents="none"
                 >
                   {age.age_number}
                 </text>

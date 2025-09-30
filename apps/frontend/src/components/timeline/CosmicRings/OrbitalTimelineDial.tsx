@@ -17,6 +17,7 @@ interface OrbitingPlanet {
   size: number;
   planetType: string;
   initialAngle: number;
+  spiralAngle: number; // New property for spiral text distribution
 }
 
 export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
@@ -35,8 +36,10 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const CENTER_Y = 400; // Vertical center
   const SUN_RADIUS = 24;
   const NODE_RADIUS = 16;
-  const ORBIT_STEP = 35;
-  const MIN_ORBIT_RADIUS = 60;
+  
+  // IMPROVED SPACING: More center padding and even gaps
+  const MIN_ORBIT_RADIUS = 65; // Increased from 60 for more center padding
+  const ORBIT_STEP = 42; // Increased from 35 for more even spacing
   
   // Animation speed constants - FIXED VALUES
   const FULL_CIRCLE = 2 * Math.PI;
@@ -53,13 +56,19 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     'Sixth Age', 'Seventh Age', 'Eighth Age', 'Ninth Age'
   ];
 
-  // Initialize orbiting planets with randomized starting positions
+  // Initialize orbiting planets with randomized starting positions and SPIRAL text distribution
   useEffect(() => {
     if (ages.length === 0) return;
 
     const planets: OrbitingPlanet[] = ages.map((age, index) => {
       // Randomize initial position along the FULL orbit (0 to 2π)
       const randomStartAngle = Math.random() * 2 * Math.PI; // Full circle
+      
+      // SPIRAL TEXT DISTRIBUTION: Calculate spiral angle for each orbit
+      const totalArcs = ages.length;
+      const spiralSpread = Math.PI * 1.4; // Total spiral spread (about 252 degrees)
+      const spiralStartAngle = Math.PI * 0.7; // Start angle (about 126 degrees)
+      const spiralAngle = spiralStartAngle + (spiralSpread * (index / Math.max(totalArcs - 1, 1)));
       
       return {
         age,
@@ -68,7 +77,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
         speed: 0.015 + (index * 0.003), // This is not used anymore
         size: NODE_RADIUS,
         planetType: ageNames[index] || `${age.age_number} Age`,
-        initialAngle: randomStartAngle
+        initialAngle: randomStartAngle,
+        spiralAngle: spiralAngle // Assign spiral angle for text positioning
       };
     });
 
@@ -143,6 +153,18 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     return { x, y, angle: displayAngle };
   };
 
+  // Calculate SPIRAL text position for each orbit
+  const calculateSpiralTextPosition = (planet: OrbitingPlanet) => {
+    const radius = planet.orbitRadius + 25; // Offset text outside the orbit line
+    const x = CENTER_X + Math.cos(planet.spiralAngle) * radius;
+    const y = CENTER_Y + Math.sin(planet.spiralAngle) * radius;
+    
+    // Calculate rotation angle to make text tangent to spiral
+    const rotationAngle = (planet.spiralAngle * 180 / Math.PI) + 90; // Tangent orientation
+    
+    return { x, y, rotation: rotationAngle };
+  };
+
   // Create VERTICAL half-circle arc path (top to bottom, opening right)
   const createVerticalHalfCirclePath = (radius: number) => {
     const startX = CENTER_X;
@@ -154,56 +176,40 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   };
 
-  // Create segmented orbit path with SMALLER cut-outs for text
-  const createSegmentedOrbitPath = (radius: number, textLength: number) => {
-    // Much smaller text gap - just enough for the text with minimal padding
-    const textSegmentLength = Math.max(textLength * 0.06, 0.3);
-    const textCenterAngle = 0; // Center the text at the rightmost point of arc
-    
-    const startAngle = -Math.PI / 2; // Top
-    const endAngle = Math.PI / 2; // Bottom
-    const textStartAngle = textCenterAngle - textSegmentLength / 2;
-    const textEndAngle = textCenterAngle + textSegmentLength / 2;
-    
-    // Calculate coordinates
-    const startX = CENTER_X + Math.cos(startAngle) * radius;
-    const startY = CENTER_Y + Math.sin(startAngle) * radius;
-    const cutStartX = CENTER_X + Math.cos(textStartAngle) * radius;
-    const cutStartY = CENTER_Y + Math.sin(textStartAngle) * radius;
-    const cutEndX = CENTER_X + Math.cos(textEndAngle) * radius;
-    const cutEndY = CENTER_Y + Math.sin(textEndAngle) * radius;
-    const endX = CENTER_X + Math.cos(endAngle) * radius;
-    const endY = CENTER_Y + Math.sin(endAngle) * radius;
-    
-    return {
-      beforeText: `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${cutStartX} ${cutStartY}`,
-      afterText: `M ${cutEndX} ${cutEndY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`
-    };
-  };
-
   const isSelected = (planet: OrbitingPlanet) => {
     return selectedAge?.id === planet.age.id;
   };
 
   return (
-    <div className={`orbital-timeline-dial vertical-half-circle-design ${className}`}>
-      <div className="vertical-half-circle-container">
+    <div className={`orbital-timeline-dial vertical-half-circle-design improved-ui ${className}`}>
+      <div className="vertical-half-circle-container improved-spacing">
         <svg 
           width={SVG_SIZE}
           height={SVG_SIZE}
           viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-          className="orbital-svg vertical"
+          className="orbital-svg vertical improved"
         >
           <defs>
-            {/* Define paths for textPath */}
-            {orbitingPlanets.map((planet, index) => (
-              <path
-                key={`textpath-${index}`}
-                id={`vertical-orbit-path-${index}`}
-                d={createVerticalHalfCirclePath(planet.orbitRadius)}
-                fill="none"
+            {/* CHALKY TEXTURE FILTER */}
+            <filter id="chalkyTexture" x="-20%" y="-20%" width="140%" height="140%">
+              <feTurbulence 
+                type="fractalNoise" 
+                baseFrequency="0.04" 
+                numOctaves="3" 
+                result="noise"
               />
-            ))}
+              <feDisplacementMap 
+                in="SourceGraphic" 
+                in2="noise" 
+                scale="2.5"
+                result="displacement"
+              />
+              <feGaussianBlur 
+                in="displacement" 
+                stdDeviation="0.5" 
+                result="blur"
+              />
+            </filter>
             
             {/* FIXED MASKING: Extended clip path to cover orbit line overflow */}
             <clipPath id="rightHalfClip">
@@ -218,53 +224,46 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             </clipPath>
           </defs>
 
-          {/* Orbit lines with SMALLER cut-outs for text - NOT CLIPPED */}
+          {/* Orbit lines with CHALKY TEXTURE - NOT CLIPPED */}
           {orbitingPlanets.map((planet, index) => {
-            const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType.length);
+            const orbitPath = createVerticalHalfCirclePath(planet.orbitRadius);
             return (
-              <g key={`orbit-segments-${index}`}>
-                {/* Segment before text */}
-                <path
-                  d={segments.beforeText}
-                  stroke={GOLD}
-                  strokeWidth={3}
-                  fill="none"
-                  className="orbit-line static"
-                  strokeLinecap="round"
-                />
-                {/* Segment after text */}
-                <path
-                  d={segments.afterText}
-                  stroke={GOLD}
-                  strokeWidth={3}
-                  fill="none"
-                  className="orbit-line static"
-                  strokeLinecap="round"
-                />
-              </g>
+              <path
+                key={`orbit-line-${index}`}
+                d={orbitPath}
+                stroke={GOLD}
+                strokeWidth={3}
+                fill="none"
+                className="orbit-line static chalky"
+                strokeLinecap="round"
+                filter="url(#chalkyTexture)" // Apply chalky texture
+              />
             );
           })}
 
-          {/* Static text integrated into orbit lines - NOT CLIPPED */}
-          {orbitingPlanets.map((planet, index) => (
-            <text
-              key={`orbit-text-${index}`}
-              fontSize="13"
-              fontFamily="Georgia, serif"
-              fill={GOLD}
-              fontWeight="bold"
-              className="orbit-text static"
-            >
-              <textPath
-                href={`#vertical-orbit-path-${index}`}
-                startOffset="50%" // Center the text on the right side of arc
-                dominantBaseline="middle"
+          {/* SPIRAL distributed text - NOT CLIPPED */}
+          {orbitingPlanets.map((planet, index) => {
+            const textPos = calculateSpiralTextPosition(planet);
+            return (
+              <text
+                key={`orbit-text-${index}`}
+                x={textPos.x}
+                y={textPos.y}
+                fontSize="18" // Slightly larger for Papyrus
+                fontFamily="Papyrus, Comic Sans MS, fantasy, cursive" // Papyrus font with fallbacks
+                fill={GOLD}
+                fontWeight="bold"
+                className="orbit-text static spiral papyrus"
                 textAnchor="middle"
+                dominantBaseline="middle"
+                transform={`rotate(${textPos.rotation} ${textPos.x} ${textPos.y})`}
+                letterSpacing="0.08em" // Better spacing for ancient feel
+                textShadow="0 1px 0 rgba(0,0,0,0.6)" // Better text shadow
               >
                 {planet.planetType}
-              </textPath>
-            </text>
-          ))}
+              </text>
+            );
+          })}
 
           {/* Central Sun (STATIC) - NOT CLIPPED */}
           <circle
@@ -316,12 +315,12 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
 
         {/* Age info panel */}
         {selectedAge && (
-          <div className="selected-age-info vertical">
-            <h3 className="age-title">{selectedAge.name || selectedAge.title}</h3>
-            <p className="age-years">
+          <div className="selected-age-info vertical improved">
+            <h3 className="age-title papyrus">{selectedAge.name || selectedAge.title}</h3>
+            <p className="age-years papyrus">
               {selectedAge.start_year ? `${selectedAge.start_year}` : '∞'} - {selectedAge.end_year || '∞'}
             </p>
-            <p className="age-description">
+            <p className="age-description papyrus">
               {selectedAge.description?.substring(0, 150)}...
             </p>
           </div>

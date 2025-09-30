@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Age } from '../../../lib/api-timeline';
 import './cosmic-rings.css';
 
@@ -16,23 +16,16 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
   className = ''
 }) => {
   const [hoveredAge, setHoveredAge] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
-  const handleRingClick = useCallback((age: Age) => {
-    onAgeSelect(age);
-  }, [onAgeSelect]);
-
-  const handleRingHover = useCallback((ageId: number | null) => {
-    setHoveredAge(ageId);
-  }, []);
-
-  // Generate ring radii - 9 concentric rings with proper spacing for thick strokes
+  // Generate ring radius based on index
   const generateRingRadius = (index: number): number => {
     const baseRadius = 100;
     const increment = 35;
     return baseRadius + (index * increment);
   };
 
-  // Ring thickness - genuinely thick strokes
+  // Ring thickness
   const RING_THICKNESS = 28;
 
   // Color palette for the 9 ages (innermost to outermost)
@@ -56,14 +49,85 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
   // Sort ages by age_number to ensure correct order
   const sortedAges = [...ages].sort((a, b) => a.age_number - b.age_number);
 
+  // Mathematical click detection
+  const handleSVGClick = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
+    if (!svgRef.current) return;
+
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const svgSize = Math.min(svgRect.width, svgRect.height);
+    const scale = svgSize / 800; // SVG viewBox is 800x800
+    
+    // Get click position relative to SVG center
+    const centerX = svgRect.width / 2;
+    const centerY = svgRect.height / 2;
+    const clickX = event.clientX - svgRect.left - centerX;
+    const clickY = event.clientY - svgRect.top - centerY;
+    
+    // Calculate distance from center in SVG units
+    const distance = Math.sqrt(clickX * clickX + clickY * clickY) / scale;
+
+    // Check each ring from outside to inside to handle overlaps
+    for (let i = sortedAges.length - 1; i >= 0; i--) {
+      const radius = generateRingRadius(i);
+      const innerBound = radius - RING_THICKNESS / 2;
+      const outerBound = radius + RING_THICKNESS / 2;
+
+      if (distance >= innerBound && distance <= outerBound) {
+        onAgeSelect(sortedAges[i]);
+        return;
+      }
+    }
+  }, [sortedAges, onAgeSelect]);
+
+  // Handle hover with mathematical detection
+  const handleSVGMouseMove = useCallback((event: React.MouseEvent<SVGSVGElement>) => {
+    if (!svgRef.current) return;
+
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const svgSize = Math.min(svgRect.width, svgRect.height);
+    const scale = svgSize / 800;
+    
+    const centerX = svgRect.width / 2;
+    const centerY = svgRect.height / 2;
+    const mouseX = event.clientX - svgRect.left - centerX;
+    const mouseY = event.clientY - svgRect.top - centerY;
+    
+    const distance = Math.sqrt(mouseX * mouseX + mouseY * mouseY) / scale;
+
+    let foundHover = null;
+    for (let i = sortedAges.length - 1; i >= 0; i--) {
+      const radius = generateRingRadius(i);
+      const innerBound = radius - RING_THICKNESS / 2;
+      const outerBound = radius + RING_THICKNESS / 2;
+
+      if (distance >= innerBound && distance <= outerBound) {
+        foundHover = sortedAges[i].id;
+        break;
+      }
+    }
+
+    if (foundHover !== hoveredAge) {
+      setHoveredAge(foundHover);
+    }
+  }, [sortedAges, hoveredAge]);
+
+  const handleSVGMouseLeave = useCallback(() => {
+    setHoveredAge(null);
+  }, []);
+
   return (
     <div className={`cosmic-rings-container ${className}`}>
       <svg 
+        ref={svgRef}
         className="cosmic-rings-dial" 
         viewBox="0 0 800 800" 
         width="100%" 
         role="img" 
         aria-label="Nine concentric rings dial representing cosmic ages"
+        onClick={handleSVGClick}
+        onMouseMove={handleSVGMouseMove}
+        onMouseLeave={handleSVGMouseLeave}
+        style={{ cursor: 'pointer' }}
       >
         <defs>
           {/* Starfield background gradient */}
@@ -73,23 +137,10 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
             <stop offset="100%" stopColor="#08090c"/>
           </radialGradient>
 
-          {/* Click area masks - create ring-shaped areas that don't overlap */}
-          {sortedAges.map((_, index) => {
-            const outerRadius = generateRingRadius(index) + RING_THICKNESS/2;
-            const innerRadius = generateRingRadius(index) - RING_THICKNESS/2;
-            return (
-              <mask key={`click-mask-${index}`} id={`click-mask-${index}`}>
-                <rect width="800" height="800" fill="black" />
-                <circle cx="400" cy="400" r={outerRadius} fill="white" />
-                <circle cx="400" cy="400" r={Math.max(0, innerRadius)} fill="black" />
-              </mask>
-            );
-          })}
-
           {/* Gradients for each ring */}
           {sortedAges.map((_, index) => {
             const color = ageColors[index] || "#d4af37";
-            const transparency = 0.9 - (index * 0.05); // Progressive transparency
+            const transparency = 0.9 - (index * 0.05);
             return (
               <radialGradient 
                 key={`gradient-${index}`} 
@@ -210,7 +261,7 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
           </text>
         </g>
 
-        {/* Ring disks - STROKE-BASED APPROACH WITH NON-OVERLAPPING CLICK AREAS */}
+        {/* Ring disks - VISUAL ONLY, NO CLICK HANDLERS */}
         <g id="rings">
           {sortedAges.map((age, index) => {
             const radius = generateRingRadius(index);
@@ -222,21 +273,8 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
               <g 
                 key={age.id}
                 className={ringClasses}
-                style={{ cursor: 'pointer' }}
+                pointerEvents="none"
               >
-                {/* Ring-shaped clickable area - MASKED to prevent overlap */}
-                <circle 
-                  cx="400" 
-                  cy="400" 
-                  r="400"
-                  fill="transparent"
-                  mask={`url(#click-mask-${index})`}
-                  onClick={() => handleRingClick(age)}
-                  onMouseEnter={() => handleRingHover(age.id)}
-                  onMouseLeave={() => handleRingHover(null)}
-                  className="click-area"
-                />
-                
                 {/* Main thick ring disk */}
                 <circle 
                   cx="400" 
@@ -247,7 +285,6 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   strokeWidth={RING_THICKNESS}
                   filter={isSelected ? "url(#selectionGlow)" : isHovered ? "url(#hoverGlow)" : "none"}
                   className="ring-stroke"
-                  pointerEvents="none"
                 />
                 
                 {/* Inner highlight ring */}
@@ -259,7 +296,6 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   stroke={`url(#highlight-gradient-${index})`}
                   strokeWidth={RING_THICKNESS * 0.6}
                   className="ring-highlight"
-                  pointerEvents="none"
                 />
                 
                 {/* Outer rim definition */}
@@ -271,7 +307,6 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   stroke="rgba(255,255,255,0.2)" 
                   strokeWidth="1"
                   className="outer-rim"
-                  pointerEvents="none"
                 />
 
                 {/* Inner rim definition */}
@@ -283,11 +318,10 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   stroke="rgba(255,255,255,0.1)" 
                   strokeWidth="1"
                   className="inner-rim"
-                  pointerEvents="none"
                 />
 
                 {/* Age label */}
-                <text className="ring-label" pointerEvents="none">
+                <text className="ring-label">
                   <textPath 
                     href={`#${getTextPathId(index)}`} 
                     startOffset="50%" 
@@ -305,7 +339,6 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   className="age-number"
                   fill="rgba(255,255,255,0.6)"
                   fontSize="10"
-                  pointerEvents="none"
                 >
                   {age.age_number}
                 </text>

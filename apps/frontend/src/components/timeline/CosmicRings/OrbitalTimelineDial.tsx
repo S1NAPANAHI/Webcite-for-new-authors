@@ -17,7 +17,6 @@ interface OrbitingPlanet {
   size: number;
   planetType: string;
   initialAngle: number;
-  spiralAngle: number; // New property for spiral text distribution
 }
 
 export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
@@ -38,8 +37,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const NODE_RADIUS = 16;
   
   // IMPROVED SPACING: More center padding and even gaps
-  const MIN_ORBIT_RADIUS = 65; // Increased from 60 for more center padding
-  const ORBIT_STEP = 42; // Increased from 35 for more even spacing
+  const MIN_ORBIT_RADIUS = 72; // Increased from 60 for much more center padding
+  const ORBIT_STEP = 44; // Increased from 35 for more even spacing
   
   // Animation speed constants - FIXED VALUES
   const FULL_CIRCLE = 2 * Math.PI;
@@ -56,19 +55,13 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     'Sixth Age', 'Seventh Age', 'Eighth Age', 'Ninth Age'
   ];
 
-  // Initialize orbiting planets with randomized starting positions and SPIRAL text distribution
+  // Initialize orbiting planets with randomized starting positions
   useEffect(() => {
     if (ages.length === 0) return;
 
     const planets: OrbitingPlanet[] = ages.map((age, index) => {
       // Randomize initial position along the FULL orbit (0 to 2π)
       const randomStartAngle = Math.random() * 2 * Math.PI; // Full circle
-      
-      // SPIRAL TEXT DISTRIBUTION: Calculate spiral angle for each orbit
-      const totalArcs = ages.length;
-      const spiralSpread = Math.PI * 1.4; // Total spiral spread (about 252 degrees)
-      const spiralStartAngle = Math.PI * 0.7; // Start angle (about 126 degrees)
-      const spiralAngle = spiralStartAngle + (spiralSpread * (index / Math.max(totalArcs - 1, 1)));
       
       return {
         age,
@@ -77,8 +70,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
         speed: 0.015 + (index * 0.003), // This is not used anymore
         size: NODE_RADIUS,
         planetType: ageNames[index] || `${age.age_number} Age`,
-        initialAngle: randomStartAngle,
-        spiralAngle: spiralAngle // Assign spiral angle for text positioning
+        initialAngle: randomStartAngle
       };
     });
 
@@ -153,18 +145,6 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     return { x, y, angle: displayAngle };
   };
 
-  // Calculate SPIRAL text position for each orbit
-  const calculateSpiralTextPosition = (planet: OrbitingPlanet) => {
-    const radius = planet.orbitRadius + 25; // Offset text outside the orbit line
-    const x = CENTER_X + Math.cos(planet.spiralAngle) * radius;
-    const y = CENTER_Y + Math.sin(planet.spiralAngle) * radius;
-    
-    // Calculate rotation angle to make text tangent to spiral
-    const rotationAngle = (planet.spiralAngle * 180 / Math.PI) + 90; // Tangent orientation
-    
-    return { x, y, rotation: rotationAngle };
-  };
-
   // Create VERTICAL half-circle arc path (top to bottom, opening right)
   const createVerticalHalfCirclePath = (radius: number) => {
     const startX = CENTER_X;
@@ -174,6 +154,33 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     
     // Vertical half-circle arc opening to the RIGHT
     return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
+  };
+
+  // Create segmented orbit path with SMALLER cut-outs for text - RESTORED
+  const createSegmentedOrbitPath = (radius: number, textLength: number) => {
+    // Much smaller text gap - just enough for the text with minimal padding
+    const textSegmentLength = Math.max(textLength * 0.06, 0.3);
+    const textCenterAngle = 0; // Center the text at the rightmost point of arc
+    
+    const startAngle = -Math.PI / 2; // Top
+    const endAngle = Math.PI / 2; // Bottom
+    const textStartAngle = textCenterAngle - textSegmentLength / 2;
+    const textEndAngle = textCenterAngle + textSegmentLength / 2;
+    
+    // Calculate coordinates
+    const startX = CENTER_X + Math.cos(startAngle) * radius;
+    const startY = CENTER_Y + Math.sin(startAngle) * radius;
+    const cutStartX = CENTER_X + Math.cos(textStartAngle) * radius;
+    const cutStartY = CENTER_Y + Math.sin(textStartAngle) * radius;
+    const cutEndX = CENTER_X + Math.cos(textEndAngle) * radius;
+    const cutEndY = CENTER_Y + Math.sin(textEndAngle) * radius;
+    const endX = CENTER_X + Math.cos(endAngle) * radius;
+    const endY = CENTER_Y + Math.sin(endAngle) * radius;
+    
+    return {
+      beforeText: `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${cutStartX} ${cutStartY}`,
+      afterText: `M ${cutEndX} ${cutEndY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`
+    };
   };
 
   const isSelected = (planet: OrbitingPlanet) => {
@@ -190,24 +197,29 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           className="orbital-svg vertical improved"
         >
           <defs>
-            {/* CHALKY TEXTURE FILTER */}
-            <filter id="chalkyTexture" x="-20%" y="-20%" width="140%" height="140%">
+            {/* Define paths for textPath */}
+            {orbitingPlanets.map((planet, index) => (
+              <path
+                key={`textpath-${index}`}
+                id={`vertical-orbit-path-${index}`}
+                d={createVerticalHalfCirclePath(planet.orbitRadius)}
+                fill="none"
+              />
+            ))}
+            
+            {/* SUBTLE CHALKY TEXTURE FILTER - Much lighter effect */}
+            <filter id="subtleChalkyTexture" x="-5%" y="-5%" width="110%" height="110%">
               <feTurbulence 
                 type="fractalNoise" 
-                baseFrequency="0.04" 
-                numOctaves="3" 
+                baseFrequency="0.02" 
+                numOctaves="2" 
                 result="noise"
               />
               <feDisplacementMap 
                 in="SourceGraphic" 
                 in2="noise" 
-                scale="2.5"
+                scale="0.8"
                 result="displacement"
-              />
-              <feGaussianBlur 
-                in="displacement" 
-                stdDeviation="0.5" 
-                result="blur"
               />
             </filter>
             
@@ -224,46 +236,56 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             </clipPath>
           </defs>
 
-          {/* Orbit lines with CHALKY TEXTURE - NOT CLIPPED */}
+          {/* RESTORED: Orbit lines with SMALLER cut-outs for text - HIGH QUALITY */}
           {orbitingPlanets.map((planet, index) => {
-            const orbitPath = createVerticalHalfCirclePath(planet.orbitRadius);
+            const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType.length);
             return (
-              <path
-                key={`orbit-line-${index}`}
-                d={orbitPath}
-                stroke={GOLD}
-                strokeWidth={3}
-                fill="none"
-                className="orbit-line static chalky"
-                strokeLinecap="round"
-                filter="url(#chalkyTexture)" // Apply chalky texture
-              />
+              <g key={`orbit-segments-${index}`}>
+                {/* Segment before text */}
+                <path
+                  d={segments.beforeText}
+                  stroke={GOLD}
+                  strokeWidth={3}
+                  fill="none"
+                  className="orbit-line static high-quality"
+                  strokeLinecap="round"
+                  filter="url(#subtleChalkyTexture)" // Very subtle texture
+                />
+                {/* Segment after text */}
+                <path
+                  d={segments.afterText}
+                  stroke={GOLD}
+                  strokeWidth={3}
+                  fill="none"
+                  className="orbit-line static high-quality"
+                  strokeLinecap="round"
+                  filter="url(#subtleChalkyTexture)" // Very subtle texture
+                />
+              </g>
             );
           })}
 
-          {/* SPIRAL distributed text - NOT CLIPPED */}
-          {orbitingPlanets.map((planet, index) => {
-            const textPos = calculateSpiralTextPosition(planet);
-            return (
-              <text
-                key={`orbit-text-${index}`}
-                x={textPos.x}
-                y={textPos.y}
-                fontSize="18" // Slightly larger for Papyrus
-                fontFamily="Papyrus, Comic Sans MS, fantasy, cursive" // Papyrus font with fallbacks
-                fill={GOLD}
-                fontWeight="bold"
-                className="orbit-text static spiral papyrus"
-                textAnchor="middle"
+          {/* RESTORED: Static text integrated into orbit lines - PROPERLY POSITIONED */}
+          {orbitingPlanets.map((planet, index) => (
+            <text
+              key={`orbit-text-${index}`}
+              fontSize="20" // Slightly larger for Papyrus
+              fontFamily="Papyrus, Comic Sans MS, fantasy, cursive" // Papyrus font with fallbacks
+              fill={GOLD}
+              fontWeight="bold"
+              className="orbit-text static papyrus positioned"
+              letterSpacing="0.08em" // Better spacing for ancient feel
+            >
+              <textPath
+                href={`#vertical-orbit-path-${index}`}
+                startOffset="50%" // Center the text on the right side of arc
                 dominantBaseline="middle"
-                transform={`rotate(${textPos.rotation} ${textPos.x} ${textPos.y})`}
-                letterSpacing="0.08em" // Better spacing for ancient feel
-                textShadow="0 1px 0 rgba(0,0,0,0.6)" // Better text shadow
+                textAnchor="middle"
               >
                 {planet.planetType}
-              </text>
-            );
-          })}
+              </textPath>
+            </text>
+          ))}
 
           {/* Central Sun (STATIC) - NOT CLIPPED */}
           <circle

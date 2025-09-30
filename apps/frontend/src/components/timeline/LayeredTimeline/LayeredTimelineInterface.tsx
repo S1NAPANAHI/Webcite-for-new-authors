@@ -42,9 +42,9 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
     if (ages.length === 0) return;
 
     const layers: LayerCard[] = ages.map((age, index) => {
-      const layerNumber = index + 1; // 1-9
+      const layerNumber = ages.length - index; // Reverse: 9, 8, 7, ..., 1
       const radius = MIN_RADIUS + (index * RADIUS_STEP);
-      const zIndex = 9 - index; // Layer 1 (first age) has highest z-index (9)
+      const zIndex = layerNumber; // Layer 9 has z-index 9, Layer 1 has z-index 1
       
       return {
         age,
@@ -54,7 +54,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       };
     });
 
-    setLayerCards(layers.reverse()); // Reverse so Layer 9 is first in array (bottom)
+    setLayerCards(layers); // Keep original order (largest to smallest)
   }, [ages]);
 
   const handleLayerClick = async (layerCard: LayerCard) => {
@@ -65,17 +65,17 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
     if (expandedLayer === layerCard.layerIndex) {
       // Collapse the layer
       setExpandedLayer(null);
-      onAgeSelect(layerCard.age); // Keep selection but collapse
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 1200);
     } else {
       // Expand the layer
       setExpandedLayer(layerCard.layerIndex);
       onAgeSelect(layerCard.age);
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 1200);
     }
-
-    // Animation duration
-    setTimeout(() => {
-      setIsAnimating(false);
-    }, 800);
   };
 
   const handleCloseExpanded = () => {
@@ -85,16 +85,14 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
     
     setTimeout(() => {
       setIsAnimating(false);
-    }, 800);
+    }, 1200);
   };
 
-  // Create the semi-circular clip path for each layer
-  const createLayerClipPath = (radius: number) => {
-    const centerX = CENTER_X;
-    const centerY = CENTER_Y;
-    
-    // Create a semi-circular path (right half)
-    return `polygon(${centerX}px ${centerY - radius}px, ${centerX + radius}px ${centerY}px, ${centerX}px ${centerY + radius}px)`;
+  // Get the maximum radius for full expansion
+  const getMaxRadius = () => {
+    if (!containerRef.current) return 800;
+    const rect = containerRef.current.getBoundingClientRect();
+    return Math.max(rect.width, rect.height) + 200; // Extra padding for full coverage
   };
 
   // Age names for display
@@ -114,181 +112,232 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
           height={CONTAINER_HEIGHT}
           viewBox={`0 0 ${CONTAINER_WIDTH} ${CONTAINER_HEIGHT}`}
           className="layers-svg"
+          style={{ 
+            position: expandedLayer ? 'fixed' : 'relative',
+            top: expandedLayer ? 0 : 'auto',
+            left: expandedLayer ? 0 : 'auto',
+            width: expandedLayer ? '100vw' : CONTAINER_WIDTH,
+            height: expandedLayer ? '100vh' : CONTAINER_HEIGHT,
+            zIndex: expandedLayer ? 1000 : 'auto',
+            transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}
         >
           <defs>
-            {/* Glassy effect filters */}
-            <filter id="glassy-blur" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur"/>
-              <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.1 0"/>
-            </filter>
-            
-            <filter id="inner-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge> 
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/> 
+            {/* Enhanced glassy effect filters */}
+            <filter id="layerGlass" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+              <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.2 0"/>
+              <feOffset in="blur" dx="0" dy="4" result="offset"/>
+              <feMerge>
+                <feMergeNode in="offset"/>
+                <feMergeNode in="SourceGraphic"/>
               </feMerge>
             </filter>
+            
+            <filter id="layerShadow" x="-100%" y="-100%" width="300%" height="300%">
+              <feDropShadow dx="0" dy="8" stdDeviation="12" floodOpacity="0.3" floodColor="#CEB548"/>
+            </filter>
 
-            {/* Gradient definitions */}
-            <radialGradient id="glassGradient" cx="0.5" cy="0.3">
-              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.15)" />
-              <stop offset="50%" stopColor="rgba(206, 181, 72, 0.08)" />
+            {/* Enhanced gradient definitions */}
+            <radialGradient id="layer1Gradient" cx="0.3" cy="0.2">
+              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.25)" />
+              <stop offset="30%" stopColor="rgba(206, 181, 72, 0.15)" />
+              <stop offset="70%" stopColor="rgba(206, 181, 72, 0.08)" />
               <stop offset="100%" stopColor="rgba(206, 181, 72, 0.03)" />
             </radialGradient>
-
-            {/* Clip paths for each layer */}
-            {layerCards.map((layer) => {
-              const centerX = CENTER_X;
-              const centerY = CENTER_Y;
-              const radius = layer.radius;
-              
+            
+            <radialGradient id="layer2Gradient" cx="0.3" cy="0.2">
+              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.22)" />
+              <stop offset="30%" stopColor="rgba(206, 181, 72, 0.12)" />
+              <stop offset="70%" stopColor="rgba(206, 181, 72, 0.06)" />
+              <stop offset="100%" stopColor="rgba(206, 181, 72, 0.02)" />
+            </radialGradient>
+            
+            <radialGradient id="layer3Gradient" cx="0.3" cy="0.2">
+              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.18)" />
+              <stop offset="30%" stopColor="rgba(206, 181, 72, 0.10)" />
+              <stop offset="70%" stopColor="rgba(206, 181, 72, 0.05)" />
+              <stop offset="100%" stopColor="rgba(206, 181, 72, 0.01)" />
+            </radialGradient>
+            
+            {/* Continue patterns for all 9 layers */}
+            {[4, 5, 6, 7, 8, 9].map(layerNum => {
+              const opacity = Math.max(0.15 - (layerNum - 4) * 0.02, 0.05);
               return (
-                <clipPath key={`layer-clip-${layer.layerIndex}`} id={`layer-clip-${layer.layerIndex}`}>
-                  <path d={`
-                    M ${centerX} ${centerY - radius}
-                    A ${radius} ${radius} 0 0 1 ${centerX} ${centerY + radius}
-                    L ${centerX} ${centerY}
-                    Z
-                  `} />
-                </clipPath>
+                <radialGradient key={`layer${layerNum}Gradient`} id={`layer${layerNum}Gradient`} cx="0.3" cy="0.2">
+                  <stop offset="0%" stopColor={`rgba(206, 181, 72, ${opacity})`} />
+                  <stop offset="30%" stopColor={`rgba(206, 181, 72, ${opacity * 0.6})`} />
+                  <stop offset="70%" stopColor={`rgba(206, 181, 72, ${opacity * 0.3})`} />
+                  <stop offset="100%" stopColor={`rgba(206, 181, 72, ${opacity * 0.1})`} />
+                </radialGradient>
               );
             })}
           </defs>
 
-          {/* Render layer cards from bottom to top */}
+          {/* Render layer cards from bottom to top (largest to smallest z-index) */}
           {layerCards.map((layer) => {
             const isExpanded = expandedLayer === layer.layerIndex;
             const isOtherExpanded = expandedLayer !== null && expandedLayer !== layer.layerIndex;
             const isSelected = selectedAge?.id === layer.age.id;
+            
+            // Calculate dynamic radius for expansion
+            const displayRadius = isExpanded ? getMaxRadius() : layer.radius;
+            const gradientId = `layer${Math.min(layer.layerIndex, 3)}Gradient`;
             
             return (
               <g 
                 key={`layer-${layer.layerIndex}`}
                 className={`layer-card ${
                   isExpanded ? 'expanded' : ''
-                } ${isOtherExpanded ? 'dimmed' : ''} ${isSelected ? 'selected' : ''}`}
+                } ${isOtherExpanded ? 'hidden' : ''} ${isSelected ? 'selected' : ''}`}
                 style={{
                   zIndex: isExpanded ? 1000 : layer.zIndex,
-                  cursor: isAnimating ? 'wait' : 'pointer'
+                  cursor: isAnimating ? 'wait' : 'pointer',
+                  opacity: isOtherExpanded ? 0 : 1,
+                  transition: 'opacity 0.6s ease'
                 }}
-                onClick={() => handleLayerClick(layer)}
+                onClick={() => !isAnimating && handleLayerClick(layer)}
               >
-                {/* Main layer card */}
+                {/* Main layer card with TRUE 3D depth */}
                 <path
                   d={`
-                    M ${CENTER_X} ${CENTER_Y - layer.radius}
-                    A ${layer.radius} ${layer.radius} 0 0 1 ${CENTER_X} ${CENTER_Y + layer.radius}
+                    M ${CENTER_X} ${CENTER_Y - displayRadius}
+                    A ${displayRadius} ${displayRadius} 0 0 1 ${CENTER_X} ${CENTER_Y + displayRadius}
                     L ${CENTER_X} ${CENTER_Y}
                     Z
                   `}
-                  fill="url(#glassGradient)"
+                  fill={`url(#${gradientId})`}
                   stroke={GOLD}
-                  strokeWidth={isSelected ? "3" : "2"}
-                  strokeOpacity={isOtherExpanded ? "0.3" : "0.6"}
-                  fillOpacity={isOtherExpanded ? "0.2" : "0.4"}
-                  filter="url(#glassy-blur)"
+                  strokeWidth={isSelected ? "4" : isExpanded ? "6" : "2"}
+                  strokeOpacity={isExpanded ? "1" : "0.6"}
+                  filter="url(#layerGlass)"
                   className="layer-path"
+                  style={{
+                    transform: `translateZ(${layer.zIndex * 10}px)`,
+                    transformStyle: 'preserve-3d',
+                    transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
                 />
                 
-                {/* Layer border highlight */}
+                {/* Enhanced border with 3D effect */}
                 <path
                   d={`
-                    M ${CENTER_X} ${CENTER_Y - layer.radius}
-                    A ${layer.radius} ${layer.radius} 0 0 1 ${CENTER_X} ${CENTER_Y + layer.radius}
+                    M ${CENTER_X} ${CENTER_Y - displayRadius}
+                    A ${displayRadius} ${displayRadius} 0 0 1 ${CENTER_X} ${CENTER_Y + displayRadius}
                   `}
                   fill="none"
                   stroke={GOLD}
-                  strokeWidth="1"
-                  strokeOpacity={isOtherExpanded ? "0.2" : "0.8"}
-                  filter="url(#inner-glow)"
+                  strokeWidth={isExpanded ? "3" : "1"}
+                  strokeOpacity={isExpanded ? "1" : "0.8"}
+                  filter="url(#layerShadow)"
                   className="layer-highlight"
+                  style={{
+                    transform: `translateZ(${layer.zIndex * 10 + 5}px)`,
+                    transformStyle: 'preserve-3d',
+                    transition: 'all 1.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                  }}
                 />
 
-                {/* Age label */}
-                <text
-                  x={CENTER_X + layer.radius * 0.7}
-                  y={CENTER_Y}
-                  fill={GOLD}
-                  fontSize={isSelected ? "18" : "16"}
-                  fontFamily="Papyrus, Comic Sans MS, fantasy, cursive"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  opacity={isOtherExpanded ? "0.4" : "0.9"}
-                  className="layer-label"
-                >
-                  {getAgeDisplayName(layer.age)}
-                </text>
+                {/* Age label - positioned dynamically during expansion */}
+                {!isExpanded && (
+                  <text
+                    x={CENTER_X + displayRadius * 0.7}
+                    y={CENTER_Y}
+                    fill={GOLD}
+                    fontSize={isSelected ? "18" : "16"}
+                    fontFamily="Papyrus, Comic Sans MS, fantasy, cursive"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    opacity="0.9"
+                    className="layer-label"
+                    style={{
+                      transform: `translateZ(${layer.zIndex * 10 + 10}px)`,
+                      transformStyle: 'preserve-3d',
+                      transition: 'all 0.8s ease'
+                    }}
+                  >
+                    {getAgeDisplayName(layer.age)}
+                  </text>
+                )}
                 
                 {/* Layer number indicator */}
-                <circle
-                  cx={CENTER_X + layer.radius - 20}
-                  cy={CENTER_Y - layer.radius + 20}
-                  r="12"
-                  fill={GOLD}
-                  fillOpacity={isOtherExpanded ? "0.3" : "0.7"}
-                  className="layer-number-bg"
-                />
-                <text
-                  x={CENTER_X + layer.radius - 20}
-                  y={CENTER_Y - layer.radius + 20}
-                  fill="#1a1a1a"
-                  fontSize="10"
-                  fontFamily="monospace"
-                  fontWeight="bold"
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  opacity={isOtherExpanded ? "0.5" : "1"}
-                  className="layer-number"
-                >
-                  {layer.layerIndex}
-                </text>
+                {!isExpanded && (
+                  <g style={{
+                    transform: `translateZ(${layer.zIndex * 10 + 15}px)`,
+                    transformStyle: 'preserve-3d'
+                  }}>
+                    <circle
+                      cx={CENTER_X + displayRadius - 30}
+                      cy={CENTER_Y - displayRadius + 30}
+                      r="15"
+                      fill={GOLD}
+                      fillOpacity="0.8"
+                      className="layer-number-bg"
+                    />
+                    <text
+                      x={CENTER_X + displayRadius - 30}
+                      y={CENTER_Y - displayRadius + 30}
+                      fill="#1a1a1a"
+                      fontSize="12"
+                      fontFamily="monospace"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      className="layer-number"
+                    >
+                      {layer.layerIndex}
+                    </text>
+                  </g>
+                )}
               </g>
             );
           })}
         </svg>
         
-        {/* Central Sun */}
-        <div 
-          className="central-sun"
-          style={{
-            position: 'absolute',
-            left: CENTER_X - 24,
-            top: CENTER_Y - 24,
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: GOLD,
-            zIndex: 999,
-            pointerEvents: 'none',
-            opacity: expandedLayer ? '0.3' : '1',
-            transition: 'opacity 0.8s ease'
-          }}
-        />
+        {/* Central Sun - only visible when not expanded */}
+        {!expandedLayer && (
+          <div 
+            className="central-sun"
+            style={{
+              position: 'absolute',
+              left: CENTER_X - 24,
+              top: CENTER_Y - 24,
+              width: 48,
+              height: 48,
+              borderRadius: '50%',
+              background: GOLD,
+              zIndex: 1000,
+              pointerEvents: 'none',
+              transform: 'translateZ(100px)',
+              transformStyle: 'preserve-3d',
+              boxShadow: `0 0 30px ${GOLD}40, 0 0 60px ${GOLD}20`,
+              transition: 'all 0.8s ease'
+            }}
+          />
+        )}
       </div>
 
-      {/* Expanded Layer Content */}
-      {expandedLayer && (
-        <div className={`expanded-layer-overlay ${isAnimating ? 'animating' : ''}`}>
-          <div className="expanded-content">
-            <button 
-              className="close-expanded-btn"
-              onClick={handleCloseExpanded}
-              disabled={isAnimating}
-            >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-              </svg>
-            </button>
-            
-            {selectedAge && (
-              <AgeDetailPanel 
-                age={selectedAge}
-                onClose={handleCloseExpanded}
-                isExpanded={true}
-              />
-            )}
+      {/* Expanded Content - rendered as overlay within the expanded layer */}
+      {expandedLayer && selectedAge && (
+        <div className="expanded-layer-content">
+          <button 
+            className="close-expanded-btn"
+            onClick={handleCloseExpanded}
+            disabled={isAnimating}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+          
+          <div className="expanded-age-content">
+            <AgeDetailPanel 
+              age={selectedAge}
+              onClose={handleCloseExpanded}
+              isExpanded={true}
+              className="expanded-age-panel"
+            />
           </div>
         </div>
       )}
@@ -297,8 +346,13 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       {!expandedLayer && (
         <div className="instructions-panel">
           <h3>Layered Timeline Interface</h3>
-          <p>Click on any glassy layer to explore that age in detail.</p>
-          <p>Layers are stacked with the most recent age on top.</p>
+          <p>Click on any glassy layer to watch it expand and cover the page.</p>
+          <p>Layers are truly stacked with 3D depth - newest on top.</p>
+          <div className="features">
+            <span className="feature">🌟 3D Layered Stacking</span>
+            <span className="feature">📈 Radius Expansion Animation</span>
+            <span className="feature">✨ Glass Morphism Effects</span>
+          </div>
         </div>
       )}
     </div>

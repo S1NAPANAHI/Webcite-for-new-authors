@@ -410,20 +410,25 @@ const BlogPostEditor = () => {
     console.log(`❌ Removed tag: ${tagToRemove}`);
   };
 
-  // FIXED: Simplified media picker selection handler
+  // ENHANCED: Featured image selection handler with crop support
   const handleCoverImageSelect = (fileId: string, fileUrl: string, cropSettings?: CropSettings) => {
-    console.log('🖼️ MediaPicker selection received:', { fileId, fileUrl, cropSettings });
+    console.log('🖼️ BlogPostEditor: MediaPicker selection received:', { fileId, fileUrl, cropSettings });
     
     // Update state with the selected image
     setCoverFileId(fileId);
     setCoverUrl(fileUrl);
     
-    // Only set crop settings if they are provided
+    // Set crop settings if they are provided
     if (cropSettings) {
       setCoverCropSettings(cropSettings);
+      console.log('✂️ BlogPostEditor: Applied crop settings:', cropSettings);
+    } else {
+      // Clear previous crop settings if no new ones provided
+      setCoverCropSettings(null);
+      console.log('🚫 BlogPostEditor: No crop settings, cleared previous settings');
     }
     
-    console.log('✅ Cover image updated:', {
+    console.log('✅ BlogPostEditor: Cover image updated:', {
       fileId,
       fileUrl,
       cropSettings: cropSettings || 'none'
@@ -432,7 +437,7 @@ const BlogPostEditor = () => {
 
   // NEW: Handle clearing cover image
   const handleClearCoverImage = () => {
-    console.log('🗑️ Clearing cover image');
+    console.log('🗑️ BlogPostEditor: Clearing cover image');
     setCoverFileId('');
     setCoverUrl('');
     setCoverCropSettings(null);
@@ -446,7 +451,7 @@ const BlogPostEditor = () => {
       if (!user) throw new Error('Not authenticated');
       if (!title.trim()) throw new Error('Title is required');
 
-      console.log('🔄 Preparing post data:', {
+      console.log('🔄 BlogPostEditor: Preparing post data:', {
         coverFileId,
         coverCropSettings,
         selectedTags
@@ -460,6 +465,8 @@ const BlogPostEditor = () => {
         excerpt: excerpt || null,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null,
+        cover_file_id: coverFileId || null, // NEW: Store selected file ID
+        cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings
         author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
@@ -473,7 +480,7 @@ const BlogPostEditor = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📦 Saving post data:', postData);
+      console.log('📦 BlogPostEditor: Saving post data:', postData);
 
       let postId = id;
       let response;
@@ -558,6 +565,7 @@ const BlogPostEditor = () => {
               <span>📄 {(htmlContent.match(/<p>/g) || []).length} paragraphs</span>
               {isFeatured && <span>• ⭐ Featured</span>}
               {coverFileId && <span>• 🖼️ Cover Image</span>}
+              {coverCropSettings && <span>• ✂️ Cropped</span>}
             </div>
           )}
         </div>
@@ -656,22 +664,26 @@ const BlogPostEditor = () => {
                 />
               </div>
 
-              {/* FIXED: Simplified Featured Image Section with correct folder */}
+              {/* ENHANCED: Featured Image Section with Cropping */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Featured Image
-                  <span className="ml-2 px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full">
-                    📁 Blog Images
+                  <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs rounded-full flex items-center gap-1">
+                    <Crop className="w-3 h-3" />
+                    16:9 Cropping Available
                   </span>
                 </label>
                 
-                {/* FIXED: Simplified MediaPicker with correct folder */}
+                {/* ENHANCED: MediaPicker with cropping enabled for blog posts */}
                 <MediaPicker
                   selectedFileId={coverFileId || ''}
+                  selectedCropSettings={coverCropSettings || undefined}
                   onSelect={handleCoverImageSelect}
                   onClear={handleClearCoverImage}
                   preferredFolder="blog"
                   accept="image/*"
+                  enableCropping={true}
+                  cropAspectRatio={16/9}
                   className="w-full"
                 />
                 
@@ -686,14 +698,26 @@ const BlogPostEditor = () => {
                   />
                 </div>
                 
-                {/* Image Status Display */}
+                {/* Enhanced Image Status Display */}
                 {coverFileId && (
                   <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                    <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">✅ Image Selected</h4>
+                    <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
+                      <Crop className="w-4 h-4" />
+                      ✅ Blog Featured Image Ready
+                    </h4>
                     <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
                       <div>• File ID: {coverFileId}</div>
                       <div>• URL: {coverUrl}</div>
                       <div>• Stored in blog folder</div>
+                      {coverCropSettings && (
+                        <div className="flex items-center gap-1">
+                          <Crop className="w-3 h-3" />
+                          <span>Cropped: {Math.round(coverCropSettings.width)}×{Math.round(coverCropSettings.height)}px (16:9 ratio)</span>
+                        </div>
+                      )}
+                      {!coverCropSettings && (
+                        <div className="text-blue-600 dark:text-blue-400">• Using original dimensions</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -795,7 +819,10 @@ const BlogPostEditor = () => {
               {coverFileId && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Cover Image:</span>
-                  <span className="font-medium text-green-600">✅ Selected</span>
+                  <span className="font-medium text-green-600 flex items-center gap-1">
+                    <Crop className="w-3 h-3" />
+                    {coverCropSettings ? '✅ Cropped 16:9' : '✅ Original'}
+                  </span>
                 </div>
               )}
             </div>

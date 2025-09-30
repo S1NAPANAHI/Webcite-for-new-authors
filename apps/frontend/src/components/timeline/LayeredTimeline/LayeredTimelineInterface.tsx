@@ -12,7 +12,7 @@ export interface LayeredTimelineInterfaceProps {
 
 interface LayerCard {
   age: Age;
-  layerIndex: number; // 1-9, where 1 is top layer
+  layerIndex: number;
   baseRadius: number;
   zIndex: number;
 }
@@ -27,24 +27,41 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
   const [expandedLayer, setExpandedLayer] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [viewportDimensions, setViewportDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080
+  });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Constants for the layered design
-  const CENTER_X = 80; // Left-aligned like the original
+  // Constants
+  const CENTER_X = 80;
   const CENTER_Y = 400;
   const MIN_RADIUS = 72;
   const RADIUS_STEP = 44;
   const GOLD = '#CEB548';
-  
-  // Calculate dynamic max radius for full coverage
+
+  // Update viewport dimensions on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Calculate max radius for full viewport coverage
   const getMaxRadius = (): number => {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    // Calculate radius needed to cover entire viewport from center point
-    const radiusToRightEdge = viewportWidth - CENTER_X;
+    const { width, height } = viewportDimensions;
+    // Calculate diagonal distance from center to farthest corner + padding
+    const radiusToRightEdge = width - CENTER_X;
     const radiusToTopEdge = CENTER_Y;
-    const radiusToBottomEdge = viewportHeight - CENTER_Y;
-    return Math.max(radiusToRightEdge, radiusToTopEdge, radiusToBottomEdge) + 100; // Extra padding
+    const radiusToBottomEdge = height - CENTER_Y;
+    const maxDistance = Math.max(radiusToRightEdge, radiusToTopEdge, radiusToBottomEdge);
+    return maxDistance + 200; // Extra padding for complete coverage
   };
 
   // Initialize layer cards from ages
@@ -52,9 +69,11 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
     if (ages.length === 0) return;
 
     const layers: LayerCard[] = ages.map((age, index) => {
-      const layerNumber = ages.length - index; // Reverse: 9, 8, 7, ..., 1
+      // Layer numbering: Age 0 = Layer 1 (top), Age 8 = Layer 9 (bottom)
+      const layerNumber = index + 1;
       const baseRadius = MIN_RADIUS + (index * RADIUS_STEP);
-      const zIndex = layerNumber; // Layer 9 has z-index 9, Layer 1 has z-index 1
+      // Z-index: Layer 1 (first age) = highest z-index, Layer 9 (last age) = lowest
+      const zIndex = ages.length - index;
       
       return {
         age,
@@ -64,33 +83,37 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       };
     });
 
-    setLayerCards(layers); // Keep original order (largest to smallest)
+    setLayerCards(layers);
   }, [ages]);
 
-  const handleLayerClick = async (layerCard: LayerCard) => {
+  const handleLayerClick = (layerCard: LayerCard, event: React.MouseEvent) => {
+    event.stopPropagation();
+    
     if (isAnimating) return;
 
+    console.log(`Layer ${layerCard.layerIndex} clicked:`, layerCard.age.name);
+    
     setIsAnimating(true);
     
     if (expandedLayer === layerCard.layerIndex) {
-      // Collapse the layer
+      // Collapse current layer
       setShowContent(false);
       setTimeout(() => {
         setExpandedLayer(null);
         setTimeout(() => {
           setIsAnimating(false);
-        }, 1000);
-      }, 300);
+        }, 1200);
+      }, 200);
     } else {
-      // Expand the layer
+      // Expand clicked layer
       setExpandedLayer(layerCard.layerIndex);
       onAgeSelect(layerCard.age);
       
-      // Show content after expansion animation
+      // Show content after expansion completes
       setTimeout(() => {
         setShowContent(true);
         setIsAnimating(false);
-      }, 1000);
+      }, 1200);
     }
   };
 
@@ -103,85 +126,86 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       setExpandedLayer(null);
       setTimeout(() => {
         setIsAnimating(false);
-      }, 1000);
-    }, 300);
+      }, 1200);
+    }, 200);
   };
 
-  // Get the expanded layer data
+  // Get expanded layer data
   const expandedLayerData = expandedLayer ? layerCards.find(layer => layer.layerIndex === expandedLayer) : null;
   const { events, loading, error } = useEventsByAge(expandedLayerData?.age.id || '');
 
-  // Age names for display
   const getAgeDisplayName = (age: Age): string => {
-    return age.name || age.title || `Age ${age.age_number}`;
+    return age.name || age.title || `Age ${age.age_number}` || 'Unknown Age';
   };
+
+  const maxRadius = getMaxRadius();
 
   return (
     <div className={`layered-timeline-interface ${className} ${expandedLayer ? 'has-expanded' : ''}`} ref={containerRef}>
-      {/* Background */}
       <div className="timeline-background" />
       
-      {/* Full viewport SVG for proper expansion */}
+      {/* SVG with all layers */}
       <div className="layer-cards-container">
         <svg 
-          width="100vw"
-          height="100vh"
-          viewBox="0 0 100vw 100vh"
+          width={viewportDimensions.width}
+          height={viewportDimensions.height}
+          viewBox={`0 0 ${viewportDimensions.width} ${viewportDimensions.height}`}
           className="layers-svg"
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
-            minWidth: '100vw',
-            minHeight: '100vh'
+            width: '100vw',
+            height: '100vh'
           }}
         >
           <defs>
-            {/* Enhanced gradient definitions for each layer */}
+            {/* Gradients for each layer */}
             {layerCards.map((layer, index) => {
-              const opacity = Math.max(0.25 - (index * 0.02), 0.05);
+              const opacity = Math.max(0.25 - (index * 0.015), 0.08);
               return (
-                <radialGradient key={`layer${layer.layerIndex}Gradient`} id={`layer${layer.layerIndex}Gradient`} cx="0.3" cy="0.2">
+                <radialGradient key={`gradient-${layer.layerIndex}`} id={`layer-gradient-${layer.layerIndex}`} cx="0.2" cy="0.5">
                   <stop offset="0%" stopColor={`rgba(206, 181, 72, ${opacity})`} />
-                  <stop offset="30%" stopColor={`rgba(206, 181, 72, ${opacity * 0.6})`} />
-                  <stop offset="70%" stopColor={`rgba(206, 181, 72, ${opacity * 0.3})`} />
-                  <stop offset="100%" stopColor={`rgba(206, 181, 72, ${opacity * 0.1})`} />
+                  <stop offset="40%" stopColor={`rgba(206, 181, 72, ${opacity * 0.6})`} />
+                  <stop offset="80%" stopColor={`rgba(206, 181, 72, ${opacity * 0.3})`} />
+                  <stop offset="100%" stopColor={`rgba(15, 15, 20, ${opacity * 0.1})`} />
                 </radialGradient>
               );
             })}
             
-            {/* Expanded layer gradient for full coverage */}
-            <radialGradient id="expandedGradient" cx="0.1" cy="0.5">
-              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.12)" />
-              <stop offset="20%" stopColor="rgba(206, 181, 72, 0.08)" />
-              <stop offset="60%" stopColor="rgba(206, 181, 72, 0.04)" />
-              <stop offset="100%" stopColor="rgba(15, 15, 20, 0.9)" />
+            {/* Special expanded gradient */}
+            <radialGradient id="expanded-gradient" cx="0.1" cy="0.5" r="0.8">
+              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.15)" />
+              <stop offset="30%" stopColor="rgba(206, 181, 72, 0.08)" />
+              <stop offset="70%" stopColor="rgba(206, 181, 72, 0.03)" />
+              <stop offset="100%" stopColor="rgba(15, 15, 20, 0.95)" />
             </radialGradient>
           </defs>
 
-          {/* Render layer cards from bottom to top */}
-          {layerCards.map((layer) => {
+          {/* Render layers from bottom to top (reverse z-index order for proper stacking) */}
+          {[...layerCards].reverse().map((layer, reverseIndex) => {
             const isExpanded = expandedLayer === layer.layerIndex;
             const isOtherExpanded = expandedLayer !== null && expandedLayer !== layer.layerIndex;
             const isSelected = selectedAge?.id === layer.age.id;
             
-            // Calculate dynamic radius for smooth expansion
-            const displayRadius = isExpanded ? getMaxRadius() : layer.baseRadius;
-            const gradientId = isExpanded ? 'expandedGradient' : `layer${layer.layerIndex}Gradient`;
+            // Dynamic radius calculation
+            const displayRadius = isExpanded ? maxRadius : layer.baseRadius;
+            const gradientId = isExpanded ? 'expanded-gradient' : `layer-gradient-${layer.layerIndex}`;
             
             return (
               <g 
-                key={`layer-${layer.layerIndex}`}
-                className={`layer-card ${
+                key={`layer-group-${layer.layerIndex}`}
+                className={`layer-card layer-${layer.layerIndex} ${
                   isExpanded ? 'expanded' : ''
                 } ${isOtherExpanded ? 'faded' : ''} ${isSelected ? 'selected' : ''}`}
                 style={{
-                  zIndex: isExpanded ? 1000 : layer.zIndex,
-                  cursor: isAnimating ? 'wait' : 'pointer'
+                  zIndex: layer.zIndex,
+                  cursor: isAnimating ? 'wait' : 'pointer',
+                  pointerEvents: isOtherExpanded ? 'none' : 'auto'
                 }}
-                onClick={() => !isAnimating && handleLayerClick(layer)}
+                onClick={(e) => handleLayerClick(layer, e)}
               >
-                {/* Main layer card with smooth radius expansion */}
+                {/* Main semi-circle path */}
                 <path
                   d={`
                     M ${CENTER_X} ${CENTER_Y - displayRadius}
@@ -191,12 +215,13 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                   `}
                   fill={`url(#${gradientId})`}
                   stroke={GOLD}
-                  strokeWidth={isSelected ? "4" : isExpanded ? "3" : "2"}
-                  strokeOpacity={isExpanded ? "0.9" : "0.6"}
+                  strokeWidth={isExpanded ? "2" : isSelected ? "3" : "2"}
+                  strokeOpacity={isExpanded ? "0.8" : isSelected ? "0.9" : "0.6"}
                   className="layer-path"
+                  data-layer={layer.layerIndex}
                 />
                 
-                {/* Enhanced border */}
+                {/* Border highlight */}
                 <path
                   d={`
                     M ${CENTER_X} ${CENTER_Y - displayRadius}
@@ -204,45 +229,47 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                   `}
                   fill="none"
                   stroke={GOLD}
-                  strokeWidth={isExpanded ? "2" : "1"}
-                  strokeOpacity={isExpanded ? "1" : "0.7"}
+                  strokeWidth={isExpanded ? "1" : "1"}
+                  strokeOpacity={isExpanded ? "0.6" : "0.4"}
                   className="layer-highlight"
+                  data-layer={layer.layerIndex}
                 />
 
-                {/* Age label - only show when not expanded */}
+                {/* Age label - hide during expansion */}
                 {!isExpanded && (
                   <text
-                    x={CENTER_X + displayRadius * 0.7}
+                    x={CENTER_X + displayRadius * 0.6}
                     y={CENTER_Y}
                     fill={GOLD}
-                    fontSize={isSelected ? "18" : "16"}
+                    fontSize={isSelected ? "17" : "15"}
                     fontFamily="Papyrus, Comic Sans MS, fantasy, cursive"
                     fontWeight="bold"
                     textAnchor="middle"
                     dominantBaseline="central"
-                    opacity={isOtherExpanded ? "0.3" : "0.9"}
+                    opacity={isOtherExpanded ? "0" : "0.9"}
                     className="layer-label"
+                    style={{ pointerEvents: 'none' }}
                   >
                     {getAgeDisplayName(layer.age)}
                   </text>
                 )}
                 
-                {/* Layer number indicator - only show when not expanded */}
+                {/* Layer number indicator */}
                 {!isExpanded && (
-                  <g opacity={isOtherExpanded ? "0.3" : "1"}>
+                  <g opacity={isOtherExpanded ? "0" : "1"} style={{ pointerEvents: 'none' }}>
                     <circle
-                      cx={CENTER_X + displayRadius - 30}
-                      cy={CENTER_Y - displayRadius + 30}
-                      r="15"
+                      cx={CENTER_X + displayRadius - 25}
+                      cy={CENTER_Y - displayRadius + 25}
+                      r="12"
                       fill={GOLD}
-                      fillOpacity="0.8"
+                      fillOpacity="0.9"
                       className="layer-number-bg"
                     />
                     <text
-                      x={CENTER_X + displayRadius - 30}
-                      y={CENTER_Y - displayRadius + 30}
+                      x={CENTER_X + displayRadius - 25}
+                      y={CENTER_Y - displayRadius + 25}
                       fill="#1a1a1a"
-                      fontSize="12"
+                      fontSize="10"
                       fontFamily="monospace"
                       fontWeight="bold"
                       textAnchor="middle"
@@ -258,104 +285,101 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
           })}
         </svg>
         
-        {/* Central Sun - only visible when not expanded */}
-        {!expandedLayer && (
-          <div 
-            className="central-sun"
-            style={{
-              position: 'absolute',
-              left: CENTER_X - 24,
-              top: CENTER_Y - 24,
-              width: 48,
-              height: 48,
-              borderRadius: '50%',
-              background: GOLD,
-              zIndex: 1000,
-              pointerEvents: 'none',
-              boxShadow: `0 0 30px ${GOLD}60, 0 0 60px ${GOLD}30`,
-              transition: 'all 1s ease'
-            }}
-          />
-        )}
+        {/* Central Sun */}
+        <div 
+          className={`central-sun ${expandedLayer ? 'hidden' : ''}`}
+          style={{
+            position: 'absolute',
+            left: CENTER_X - 24,
+            top: CENTER_Y - 24,
+            width: 48,
+            height: 48,
+            borderRadius: '50%',
+            background: GOLD,
+            zIndex: 1001,
+            pointerEvents: 'none',
+            boxShadow: `0 0 40px ${GOLD}60, 0 0 80px ${GOLD}30`
+          }}
+        />
       </div>
 
-      {/* Content within the expanded layer - NO POPUP! */}
+      {/* Content overlay - appears within expanded layer */}
       {expandedLayer && expandedLayerData && (
-        <div className={`expanded-content-overlay ${showContent ? 'visible' : ''}`}>
-          {/* Close button */}
+        <div className={`expanded-content ${showContent ? 'visible' : ''}`}>
           <button 
-            className="floating-close-btn"
+            className="close-btn"
             onClick={handleCloseExpanded}
             disabled={isAnimating}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-            </svg>
+            ✕
           </button>
           
-          {/* Age content directly in the expanded layer */}
-          <div className="expanded-age-details">
-            <div className="age-header">
+          <div className="content-area">
+            <div className="age-info">
               <h1 className="age-title">{getAgeDisplayName(expandedLayerData.age)}</h1>
+              
               <div className="age-meta">
-                <span className="age-years">
+                <span className="years">
                   {expandedLayerData.age.start_year || '∞'} - {expandedLayerData.age.end_year || '∞'}
                 </span>
-                <span className="age-number">Age {expandedLayerData.age.age_number}</span>
+                <span className="layer-num">Layer {expandedLayerData.layerIndex}</span>
                 <span className="events-count">{events.length} Events</span>
               </div>
-              <p className="age-description">{expandedLayerData.age.description}</p>
+              
+              <p className="age-desc">{expandedLayerData.age.description}</p>
             </div>
             
-            {/* Timeline Events */}
+            {/* Events list */}
             {events.length > 0 && (
-              <div className="events-section">
-                <h3 className="events-title">Timeline Events</h3>
-                <div className="events-grid">
-                  {events.slice(0, 8).map((event, index) => (
-                    <div key={event.id} className="event-item" style={{ animationDelay: `${index * 0.1}s` }}>
-                      <div className="event-date">{new Date(event.date).getFullYear()}</div>
-                      <div className="event-title">{event.title}</div>
-                      <div className="event-description">{event.description?.substring(0, 120)}...</div>
+              <div className="events-list">
+                <h3>Timeline Events</h3>
+                <div className="events-container">
+                  {events.slice(0, 6).map((event, index) => (
+                    <div 
+                      key={event.id} 
+                      className="event-card"
+                      style={{ animationDelay: `${index * 0.1 + 0.5}s` }}
+                    >
+                      <div className="event-year">{new Date(event.date).getFullYear()}</div>
+                      <div className="event-name">{event.title}</div>
+                      <div className="event-summary">{event.description?.substring(0, 100)}...</div>
                     </div>
                   ))}
                 </div>
-                {events.length > 8 && (
-                  <div className="more-events">
-                    +{events.length - 8} more events
-                  </div>
+                {events.length > 6 && (
+                  <div className="more-events-note">+{events.length - 6} more events...</div>
                 )}
               </div>
             )}
             
             {events.length === 0 && !loading && (
               <div className="no-events">
-                <div className="no-events-icon">📜</div>
-                <h4>No Events Found</h4>
-                <p>This age currently has no recorded events in the timeline.</p>
+                <div className="icon">📖</div>
+                <h4>No Events Recorded</h4>
+                <p>This age has no timeline events yet.</p>
               </div>
             )}
             
             {loading && (
-              <div className="loading-events">
-                <div className="loading-spinner"></div>
-                <p>Loading events for this age...</p>
+              <div className="loading">
+                <div className="spinner"></div>
+                <p>Loading events...</p>
               </div>
             )}
           </div>
         </div>
       )}
       
-      {/* Instructions - only show when not expanded */}
+      {/* Instructions */}
       {!expandedLayer && (
-        <div className="instructions-panel">
-          <h3>Layered Timeline Interface</h3>
-          <p>Click any layer to watch it smoothly expand and reveal age details.</p>
-          <p>Layers are stacked with true depth - newest on top.</p>
-          <div className="features">
-            <span className="feature">🎯 Full-Screen Expansion</span>
-            <span className="feature">📖 Content Reveals In-Place</span>
-            <span className="feature">⚡ No Popups or Modals</span>
+        <div className="instructions">
+          <h3>Layered Timeline</h3>
+          <p>Click any layer to expand it across the page.</p>
+          <p>All 9 layers are clickable!</p>
+          <div className="tips">
+            <span>🎯 Click any layer to expand</span>
+            <span>📐 True radius expansion</span>
+            <span>✨ Content reveals in-place</span>
           </div>
         </div>
       )}

@@ -42,6 +42,10 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const FULL_CIRCLE = 2 * Math.PI;
   const BASE_SPEED = 0.008;               // Slow base speed for contemplative visible movement
   const HIDDEN_SPEED_MULTIPLIER = 3;      // 3x faster when hidden
+  
+  // EXTENDED speed zone constants (+10° on each side)
+  const NORMAL_SPEED_START = (340 * Math.PI) / 180; // 340° in radians ≈ 5.93
+  const NORMAL_SPEED_END = (200 * Math.PI) / 180;   // 200° in radians ≈ 3.49
 
   // Age names for text rotation
   const ageNames = [
@@ -73,7 +77,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     setPlanetAngles(planets.map(p => p.initialAngle));
   }, [ages]);
 
-  // Animation loop with CORRECTED variable speed logic
+  // Animation loop with EXTENDED normal speed zone logic
   useEffect(() => {
     let animationId: number;
     
@@ -83,18 +87,18 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           // Normalize angle to 0 to 2π range
           let normalizedAngle = (angle % FULL_CIRCLE + FULL_CIRCLE) % FULL_CIRCLE;
           
-          // CORRECTED LOGIC: Check if planet is in VISIBLE range
-          // Visible arc: 0° to 180° (right half-circle that we can see)
-          // Hidden arc: 180° to 360° (left half-circle behind the mask)
-          const isInVisibleRange = normalizedAngle >= 0 && normalizedAngle <= Math.PI;
+          // EXTENDED LOGIC: Check if planet is in NORMAL SPEED range
+          // Normal speed zone: 340° to 200° (crosses 0°, so it's: >= 340° OR <= 200°)
+          // Fast speed zone: 200° to 340°
+          const isInNormalSpeedRange = (normalizedAngle >= NORMAL_SPEED_START) || (normalizedAngle <= NORMAL_SPEED_END);
           
           // Apply appropriate speed based on position
           let delta;
-          if (isInVisibleRange) {
-            // On visible right half: slow, contemplative speed
+          if (isInNormalSpeedRange) {
+            // Extended normal speed zone: slow, contemplative movement for longer
             delta = BASE_SPEED;
           } else {
-            // On hidden left half: fast speed to "rush" behind the mask
+            // Shorter fast speed zone: quick traversal behind mask
             delta = BASE_SPEED * HIDDEN_SPEED_MULTIPLIER;
           }
 
@@ -273,7 +277,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
 
           {/* CLIPPED GROUP: Planets with smooth masking transition */}
           <g clipPath="url(#rightHalfClip)">
-            {/* MOVING Planets with proper variable speed - ALL planets render, clipping handles visibility */}
+            {/* MOVING Planets with extended normal speed zone - ALL planets render, clipping handles visibility */}
             {orbitingPlanets.map((planet, index) => {
               const position = calculatePlanetPosition(index);
               const selected = isSelected(planet);

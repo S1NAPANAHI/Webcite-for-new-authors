@@ -73,6 +73,19 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
             <stop offset="100%" stopColor="#08090c"/>
           </radialGradient>
 
+          {/* Click area masks - create ring-shaped areas that don't overlap */}
+          {sortedAges.map((_, index) => {
+            const outerRadius = generateRingRadius(index) + RING_THICKNESS/2;
+            const innerRadius = generateRingRadius(index) - RING_THICKNESS/2;
+            return (
+              <mask key={`click-mask-${index}`} id={`click-mask-${index}`}>
+                <rect width="800" height="800" fill="black" />
+                <circle cx="400" cy="400" r={outerRadius} fill="white" />
+                <circle cx="400" cy="400" r={Math.max(0, innerRadius)} fill="black" />
+              </mask>
+            );
+          })}
+
           {/* Gradients for each ring */}
           {sortedAges.map((_, index) => {
             const color = ageColors[index] || "#d4af37";
@@ -197,7 +210,7 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
           </text>
         </g>
 
-        {/* Ring disks - STROKE-BASED APPROACH FOR THICKNESS */}
+        {/* Ring disks - STROKE-BASED APPROACH WITH NON-OVERLAPPING CLICK AREAS */}
         <g id="rings">
           {sortedAges.map((age, index) => {
             const radius = generateRingRadius(index);
@@ -211,14 +224,13 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                 className={ringClasses}
                 style={{ cursor: 'pointer' }}
               >
-                {/* Invisible clickable area - FULL COVERAGE */}
+                {/* Ring-shaped clickable area - MASKED to prevent overlap */}
                 <circle 
                   cx="400" 
                   cy="400" 
-                  r={radius + RING_THICKNESS/2} 
+                  r="400"
                   fill="transparent"
-                  stroke="transparent"
-                  strokeWidth={RING_THICKNESS}
+                  mask={`url(#click-mask-${index})`}
                   onClick={() => handleRingClick(age)}
                   onMouseEnter={() => handleRingHover(age.id)}
                   onMouseLeave={() => handleRingHover(null)}

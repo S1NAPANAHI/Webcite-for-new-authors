@@ -8,12 +8,16 @@ import { ErrorMessage } from '../../ui/ErrorMessage';
 interface AgeDetailPanelProps {
   age: Age;
   onEventSelect?: (events: TimelineEvent[]) => void;
+  onClose?: () => void;
+  isExpanded?: boolean;
   className?: string;
 }
 
 export const AgeDetailPanel: React.FC<AgeDetailPanelProps> = ({ 
   age, 
-  onEventSelect, 
+  onEventSelect,
+  onClose,
+  isExpanded = false,
   className = '' 
 }) => {
   const { events, loading, error } = useEventsByAge(age.id);
@@ -63,22 +67,24 @@ export const AgeDetailPanel: React.FC<AgeDetailPanelProps> = ({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 ${className} ${isExpanded ? 'expanded-age-detail' : ''}`}>
       {/* Age Header */}
       <div className="relative">
         <div className="absolute inset-0 bg-gradient-to-r from-timeline-gold/5 to-transparent rounded-xl"></div>
         <div className="relative p-6 border border-timeline-gold/20 rounded-xl backdrop-blur-sm">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h2 className="text-3xl font-bold text-timeline-gold mb-2">
-                {age.title}
+              <h2 className={`font-bold text-timeline-gold mb-2 ${
+                isExpanded ? 'text-4xl' : 'text-3xl'
+              }`}>
+                {age.title || age.name}
               </h2>
               <div className="flex items-center space-x-4 text-sm text-timeline-text/70">
                 <span className="flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
-                  {age.dateRange}
+                  {age.dateRange || `${age.start_year || '∞'} - ${age.end_year || '∞'}`}
                 </span>
                 <span className="flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -86,6 +92,14 @@ export const AgeDetailPanel: React.FC<AgeDetailPanelProps> = ({
                   </svg>
                   {events.length} Events
                 </span>
+                {age.age_number && (
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                    </svg>
+                    Age {age.age_number}
+                  </span>
+                )}
               </div>
             </div>
             
@@ -113,6 +127,45 @@ export const AgeDetailPanel: React.FC<AgeDetailPanelProps> = ({
                   </span>
                 ))}
               </div>
+            </div>
+          )}
+          
+          {/* Age-specific information */}
+          {(age.major_events_summary || age.cultural_significance || age.notable_figures) && (
+            <div className="mt-6 space-y-4">
+              {age.major_events_summary && (
+                <div>
+                  <h4 className="text-sm font-semibold text-timeline-gold/80 mb-2">Major Events Summary:</h4>
+                  <p className="text-timeline-text/70 text-sm leading-relaxed">
+                    {age.major_events_summary}
+                  </p>
+                </div>
+              )}
+              
+              {age.cultural_significance && (
+                <div>
+                  <h4 className="text-sm font-semibold text-timeline-gold/80 mb-2">Cultural Significance:</h4>
+                  <p className="text-timeline-text/70 text-sm leading-relaxed">
+                    {age.cultural_significance}
+                  </p>
+                </div>
+              )}
+              
+              {age.notable_figures && age.notable_figures.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-timeline-gold/80 mb-2">Notable Figures:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {age.notable_figures.map((figure, index) => (
+                      <span 
+                        key={index}
+                        className="px-2 py-1 bg-timeline-gold/5 border border-timeline-gold/20 rounded text-xs text-timeline-gold/80"
+                      >
+                        {figure}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -240,6 +293,23 @@ export const AgeDetailPanel: React.FC<AgeDetailPanelProps> = ({
           </div>
         </div>
       )}
+      
+      <style jsx>{`
+        .expanded-age-detail {
+          padding-top: 1rem;
+        }
+        
+        .expanded-age-detail .relative:first-child {
+          background: linear-gradient(
+            135deg,
+            rgba(206, 181, 72, 0.1) 0%,
+            rgba(206, 181, 72, 0.05) 50%,
+            transparent 100%
+          );
+          border-radius: 1rem;
+          padding: 0.5rem;
+        }
+      `}</style>
     </div>
   );
 };

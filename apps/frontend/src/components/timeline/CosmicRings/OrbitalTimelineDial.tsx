@@ -37,6 +37,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const NODE_RADIUS = 16;
   const ORBIT_STEP = 35;
   const MIN_ORBIT_RADIUS = 60;
+  const FADE_ZONE = 0.25; // Radians for smooth fade in/out (~14 degrees)
 
   // Age names for text rotation
   const ageNames = [
@@ -88,6 +89,23 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
+  // Calculate fade/scale factor for smooth entry/exit animation
+  const calculateFadeInOut = (theta: number) => {
+    let fadeInOut = 1;
+    
+    // At the top edge (-π/2), fade out as planet approaches
+    if (theta < -Math.PI/2 + FADE_ZONE) {
+      fadeInOut = (theta + Math.PI/2) / FADE_ZONE;
+    }
+    // At the bottom edge (π/2), fade out as planet approaches  
+    else if (theta > Math.PI/2 - FADE_ZONE) {
+      fadeInOut = (Math.PI/2 - theta) / FADE_ZONE;
+    }
+    
+    // Clamp between 0 and 1
+    return Math.max(0, Math.min(1, fadeInOut));
+  };
+
   // Calculate position for VERTICAL half-circle (top to bottom, opening to the right)
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
     // Vertical half-circle: from -π/2 (top) to π/2 (bottom) going clockwise on RIGHT side
@@ -95,7 +113,9 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     
     const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
     const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
-    return { x, y, angle: currentAngle };
+    const fadeInOut = calculateFadeInOut(currentAngle);
+    
+    return { x, y, angle: currentAngle, opacity: fadeInOut, scale: fadeInOut };
   };
 
   // Create VERTICAL half-circle arc path (top to bottom, opening right)
@@ -218,13 +238,24 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             className="central-sun-flat static"
           />
 
-          {/* MOVING Planets with randomized starting positions */}
+          {/* MOVING Planets with smooth fade in/out animation */}
           {orbitingPlanets.map((planet, index) => {
             const position = calculatePlanetPosition(planet);
             const selected = isSelected(planet);
             
+            // Skip rendering if planet is nearly invisible to avoid ghosting
+            if (position.opacity < 0.04) return null;
+            
             return (
-              <g key={`planet-group-${index}`}>
+              <g 
+                key={`planet-group-${index}`}
+                style={{
+                  opacity: position.opacity,
+                  transform: `scale(${position.scale})`,
+                  transformOrigin: `${position.x}px ${position.y}px`,
+                  transition: 'opacity 0.1s ease-out, transform 0.1s ease-out'
+                }}
+              >
                 {/* Moving planet node */}
                 <circle
                   cx={position.x}

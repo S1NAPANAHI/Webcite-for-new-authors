@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Age } from '../../../lib/api-timeline';
 import { useEventsByAge } from '../hooks/useTimelineData';
-import { EventCard } from '../DetailPanels/EventCard';
 import './layered-timeline.css';
 
 export interface LayeredTimelineInterfaceProps {
@@ -31,14 +30,22 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Constants for the layered design
-  const CONTAINER_WIDTH = 800;
-  const CONTAINER_HEIGHT = 800;
   const CENTER_X = 80; // Left-aligned like the original
   const CENTER_Y = 400;
   const MIN_RADIUS = 72;
   const RADIUS_STEP = 44;
   const GOLD = '#CEB548';
-  const MAX_RADIUS = 600; // Full expansion radius
+  
+  // Calculate dynamic max radius for full coverage
+  const getMaxRadius = (): number => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    // Calculate radius needed to cover entire viewport from center point
+    const radiusToRightEdge = viewportWidth - CENTER_X;
+    const radiusToTopEdge = CENTER_Y;
+    const radiusToBottomEdge = viewportHeight - CENTER_Y;
+    return Math.max(radiusToRightEdge, radiusToTopEdge, radiusToBottomEdge) + 100; // Extra padding
+  };
 
   // Initialize layer cards from ages
   useEffect(() => {
@@ -72,8 +79,8 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
         setExpandedLayer(null);
         setTimeout(() => {
           setIsAnimating(false);
-        }, 800);
-      }, 200);
+        }, 1000);
+      }, 300);
     } else {
       // Expand the layer
       setExpandedLayer(layerCard.layerIndex);
@@ -83,7 +90,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       setTimeout(() => {
         setShowContent(true);
         setIsAnimating(false);
-      }, 800);
+      }, 1000);
     }
   };
 
@@ -96,8 +103,8 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       setExpandedLayer(null);
       setTimeout(() => {
         setIsAnimating(false);
-      }, 800);
-    }, 200);
+      }, 1000);
+    }, 300);
   };
 
   // Get the expanded layer data
@@ -114,13 +121,20 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
       {/* Background */}
       <div className="timeline-background" />
       
-      {/* Layer Cards Container */}
+      {/* Full viewport SVG for proper expansion */}
       <div className="layer-cards-container">
         <svg 
-          width={CONTAINER_WIDTH}
-          height={CONTAINER_HEIGHT}
-          viewBox={`0 0 ${CONTAINER_WIDTH} ${CONTAINER_HEIGHT}`}
+          width="100vw"
+          height="100vh"
+          viewBox="0 0 100vw 100vh"
           className="layers-svg"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            minWidth: '100vw',
+            minHeight: '100vh'
+          }}
         >
           <defs>
             {/* Enhanced gradient definitions for each layer */}
@@ -136,12 +150,12 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
               );
             })}
             
-            {/* Expanded layer gradient */}
-            <radialGradient id="expandedGradient" cx="0.5" cy="0.5">
-              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.15)" />
-              <stop offset="40%" stopColor="rgba(206, 181, 72, 0.08)" />
-              <stop offset="80%" stopColor="rgba(206, 181, 72, 0.03)" />
-              <stop offset="100%" stopColor="rgba(15, 15, 20, 0.95)" />
+            {/* Expanded layer gradient for full coverage */}
+            <radialGradient id="expandedGradient" cx="0.1" cy="0.5">
+              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.12)" />
+              <stop offset="20%" stopColor="rgba(206, 181, 72, 0.08)" />
+              <stop offset="60%" stopColor="rgba(206, 181, 72, 0.04)" />
+              <stop offset="100%" stopColor="rgba(15, 15, 20, 0.9)" />
             </radialGradient>
           </defs>
 
@@ -152,7 +166,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
             const isSelected = selectedAge?.id === layer.age.id;
             
             // Calculate dynamic radius for smooth expansion
-            const displayRadius = isExpanded ? MAX_RADIUS : layer.baseRadius;
+            const displayRadius = isExpanded ? getMaxRadius() : layer.baseRadius;
             const gradientId = isExpanded ? 'expandedGradient' : `layer${layer.layerIndex}Gradient`;
             
             return (
@@ -178,11 +192,8 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                   fill={`url(#${gradientId})`}
                   stroke={GOLD}
                   strokeWidth={isSelected ? "4" : isExpanded ? "3" : "2"}
-                  strokeOpacity={isExpanded ? "0.8" : "0.6"}
+                  strokeOpacity={isExpanded ? "0.9" : "0.6"}
                   className="layer-path"
-                  style={{
-                    transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                  }}
                 />
                 
                 {/* Enhanced border */}
@@ -194,11 +205,8 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                   fill="none"
                   stroke={GOLD}
                   strokeWidth={isExpanded ? "2" : "1"}
-                  strokeOpacity={isExpanded ? "0.9" : "0.7"}
+                  strokeOpacity={isExpanded ? "1" : "0.7"}
                   className="layer-highlight"
-                  style={{
-                    transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-                  }}
                 />
 
                 {/* Age label - only show when not expanded */}
@@ -214,9 +222,6 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                     dominantBaseline="central"
                     opacity={isOtherExpanded ? "0.3" : "0.9"}
                     className="layer-label"
-                    style={{
-                      transition: 'all 0.6s ease'
-                    }}
                   >
                     {getAgeDisplayName(layer.age)}
                   </text>
@@ -224,7 +229,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                 
                 {/* Layer number indicator - only show when not expanded */}
                 {!isExpanded && (
-                  <g opacity={isOtherExpanded ? "0.3" : "1"} style={{ transition: 'opacity 0.6s ease' }}>
+                  <g opacity={isOtherExpanded ? "0.3" : "1"}>
                     <circle
                       cx={CENTER_X + displayRadius - 30}
                       cy={CENTER_Y - displayRadius + 30}
@@ -268,7 +273,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
               zIndex: 1000,
               pointerEvents: 'none',
               boxShadow: `0 0 30px ${GOLD}60, 0 0 60px ${GOLD}30`,
-              transition: 'all 0.8s ease'
+              transition: 'all 1s ease'
             }}
           />
         )}
@@ -307,7 +312,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
               <div className="events-section">
                 <h3 className="events-title">Timeline Events</h3>
                 <div className="events-grid">
-                  {events.slice(0, 6).map((event, index) => (
+                  {events.slice(0, 8).map((event, index) => (
                     <div key={event.id} className="event-item" style={{ animationDelay: `${index * 0.1}s` }}>
                       <div className="event-date">{new Date(event.date).getFullYear()}</div>
                       <div className="event-title">{event.title}</div>
@@ -315,9 +320,9 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
                     </div>
                   ))}
                 </div>
-                {events.length > 6 && (
+                {events.length > 8 && (
                   <div className="more-events">
-                    +{events.length - 6} more events
+                    +{events.length - 8} more events
                   </div>
                 )}
               </div>
@@ -325,13 +330,16 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
             
             {events.length === 0 && !loading && (
               <div className="no-events">
-                <p>No events found for this age</p>
+                <div className="no-events-icon">📜</div>
+                <h4>No Events Found</h4>
+                <p>This age currently has no recorded events in the timeline.</p>
               </div>
             )}
             
             {loading && (
               <div className="loading-events">
-                <p>Loading events...</p>
+                <div className="loading-spinner"></div>
+                <p>Loading events for this age...</p>
               </div>
             )}
           </div>
@@ -345,7 +353,7 @@ export const LayeredTimelineInterface: React.FC<LayeredTimelineInterfaceProps> =
           <p>Click any layer to watch it smoothly expand and reveal age details.</p>
           <p>Layers are stacked with true depth - newest on top.</p>
           <div className="features">
-            <span className="feature">🌟 Smooth Radius Expansion</span>
+            <span className="feature">🎯 Full-Screen Expansion</span>
             <span className="feature">📖 Content Reveals In-Place</span>
             <span className="feature">⚡ No Popups or Modals</span>
           </div>

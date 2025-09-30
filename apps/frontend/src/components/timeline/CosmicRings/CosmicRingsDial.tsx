@@ -25,10 +25,10 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
     setHoveredAge(ageId);
   }, []);
 
-  // Generate ring radii - 9 concentric rings with even spacing
+  // Generate ring radii - concentric rings with even spacing
   const generateRingRadius = (index: number): number => {
-    const baseRadius = 75;
-    const increment = 35;
+    const baseRadius = 60;
+    const increment = 30;
     return baseRadius + (index * increment);
   };
 
@@ -50,57 +50,41 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
     <div className={`cosmic-rings-container ${className}`}>
       <svg 
         className="cosmic-rings-dial" 
-        viewBox="0 0 800 800" 
+        viewBox="0 0 700 700" 
         width="100%" 
         role="img" 
-        aria-label="Nine concentric rings dial representing cosmic ages"
+        aria-label="Concentric rings dial representing cosmic ages"
       >
         <defs>
-          {/* Starfield background */}
-          <radialGradient id="spaceGlow" cx="50%" cy="50%" r="60%">
-            <stop offset="0%" stopColor="#0c1120"/>
-            <stop offset="60%" stopColor="#090d17"/>
-            <stop offset="100%" stopColor="#07090e"/>
+          {/* Cosmic background gradient */}
+          <radialGradient id="cosmicBg" cx="50%" cy="50%" r="60%">
+            <stop offset="0%" stopColor="#1a1f2e"/>
+            <stop offset="60%" stopColor="#0f1419"/>
+            <stop offset="100%" stopColor="#070a0e"/>
           </radialGradient>
 
-          {/* Stone texture via turbulence */}
-          <filter id="stoneTexture" x="-10%" y="-10%" width="120%" height="120%">
-            <feTurbulence 
-              type="fractalNoise" 
-              baseFrequency="0.9" 
-              numOctaves="3" 
-              seed="11" 
-              result="noise"
-            />
-            <feColorMatrix 
-              type="matrix" 
-              values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 6 -2" 
-              result="contrast"
-            />
-            <feBlend in="SourceGraphic" in2="contrast" mode="multiply"/>
-          </filter>
+          {/* Simple stone-like gradient for rings */}
+          <linearGradient id="stoneGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#6b6653"/>
+            <stop offset="30%" stopColor="#5a5447"/>
+            <stop offset="70%" stopColor="#4a483f"/>
+            <stop offset="100%" stopColor="#3b3a36"/>
+          </linearGradient>
 
           {/* Metal rim gradient */}
           <linearGradient id="metalRim" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#f1deac"/>
-            <stop offset="35%" stopColor="#d4af37"/>
-            <stop offset="65%" stopColor="#8a6a3a"/>
-            <stop offset="100%" stopColor="#3a2b16"/>
+            <stop offset="0%" stopColor="#f4e4b8"/>
+            <stop offset="25%" stopColor="#d4af37"/>
+            <stop offset="75%" stopColor="#b8941f"/>
+            <stop offset="100%" stopColor="#8a6a1a"/>
           </linearGradient>
 
-          {/* Glass highlight overlay */}
-          <radialGradient id="glassGlow" cx="50%" cy="45%" r="50%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.55)"/>
-            <stop offset="35%" stopColor="rgba(255,255,255,0.20)"/>
-            <stop offset="100%" stopColor="rgba(255,255,255,0.00)"/>
+          {/* Glass overlay gradient */}
+          <radialGradient id="glassOverlay" cx="45%" cy="35%" r="60%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.4)"/>
+            <stop offset="50%" stopColor="rgba(255,255,255,0.15)"/>
+            <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
           </radialGradient>
-
-          {/* Etched text shadow */}
-          <filter id="etchShadow" x="-10%" y="-10%" width="120%" height="120%">
-            <feOffset dx="0.7" dy="0.7" result="offset"/>
-            <feGaussianBlur in="offset" stdDeviation="0.6" result="blur"/>
-            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-          </filter>
 
           {/* Text paths for each ring */}
           {sortedAges.map((_, index) => {
@@ -109,91 +93,121 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
               <path 
                 key={`path-${index}`}
                 id={getTextPathId(index)}
-                d={`M 400,400 m -${radius},0 a ${radius},${radius} 0 1,1 ${radius * 2},0 a ${radius},${radius} 0 1,1 -${radius * 2},0`}
+                d={`M 350,350 m -${radius},0 a ${radius},${radius} 0 1,1 ${radius * 2},0 a ${radius},${radius} 0 1,1 -${radius * 2},0`}
               />
             );
           })}
+
+          {/* Drop shadow filter for rings */}
+          <filter id="ringShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+          </filter>
+
+          {/* Glow effect for selected/hovered rings */}
+          <filter id="ringGlow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feMerge> 
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
 
-        {/* Starfield background */}
-        <rect x="0" y="0" width="800" height="800" fill="url(#spaceGlow)" />
+        {/* Cosmic starfield background */}
+        <rect x="0" y="0" width="700" height="700" fill="url(#cosmicBg)" />
         
-        {/* Sprinkle some stars */}
-        <g opacity="0.45">
-          <circle cx="120" cy="140" r="1.4" fill="#cbd3ff"/>
-          <circle cx="620" cy="220" r="1.2" fill="#cbd3ff"/>
-          <circle cx="500" cy="90" r="0.9" fill="#ced6ff"/>
-          <circle cx="300" cy="700" r="1.2" fill="#cbd3ff"/>
-          <circle cx="720" cy="560" r="0.8" fill="#ced6ff"/>
-          <circle cx="200" cy="520" r="0.9" fill="#cbd3ff"/>
+        {/* Add some simple stars */}
+        <g className="stars" opacity="0.6">
+          <circle cx="120" cy="140" r="1.5" fill="#d4af37" opacity="0.8"/>
+          <circle cx="580" cy="180" r="1" fill="#f4e4b8" opacity="0.6"/>
+          <circle cx="480" cy="100" r="0.8" fill="#d4af37" opacity="0.7"/>
+          <circle cx="250" cy="600" r="1.2" fill="#f4e4b8" opacity="0.5"/>
+          <circle cx="650" cy="520" r="0.9" fill="#d4af37" opacity="0.8"/>
+          <circle cx="180" cy="480" r="1.1" fill="#f4e4b8" opacity="0.6"/>
+          <circle cx="600" cy="320" r="0.7" fill="#d4af37" opacity="0.7"/>
+          <circle cx="80" cy="250" r="1.3" fill="#f4e4b8" opacity="0.5"/>
         </g>
 
         {/* Center core */}
-        <g transform="translate(400,400)">
-          <circle r="50" fill="#3b3a36" filter="url(#stoneTexture)" />
-          <circle r="50" fill="url(#glassGlow)" />
-          <circle r="58" fill="none" stroke="url(#metalRim)" strokeWidth="10" />
+        <g className="center-core">
+          <circle 
+            cx="350" 
+            cy="350" 
+            r="35" 
+            fill="url(#stoneGradient)" 
+            stroke="url(#metalRim)" 
+            strokeWidth="6"
+            filter="url(#ringShadow)"
+          />
+          <circle 
+            cx="350" 
+            cy="350" 
+            r="35" 
+            fill="url(#glassOverlay)" 
+          />
         </g>
         
-        <text x="400" y="402" textAnchor="middle" className="center-label etched">
+        <text x="350" y="355" textAnchor="middle" className="center-label">
           COSMIC AGES
         </text>
 
-        {/* Rings */}
-        <g id="rings">
+        {/* Concentric Rings */}
+        <g className="rings">
           {sortedAges.map((age, index) => {
             const radius = generateRingRadius(index);
             const isSelected = selectedAge?.id === age.id;
             const isHovered = hoveredAge === age.id;
-            const ringClasses = `ring-group ${isSelected ? 'selected' : ''} ${isHovered ? 'hover' : ''}`;
-
+            const opacity = isSelected ? 1 : isHovered ? 0.9 : 0.8;
+            
             return (
               <g 
                 key={age.id}
-                className={ringClasses}
-                data-index={index}
+                className={`ring-group ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''}`}
                 onClick={() => handleRingClick(age)}
                 onMouseEnter={() => handleRingHover(age.id)}
                 onMouseLeave={() => handleRingHover(null)}
                 style={{ cursor: 'pointer' }}
+                opacity={opacity}
               >
-                {/* Stone base */}
+                {/* Stone base ring */}
                 <circle 
                   className="ring-base" 
-                  cx="400" 
-                  cy="400" 
+                  cx="350" 
+                  cy="350" 
                   r={radius} 
                   fill="none" 
-                  stroke="#4a483f" 
-                  strokeWidth="20" 
-                  filter="url(#stoneTexture)"
+                  stroke="url(#stoneGradient)" 
+                  strokeWidth="16"
+                  filter="url(#ringShadow)"
                 />
                 
-                {/* Metal rim */}
+                {/* Metal rim overlay */}
                 <circle 
                   className="ring-rim" 
-                  cx="400" 
-                  cy="400" 
+                  cx="350" 
+                  cy="350" 
                   r={radius} 
                   fill="none" 
                   stroke="url(#metalRim)" 
-                  strokeWidth="14" 
-                  opacity="0.95"
+                  strokeWidth={isSelected ? "20" : isHovered ? "18" : "12"}
+                  opacity="0.9"
+                  filter={isSelected || isHovered ? "url(#ringGlow)" : undefined}
                 />
                 
-                {/* Glass highlight */}
+                {/* Glass highlight overlay */}
                 <circle 
                   className="ring-glass" 
-                  cx="400" 
-                  cy="400" 
+                  cx="350" 
+                  cy="350" 
                   r={radius} 
                   fill="none" 
-                  stroke="rgba(255,255,255,0.12)" 
-                  strokeWidth="10"
+                  stroke="url(#glassOverlay)" 
+                  strokeWidth="8"
+                  opacity="0.7"
                 />
                 
-                {/* Age label along ring arc */}
-                <text dy="-6" className="ring-label etched">
+                {/* Age label along the ring */}
+                <text className="ring-label" dy="-8">
                   <textPath 
                     href={`#${getTextPathId(index)}`} 
                     startOffset="50%" 
@@ -201,6 +215,16 @@ export const CosmicRingsDial: React.FC<CosmicRingsDialProps> = ({
                   >
                     {age.name || age.title}
                   </textPath>
+                </text>
+
+                {/* Optional: Age number indicator */}
+                <text 
+                  className="age-number"
+                  x={350 + (radius * Math.cos(-Math.PI/2))}
+                  y={350 + (radius * Math.sin(-Math.PI/2)) - 15}
+                  textAnchor="middle"
+                >
+                  {age.age_number}
                 </text>
               </g>
             );

@@ -27,15 +27,15 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const [orbitingPlanets, setOrbitingPlanets] = useState<OrbitingPlanet[]>([]);
   const [animationTime, setAnimationTime] = useState(0);
 
-  // Constants for VERTICAL half-circle design opening to the RIGHT
+  // Constants for VERTICAL half-circle design (top to bottom on left side)
   const GOLD = '#CEB548';
   const SVG_SIZE = 800;
-  const CENTER_X = 100; // LEFT side of viewport - this is the center of the half-circle
-  const CENTER_Y = 400; // Center vertically
-  const SUN_RADIUS = 28;
-  const NODE_RADIUS = 18;
-  const ORBIT_STEP = 40;
-  const MIN_ORBIT_RADIUS = 70;
+  const CENTER_X = 80; // Left side position
+  const CENTER_Y = 400; // Vertical center
+  const SUN_RADIUS = 24;
+  const NODE_RADIUS = 16;
+  const ORBIT_STEP = 35;
+  const MIN_ORBIT_RADIUS = 60;
 
   // Age names for text rotation
   const ageNames = [
@@ -51,8 +51,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
       return {
         age,
         orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
-        angle: 0, // Start at rightmost point (0 radians)
-        speed: 0.004 + (index * 0.001), // Very slow speeds, inner orbits faster
+        angle: -Math.PI / 2, // Start at top (-90 degrees)
+        speed: 0.003 + (index * 0.0005), // Very slow, smooth speeds
         size: NODE_RADIUS,
         planetType: ageNames[index] || `${age.age_number} Age`
       };
@@ -61,12 +61,17 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     setOrbitingPlanets(planets);
   }, [ages]);
 
-  // Slow animation loop
+  // Smooth animation loop
   useEffect(() => {
     let animationId: number;
+    let lastTime = 0;
     
-    const animate = () => {
-      setAnimationTime(prev => prev + 0.008); // Slow, contemplative animation
+    const animate = (currentTime: number) => {
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+      
+      // Smooth, consistent animation speed
+      setAnimationTime(prev => prev + 0.002);
       animationId = requestAnimationFrame(animate);
     };
     
@@ -83,26 +88,25 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
-  // Calculate position for VERTICAL half-circle opening to the RIGHT
-  // Planets move from 0 (right) to π (left) - i.e., semicircle on the right side
+  // Calculate position for VERTICAL half-circle (top to bottom, opening to the right)
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
-    // Right-opening half-circle: from 0 (right) to π (left) going counter-clockwise
-    const currentAngle = (animationTime * planet.speed) % Math.PI;
+    // Vertical half-circle: from -π/2 (top) to π/2 (bottom) going clockwise on RIGHT side
+    const currentAngle = -Math.PI / 2 + ((animationTime * planet.speed) % Math.PI);
     
     const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
     const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
     return { x, y, angle: currentAngle };
   };
 
-  // Create VERTICAL half-circle arc path opening to the RIGHT (static orbit lines)
-  const createRightOpeningHalfCirclePath = (radius: number) => {
-    const startX = CENTER_X + radius; // Start at rightmost point
-    const startY = CENTER_Y;
-    const endX = CENTER_X - radius; // End at leftmost point
-    const endY = CENTER_Y;
+  // Create VERTICAL half-circle arc path (top to bottom, opening right)
+  const createVerticalHalfCirclePath = (radius: number) => {
+    const startX = CENTER_X;
+    const startY = CENTER_Y - radius; // Top point
+    const endX = CENTER_X;
+    const endY = CENTER_Y + radius; // Bottom point
     
-    // Half-circle arc from right to left (top half)
-    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 0 ${endX} ${endY}`;
+    // Vertical half-circle arc opening to the RIGHT
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   };
 
   const isSelected = (planet: OrbitingPlanet) => {
@@ -124,7 +128,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
               <path
                 key={`textpath-${index}`}
                 id={`vertical-orbit-path-${index}`}
-                d={createRightOpeningHalfCirclePath(planet.orbitRadius)}
+                d={createVerticalHalfCirclePath(planet.orbitRadius)}
                 fill="none"
               />
             ))}
@@ -134,9 +138,9 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           {orbitingPlanets.map((planet, index) => (
             <path
               key={`orbit-${index}`}
-              d={createRightOpeningHalfCirclePath(planet.orbitRadius)}
+              d={createVerticalHalfCirclePath(planet.orbitRadius)}
               stroke={GOLD}
-              strokeWidth={4}
+              strokeWidth={3}
               fill="none"
               className="orbit-line static"
             />
@@ -156,6 +160,11 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             const position = calculatePlanetPosition(planet);
             const selected = isSelected(planet);
             
+            // Calculate text offset to avoid overlap with orbit lines
+            const textOffset = planet.orbitRadius + 25; // Push text outside the orbit
+            const textX = CENTER_X + Math.cos(position.angle) * textOffset;
+            const textY = CENTER_Y + Math.sin(position.angle) * textOffset;
+            
             return (
               <g key={`planet-group-${index}`}>
                 {/* Moving planet node */}
@@ -174,31 +183,28 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
                   <circle
                     cx={position.x}
                     cy={position.y}
-                    r={NODE_RADIUS + 8}
+                    r={NODE_RADIUS + 6}
                     stroke={GOLD}
                     strokeWidth={2}
                     fill="none"
                     className="selection-ring moving"
-                    opacity="0.7"
+                    opacity="0.8"
                   />
                 )}
                 
-                {/* Rotating age text along STATIC orbit path */}
+                {/* Age text positioned OUTSIDE orbit lines */}
                 <text
-                  fontSize="16"
+                  x={textX}
+                  y={textY}
+                  fontSize="14"
                   fontFamily="Georgia, serif"
                   fill={GOLD}
                   fontWeight="bold"
                   className="orbit-text moving"
+                  textAnchor="middle"
+                  dominantBaseline="middle"
                 >
-                  <textPath
-                    href={`#vertical-orbit-path-${index}`}
-                    startOffset={`${(position.angle / Math.PI * 100).toFixed(1)}%`}
-                    dominantBaseline="middle"
-                    textAnchor="middle"
-                  >
-                    {planet.planetType}
-                  </textPath>
+                  {planet.planetType}
                 </text>
               </g>
             );

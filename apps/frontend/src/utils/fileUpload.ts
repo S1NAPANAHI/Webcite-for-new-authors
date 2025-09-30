@@ -10,6 +10,8 @@ export interface FileRecord {
   width?: number | null;
   height?: number | null;
   storage_path: string;
+  path?: string; // Added for MediaPicker compatibility
+  bucket?: string; // Added for MediaPicker compatibility
   url?: string | null;
   thumbnail_url?: string | null;
   folder: string;
@@ -144,7 +146,7 @@ export async function uploadFile(
 
     console.log('Generated public URL:', urlData.publicUrl);
 
-    // FIXED: Insert file record with proper structure
+    // FIXED: Insert file record with proper structure including MediaPicker fields
     const fileRecord = {
       id: fileId,  // Proper UUID
       name: cleanName,
@@ -155,6 +157,8 @@ export async function uploadFile(
       width,
       height,
       storage_path: storagePath,
+      path: storagePath, // NEW: Add path field for MediaPicker compatibility
+      bucket: 'media', // NEW: Add bucket field for MediaPicker compatibility
       url: urlData.publicUrl,
       folder: folder,
       tags: options.tags || [],
@@ -197,7 +201,7 @@ export async function deleteFile(fileId: string): Promise<void> {
   // Get file record
   const { data: file, error: fetchError } = await supabase
     .from('files')
-    .select('storage_path')
+    .select('storage_path, path')
     .eq('id', fileId)
     .single();
 
@@ -205,14 +209,20 @@ export async function deleteFile(fileId: string): Promise<void> {
     throw new FileUploadError('File not found');
   }
 
-  // Delete from storage
-  const { error: storageError } = await supabase.storage
-    .from('media')
-    .remove([file.storage_path]);
+  // Try both storage_path and path for deletion
+  const pathsToTry = [file.storage_path, file.path].filter(Boolean);
+  
+  for (const pathToDelete of pathsToTry) {
+    const { error: storageError } = await supabase.storage
+      .from('media')
+      .remove([pathToDelete]);
 
-  if (storageError) {
-    console.warn('Storage deletion failed:', storageError);
-    // Continue with database deletion even if storage fails
+    if (storageError) {
+      console.warn(`Storage deletion failed for path ${pathToDelete}:`, storageError);
+    } else {
+      console.log(`Successfully deleted from storage: ${pathToDelete}`);
+      break; // Stop trying once one succeeds
+    }
   }
 
   // Delete from database
@@ -233,9 +243,17 @@ export function getFileUrl(file: FileRecord, options?: { width?: number; height?
     return file.url;
   }
   
+  // Use storage_path or path, whichever is available
+  const filePath = file.storage_path || file.path;
+  
+  if (!filePath) {
+    console.warn('No path found for file:', file);
+    return '';
+  }
+  
   const { data } = supabase.storage
     .from('media')
-    .getPublicUrl(file.storage_path, {
+    .getPublicUrl(filePath, {
       transform: options ? {
         width: options.width,
         height: options.height,
@@ -343,12 +361,163 @@ export async function fetchFiles(options: FileListOptions = {}): Promise<{
   };
 }
 
+// NEW: Function to move file to a different folder (syncs storage + database)
+export async function moveFileToFolder(
+  fileId: string,
+  newFolder: string,
+  newName?: string
+): Promise<FileRecord> {
+  console.log('🔄 Moving file to folder:', { fileId, newFolder, newName });
+
+  // Get current file record
+  const { data: currentFile, error: fetchError } = await supabase
+    .from('files')
+    .select('*')
+    .eq('id', fileId)
+    .single();
+
+  if (fetchError || !currentFile) {
+    throw new FileUploadError('File not found');
+  }
+
+  console.log('📄 Current file record:', currentFile);
+
+  // Determine current and new paths
+  const currentPath = currentFile.storage_path || currentFile.path;
+  if (!currentPath) {
+    throw new FileUploadError('File has no valid path');
+  }
+
+  // Extract file extension from current path or mime type
+  let extension = '';
+  if (currentPath.includes('.')) {
+    extension = '.' + currentPath.split('.').pop();
+  } else if (currentFile.mime_type) {
+    const mimeExt = currentFile.mime_type.split('/')[1];
+    extension = '.' + (mimeExt === 'jpeg' ? 'jpg' : mimeExt);
+  }
+
+  // Generate new filename
+  const fileName = newName || currentFile.name || currentFile.original_name.replace(extension, '');
+  const newStoragePath = `${newFolder}/${currentFile.id}${extension}`;
+
+  console.log('📁 Path migration:', {
+    from: currentPath,
+    to: newStoragePath,
+    fileName
+  });
+
+  try {
+    // 1. Copy file to new location in Supabase storage
+    console.log('📋 Copying file in storage...');
+    const { error: copyError } = await supabase.storage
+      .from('media')
+      .copy(currentPath, newStoragePath);
+
+    if (copyError) {
+      console.error('❌ Storage copy error:', copyError);
+      throw new FileUploadError(`Failed to move file in storage: ${copyError.message}`);
+    }
+
+    console.log('✅ File copied to new location');
+
+    // 2. Update database record
+    const updatedRecord = {
+      name: fileName,
+      folder: newFolder,
+      storage_path: newStoragePath,
+      path: newStoragePath, // For MediaPicker compatibility
+      bucket: 'media', // For MediaPicker compatibility
+      updated_at: new Date().toISOString()
+    };
+
+    console.log('📝 Updating database record:', updatedRecord);
+
+    const { data: updatedFile, error: updateError } = await supabase
+      .from('files')
+      .update(updatedRecord)
+      .eq('id', fileId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('❌ Database update error:', updateError);
+      // Try to clean up the copied file
+      await supabase.storage.from('media').remove([newStoragePath]);
+      throw new FileUploadError(`Failed to update database: ${updateError.message}`);
+    }
+
+    console.log('✅ Database record updated');
+
+    // 3. Delete old file from storage
+    console.log('🗑️ Cleaning up old file...');
+    const { error: deleteError } = await supabase.storage
+      .from('media')
+      .remove([currentPath]);
+
+    if (deleteError) {
+      console.warn('⚠️ Failed to delete old file (non-critical):', deleteError);
+      // This is non-critical - the file move succeeded
+    } else {
+      console.log('✅ Old file cleaned up');
+    }
+
+    // 4. Update the URL in the record
+    const { data: urlData } = supabase.storage
+      .from('media')
+      .getPublicUrl(newStoragePath);
+
+    const { data: finalFile, error: urlUpdateError } = await supabase
+      .from('files')
+      .update({ url: urlData.publicUrl })
+      .eq('id', fileId)
+      .select()
+      .single();
+
+    if (urlUpdateError) {
+      console.warn('⚠️ Failed to update URL (non-critical):', urlUpdateError);
+      return updatedFile; // Return previous version if URL update fails
+    }
+
+    console.log('🎉 File move completed successfully!');
+    return finalFile;
+
+  } catch (error) {
+    console.error('💥 File move failed:', error);
+    if (error instanceof FileUploadError) {
+      throw error;
+    }
+    throw new FileUploadError(`Move failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// ENHANCED: Update file metadata with optional folder move
 export async function updateFileMetadata(
   fileId: string,
   updates: Partial<Pick<FileRecord, 'name' | 'alt_text' | 'description' | 'folder' | 'tags'>>
 ): Promise<FileRecord> {
-  console.log('Updating file metadata:', { fileId, updates });
+  console.log('🔄 Updating file metadata:', { fileId, updates });
 
+  // Get current file to check if folder is changing
+  const { data: currentFile, error: fetchError } = await supabase
+    .from('files')
+    .select('*')
+    .eq('id', fileId)
+    .single();
+
+  if (fetchError || !currentFile) {
+    throw new FileUploadError('File not found');
+  }
+
+  // If folder is changing, use the move function
+  if (updates.folder && updates.folder !== currentFile.folder) {
+    console.log('📁 Folder change detected, using move function');
+    return await moveFileToFolder(fileId, updates.folder, updates.name);
+  }
+
+  // Otherwise, just update metadata (no storage changes needed)
+  console.log('📝 Updating metadata only (no folder change)');
+  
   const { data: updatedFile, error } = await supabase
     .from('files')
     .update({
@@ -360,10 +529,10 @@ export async function updateFileMetadata(
     .single();
 
   if (error) {
-    console.error('File update error:', error);
+    console.error('❌ File update error:', error);
     throw new FileUploadError(`Failed to update file: ${error.message}`);
   }
 
-  console.log('File metadata updated successfully');
+  console.log('✅ File metadata updated successfully');
   return updatedFile;
 }

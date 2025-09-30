@@ -88,49 +88,20 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
-  // Calculate position for FULL orbit with accelerated back-side
+  // Calculate position for FULL orbit - no visibility checks, just pure orbital math
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
     // Calculate current angle in full orbit (0 to 2π)
-    const baseAngle = (planet.initialAngle + animationTime * planet.speed) % (2 * Math.PI);
+    const currentAngle = (planet.initialAngle + animationTime * planet.speed) % (2 * Math.PI);
     
-    // Determine if planet is on visible side or back side
-    // Visible side: from 3π/2 to π/2 (going through 0, which is rightmost point)
-    // This creates a vertical half-circle from top (-π/2) to bottom (π/2) on the right side
+    // Convert full orbit to our coordinate system
+    // We want to show the right side of the orbit as our half-circle
+    // Map full orbit (0 to 2π) to our display coordinates
+    const displayAngle = currentAngle - Math.PI / 2; // Offset so 0 is at top
     
-    let currentAngle;
-    let isVisible = false;
+    const x = CENTER_X + Math.cos(displayAngle) * planet.orbitRadius;
+    const y = CENTER_Y + Math.sin(displayAngle) * planet.orbitRadius;
     
-    // Convert to continuous angle for easier calculation
-    const normalizedAngle = baseAngle;
-    
-    // Visible arc: 3π/2 to π/2 (270° to 90°, going through 0°)
-    // This means we show the right side of the circle
-    if (normalizedAngle >= 3 * Math.PI / 2 || normalizedAngle <= Math.PI / 2) {
-      // Planet is on visible side - normal speed
-      isVisible = true;
-      
-      // Map to our display coordinates (-π/2 to π/2)
-      if (normalizedAngle >= 3 * Math.PI / 2) {
-        // Top portion: 3π/2 to 2π maps to -π/2 to 0
-        currentAngle = normalizedAngle - 2 * Math.PI; // This gives us -π/2 to 0
-      } else {
-        // Bottom portion: 0 to π/2 maps to 0 to π/2
-        currentAngle = normalizedAngle;
-      }
-    } else {
-      // Planet is on back side (invisible) - this case shouldn't render
-      isVisible = false;
-      currentAngle = 0; // Dummy value, won't be used
-    }
-    
-    if (!isVisible) {
-      return { x: 0, y: 0, angle: currentAngle, isVisible: false };
-    }
-    
-    const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
-    const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
-    
-    return { x, y, angle: currentAngle, isVisible: true };
+    return { x, y, angle: displayAngle };
   };
 
   // Create VERTICAL half-circle arc path (top to bottom, opening right)
@@ -147,7 +118,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   // Create segmented orbit path with SMALLER cut-outs for text
   const createSegmentedOrbitPath = (radius: number, textLength: number) => {
     // Much smaller text gap - just enough for the text with minimal padding
-    const textSegmentLength = Math.max(textLength * 0.06, 0.3); // Reduced from 0.12 to 0.06
+    const textSegmentLength = Math.max(textLength * 0.06, 0.3);
     const textCenterAngle = 0; // Center the text at the rightmost point of arc
     
     const startAngle = -Math.PI / 2; // Top
@@ -184,8 +155,8 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
           className="orbital-svg vertical"
         >
-          {/* Define paths for textPath */}
           <defs>
+            {/* Define paths for textPath */}
             {orbitingPlanets.map((planet, index) => (
               <path
                 key={`textpath-${index}`}
@@ -194,9 +165,23 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
                 fill="none"
               />
             ))}
+            
+            {/* MASKING: Define clip path to show only the right half-circle */}
+            <clipPath id="rightHalfCircleClip">
+              <path
+                d={`
+                  M ${CENTER_X} ${CENTER_Y - 400}
+                  L ${SVG_SIZE} ${CENTER_Y - 400}
+                  L ${SVG_SIZE} ${SVG_SIZE}
+                  L ${CENTER_X} ${SVG_SIZE}
+                  A 400 400 0 0 0 ${CENTER_X} ${CENTER_Y - 400}
+                `}
+                fill="white"
+              />
+            </clipPath>
           </defs>
 
-          {/* Orbit lines with SMALLER cut-outs for text */}
+          {/* Orbit lines with SMALLER cut-outs for text - NOT CLIPPED */}
           {orbitingPlanets.map((planet, index) => {
             const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType.length);
             return (
@@ -223,7 +208,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             );
           })}
 
-          {/* Static text integrated into orbit lines using textPath */}
+          {/* Static text integrated into orbit lines - NOT CLIPPED */}
           {orbitingPlanets.map((planet, index) => (
             <text
               key={`orbit-text-${index}`}
@@ -244,7 +229,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             </text>
           ))}
 
-          {/* Central Sun (STATIC) */}
+          {/* Central Sun (STATIC) - NOT CLIPPED */}
           <circle
             cx={CENTER_X}
             cy={CENTER_Y}
@@ -253,43 +238,43 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             className="central-sun-flat static"
           />
 
-          {/* MOVING Planets - only visible when on front side of orbit */}
-          {orbitingPlanets.map((planet, index) => {
-            const position = calculatePlanetPosition(planet);
-            const selected = isSelected(planet);
-            
-            // Only render if planet is on visible side
-            if (!position.isVisible) return null;
-            
-            return (
-              <g key={`planet-group-${index}`}>
-                {/* Moving planet node */}
-                <circle
-                  cx={position.x}
-                  cy={position.y}
-                  r={NODE_RADIUS}
-                  fill={GOLD}
-                  className={`planet-node moving ${selected ? 'selected' : ''}`}
-                  onClick={() => handlePlanetClick(planet)}
-                  style={{ cursor: 'pointer' }}
-                />
-                
-                {/* Selection ring */}
-                {selected && (
+          {/* CLIPPED GROUP: Planets with smooth masking transition */}
+          <g clipPath="url(#rightHalfCircleClip)">
+            {/* MOVING Planets - ALL planets render, clipping handles visibility */}
+            {orbitingPlanets.map((planet, index) => {
+              const position = calculatePlanetPosition(planet);
+              const selected = isSelected(planet);
+              
+              return (
+                <g key={`planet-group-${index}`}>
+                  {/* Moving planet node */}
                   <circle
                     cx={position.x}
                     cy={position.y}
-                    r={NODE_RADIUS + 6}
-                    stroke={GOLD}
-                    strokeWidth={2}
-                    fill="none"
-                    className="selection-ring moving"
-                    opacity="0.8"
+                    r={NODE_RADIUS}
+                    fill={GOLD}
+                    className={`planet-node moving ${selected ? 'selected' : ''}`}
+                    onClick={() => handlePlanetClick(planet)}
+                    style={{ cursor: 'pointer' }}
                   />
-                )}
-              </g>
-            );
-          })}
+                  
+                  {/* Selection ring */}
+                  {selected && (
+                    <circle
+                      cx={position.x}
+                      cy={position.y}
+                      r={NODE_RADIUS + 6}
+                      stroke={GOLD}
+                      strokeWidth={2}
+                      fill="none"
+                      className="selection-ring moving"
+                      opacity="0.8"
+                    />
+                  )}
+                </g>
+              );
+            })}
+          </g>
         </svg>
 
         {/* Age info panel */}

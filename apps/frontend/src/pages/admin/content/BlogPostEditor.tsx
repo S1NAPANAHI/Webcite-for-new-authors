@@ -293,9 +293,12 @@ const BlogPostEditor = () => {
         setContent(loadedHtmlContent); // Keep for compatibility
         
         setStatus(data.status || 'draft');
-        setCoverUrl(data.cover_url || data.featured_image || '');
         
-        // NEW: Load cover image metadata if available
+        // FIXED: Handle cover image URL from multiple possible fields
+        const coverImageUrl = data.cover_url || data.featured_image || '';
+        setCoverUrl(coverImageUrl);
+        
+        // Load cover image metadata if available
         if (data.cover_file_id) {
           setCoverFileId(data.cover_file_id);
         }
@@ -443,7 +446,7 @@ const BlogPostEditor = () => {
     setCoverCropSettings(null);
   };
 
-  // 🔥 ENHANCED SAVE: Save function with better error handling
+  // FIXED: Save function that properly handles crop settings and doesn't duplicate fields
   const saveBlogPost = async (publishNow = false) => {
     setSaving(true);
 
@@ -452,21 +455,23 @@ const BlogPostEditor = () => {
       if (!title.trim()) throw new Error('Title is required');
 
       console.log('🔄 BlogPostEditor: Preparing post data:', {
+        coverUrl,
         coverFileId,
         coverCropSettings,
         selectedTags
       });
 
+      // FIXED: Clean post data - store original image URL and separate crop settings
       const postData = {
         title: title.trim(),
         slug: slug || generateSlug(title),
-        content: htmlContent, // Store HTML content directly
-        html_content: htmlContent, // NEW: Also store in html_content field if supported
+        content: htmlContent,
+        html_content: htmlContent,
         excerpt: excerpt || null,
+        // FIXED: Store original image URL in cover_url (not duplicated)
         cover_url: coverUrl || null,
-        featured_image: coverUrl || null,
-        cover_file_id: coverFileId || null, // NEW: Store selected file ID
-        cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null, // NEW: Store crop settings
+        // FIXED: Store crop settings as JSON in separate column
+        cover_crop_settings: coverCropSettings ? JSON.stringify(coverCropSettings) : null,
         author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
@@ -517,8 +522,9 @@ const BlogPostEditor = () => {
       // Show success message
       const actionText = publishNow ? 'published' : 'saved';
       const statusText = publishNow ? 'Your post is now live!' : 'Content saved successfully.';
+      const cropText = coverCropSettings ? ' with perfect 16:9 cropping' : '';
       
-      alert(`✅ Post ${actionText} successfully!\n\n${statusText}`);
+      alert(`✅ Post ${actionText} successfully${cropText}!\n\n${statusText}`);
       
       // Navigate back to blog manager
       navigate('/admin/content/blog');
@@ -564,8 +570,8 @@ const BlogPostEditor = () => {
               <span>•</span>
               <span>📄 {(htmlContent.match(/<p>/g) || []).length} paragraphs</span>
               {isFeatured && <span>• ⭐ Featured</span>}
-              {coverFileId && <span>• 🖼️ Cover Image</span>}
-              {coverCropSettings && <span>• ✂️ Cropped</span>}
+              {coverUrl && <span>• 🖼️ Cover Image</span>}
+              {coverCropSettings && <span>• ✂️ Cropped 16:9</span>}
             </div>
           )}
         </div>
@@ -699,24 +705,24 @@ const BlogPostEditor = () => {
                 </div>
                 
                 {/* Enhanced Image Status Display */}
-                {coverFileId && (
+                {coverUrl && (
                   <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
                     <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2 flex items-center gap-2">
                       <Crop className="w-4 h-4" />
                       ✅ Blog Featured Image Ready
                     </h4>
                     <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                      <div>• File ID: {coverFileId}</div>
-                      <div>• URL: {coverUrl}</div>
-                      <div>• Stored in blog folder</div>
+                      <div>• Original URL: {coverUrl}</div>
+                      {coverFileId && <div>• File ID: {coverFileId}</div>}
+                      <div>• Storage: Original image preserved in blog folder</div>
                       {coverCropSettings && (
                         <div className="flex items-center gap-1">
                           <Crop className="w-3 h-3" />
-                          <span>Cropped: {Math.round(coverCropSettings.width)}×{Math.round(coverCropSettings.height)}px (16:9 ratio)</span>
+                          <span>Crop: {Math.round(coverCropSettings.width)}×{Math.round(coverCropSettings.height)}px (16:9 display ratio)</span>
                         </div>
                       )}
                       {!coverCropSettings && (
-                        <div className="text-blue-600 dark:text-blue-400">• Using original dimensions</div>
+                        <div className="text-blue-600 dark:text-blue-400">• Display: Using original dimensions</div>
                       )}
                     </div>
                   </div>
@@ -816,7 +822,7 @@ const BlogPostEditor = () => {
                 <span className="font-medium text-green-600">✅ Proper Spacing</span>
               </div>
               
-              {coverFileId && (
+              {coverUrl && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Cover Image:</span>
                   <span className="font-medium text-green-600 flex items-center gap-1">

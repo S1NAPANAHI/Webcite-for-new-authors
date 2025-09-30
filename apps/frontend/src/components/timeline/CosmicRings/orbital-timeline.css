@@ -1,4 +1,4 @@
-/* Vertical Half-Circle Orbital Timeline - Left Side Positioning, Opening Right */
+/* Vertical Half-Circle Orbital Timeline - Corrected Orientation */
 .orbital-timeline-dial {
   position: relative;
   width: 100%;
@@ -24,24 +24,24 @@
   height: 100%;
 }
 
-/* SVG Container - Positioned on the LEFT, arcs opening to the RIGHT */
+/* SVG Container - Positioned for VERTICAL arcs (top to bottom) */
 .orbital-svg.vertical {
   display: block;
   background: none;
   overflow: visible;
   position: absolute;
-  left: -50px; /* Adjust positioning so half-circle opens to the right */
+  left: -20px; /* Position for vertical arcs on left side */
   top: 50%;
   transform: translateY(-50%);
   flex-shrink: 0;
 }
 
-/* STATIC Orbit Lines - These DON'T move */
+/* STATIC Orbit Lines - Vertical arcs that DON'T move */
 .orbit-line.static {
   stroke: #CEB548;
-  stroke-width: 4;
+  stroke-width: 3;
   fill: none;
-  opacity: 0.8;
+  opacity: 0.85;
   stroke-linecap: round;
   /* No animation - completely static */
 }
@@ -49,48 +49,49 @@
 /* STATIC Central Sun - This DOESN'T move */ 
 .central-sun-flat.static {
   fill: #CEB548;
+  opacity: 1;
   /* No animation - completely static */
 }
 
-/* MOVING Planet Nodes - These DO move */
+/* MOVING Planet Nodes - These DO move smoothly */
 .planet-node.moving {
   fill: #CEB548;
-  transition: r 0.3s ease, opacity 0.3s ease;
+  transition: r 0.2s ease, opacity 0.2s ease;
   cursor: pointer;
-  /* These move via JavaScript animation */
+  opacity: 0.9;
+  /* These move via smooth JavaScript animation */
 }
 
 .planet-node.moving:hover {
   opacity: 1;
-  filter: brightness(1.2);
+  filter: brightness(1.1);
 }
 
 .planet-node.moving.selected {
   opacity: 1;
-  filter: brightness(1.3);
+  filter: brightness(1.2);
 }
 
 /* MOVING Selection Ring */
 .selection-ring.moving {
   stroke: #CEB548;
   fill: none;
-  opacity: 0.7;
-  animation: selectionPulse 2s ease-in-out infinite;
+  opacity: 0.8;
+  animation: selectionPulse 2.5s ease-in-out infinite;
   stroke-linecap: round;
   /* This moves with the planet via JavaScript */
 }
 
-/* MOVING Rotating Orbit Text */
+/* MOVING Age Text - Positioned outside orbit lines */
 .orbit-text.moving {
   fill: #CEB548;
   font-family: 'Georgia', serif;
-  font-size: 16px;
-  font-weight: bold;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
   pointer-events: none;
-  dominant-baseline: middle;
-  text-anchor: middle;
-  /* This rotates along the static path via JavaScript */
+  opacity: 0.95;
+  /* Text positioned outside orbits to avoid overlap */
 }
 
 /* Selected Age Information Panel - Positioned on the RIGHT */
@@ -99,14 +100,14 @@
   right: 2rem;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(20, 20, 15, 0.95);
+  background: rgba(15, 15, 10, 0.95);
   border: 2px solid #CEB548;
   border-radius: 12px;
   padding: 2rem;
   width: 340px;
   color: #CEB548;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   z-index: 10;
 }
 
@@ -115,7 +116,7 @@
   font-weight: bold;
   margin-bottom: 0.75rem;
   color: #CEB548;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   line-height: 1.2;
 }
 
@@ -134,22 +135,22 @@
   font-style: italic;
 }
 
-/* Animations */
+/* Smooth animations */
 @keyframes selectionPulse {
   0%, 100% { 
-    opacity: 0.7;
+    opacity: 0.8;
     stroke-width: 2;
   }
   50% { 
     opacity: 1;
-    stroke-width: 3;
+    stroke-width: 2.5;
   }
 }
 
 /* Responsive Design */
 @media (max-width: 1400px) {
   .orbital-svg.vertical {
-    left: -80px;
+    left: -40px;
   }
   
   .selected-age-info.vertical {
@@ -161,7 +162,7 @@
 
 @media (max-width: 1200px) {
   .orbital-svg.vertical {
-    left: -100px;
+    left: -60px;
   }
   
   .selected-age-info.vertical {
@@ -175,7 +176,7 @@
   }
   
   .orbit-text.moving {
-    font-size: 15px;
+    font-size: 13px;
   }
 }
 
@@ -210,7 +211,7 @@
   }
   
   .orbit-text.moving {
-    font-size: 14px;
+    font-size: 12px;
   }
 }
 
@@ -221,11 +222,11 @@
   }
   
   .orbit-line.static {
-    stroke-width: 3;
+    stroke-width: 2.5;
   }
   
   .orbit-text.moving {
-    font-size: 12px;
+    font-size: 11px;
   }
   
   .selected-age-info.vertical {
@@ -241,7 +242,7 @@
   }
 }
 
-/* Remove all old styling that might interfere */
+/* Clean up old styles */
 .stone-wall-aesthetic,
 .stone-carved,
 .thick-carved-line,

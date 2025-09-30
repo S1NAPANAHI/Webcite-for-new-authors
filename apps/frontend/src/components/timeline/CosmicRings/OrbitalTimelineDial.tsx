@@ -156,16 +156,24 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
   };
 
-  // Create segmented orbit path with SMALLER cut-outs for text - RESTORED
-  const createSegmentedOrbitPath = (radius: number, textLength: number) => {
-    // Much smaller text gap - just enough for the text with minimal padding
-    const textSegmentLength = Math.max(textLength * 0.06, 0.3);
+  // IMPROVED: Create segmented orbit path with DYNAMIC text-sized cut-outs
+  const createSegmentedOrbitPath = (radius: number, textContent: string) => {
+    // Calculate approximate text width based on content and font size
+    // Using Papyrus font at 20px size
+    const avgCharWidth = 12; // Papyrus is wider than average fonts
+    const letterSpacing = 0.08; // em value
+    const approxTextWidth = textContent.length * avgCharWidth * (1 + letterSpacing);
+    
+    // Convert text width to arc length and then to angle
+    const arcLength = approxTextWidth + 20; // Add 20px padding (10px each side)
+    const textSegmentAngle = arcLength / radius; // Convert pixels to radians
+    
     const textCenterAngle = 0; // Center the text at the rightmost point of arc
     
     const startAngle = -Math.PI / 2; // Top
     const endAngle = Math.PI / 2; // Bottom
-    const textStartAngle = textCenterAngle - textSegmentLength / 2;
-    const textEndAngle = textCenterAngle + textSegmentLength / 2;
+    const textStartAngle = textCenterAngle - textSegmentAngle / 2;
+    const textEndAngle = textCenterAngle + textSegmentAngle / 2;
     
     // Calculate coordinates
     const startX = CENTER_X + Math.cos(startAngle) * radius;
@@ -236,9 +244,9 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             </clipPath>
           </defs>
 
-          {/* RESTORED: Orbit lines with SMALLER cut-outs for text - HIGH QUALITY */}
+          {/* IMPROVED: Orbit lines with DYNAMIC text-sized cut-outs - HIGH QUALITY */}
           {orbitingPlanets.map((planet, index) => {
-            const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType.length);
+            const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType);
             return (
               <g key={`orbit-segments-${index}`}>
                 {/* Segment before text */}
@@ -269,12 +277,12 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           {orbitingPlanets.map((planet, index) => (
             <text
               key={`orbit-text-${index}`}
-              fontSize="20" // Slightly larger for Papyrus
+              fontSize="20" // Matching the calculation in createSegmentedOrbitPath
               fontFamily="Papyrus, Comic Sans MS, fantasy, cursive" // Papyrus font with fallbacks
               fill={GOLD}
               fontWeight="bold"
               className="orbit-text static papyrus positioned"
-              letterSpacing="0.08em" // Better spacing for ancient feel
+              letterSpacing="0.08em" // Matching the calculation
             >
               <textPath
                 href={`#vertical-orbit-path-${index}`}

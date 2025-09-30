@@ -1,19 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { StackedDiskDial } from './CosmicRings/StackedDiskDial';
+import React, { useState, useMemo } from 'react';
+import { CosmicRingsDial } from './CosmicRings/CosmicRingsDial';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
 import { ModeToggle } from './Navigation/ModeToggle';
 import { useTimelineContext } from '../../contexts/TimelineContext';
+import { useTimelineData } from './hooks/useTimelineData';
 import { Age, TimelineEvent } from '../../lib/api-timeline';
+import './enhanced-cosmic-timeline.css';
 
 export type ViewMode = 'hybrid' | 'linear';
 
 export const EnhancedCosmicTimeline: React.FC = () => {
   const { selectedAge, setSelectedAge } = useTimelineContext();
+  const { ages, loading, error } = useTimelineData();
   const [viewMode, setViewMode] = useState<ViewMode>('hybrid');
   const [selectedEvents, setSelectedEvents] = useState<TimelineEvent[]>([]);
-  const detailPanelRef = useRef<HTMLDivElement>(null);
   
   const handleAgeSelect = (age: Age) => {
     setSelectedAge(age);
@@ -23,9 +25,45 @@ export const EnhancedCosmicTimeline: React.FC = () => {
     setViewMode(viewMode === 'hybrid' ? 'linear' : 'hybrid');
   };
 
+  // Format year range for display
+  const formatYearRange = (age: Age): string => {
+    if (!age.end_year) return `${age.start_year || '∞'}–∞`;
+    return `${age.start_year || '∞'}–${age.end_year}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="enhanced-cosmic-timeline">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-timeline-gold"></div>
+            <p className="mt-4 text-timeline-text/70">Loading cosmic timeline...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="enhanced-cosmic-timeline">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <p className="text-red-400 mb-4">Error loading timeline: {error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-timeline-gold/20 border border-timeline-gold/30 rounded-lg text-timeline-gold hover:bg-timeline-gold/30 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-timeline-bg via-timeline-bg-secondary to-timeline-bg-tertiary text-timeline-text relative overflow-hidden">
-      
+    <div className="enhanced-cosmic-timeline">
       {/* Enhanced Star Field Background */}
       <div className="star-field absolute inset-0 pointer-events-none">
         {Array.from({ length: 150 }).map((_, i) => (
@@ -76,88 +114,68 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         </button>
       </div>
 
-      {/* Main Content Container - Always Split Layout */}
-      <div className="flex min-h-screen">
-        
-        {/* Left Side - Stacked Disk Dial (Fixed) */}
-        <div className="w-full lg:w-2/5 xl:w-1/3 flex flex-col items-center justify-center p-8 border-r border-timeline-gold/20 bg-timeline-bg/50 backdrop-blur-sm">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl lg:text-4xl font-bold mb-4 bg-gradient-to-r from-timeline-gold via-timeline-gold-light to-timeline-gold bg-clip-text text-transparent">
-              Cosmic Timeline
-            </h1>
-            <p className="text-timeline-text/70 text-sm lg:text-base">
-              Navigate through the ages of the Zoroasterverse
-            </p>
-          </div>
-          
-          {/* Stacked Disk Dial Container - No Square Background */}
-          <div className="relative flex items-center justify-center">
-            <StackedDiskDial 
-              onAgeSelect={handleAgeSelect} 
-              selectedAgeId={selectedAge?.id || null}
-              className="scale-75 sm:scale-85 lg:scale-100"
+      <div className="timeline-layout">
+        {/* Left side: Cosmic Rings Dial */}
+        <div className="timeline-dial-section">
+          <div className="dial-container">
+            <CosmicRingsDial
+              ages={ages}
+              selectedAge={selectedAge}
+              onAgeSelect={handleAgeSelect}
+              className="main-cosmic-dial"
             />
           </div>
-
-          {/* Age Selection Hint */}
-          {!selectedAge && (
-            <div className="mt-8 text-center max-w-sm">
-              <p className="text-timeline-text/60 animate-pulse text-sm mb-3">
-                Click on any stacked disk layer to explore its timeline
-              </p>
-              <div className="flex items-center justify-center space-x-4 text-xs text-timeline-text/40">
-                <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-timeline-gold/60 rounded-full shadow-lg"></div>
-                  <span>3D Layered</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-timeline-gold/40 rounded-full shadow-md"></div>
-                  <span>Stone Texture</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-3 h-3 bg-timeline-gold/30 rounded-full shadow-sm"></div>
-                  <span>Glass Effects</span>
-                </div>
-              </div>
+          
+          {/* Age info panel */}
+          <div className="age-info-panel">
+            <h2 className="age-title">{selectedAge?.name || selectedAge?.title || 'Select an Age'}</h2>
+            <p className="age-years">
+              Year range: {selectedAge ? formatYearRange(selectedAge) : '—'}
+            </p>
+            <p className="age-description">
+              {selectedAge?.description || 'Click a ring to explore the cosmic ages.'}
+            </p>
+            {/* Add events count when we have event data */}
+            <div className="age-events-count">
+              <span className="events-badge">
+                {selectedAge ? 'Ring Selected' : 'No Selection'}
+              </span>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Right Side - Timeline Content (Always Visible) */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Right side: Timeline Content */}
+        <div className="timeline-content-section">
           {viewMode === 'hybrid' ? (
             selectedAge ? (
-              <div ref={detailPanelRef}>
-                <AgeDetailPanel 
-                  age={selectedAge}
-                  onEventSelect={setSelectedEvents}
-                  className="p-8"
-                />
-              </div>
+              <AgeDetailPanel 
+                age={selectedAge}
+                onEventSelect={setSelectedEvents}
+                className="p-8"
+              />
             ) : (
               <div className="flex items-center justify-center h-full p-8">
                 <div className="text-center max-w-md">
                   <div className="mb-8">
-                    {/* Welcome Illustration - 3D Stacked Circles */}
-                    <div className="w-32 h-32 mx-auto mb-6 relative perspective-1000">
-                      {/* Simulate stacked disks */}
+                    {/* Welcome Illustration - Concentric Rings */}
+                    <div className="w-32 h-32 mx-auto mb-6 relative">
+                      {/* Simulate concentric rings */}
                       {Array.from({ length: 4 }).map((_, index) => (
                         <div
                           key={index}
-                          className="absolute border-4 border-timeline-gold/30 rounded-full"
+                          className="absolute border-4 rounded-full"
                           style={{
                             width: `${120 - (index * 20)}px`,
                             height: `${120 - (index * 20)}px`,
                             left: '50%',
-                            top: `${50 + (index * 4)}%`,
+                            top: '50%',
                             transform: 'translate(-50%, -50%)',
+                            borderColor: `rgba(212, 175, 55, ${0.6 - (index * 0.1)})`,
                             background: `radial-gradient(circle at 30% 30%, 
-                              hsl(45, 60%, ${55 + (index * 5)}%) 0%, 
-                              hsl(45, 50%, ${45 + (index * 5)}%) 50%, 
-                              hsl(45, 40%, ${35 + (index * 5)}%) 100%)`,
-                            opacity: 0.7 - (index * 0.1),
-                            boxShadow: `0 ${2 + index}px ${8 - index}px rgba(0, 0, 0, 0.4)`,
-                            animation: `float ${4 + index}s ease-in-out infinite alternate`,
+                              hsla(45, 60%, ${55 + (index * 5)}%, ${0.3 - (index * 0.05)}), 
+                              hsla(45, 50%, ${45 + (index * 5)}%, ${0.2 - (index * 0.05)}))`,
+                            boxShadow: `0 0 ${8 - index}px rgba(212, 175, 55, ${0.4 - (index * 0.1)})`,
+                            animation: `ringPulse ${4 + index}s ease-in-out infinite alternate`,
                             animationDelay: `${index * 0.5}s`
                           }}
                         />
@@ -176,8 +194,8 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                     Welcome to the Zoroasterverse Timeline
                   </h2>
                   <p className="text-timeline-text/80 leading-relaxed mb-6">
-                    Begin your journey through the cosmic ages by selecting a **3D stacked disk layer** from the dial on the left. 
-                    Each disk has stone-like textures with glassy effects and represents a unique era in the Zoroasterverse.
+                    Begin your journey through the cosmic ages by selecting a **concentric ring** from the dial on the left. 
+                    Each ring has stone-like textures with metallic rims and glassy highlights, representing a unique era in the Zoroasterverse.
                   </p>
                   
                   <div className="space-y-4">
@@ -189,33 +207,22 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                       <span className="text-sm">Explore cosmic events and characters</span>
                     </div>
                     <div className="flex items-center justify-center space-x-2 text-timeline-text/60">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-sm">Filter and sort timeline events</span>
-                    </div>
-                    <div className="flex items-center justify-center space-x-2 text-timeline-text/60">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-sm">Discover detailed event information</span>
-                    </div>
-                    <div className="flex items-center justify-center space-x-2 text-timeline-text/60">
                       <div className="flex space-x-1">
                         {Array.from({ length: 3 }).map((_, i) => (
                           <div 
                             key={i}
-                            className="w-3 h-3 rounded-full shadow-sm"
+                            className="w-3 h-3 rounded-full"
                             style={{
                               background: `radial-gradient(circle at 30% 30%, 
                                 hsl(45, 60%, ${55 + (i * 10)}%), 
                                 hsl(45, 40%, ${35 + (i * 10)}%))`,
-                              opacity: 0.7 - (i * 0.1)
+                              opacity: 0.7 - (i * 0.1),
+                              border: '1px solid rgba(212, 175, 55, 0.3)'
                             }}
                           />
                         ))}
                       </div>
-                      <span className="text-sm">True 3D stacked disk layers</span>
+                      <span className="text-sm">True concentric rings with stone/metal/glass materials</span>
                     </div>
                   </div>
                 </div>
@@ -233,21 +240,21 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Age Info Card - Enhanced for 3D Disk Design */}
+      {/* Floating Age Info Card */}
       {selectedAge && (
         <div className="fixed bottom-8 left-8 z-40 max-w-sm">
           <div className="bg-timeline-bg/90 backdrop-blur-xl border border-timeline-gold/30 rounded-xl p-4 shadow-2xl">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center space-x-3">
                 <div 
-                  className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
+                  className="w-6 h-6 rounded-full flex-shrink-0 shadow-md border"
                   style={{
                     background: 'radial-gradient(circle at 30% 30%, hsl(45, 60%, 55%), hsl(45, 40%, 35%))',
-                    opacity: 0.8
+                    borderColor: 'rgba(212, 175, 55, 0.5)'
                   }}
                 ></div>
                 <h3 className="text-lg font-bold text-timeline-gold">
-                  {selectedAge.title}
+                  {selectedAge.name || selectedAge.title}
                 </h3>
               </div>
               <button
@@ -262,13 +269,11 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             <p className="text-timeline-text/80 text-sm leading-relaxed">
               {selectedAge.description?.substring(0, 100)}...
             </p>
-            {selectedAge.dateRange && (
-              <div className="mt-2 text-xs text-timeline-text/60">
-                {selectedAge.dateRange}
-              </div>
-            )}
+            <div className="mt-2 text-xs text-timeline-text/60">
+              {formatYearRange(selectedAge)}
+            </div>
             <div className="mt-2 text-xs text-timeline-gold/70">
-              3D Stacked Disk • Stone & Glass Texture
+              Concentric Ring • Stone & Metal & Glass
             </div>
           </div>
         </div>
@@ -281,40 +286,13 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           100% { opacity: 1; transform: scale(1.2); }
         }
         
-        @keyframes float {
-          0% {
-            transform: translate(-50%, -50%) translateY(0px);
-          }
-          100% {
-            transform: translate(-50%, -50%) translateY(-10px);
-          }
+        @keyframes ringPulse {
+          0% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+          100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.05); }
         }
         
         .star-field {
           background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-        }
-        
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        
-        /* Remove any square backgrounds */
-        .stacked-disk-container {
-          background: none !important;
-          border: none !important;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 1024px) {
-          .stacked-disk-container {
-            transform: scale(0.9);
-          }
-        }
-        
-        @media (max-width: 768px) {
-          .stacked-disk-container {
-            transform: scale(0.8);
-          }
         }
       `}</style>
     </div>

@@ -1,4 +1,4 @@
-/* Vertical Half-Circle Orbital Timeline - Corrected Orientation */
+/* Vertical Half-Circle Orbital Timeline - Improved UI */
 .orbital-timeline-dial {
   position: relative;
   width: 100%;
@@ -8,42 +8,56 @@
   justify-content: flex-start;
   font-family: 'Georgia', 'Times New Roman', serif;
   background: transparent;
-  overflow: hidden;
+  /* FIX SCROLLBARS: Only allow vertical scrolling, hide horizontal overflow */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-.vertical-half-circle-design {
+.vertical-half-circle-design.improved-ui {
   background: none;
+  /* Ensure single scrollbar by controlling overflow */
+  max-width: 100vw;
+  width: 100%;
 }
 
-.vertical-half-circle-container {
+.vertical-half-circle-container.improved-spacing {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
   height: 100%;
+  /* Prevent horizontal overflow */
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-/* SVG Container - Positioned for VERTICAL arcs (top to bottom) */
-.orbital-svg.vertical {
+/* SVG Container - IMPROVED positioning and overflow handling */
+.orbital-svg.vertical.improved {
   display: block;
   background: none;
+  /* FIX SCROLLBARS: Contain SVG properly */
   overflow: visible;
   position: absolute;
   left: -20px; /* Position for vertical arcs on left side */
   top: 50%;
   transform: translateY(-50%);
   flex-shrink: 0;
+  /* Ensure responsive sizing */
+  max-width: calc(100vw - 40px);
+  margin: 0 auto;
 }
 
-/* STATIC Orbit Lines - Vertical arcs that DON'T move */
-.orbit-line.static {
+/* IMPROVED Orbit Lines with CHALKY TEXTURE */
+.orbit-line.static.chalky {
   stroke: #CEB548;
   stroke-width: 3;
   fill: none;
   opacity: 0.85;
   stroke-linecap: round;
-  /* No animation - completely static */
+  /* Enhanced texture appearance */
+  stroke-dasharray: none;
+  /* Filter applied in SVG for chalky effect */
 }
 
 /* STATIC Central Sun - This DOESN'T move */ 
@@ -82,20 +96,22 @@
   /* This moves with the planet via JavaScript */
 }
 
-/* MOVING Age Text - Positioned outside orbit lines */
-.orbit-text.moving {
+/* IMPROVED SPIRAL Text with PAPYRUS FONT */
+.orbit-text.static.spiral.papyrus {
   fill: #CEB548;
-  font-family: 'Georgia', serif;
-  font-size: 14px;
-  font-weight: 600;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+  font-family: 'Papyrus', 'Comic Sans MS', fantasy, cursive !important;
+  font-size: 18px;
+  font-weight: bold;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
   pointer-events: none;
   opacity: 0.95;
-  /* Text positioned outside orbits to avoid overlap */
+  letter-spacing: 0.08em;
+  /* Ancient mystical appearance */
+  filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.8));
 }
 
-/* Selected Age Information Panel - Positioned on the RIGHT */
-.selected-age-info.vertical {
+/* Selected Age Information Panel - IMPROVED with Papyrus */
+.selected-age-info.vertical.improved {
   position: absolute;
   right: 2rem;
   top: 50%;
@@ -109,30 +125,40 @@
   backdrop-filter: blur(8px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   z-index: 10;
+  /* Ensure it doesn't cause horizontal overflow */
+  max-width: calc(100vw - 4rem);
 }
 
-.age-title {
+.age-title.papyrus {
   font-size: 1.6rem;
   font-weight: bold;
   margin-bottom: 0.75rem;
   color: #CEB548;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   line-height: 1.2;
+  /* PAPYRUS FONT */
+  font-family: 'Papyrus', 'Comic Sans MS', fantasy, cursive !important;
+  letter-spacing: 0.05em;
 }
 
-.age-years {
+.age-years.papyrus {
   font-size: 1.2rem;
   margin-bottom: 1rem;
   color: rgba(206, 181, 72, 0.85);
   font-weight: 500;
   letter-spacing: 0.5px;
+  /* PAPYRUS FONT */
+  font-family: 'Papyrus', 'Comic Sans MS', fantasy, cursive !important;
 }
 
-.age-description {
+.age-description.papyrus {
   font-size: 1rem;
   line-height: 1.6;
   color: rgba(206, 181, 72, 0.9);
   font-style: italic;
+  /* PAPYRUS FONT */
+  font-family: 'Papyrus', 'Comic Sans MS', fantasy, cursive !important;
+  letter-spacing: 0.02em;
 }
 
 /* Smooth animations */
@@ -147,36 +173,40 @@
   }
 }
 
-/* Responsive Design */
+/* IMPROVED Responsive Design - Better scrollbar handling */
 @media (max-width: 1400px) {
-  .orbital-svg.vertical {
+  .orbital-svg.vertical.improved {
     left: -40px;
+    max-width: calc(100vw - 20px);
   }
   
-  .selected-age-info.vertical {
+  .selected-age-info.vertical.improved {
     width: 300px;
     padding: 1.8rem;
     right: 1.5rem;
+    max-width: calc(100vw - 3rem);
   }
 }
 
 @media (max-width: 1200px) {
-  .orbital-svg.vertical {
+  .orbital-svg.vertical.improved {
     left: -60px;
+    max-width: calc(100vw - 20px);
   }
   
-  .selected-age-info.vertical {
+  .selected-age-info.vertical.improved {
     width: 280px;
     padding: 1.5rem;
     right: 1rem;
+    max-width: calc(100vw - 2rem);
   }
   
-  .age-title {
+  .age-title.papyrus {
     font-size: 1.4rem;
   }
   
-  .orbit-text.moving {
-    font-size: 13px;
+  .orbit-text.static.spiral.papyrus {
+    font-size: 16px;
   }
 }
 
@@ -186,23 +216,29 @@
     justify-content: center;
     align-items: center;
     padding: 1rem;
+    /* CRITICAL: Ensure single scrollbar on mobile */
+    overflow-x: hidden;
+    overflow-y: auto;
   }
   
-  .vertical-half-circle-container {
+  .vertical-half-circle-container.improved-spacing {
     flex-direction: column;
     align-items: center;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
-  .orbital-svg.vertical {
+  .orbital-svg.vertical.improved {
     position: static;
     transform: none;
     width: 400px;
     height: 400px;
     margin-bottom: 1.5rem;
     left: 0;
+    max-width: calc(100vw - 2rem);
   }
   
-  .selected-age-info.vertical {
+  .selected-age-info.vertical.improved {
     position: static;
     transform: none;
     width: 100%;
@@ -210,36 +246,54 @@
     margin-top: 1rem;
   }
   
-  .orbit-text.moving {
-    font-size: 12px;
+  .orbit-text.static.spiral.papyrus {
+    font-size: 14px;
   }
 }
 
 @media (max-width: 480px) {
-  .orbital-svg.vertical {
+  .orbital-svg.vertical.improved {
     width: 320px;
     height: 320px;
+    max-width: calc(100vw - 1rem);
   }
   
-  .orbit-line.static {
+  .orbit-line.static.chalky {
     stroke-width: 2.5;
   }
   
-  .orbit-text.moving {
-    font-size: 11px;
+  .orbit-text.static.spiral.papyrus {
+    font-size: 12px;
   }
   
-  .selected-age-info.vertical {
+  .selected-age-info.vertical.improved {
     padding: 1rem;
   }
   
-  .age-title {
+  .age-title.papyrus {
     font-size: 1.3rem;
   }
   
-  .age-description {
+  .age-description.papyrus {
     font-size: 0.9rem;
   }
+}
+
+/* HTML/Body overflow control to ensure single scrollbar */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Enhanced Timeline Layout - prevent double scrollbars */
+.enhanced-timeline-layout.clean {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+
+.enhanced-cosmic-timeline {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
 }
 
 /* Clean up old styles */
@@ -264,6 +318,8 @@
 .planet-label,
 .central-info,
 .half-circle-container,
-.selected-age-info:not(.vertical) {
+.selected-age-info:not(.vertical),
+.orbit-text:not(.spiral),
+.orbital-svg:not(.improved) {
   display: none !important;
 }

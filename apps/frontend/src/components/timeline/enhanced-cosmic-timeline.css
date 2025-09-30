@@ -1,0 +1,115 @@
+/* Enhanced Cosmic Timeline Layout Styles */
+
+.enhanced-cosmic-timeline {
+  min-height: 100vh;
+  background: radial-gradient(1200px at 50% 30%, #0f1320 0%, #0a0d15 40%, #07090e 100%);
+  color: #eae7df;
+  padding: 2rem;
+}
+
+.timeline-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 620px) 1fr;
+  gap: 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.timeline-dial-section {
+  position: sticky;
+  top: 2rem;
+}
+
+.dial-container {
+  background: rgba(20, 24, 36, 0.4);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.age-info-panel {
+  margin-top: 1.5rem;
+  background: rgba(20, 24, 36, 0.6);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  backdrop-filter: blur(6px);
+}
+
+.age-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f1deac;
+  font-family: 'Cinzel', serif;
+}
+
+.age-years {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: #d4af37;
+  font-weight: 500;
+}
+
+.age-description {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #dcd7cb;
+}
+
+.age-events-count {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.events-badge {
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #d4af37;
+}
+
+.timeline-content-section {
+  min-height: 80vh;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .timeline-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .timeline-dial-section {
+    position: static;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .enhanced-cosmic-timeline {
+    padding: 1rem;
+  }
+  
+  .timeline-layout {
+    gap: 1.5rem;
+  }
+  
+  .dial-container {
+    padding: 1rem;
+  }
+  
+  .age-info-panel {
+    padding: 1rem;
+  }
+}

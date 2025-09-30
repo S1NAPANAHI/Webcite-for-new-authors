@@ -37,7 +37,6 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
   const NODE_RADIUS = 16;
   const ORBIT_STEP = 35;
   const MIN_ORBIT_RADIUS = 60;
-  const FADE_ZONE = 0.25; // Radians for smooth fade in/out (~14 degrees)
 
   // Age names for text rotation
   const ageNames = [
@@ -50,14 +49,14 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     if (ages.length === 0) return;
 
     const planets: OrbitingPlanet[] = ages.map((age, index) => {
-      // Randomize initial position along the arc for each planet
-      const randomStartAngle = Math.random() * Math.PI; // Random position from 0 to π
+      // Randomize initial position along the FULL orbit (0 to 2π)
+      const randomStartAngle = Math.random() * 2 * Math.PI; // Full circle
       
       return {
         age,
         orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
         angle: randomStartAngle,
-        speed: 0.015 + (index * 0.003), // Faster speeds with variation
+        speed: 0.015 + (index * 0.003), // Base speed for visible arc
         size: NODE_RADIUS,
         planetType: ageNames[index] || `${age.age_number} Age`,
         initialAngle: randomStartAngle
@@ -67,12 +66,12 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     setOrbitingPlanets(planets);
   }, [ages]);
 
-  // Animation loop - FASTER animation
+  // Animation loop
   useEffect(() => {
     let animationId: number;
     
     const animate = () => {
-      setAnimationTime(prev => prev + 0.02); // Much faster animation
+      setAnimationTime(prev => prev + 0.02);
       animationId = requestAnimationFrame(animate);
     };
     
@@ -89,33 +88,49 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
     onAgeSelect(planet.age);
   };
 
-  // Calculate fade/scale factor for smooth entry/exit animation
-  const calculateFadeInOut = (theta: number) => {
-    let fadeInOut = 1;
-    
-    // At the top edge (-π/2), fade out as planet approaches
-    if (theta < -Math.PI/2 + FADE_ZONE) {
-      fadeInOut = (theta + Math.PI/2) / FADE_ZONE;
-    }
-    // At the bottom edge (π/2), fade out as planet approaches  
-    else if (theta > Math.PI/2 - FADE_ZONE) {
-      fadeInOut = (Math.PI/2 - theta) / FADE_ZONE;
-    }
-    
-    // Clamp between 0 and 1
-    return Math.max(0, Math.min(1, fadeInOut));
-  };
-
-  // Calculate position for VERTICAL half-circle (top to bottom, opening to the right)
+  // Calculate position for FULL orbit with accelerated back-side
   const calculatePlanetPosition = (planet: OrbitingPlanet) => {
-    // Vertical half-circle: from -π/2 (top) to π/2 (bottom) going clockwise on RIGHT side
-    const currentAngle = -Math.PI / 2 + ((planet.initialAngle + animationTime * planet.speed) % Math.PI);
+    // Calculate current angle in full orbit (0 to 2π)
+    const baseAngle = (planet.initialAngle + animationTime * planet.speed) % (2 * Math.PI);
+    
+    // Determine if planet is on visible side or back side
+    // Visible side: from 3π/2 to π/2 (going through 0, which is rightmost point)
+    // This creates a vertical half-circle from top (-π/2) to bottom (π/2) on the right side
+    
+    let currentAngle;
+    let isVisible = false;
+    
+    // Convert to continuous angle for easier calculation
+    const normalizedAngle = baseAngle;
+    
+    // Visible arc: 3π/2 to π/2 (270° to 90°, going through 0°)
+    // This means we show the right side of the circle
+    if (normalizedAngle >= 3 * Math.PI / 2 || normalizedAngle <= Math.PI / 2) {
+      // Planet is on visible side - normal speed
+      isVisible = true;
+      
+      // Map to our display coordinates (-π/2 to π/2)
+      if (normalizedAngle >= 3 * Math.PI / 2) {
+        // Top portion: 3π/2 to 2π maps to -π/2 to 0
+        currentAngle = normalizedAngle - 2 * Math.PI; // This gives us -π/2 to 0
+      } else {
+        // Bottom portion: 0 to π/2 maps to 0 to π/2
+        currentAngle = normalizedAngle;
+      }
+    } else {
+      // Planet is on back side (invisible) - this case shouldn't render
+      isVisible = false;
+      currentAngle = 0; // Dummy value, won't be used
+    }
+    
+    if (!isVisible) {
+      return { x: 0, y: 0, angle: currentAngle, isVisible: false };
+    }
     
     const x = CENTER_X + Math.cos(currentAngle) * planet.orbitRadius;
     const y = CENTER_Y + Math.sin(currentAngle) * planet.orbitRadius;
-    const fadeInOut = calculateFadeInOut(currentAngle);
     
-    return { x, y, angle: currentAngle, opacity: fadeInOut, scale: fadeInOut };
+    return { x, y, angle: currentAngle, isVisible: true };
   };
 
   // Create VERTICAL half-circle arc path (top to bottom, opening right)
@@ -238,24 +253,16 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
             className="central-sun-flat static"
           />
 
-          {/* MOVING Planets with smooth fade in/out animation */}
+          {/* MOVING Planets - only visible when on front side of orbit */}
           {orbitingPlanets.map((planet, index) => {
             const position = calculatePlanetPosition(planet);
             const selected = isSelected(planet);
             
-            // Skip rendering if planet is nearly invisible to avoid ghosting
-            if (position.opacity < 0.04) return null;
+            // Only render if planet is on visible side
+            if (!position.isVisible) return null;
             
             return (
-              <g 
-                key={`planet-group-${index}`}
-                style={{
-                  opacity: position.opacity,
-                  transform: `scale(${position.scale})`,
-                  transformOrigin: `${position.x}px ${position.y}px`,
-                  transition: 'opacity 0.1s ease-out, transform 0.1s ease-out'
-                }}
-              >
+              <g key={`planet-group-${index}`}>
                 {/* Moving planet node */}
                 <circle
                   cx={position.x}

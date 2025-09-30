@@ -1,0 +1,376 @@
+/* 3D Stacked Disk Timeline Styles */
+/* True layered disk design with depth, textures, and no square containers */
+
+/* Remove any square containers */
+.stacked-disk-container {
+  background: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible;
+}
+
+/* Main stacked disk styling */
+.stacked-disk {
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: center center;
+}
+
+/* 3D hover effects */
+.stacked-disk:hover {
+  transform: translateY(-3px) scale(1.02);
+  filter: brightness(1.15) saturate(1.2);
+}
+
+.stacked-disk.selected {
+  transform: translateY(-5px) scale(1.05);
+  filter: brightness(1.25) saturate(1.3) drop-shadow(0 8px 16px rgba(212, 175, 55, 0.4));
+}
+
+/* Enhanced main disk with stone/glass texture */
+.main-disk {
+  transition: all 0.4s ease;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.stacked-disk:hover .main-disk {
+  stroke-width: 2 !important;
+  filter: drop-shadow(0 6px 12px rgba(212, 175, 55, 0.3)) 
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)) 
+          brightness(1.1);
+}
+
+.stacked-disk.selected .main-disk {
+  stroke-width: 3 !important;
+  filter: drop-shadow(0 8px 16px rgba(212, 175, 55, 0.5)) 
+          drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)) 
+          brightness(1.2) 
+          saturate(1.2);
+  animation: selectedGlow 3s ease-in-out infinite;
+}
+
+/* Inner highlight ring for glass effect */
+.inner-highlight {
+  transition: all 0.3s ease;
+  filter: blur(0.5px);
+}
+
+.stacked-disk:hover .inner-highlight {
+  opacity: 0.6 !important;
+  stroke-width: 1.5;
+  filter: blur(0.3px);
+}
+
+.stacked-disk.selected .inner-highlight {
+  opacity: 0.8 !important;
+  stroke-width: 2;
+  filter: blur(0.2px);
+  animation: innerGlow 2s ease-in-out infinite alternate;
+}
+
+/* Age text enhancements */
+.age-text {
+  transition: all 0.3s ease;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7), 0 0 8px rgba(212, 175, 55, 0.3);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.stacked-disk:hover .age-text {
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 12px rgba(212, 175, 55, 0.5);
+  transform: scale(1.05);
+}
+
+.stacked-disk.selected .age-text {
+  text-shadow: 0 3px 6px rgba(0, 0, 0, 0.9), 
+               0 0 15px rgba(212, 175, 55, 0.7),
+               0 0 25px rgba(212, 175, 55, 0.4);
+  transform: scale(1.1);
+  animation: textPulse 2s ease-in-out infinite alternate;
+}
+
+/* Age symbol enhancements */
+.age-symbol {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  transition: all 0.3s ease;
+}
+
+.stacked-disk:hover .age-symbol {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7)) 
+          drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+  transform: scale(1.1);
+}
+
+.stacked-disk.selected .age-symbol {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.8)) 
+          drop-shadow(0 0 12px rgba(212, 175, 55, 0.6)) 
+          drop-shadow(0 0 20px rgba(212, 175, 55, 0.3));
+  transform: scale(1.15);
+  animation: symbolFloat 3s ease-in-out infinite alternate;
+}
+
+/* Stone texture effect using CSS filters */
+.stone-texture {
+  filter: contrast(1.1) 
+          brightness(0.95) 
+          sepia(0.15) 
+          saturate(1.2) 
+          hue-rotate(10deg);
+}
+
+/* Glass reflection overlay */
+.glass-reflection {
+  pointer-events: none;
+  background: linear-gradient(
+    135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    transparent 30%, 
+    transparent 70%, 
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border-radius: 50%;
+  mix-blend-mode: overlay;
+}
+
+/* Level-specific styling */
+.level-0 {
+  z-index: 1;
+}
+
+.level-1 {
+  z-index: 2;
+}
+
+.level-2 {
+  z-index: 3;
+}
+
+.level-3 {
+  z-index: 4;
+}
+
+/* Enhanced shadows for depth */
+.level-0 .main-disk {
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+}
+
+.level-1 .main-disk {
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+}
+
+.level-2 .main-disk {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.level-3 .main-disk {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+/* Loading animation for 3D disks */
+.loading-disk {
+  border-radius: 50%;
+  border-style: solid;
+  animation: loadingSpin 3s linear infinite;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Keyframe animations */
+@keyframes selectedGlow {
+  0%, 100% {
+    filter: drop-shadow(0 8px 16px rgba(212, 175, 55, 0.5)) 
+            drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5)) 
+            brightness(1.2) 
+            saturate(1.2);
+  }
+  50% {
+    filter: drop-shadow(0 12px 24px rgba(212, 175, 55, 0.7)) 
+            drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6)) 
+            brightness(1.3) 
+            saturate(1.4);
+  }
+}
+
+@keyframes innerGlow {
+  0% {
+    opacity: 0.8;
+    stroke: rgba(255, 255, 255, 0.2);
+  }
+  100% {
+    opacity: 1;
+    stroke: rgba(255, 255, 255, 0.4);
+  }
+}
+
+@keyframes textPulse {
+  0% {
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.9), 
+                 0 0 15px rgba(212, 175, 55, 0.7),
+                 0 0 25px rgba(212, 175, 55, 0.4);
+  }
+  100% {
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 1), 
+                 0 0 20px rgba(212, 175, 55, 0.9),
+                 0 0 35px rgba(212, 175, 55, 0.6);
+  }
+}
+
+@keyframes symbolFloat {
+  0% {
+    transform: translateY(0px) scale(1.15);
+  }
+  100% {
+    transform: translateY(-2px) scale(1.2);
+  }
+}
+
+@keyframes loadingSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+  .stacked-disk-container {
+    transform: scale(0.9);
+  }
+  
+  .age-text {
+    font-size: 12px;
+    letter-spacing: 1.5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .stacked-disk-container {
+    transform: scale(0.8);
+  }
+  
+  .age-text {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+  
+  .stacked-disk:hover {
+    transform: translateY(-2px) scale(1.01);
+  }
+  
+  .stacked-disk.selected {
+    transform: translateY(-3px) scale(1.03);
+  }
+}
+
+@media (max-width: 480px) {
+  .stacked-disk-container {
+    transform: scale(0.7);
+  }
+  
+  .age-text {
+    font-size: 9px;
+    letter-spacing: 0.5px;
+  }
+  
+  .stacked-disk:hover,
+  .stacked-disk.selected {
+    transform: translateY(-1px) scale(1.01);
+  }
+}
+
+/* Accessibility improvements */
+.stacked-disk:focus {
+  outline: 3px solid rgba(212, 175, 55, 0.6);
+  outline-offset: 4px;
+  border-radius: 50%;
+}
+
+.stacked-disk:focus .main-disk {
+  stroke: rgba(212, 175, 55, 0.8);
+  stroke-width: 2;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .main-disk {
+    stroke: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .age-text {
+    fill: rgba(255, 255, 255, 1) !important;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1);
+  }
+  
+  .inner-highlight {
+    stroke: rgba(255, 255, 255, 0.5) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .stacked-disk,
+  .main-disk,
+  .age-text,
+  .age-symbol,
+  .inner-highlight {
+    transition: none;
+    animation: none;
+  }
+  
+  .selectedGlow,
+  .innerGlow,
+  .textPulse,
+  .symbolFloat,
+  .loadingSpin {
+    animation: none;
+  }
+}
+
+/* Print styles */
+@media print {
+  .stacked-disk-container {
+    filter: none;
+    transform: none;
+  }
+  
+  .main-disk {
+    stroke: #000 !important;
+    fill: #f5f5f5 !important;
+    filter: none;
+  }
+  
+  .age-text {
+    fill: #000 !important;
+    text-shadow: none;
+  }
+  
+  .inner-highlight {
+    display: none;
+  }
+}
+
+/* Dark theme enhancements */
+[data-theme="dark"] .main-disk {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)) 
+          brightness(0.9) 
+          contrast(1.1);
+}
+
+[data-theme="dark"] .age-text {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 
+               0 0 8px rgba(212, 175, 55, 0.4);
+}
+
+/* Light theme enhancements */
+[data-theme="light"] .main-disk {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)) 
+          brightness(1.05) 
+          contrast(0.95);
+}
+
+[data-theme="light"] .age-text {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 
+               0 0 4px rgba(212, 175, 55, 0.2);
+}

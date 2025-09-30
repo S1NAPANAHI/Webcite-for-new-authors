@@ -166,16 +166,14 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
               />
             ))}
             
-            {/* MASKING: Define clip path to show only the right half-circle */}
-            <clipPath id="rightHalfCircleClip">
-              <path
-                d={`
-                  M ${CENTER_X} ${CENTER_Y - 400}
-                  L ${SVG_SIZE} ${CENTER_Y - 400}
-                  L ${SVG_SIZE} ${SVG_SIZE}
-                  L ${CENTER_X} ${SVG_SIZE}
-                  A 400 400 0 0 0 ${CENTER_X} ${CENTER_Y - 400}
-                `}
+            {/* CORRECTED MASKING: Define clip path for the visible right half */}
+            <clipPath id="rightHalfClip">
+              {/* Rectangle covering the right side from center line to edge */}
+              <rect 
+                x={CENTER_X} 
+                y={0} 
+                width={SVG_SIZE - CENTER_X} 
+                height={SVG_SIZE} 
                 fill="white"
               />
             </clipPath>
@@ -239,7 +237,7 @@ export const OrbitalTimelineDial: React.FC<OrbitalTimelineDialProps> = ({
           />
 
           {/* CLIPPED GROUP: Planets with smooth masking transition */}
-          <g clipPath="url(#rightHalfCircleClip)">
+          <g clipPath="url(#rightHalfClip)">
             {/* MOVING Planets - ALL planets render, clipping handles visibility */}
             {orbitingPlanets.map((planet, index) => {
               const position = calculatePlanetPosition(planet);

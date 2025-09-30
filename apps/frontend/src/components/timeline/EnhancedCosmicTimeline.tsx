@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { OrbitalTimelineDial } from './CosmicRings/OrbitalTimelineDial';
+import { LayeredTimelineInterface } from './LayeredTimeline/LayeredTimelineInterface';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
@@ -9,7 +10,7 @@ import { useTimelineData } from './hooks/useTimelineData';
 import { Age, TimelineEvent } from '../../lib/api-timeline';
 import './enhanced-cosmic-timeline.css';
 
-export type ViewMode = 'hybrid' | 'linear';
+export type ViewMode = 'hybrid' | 'linear' | 'layered';
 
 export const EnhancedCosmicTimeline: React.FC = () => {
   const { selectedAge, setSelectedAge } = useTimelineContext();
@@ -22,7 +23,13 @@ export const EnhancedCosmicTimeline: React.FC = () => {
   };
 
   const handleViewToggle = () => {
-    setViewMode(viewMode === 'hybrid' ? 'linear' : 'hybrid');
+    if (viewMode === 'hybrid') {
+      setViewMode('layered');
+    } else if (viewMode === 'layered') {
+      setViewMode('linear');
+    } else {
+      setViewMode('hybrid');
+    }
   };
 
   // Format year range for display
@@ -62,6 +69,41 @@ export const EnhancedCosmicTimeline: React.FC = () => {
     );
   }
 
+  // Get current view mode display info
+  const getViewModeInfo = () => {
+    switch (viewMode) {
+      case 'hybrid':
+        return {
+          icon: (
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 2L3 7v11h4v-6h6v6h4V7l-7-5z" />
+            </svg>
+          ),
+          label: 'Layered View'
+        };
+      case 'layered':
+        return {
+          icon: (
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+            </svg>
+          ),
+          label: 'Linear View'
+        };
+      case 'linear':
+        return {
+          icon: (
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+            </svg>
+          ),
+          label: 'Orbital View'
+        };
+    }
+  };
+
+  const viewInfo = getViewModeInfo();
+
   return (
     <div className="enhanced-cosmic-timeline clean-design">
       {/* Clean, minimal background */}
@@ -78,38 +120,43 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         <button
           onClick={handleViewToggle}
           className="px-4 py-2 bg-timeline-gold/20 backdrop-blur-sm border border-timeline-gold/30 rounded-lg text-timeline-gold hover:bg-timeline-gold/30 transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl"
-          title={`Switch to ${viewMode === 'hybrid' ? 'linear' : 'hybrid'} view`}
+          title={`Switch to ${viewInfo.label}`}
         >
-          {viewMode === 'hybrid' ? (
-            <>
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-              </svg>
-              <span className="hidden sm:inline">Linear View</span>
-            </>
-          ) : (
-            <>
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-              </svg>
-              <span className="hidden sm:inline">Hybrid View</span>
-            </>
-          )}
+          {viewInfo.icon}
+          <span className="hidden sm:inline">{viewInfo.label}</span>
         </button>
+        
+        {/* View Mode Indicator */}
+        <div className="text-center text-xs text-timeline-gold/60">
+          Current: {viewMode.charAt(0).toUpperCase() + viewMode.slice(1)}
+        </div>
       </div>
 
       <div className="enhanced-timeline-layout clean">
-        {/* Full-width Orbital Timeline */}
-        <div className="orbital-timeline-section">
-          <OrbitalTimelineDial
-            ages={ages}
-            selectedAge={selectedAge}
-            onAgeSelect={handleAgeSelect}
-            className="half-circle-orbital-dial"
-          />
-        </div>
+        {/* Conditional View Rendering */}
+        {viewMode === 'hybrid' && (
+          <div className="orbital-timeline-section">
+            <OrbitalTimelineDial
+              ages={ages}
+              selectedAge={selectedAge}
+              onAgeSelect={handleAgeSelect}
+              className="half-circle-orbital-dial"
+            />
+          </div>
+        )}
+        
+        {viewMode === 'layered' && (
+          <div className="layered-timeline-section">
+            <LayeredTimelineInterface
+              ages={ages}
+              selectedAge={selectedAge}
+              onAgeSelect={handleAgeSelect}
+              className="layered-timeline-interface"
+            />
+          </div>
+        )}
 
-        {/* Linear view option */}
+        {/* Linear view overlay */}
         {viewMode === 'linear' && (
           <div className="linear-timeline-overlay">
             <LinearTimelinePanel 
@@ -121,7 +168,7 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         )}
       </div>
 
-      {/* Welcome message when no age is selected */}
+      {/* Welcome message when no age is selected and in hybrid mode */}
       {!selectedAge && viewMode === 'hybrid' && (
         <div className="welcome-overlay">
           <div className="welcome-content">
@@ -141,6 +188,40 @@ export const EnhancedCosmicTimeline: React.FC = () => {
               <div className="feature-item">
                 <span className="feature-icon">📜</span>
                 <span>Age names rotate along orbital paths</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">🎭</span>
+                <span>Switch to layered view for card interface</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Welcome message for layered view */}
+      {!selectedAge && viewMode === 'layered' && (
+        <div className="welcome-overlay layered-welcome">
+          <div className="welcome-content">
+            <h2 className="welcome-title">Layered Timeline Interface</h2>
+            <p className="welcome-description">
+              Nine glassy layers stack from bottom to top, representing the cosmic ages. Click any layer to expand and explore that age in detail.
+            </p>
+            <div className="welcome-features">
+              <div className="feature-item">
+                <span className="feature-icon">🃏</span>
+                <span>Semi-circular glassy card layers</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">📚</span>
+                <span>Stacked from oldest (bottom) to newest (top)</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">✨</span>
+                <span>Click to expand and read age details</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">🔄</span>
+                <span>Smooth animations and glassy effects</span>
               </div>
             </div>
           </div>
@@ -183,7 +264,8 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           position: relative;
         }
         
-        .orbital-timeline-section {
+        .orbital-timeline-section,
+        .layered-timeline-section {
           flex: 1;
           width: 100%;
           position: relative;
@@ -212,6 +294,11 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           border: 2px solid rgba(206, 181, 72, 0.3);
           border-radius: 12px;
           backdrop-filter: blur(4px);
+        }
+        
+        .welcome-overlay.layered-welcome {
+          background: rgba(25, 25, 30, 0.9);
+          border-color: rgba(206, 181, 72, 0.4);
         }
         
         .welcome-title {

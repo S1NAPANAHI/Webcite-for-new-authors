@@ -1,0 +1,366 @@
+/* Concentric Disk Timeline Styles */
+/* Enhanced styling for the new stacked disk design */
+
+/* Base disk styling */
+.concentric-disks {
+  position: relative;
+  filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.3));
+  transition: all 0.3s ease;
+}
+
+/* Individual cosmic disk styles */
+.cosmic-disk {
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disk ring hover effects */
+.cosmic-disk .disk-ring {
+  transition: all 0.3s ease;
+}
+
+.cosmic-disk:hover .disk-ring {
+  stroke: rgba(212, 175, 55, 0.5) !important;
+  stroke-width: 32 !important;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
+}
+
+/* Selected disk state */
+.cosmic-disk.selected .disk-ring {
+  stroke: rgba(212, 175, 55, 0.8) !important;
+  stroke-width: 32 !important;
+  filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.6));
+  animation: selectedPulse 2s ease-in-out infinite;
+}
+
+/* Age label styling */
+.age-label {
+  font-family: 'Cinzel', 'serif', system-ui;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.cosmic-disk.selected .age-label {
+  font-weight: 700;
+  font-size: 12px;
+  text-shadow: 0 0 12px rgba(212, 175, 55, 0.6);
+}
+
+.cosmic-disk:hover .age-label {
+  font-weight: 650;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+}
+
+/* Age symbols */
+.age-symbol {
+  color: rgba(212, 175, 55, 0.8);
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.3));
+}
+
+.cosmic-disk.selected .age-symbol {
+  color: #d4af37;
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+  transform: scale(1.1);
+}
+
+.cosmic-disk:hover .age-symbol {
+  color: rgba(212, 175, 55, 0.9);
+  filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.4));
+  transform: scale(1.05);
+}
+
+/* Selection ring animation */
+.selection-ring {
+  animation: rotateSelection 4s linear infinite;
+}
+
+/* Hover glow effect */
+.hover-glow {
+  transition: stroke 0.3s ease, filter 0.3s ease;
+}
+
+.cosmic-disk:hover .hover-glow {
+  stroke: rgba(212, 175, 55, 0.15);
+  filter: blur(4px);
+}
+
+/* Center hub enhancements */
+.center-hub {
+  transition: all 0.3s ease;
+}
+
+.center-hub:hover {
+  filter: drop-shadow(0 0 15px var(--timeline-gold)) brightness(1.1);
+  transform: scale(1.05);
+}
+
+.center-hub circle {
+  transition: all 0.3s ease;
+}
+
+/* Enhanced background atmosphere */
+.cosmic-atmosphere {
+  opacity: 0.8;
+  transition: opacity 0.5s ease;
+}
+
+.concentric-disks:hover .cosmic-atmosphere {
+  opacity: 1;
+}
+
+/* Constellation dots enhancements */
+.constellation-dot {
+  transition: all 0.3s ease;
+}
+
+.constellation-dot:hover {
+  transform: scale(1.5);
+  opacity: 1 !important;
+}
+
+/* Loading state for concentric disks */
+.cosmic-loading-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.loading-disk {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--timeline-gold) transparent var(--timeline-gold) transparent;
+  animation: loadingSpin 3s linear infinite;
+}
+
+/* Responsive disk scaling */
+@media (max-width: 1024px) {
+  .age-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  
+  .cosmic-disk.selected .age-label {
+    font-size: 11px;
+  }
+  
+  .age-symbol {
+    transform: scale(0.9);
+  }
+}
+
+@media (max-width: 768px) {
+  .age-label {
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  
+  .cosmic-disk.selected .age-label {
+    font-size: 10px;
+  }
+  
+  .age-symbol {
+    transform: scale(0.8);
+  }
+  
+  .cosmic-disk:hover .disk-ring {
+    stroke-width: 30 !important;
+  }
+  
+  .cosmic-disk.selected .disk-ring {
+    stroke-width: 30 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .age-label {
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+  
+  .cosmic-disk.selected .age-label {
+    font-size: 9px;
+  }
+  
+  .age-symbol {
+    transform: scale(0.7);
+  }
+}
+
+/* Keyframe animations */
+@keyframes selectedPulse {
+  0%, 100% {
+    stroke-opacity: 0.8;
+    filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.6));
+  }
+  50% {
+    stroke-opacity: 1;
+    filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.8));
+  }
+}
+
+@keyframes rotateSelection {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loadingSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes cosmicFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-15px) scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+@keyframes atmosphereRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Enhanced disk layer depth */
+.disk-layer-1 { z-index: 10; }
+.disk-layer-2 { z-index: 9; }
+.disk-layer-3 { z-index: 8; }
+.disk-layer-4 { z-index: 7; }
+.disk-layer-5 { z-index: 6; }
+
+/* Accessibility improvements */
+.cosmic-disk:focus {
+  outline: 2px solid var(--timeline-gold);
+  outline-offset: 4px;
+}
+
+.cosmic-disk:focus .disk-ring {
+  stroke: rgba(212, 175, 55, 0.7) !important;
+  stroke-width: 30 !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .cosmic-disk .disk-ring {
+    stroke: rgba(255, 255, 255, 0.8);
+  }
+  
+  .age-label {
+    fill: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  }
+  
+  .age-symbol {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .cosmic-disk,
+  .disk-ring,
+  .age-label,
+  .age-symbol,
+  .center-hub,
+  .selection-ring {
+    transition: none;
+    animation: none;
+  }
+  
+  .selectedPulse,
+  .rotateSelection,
+  .loadingSpin,
+  .atmosphereRotate {
+    animation: none;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .cosmic-disk .disk-ring {
+    stroke: rgba(212, 175, 55, 0.4);
+  }
+  
+  .age-label {
+    text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+  }
+  
+  .age-symbol {
+    filter: drop-shadow(0 0 6px rgba(212, 175, 55, 0.4));
+  }
+}
+
+/* Print styles */
+@media print {
+  .concentric-disks {
+    filter: none;
+  }
+  
+  .cosmic-disk .disk-ring {
+    stroke: #000;
+    stroke-width: 2;
+  }
+  
+  .age-label {
+    fill: #000;
+    text-shadow: none;
+  }
+  
+  .age-symbol {
+    color: #000;
+    filter: none;
+  }
+}
+
+/* Custom properties for theming */
+.concentric-disks {
+  --disk-primary-color: rgba(212, 175, 55, 0.3);
+  --disk-hover-color: rgba(212, 175, 55, 0.5);
+  --disk-selected-color: rgba(212, 175, 55, 0.8);
+  --disk-glow-color: rgba(212, 175, 55, 0.6);
+  --label-primary-color: rgba(212, 175, 55, 0.8);
+  --label-selected-color: #d4af37;
+  --symbol-primary-color: rgba(212, 175, 55, 0.8);
+  --symbol-selected-color: #d4af37;
+}
+
+/* Enhanced interaction states */
+.cosmic-disk[data-state="idle"] {
+  opacity: 0.8;
+}
+
+.cosmic-disk[data-state="hover"] {
+  opacity: 0.95;
+  transform: scale(1.02);
+}
+
+.cosmic-disk[data-state="selected"] {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.cosmic-disk[data-state="active"] {
+  opacity: 1;
+  transform: scale(1.08);
+}

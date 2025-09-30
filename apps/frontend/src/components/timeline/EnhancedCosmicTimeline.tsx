@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { RingDial } from './CosmicRings/RingDial';
+import { ConcentricDiskDial } from './CosmicRings/ConcentricDiskDial';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
@@ -90,17 +90,18 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             </p>
           </div>
           
-          {/* Cosmic Dial Container */}
+          {/* Concentric Disk Dial Container */}
           <div className="relative">
-            <RingDial 
+            <ConcentricDiskDial 
               onAgeSelect={handleAgeSelect} 
               selectedAgeId={selectedAge?.id || null}
               className="scale-90 lg:scale-100"
             />
             
-            {/* Cosmic Pulse Effect */}
+            {/* Enhanced Cosmic Pulse Effect */}
             <div className="absolute inset-0 pointer-events-none">
               <div className="cosmic-pulse-ring"></div>
+              <div className="cosmic-pulse-ring-secondary"></div>
             </div>
           </div>
 
@@ -108,8 +109,12 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           {!selectedAge && (
             <div className="mt-8 text-center">
               <p className="text-timeline-text/60 animate-pulse text-sm">
-                Click on any age to explore its timeline
+                Click on any disk layer to explore its timeline
               </p>
+              <div className="mt-4 text-xs text-timeline-text/40">
+                <span className="inline-block w-4 h-4 border-2 border-timeline-gold/40 rounded-full mr-2"></span>
+                Each concentric disk represents a cosmic age
+              </div>
             </div>
           )}
         </div>
@@ -129,10 +134,12 @@ export const EnhancedCosmicTimeline: React.FC = () => {
               <div className="flex items-center justify-center h-full p-8">
                 <div className="text-center max-w-md">
                   <div className="mb-8">
-                    {/* Welcome Illustration */}
+                    {/* Welcome Illustration - Concentric Circles */}
                     <div className="w-32 h-32 mx-auto mb-6 relative">
                       <div className="absolute inset-0 border-4 border-timeline-gold/20 rounded-full animate-spin" style={{ animationDuration: '20s' }}></div>
-                      <div className="absolute inset-4 border-2 border-timeline-gold/40 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
+                      <div className="absolute inset-2 border-3 border-timeline-gold/30 rounded-full animate-spin" style={{ animationDuration: '15s', animationDirection: 'reverse' }}></div>
+                      <div className="absolute inset-4 border-2 border-timeline-gold/40 rounded-full animate-spin" style={{ animationDuration: '12s' }}></div>
+                      <div className="absolute inset-6 border-2 border-timeline-gold/50 rounded-full animate-spin" style={{ animationDuration: '10s', animationDirection: 'reverse' }}></div>
                       <div className="absolute inset-8 bg-timeline-gold/10 rounded-full flex items-center justify-center">
                         <svg className="w-12 h-12 text-timeline-gold" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
@@ -145,8 +152,8 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                     Welcome to the Zoroasterverse Timeline
                   </h2>
                   <p className="text-timeline-text/80 leading-relaxed mb-6">
-                    Begin your journey through the cosmic ages by selecting an era from the dial on the left. 
-                    Each age contains rich timelines of events, characters, and stories that shape the Zoroasterverse.
+                    Begin your journey through the cosmic ages by selecting a disk layer from the dial on the left. 
+                    Each concentric disk contains rich timelines of events, characters, and stories that shape the Zoroasterverse.
                   </p>
                   
                   <div className="space-y-4">
@@ -169,6 +176,14 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                       </svg>
                       <span className="text-sm">Discover detailed event information</span>
                     </div>
+                    <div className="flex items-center justify-center space-x-2 text-timeline-text/60">
+                      <div className="flex space-x-1">
+                        <div className="w-3 h-3 border border-timeline-gold/40 rounded-full"></div>
+                        <div className="w-3 h-3 border border-timeline-gold/50 rounded-full"></div>
+                        <div className="w-3 h-3 border border-timeline-gold/60 rounded-full"></div>
+                      </div>
+                      <span className="text-sm">Stacked concentric disk layers</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -185,14 +200,17 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Age Info Card - Only show when age is selected */}
+      {/* Floating Age Info Card - Enhanced for Disk Design */}
       {selectedAge && (
         <div className="fixed bottom-8 left-8 z-40 max-w-sm">
           <div className="bg-timeline-bg/90 backdrop-blur-xl border border-timeline-gold/30 rounded-xl p-4 shadow-2xl">
             <div className="flex items-start justify-between mb-2">
-              <h3 className="text-lg font-bold text-timeline-gold">
-                {selectedAge.title}
-              </h3>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-timeline-gold rounded-full flex-shrink-0"></div>
+                <h3 className="text-lg font-bold text-timeline-gold">
+                  {selectedAge.title}
+                </h3>
+              </div>
               <button
                 onClick={() => setSelectedAge(null)}
                 className="text-timeline-text/60 hover:text-timeline-text transition-colors"
@@ -210,6 +228,9 @@ export const EnhancedCosmicTimeline: React.FC = () => {
                 {selectedAge.dateRange}
               </div>
             )}
+            <div className="mt-2 text-xs text-timeline-gold/70">
+              Concentric Layer • Interactive Timeline
+            </div>
           </div>
         </div>
       )}
@@ -231,7 +252,20 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           border-radius: 50%;
           transform: translate(-50%, -50%);
           opacity: 0;
-          animation: pulse-ring 4s infinite ease-out;
+          animation: pulse-ring 6s infinite ease-out;
+        }
+        
+        .cosmic-pulse-ring-secondary {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 380px;
+          height: 380px;
+          border: 1px solid var(--timeline-gold);
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          opacity: 0;
+          animation: pulse-ring 6s infinite ease-out 2s;
         }
         
         @keyframes pulse-ring {
@@ -239,8 +273,11 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             transform: translate(-50%, -50%) scale(0.8);
             opacity: 0.8;
           }
+          50% {
+            opacity: 0.4;
+          }
           100% {
-            transform: translate(-50%, -50%) scale(1.4);
+            transform: translate(-50%, -50%) scale(1.3);
             opacity: 0;
           }
         }
@@ -249,11 +286,20 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
         }
         
+        /* Enhanced disk layer visual */
+        .border-3 {
+          border-width: 3px;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 1024px) {
           .cosmic-pulse-ring {
             width: 350px;
             height: 350px;
+          }
+          .cosmic-pulse-ring-secondary {
+            width: 320px;
+            height: 320px;
           }
         }
         
@@ -261,6 +307,10 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           .cosmic-pulse-ring {
             width: 280px;
             height: 280px;
+          }
+          .cosmic-pulse-ring-secondary {
+            width: 260px;
+            height: 260px;
           }
         }
       `}</style>

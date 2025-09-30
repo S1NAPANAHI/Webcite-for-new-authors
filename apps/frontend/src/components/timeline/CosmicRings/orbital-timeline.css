@@ -1,258 +1,221 @@
-/* Stone Wall Painting Orbital Timeline Styles */
+/* Half-Circle Orbital Timeline - Minimal Stone Wall Aesthetic */
 .orbital-timeline-dial {
   position: relative;
   width: 100%;
   height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: 
-    radial-gradient(circle at center, 
-      rgba(45, 45, 40, 0.95) 0%, 
-      rgba(30, 30, 25, 0.98) 60%,
-      rgba(20, 20, 15, 1) 100%);
+  justify-content: flex-start;
+  padding-left: 2rem;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  /* Clean background - no extra effects */
+  background: transparent;
   overflow: hidden;
 }
 
-.stone-wall-aesthetic {
-  font-family: 'Georgia', 'Times New Roman', serif;
+.half-circle-design {
+  background: none;
 }
 
-.orbital-container {
+.half-circle-container {
   position: relative;
-  width: 800px;
-  height: 800px;
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-/* Simplified Central Sun */
-.central-sun {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-}
-
-.sun-core.stone-carved {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: 
-    radial-gradient(circle at 35% 35%, 
-      #F4A460 0%,
-      #DAA520 40%,
-      #B8860B 100%);
-  border: 3px solid #8B7355;
-  box-shadow: 
-    inset -8px -8px 16px rgba(0,0,0,0.4),
-    inset 4px 4px 8px rgba(255,215,0,0.2),
-    0 0 20px rgba(218, 165, 32, 0.3);
-  /* Very slow, subtle pulsing */
-  animation: stoneSunGlow 8s ease-in-out infinite;
-}
-
-.sun-symbol {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #8B7355;
-  filter: drop-shadow(0 0 2px rgba(139, 115, 85, 0.6));
-  /* Very slow rotation */
-  animation: stoneSymbolRotate 60s linear infinite;
-}
-
-/* Thicker Orbit Paths */
-.orbit-path.thick-carved-line {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border: 4px solid rgba(139, 115, 85, 0.6); /* Much thicker, stone-like color */
-  border-radius: 50%;
-  pointer-events: none;
-  /* Subtle carved shadow effect */
-  box-shadow: 
-    inset 0 0 8px rgba(0,0,0,0.3),
-    0 0 4px rgba(139, 115, 85, 0.2);
-}
-
-/* Larger, Simplified Planets */
-.orbiting-planet.stone-planet {
-  position: absolute;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 5;
-}
-
-.orbiting-planet.stone-planet:hover {
-  z-index: 15;
-  transform: translate(-50%, -50%) scale(1.15) !important;
-}
-
-.orbiting-planet.stone-planet.selected {
-  z-index: 20;
-  transform: translate(-50%, -50%) scale(1.25) !important;
-}
-
-.planet-core.stone-carved {
+  justify-content: flex-start;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.4s ease;
-  /* Stone-carved appearance */
-  border: 3px solid rgba(139, 115, 85, 0.8);
-  box-shadow: 
-    inset -6px -6px 12px rgba(0,0,0,0.4),
-    inset 3px 3px 6px rgba(255,255,255,0.1),
-    0 0 12px rgba(139, 115, 85, 0.3);
-  /* Subtle stone texture */
-  background-image: 
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(0,0,0,0.1) 0%, transparent 40%);
 }
 
-.age-indicator.stone-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #8B7355;
-  font-weight: bold;
-  font-size: 16px; /* Larger text */
-  text-shadow: 
-    1px 1px 2px rgba(0, 0, 0, 0.8),
-    0 0 4px rgba(139, 115, 85, 0.5);
-  pointer-events: none;
+/* SVG Container */
+.orbital-svg {
+  display: block;
+  background: none;
+  overflow: visible;
+  margin-left: 0;
+  flex-shrink: 0;
 }
 
-.selection-ring {
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
-  border: 2px solid #DAA520;
-  border-radius: 50%;
-  box-shadow: 
-    0 0 8px rgba(218, 165, 32, 0.6),
-    inset 0 0 4px rgba(218, 165, 32, 0.3);
-  animation: stoneSelectionPulse 3s ease-in-out infinite;
+/* Orbit Lines - Thick and Flat Gold */
+.orbit-line {
+  stroke: #CEB548;
+  stroke-width: 4;
+  fill: none;
+  opacity: 0.8;
 }
 
-.planet-label.stone-inscription {
-  position: absolute;
-  top: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  background: rgba(45, 45, 40, 0.9);
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(139, 115, 85, 0.5);
-  min-width: max-content;
-  backdrop-filter: blur(2px);
-  /* Stone-carved text effect */
-  box-shadow: 
-    inset -2px -2px 4px rgba(0,0,0,0.3),
-    inset 1px 1px 2px rgba(255,255,255,0.1);
+/* Central Sun - Flat Gold */
+.central-sun-flat {
+  fill: #CEB548;
+  /* No 3D effects, just flat color */
 }
 
-.orbiting-planet.stone-planet:hover .planet-label.stone-inscription,
-.orbiting-planet.stone-planet.selected .planet-label.stone-inscription {
+/* Planet Nodes - Flat Gold */
+.planet-node {
+  fill: #CEB548;
+  transition: all 0.3s ease;
+  /* No 3D effects, just flat color */
+}
+
+.planet-node:hover {
+  r: 24;
   opacity: 1;
 }
 
-.planet-name {
-  display: block;
-  color: #DAA520;
-  font-size: 14px; /* Larger text */
-  font-weight: 600;
-  line-height: 1.2;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+.planet-node.selected {
+  opacity: 1;
 }
 
-/* Simplified Central Information Display */
-.central-info.stone-tablet {
+/* Selection Ring */
+.selection-ring {
+  stroke: #CEB548;
+  fill: none;
+  opacity: 0.7;
+  animation: selectionPulse 2s ease-in-out infinite;
+}
+
+/* Rotating Orbit Text */
+.orbit-text {
+  fill: #CEB548;
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* Selected Age Information Panel */
+.selected-age-info {
   position: absolute;
+  right: 2rem;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 15;
-  background: rgba(45, 45, 40, 0.95);
-  padding: 24px;
+  transform: translateY(-50%);
+  background: rgba(20, 20, 15, 0.9);
+  border: 2px solid #CEB548;
   border-radius: 8px;
-  border: 2px solid rgba(139, 115, 85, 0.7);
-  min-width: 240px;
-  margin-top: 120px;
-  /* Stone tablet effect */
-  box-shadow: 
-    inset -4px -4px 8px rgba(0,0,0,0.4),
-    inset 2px 2px 4px rgba(255,255,255,0.1),
-    0 4px 12px rgba(0,0,0,0.3);
-}
-
-.info-content {
-  color: #DAA520;
+  padding: 2rem;
+  width: 320px;
+  color: #CEB548;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
 .age-title {
-  font-size: 18px;
+  font-size: 1.5rem;
   font-weight: bold;
-  margin-bottom: 8px;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-  color: #F4A460;
+  margin-bottom: 0.75rem;
+  color: #CEB548;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 .age-years {
-  font-size: 14px;
-  color: rgba(218, 165, 32, 0.8);
-  font-weight: 400;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: rgba(206, 181, 72, 0.8);
+  font-weight: 500;
 }
 
-/* Stone Wall Animations - Much Slower and Subtle */
-@keyframes stoneSunGlow {
+.age-description {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(206, 181, 72, 0.9);
+  font-style: italic;
+}
+
+/* Animations */
+@keyframes selectionPulse {
   0%, 100% { 
-    box-shadow: 
-      inset -8px -8px 16px rgba(0,0,0,0.4),
-      inset 4px 4px 8px rgba(255,215,0,0.2),
-      0 0 20px rgba(218, 165, 32, 0.3);
-  }
-  50% { 
-    box-shadow: 
-      inset -8px -8px 16px rgba(0,0,0,0.4),
-      inset 4px 4px 8px rgba(255,215,0,0.3),
-      0 0 30px rgba(218, 165, 32, 0.4);
-  }
-}
-
-@keyframes stoneSymbolRotate {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
-@keyframes stoneSelectionPulse {
-  0%, 100% { 
-    opacity: 0.6;
-    transform: scale(1);
+    opacity: 0.7;
+    stroke-width: 2;
   }
   50% { 
     opacity: 1;
-    transform: scale(1.05);
+    stroke-width: 3;
   }
 }
 
-/* Remove all the complex background effects */
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .orbital-timeline-dial {
+    padding-left: 1rem;
+  }
+  
+  .selected-age-info {
+    width: 280px;
+    padding: 1.5rem;
+    right: 1rem;
+  }
+  
+  .age-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .orbital-timeline-dial {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+  }
+  
+  .half-circle-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .orbital-svg {
+    width: 400px;
+    height: 400px;
+    margin-bottom: 1rem;
+  }
+  
+  .selected-age-info {
+    position: static;
+    transform: none;
+    width: 100%;
+    max-width: 400px;
+    margin-top: 1rem;
+  }
+  
+  .orbit-text {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .orbital-svg {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .orbit-line {
+    stroke-width: 3;
+  }
+  
+  .orbit-text {
+    font-size: 12px;
+  }
+  
+  .selected-age-info {
+    padding: 1rem;
+  }
+  
+  .age-title {
+    font-size: 1.2rem;
+  }
+  
+  .age-description {
+    font-size: 0.9rem;
+  }
+}
+
+/* Remove all old stone wall effects and complex styling */
+.stone-wall-aesthetic,
+.stone-carved,
+.thick-carved-line,
+.stone-planet,
+.stone-inscription,
+.stone-tablet,
 .cosmic-effects,
 .cosmic-star,
 .energy-wave,
@@ -262,75 +225,10 @@
 .surface-highlight,
 .planet-rings,
 .sun-flare,
-.sun-rings {
+.sun-rings,
+.orbiting-planet,
+.planet-core,
+.planet-label,
+.central-info {
   display: none !important;
-}
-
-/* Responsive Design for Stone Aesthetic */
-@media (max-width: 768px) {
-  .orbital-container {
-    width: 600px;
-    height: 600px;
-  }
-  
-  .sun-core.stone-carved {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .sun-symbol svg {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .central-info.stone-tablet {
-    padding: 20px;
-    min-width: 200px;
-    margin-top: 100px;
-  }
-  
-  .age-title {
-    font-size: 16px;
-  }
-  
-  .age-years {
-    font-size: 12px;
-  }
-  
-  .age-indicator.stone-text {
-    font-size: 14px;
-  }
-  
-  .planet-name {
-    font-size: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .orbital-container {
-    width: 400px;
-    height: 400px;
-  }
-  
-  .sun-core.stone-carved {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .sun-symbol svg {
-    width: 20px;
-    height: 20px;
-  }
-  
-  .age-indicator.stone-text {
-    font-size: 12px;
-  }
-  
-  .planet-name {
-    font-size: 11px;
-  }
-  
-  .orbit-path.thick-carved-line {
-    border-width: 3px;
-  }
 }

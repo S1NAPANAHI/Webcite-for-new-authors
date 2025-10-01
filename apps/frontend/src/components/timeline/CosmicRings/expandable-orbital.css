@@ -41,69 +41,77 @@
   transition: all 0.3s ease;
 }
 
-/* Expanded semicircle animations */
-.expanded-semicircle {
-  animation: expandSemicircle 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
+/* SEMICIRCLE LAYERS - Stacked underneath orbital elements */
+.semicircle-layers {
+  z-index: 1;
+}
+
+.semicircle-layer-group {
+  position: relative;
+}
+
+.semicircle-layer {
+  transition: all 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45);
   transform-origin: 80px 400px; /* CENTER_X CENTER_Y */
 }
 
-@keyframes expandSemicircle {
+.semicircle-layer.expanded {
+  animation: expandSemicircleLayer 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
+}
+
+@keyframes expandSemicircleLayer {
   0% {
-    opacity: 0;
-    transform: scale(0.1);
+    transform: scale(1);
+    opacity: 0.8;
   }
   20% {
-    opacity: 0.3;
-    transform: scale(0.3);
+    transform: scale(1.2);
+    opacity: 0.85;
   }
   60% {
-    opacity: 0.7;
-    transform: scale(0.8);
+    transform: scale(1.8);
+    opacity: 0.9;
   }
   100% {
+    transform: scale(3);
     opacity: 1;
-    transform: scale(1);
   }
 }
 
 /* Reverse animation for collapse */
-.expandable-orbital-dial:not(.has-expanded) .expanded-semicircle {
-  animation: collapseSemicircle 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
+.expandable-orbital-dial:not(.has-expanded) .semicircle-layer {
+  animation: collapseSemicircleLayer 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
 }
 
-@keyframes collapseSemicircle {
+@keyframes collapseSemicircleLayer {
   0% {
+    transform: scale(3);
     opacity: 1;
-    transform: scale(1);
   }
   40% {
-    opacity: 0.7;
-    transform: scale(0.8);
+    transform: scale(1.8);
+    opacity: 0.9;
   }
   80% {
-    opacity: 0.3;
-    transform: scale(0.3);
+    transform: scale(1.2);
+    opacity: 0.85;
   }
   100% {
-    opacity: 0;
-    transform: scale(0.1);
+    transform: scale(1);
+    opacity: 0.8;
   }
-}
-
-/* Expanded age layer */
-.expanded-age-layer {
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-
-.expanded-age-layer.visible {
-  opacity: 1;
 }
 
 /* Hide orbital elements when expanded */
 .expandable-orbital-dial.has-expanded .orbital-elements {
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s ease;
+}
+
+/* Hide non-expanded semicircle layers when one is expanded */
+.expandable-orbital-dial.has-expanded .semicircle-layer:not(.expanded) {
+  opacity: 0.1;
+  transition: opacity 0.5s ease;
 }
 
 /* Planet nodes - now non-clickable, purely visual */
@@ -128,6 +136,7 @@
 .orbit-text.clickable-text {
   transition: all 0.2s ease;
   cursor: pointer;
+  z-index: 10;
 }
 
 .orbit-text.clickable-text:hover {
@@ -362,79 +371,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Age info panel - positioned when not expanded */
-.selected-age-info.vertical.improved {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  max-width: 300px;
-  padding: 1.5rem;
-  background: rgba(20, 20, 25, 0.95);
-  border: 2px solid rgba(206, 181, 72, 0.3);
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-}
-
-.selected-age-info .age-title.papyrus {
-  color: #CEB548;
-  font-size: 1.4rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.selected-age-info .age-years.papyrus {
-  color: rgba(206, 181, 72, 0.8);
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.selected-age-info .age-description.papyrus {
-  color: rgba(206, 181, 72, 0.7);
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-/* Instructions styling - updated to reflect text-based interaction */
-.instructions.expanded-capable {
-  position: fixed;
-  bottom: 2rem;
-  left: 2rem;
-  max-width: 300px;
-  padding: 1.5rem;
-  background: rgba(20, 20, 25, 0.9);
-  border: 2px solid rgba(206, 181, 72, 0.3);
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-  z-index: 100;
-}
-
-.instructions h3 {
-  color: #CEB548;
-  font-size: 1.4rem;
-  margin-bottom: 1rem;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
-}
-
-.instructions p {
-  color: rgba(206, 181, 72, 0.9);
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.instructions .tips {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.instructions .tips span {
-  color: rgba(206, 181, 72, 0.8);
-  font-size: 0.85rem;
-}
-
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .content-area {
@@ -446,15 +382,6 @@
     max-width: none;
     max-height: none;
     transform: none;
-  }
-  
-  .selected-age-info.vertical.improved,
-  .instructions.expanded-capable {
-    position: fixed;
-    bottom: 1rem;
-    left: 1rem;
-    right: 1rem;
-    max-width: none;
   }
   
   .close-btn {
@@ -472,6 +399,28 @@
   }
 }
 
+/* Z-index management for proper layering */
+.semicircle-layers {
+  z-index: 1;
+}
+
+.orbital-elements {
+  z-index: 5;
+}
+
+.central-sun-flat {
+  z-index: 6;
+}
+
+/* Ensure planets are above semicircle layers but below text */
+.planet-node {
+  z-index: 7;
+}
+
+.orbit-text {
+  z-index: 8;
+}
+
 /* Smooth transitions for all interactive elements */
 * {
   transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
@@ -483,9 +432,7 @@
     background: #000;
   }
   
-  .expanded-content,
-  .selected-age-info,
-  .instructions {
+  .expanded-content {
     background: rgba(0, 0, 0, 0.95);
     border-color: #CEB548;
   }
@@ -493,11 +440,16 @@
   .orbit-text.clickable-text {
     filter: drop-shadow(0 0 4px rgba(206, 181, 72, 1));
   }
+  
+  .semicircle-layer {
+    stroke-width: 2;
+    stroke-opacity: 0.5;
+  }
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  .expanded-semicircle,
+  .semicircle-layer,
   .event-card,
   .planet-node {
     animation: none;
@@ -508,8 +460,12 @@
     font-size: 20px;
   }
   
+  .semicircle-layer {
+    transition: opacity 0.3s ease;
+  }
+  
   * {
-    transition: none;
+    transition: opacity 0.3s ease;
   }
 }
 
@@ -518,4 +474,10 @@
   outline: 2px solid #CEB548;
   outline-offset: 2px;
   fill: #ffd700;
+}
+
+/* Hover effects for semicircle layers when not expanded */
+.semicircle-layer:not(.expanded):hover {
+  stroke-opacity: 0.4;
+  fill-opacity: 1.2;
 }

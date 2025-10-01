@@ -1,272 +1,319 @@
-/* Expandable Orbital Timeline Dial CSS */
-/* Base styling similar to layered timeline but adapted for orbital */
+:root {
+  --gold-300: #e3c76f;
+  --gold-400: #e7cd7a;
+  --gold-500: #f0d98e;
+  --gold-600: #cfb562;
+  --ink-900: rgba(10, 10, 12, 0.9);
+  --ink-800: rgba(10, 10, 12, 0.7);
 
-.expandable-orbital-dial {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: linear-gradient(
-    135deg,
-    rgba(15, 15, 20, 1) 0%,
-    rgba(25, 25, 30, 1) 50%,
-    rgba(20, 20, 25, 1) 100%
-  );
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
-  color: #CEB548;
+  --ring-gap: 18px;
+  --ring-thickness: 28px;
+  --ring-start-radius: 68px;
+
+  --ease-main: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --dur-quick: 180ms;
+  --dur-main: 360ms;
 }
 
-.orbital-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(206, 181, 72, 0.03) 0%,
-    rgba(206, 181, 72, 0.01) 40%,
-    transparent 70%
-  );
-  pointer-events: none;
-}
-
-.orbital-container {
+/* Root */
+.orbital-dial-root {
   position: relative;
   width: 100%;
-  height: 100%;
 }
 
-.orbital-svg.expandable {
-  transition: all 0.3s ease;
-}
-
-/* SEMICIRCLE LAYERS - Stacked underneath orbital elements */
-.semicircle-layers {
-  z-index: 1;
-}
-
-.semicircle-layer-group {
+/* Compact stacked semicircles */
+.orbital-stack {
   position: relative;
+  height: calc((var(--ring-thickness) + var(--ring-gap)) * 6 + var(--ring-start-radius));
+  min-height: 320px;
+  padding-left: 12px;
 }
 
-.semicircle-layer {
-  transition: all 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45);
-  transform-origin: 80px 400px; /* CENTER_X CENTER_Y */
-}
-
-/* Hide orbital elements when expanded */
-.expandable-orbital-dial.has-expanded .orbital-elements {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-/* Planet nodes - now non-clickable, purely visual */
-.planet-node.non-clickable {
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6));
+.orbital-stack.is-hidden {
   pointer-events: none;
-  cursor: default;
+  opacity: 0.02;
+  filter: blur(2px);
+  transition: opacity var(--dur-quick) linear, filter var(--dur-quick) linear;
 }
 
-.planet-node.selected {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
-  50% { filter: drop-shadow(0 0 16px rgba(206, 181, 72, 1)); }
-  100% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
-}
-
-/* CLICKABLE TEXT STYLES */
-.orbit-text.clickable-text {
-  transition: all 0.2s ease;
-  cursor: pointer;
-  z-index: 10;
-}
-
-.orbit-text.clickable-text:hover {
-  fill: #ffd700;
-  font-size: 22px;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
-  transform: scale(1.05);
-}
-
-.orbit-text.clickable-text:active {
-  transform: scale(0.95);
-  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1));
-}
-
-/* Add a subtle glow to indicate clickability */
-.orbit-text.clickable-text {
-  filter: drop-shadow(0 0 2px rgba(206, 181, 72, 0.3));
-}
-
-.orbit-text.clickable-text:hover {
-  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
-}
-
-/* SEMICIRCLE CONTENT - Content inside the expanded semicircle layer */
-.semicircle-content {
-  position: relative;
-  display: block;
-  width: 92%;
-  margin: 40px auto 18px;
-  padding: 32px 24px 24px;
-  background: rgba(20, 18, 38, 0.88);
-  border-radius: 14px 14px 44px 44px;
-  box-shadow: 0 6px 44px 0 rgba(255, 215, 0, 0.20);
-  color: #fff;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
-  animation: fadeinContent 1s cubic-bezier(0.5, 0, 0.4, 1);
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-@keyframes fadeinContent {
-  0% {
-    opacity: 0;
-    transform: scale(0.85) translateY(60px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.close-button {
+.orbital-layer {
+  --i: var(--layer-index, 0);
   position: absolute;
-  top: 16px;
-  right: 20px;
-  background: none;
-  border: none;
-  color: #ffd700;
-  font-size: 28px;
-  font-weight: bold;
-  cursor: pointer;
-  z-index: 2;
-  transition: all 0.2s ease;
-  width: 32px;
-  height: 32px;
+  left: 0;
+  top: calc(var(--i) * (var(--ring-thickness) + var(--ring-gap)));
+  height: var(--ring-thickness);
+  width: calc(var(--ring-start-radius) + var(--i) * (var(--ring-thickness) + var(--ring-gap)));
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  justify-content: flex-end;
+  padding-right: 12px;
+  color: #d9c890;
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  isolation: isolate;
 }
 
-.close-button:hover {
-  color: #fff;
-  transform: scale(1.1);
-  background: rgba(255, 215, 0, 0.1);
+.orbital-layer:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
 }
 
-/* Age content styling inside expanded semicircle */
-.semicircle-content h2 {
-  color: #ffd700;
-  font-size: 2rem;
-  margin-bottom: 8px;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+.orbital-layer-outline {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 9999px 9999px 0;
+  border: 2px solid color-mix(in oklab, var(--ring-color, var(--gold-500)) 88%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ring-color, var(--gold-500)) 40%, transparent) inset,
+    0 0 18px rgba(240, 217, 142, 0.18);
+  /* Chalky texture using subtle noise */
+  background-image:
+    radial-gradient(100% 140% at -10% 50%, rgba(240, 217, 142, 0.25), rgba(240, 217, 142, 0) 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0.2'/><feComponentTransfer><feFuncA type='table' tableValues='0 0.06'/></feComponentTransfer></filter><rect width='120' height='120' filter='url(%23n)'/></svg>");
+  background-size: cover;
+  pointer-events: none;
 }
 
-.age-duration {
-  color: #e0e0e0;
-  font-style: italic;
-  margin-bottom: 14px;
-  font-size: 1.1rem;
+.orbital-layer:hover .orbital-layer-outline {
+  border-color: color-mix(in oklab, var(--ring-color, var(--gold-500)) 100%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ring-color, var(--gold-500)) 60%, transparent) inset,
+    0 0 28px rgba(240, 217, 142, 0.26);
+  transition: box-shadow var(--dur-quick) var(--ease-main), border-color var(--dur-quick) var(--ease-main);
 }
 
-.age-description {
-  line-height: 1.6;
-  margin-bottom: 18px;
-  color: rgba(206, 181, 72, 0.9);
-  font-size: 1rem;
+.orbital-layer-label {
+  position: relative;
+  z-index: 1;
+  font-family: Papyrus, "Trajan Pro", "Cinzel", serif;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 0 rgba(0,0,0,0.3);
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
 }
 
-.age-events h3 {
-  color: #ffd700;
-  margin-bottom: 12px;
-  font-size: 1.4rem;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+.label-title {
+  font-size: 15px;
 }
 
-.age-events ul {
-  list-style: none;
-  padding-left: 0;
+.label-sub {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Full-screen overlay (no popup card). Content sits on the golden expanded background */
+.orbital-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+
+.orbital-overlay.is-expanded {
+  pointer-events: auto;
+}
+
+/* Golden background fill that morphs from left-half to full-screen without using a card */
+.orbital-overlay-fill {
+  position: absolute;
+  inset: 0;
+  /* Flat gold with depth, no 3D globe */
+  background:
+    radial-gradient(160% 110% at -10% 50%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 28%, rgba(0,0,0,0.0) 60%),
+    linear-gradient(90deg, color-mix(in oklab, var(--ring-color, var(--gold-500)) 92%, #7a6a2f) 0%, #b79a47 42%, #a48839 60%, #8b7332 100%);
+  /* Chalky micro-noise overlay */
+  background-blend-mode: screen, normal;
+  overflow: hidden;
+
+  /* Animate from a left-side semicircle shape to a full-bleed rectangle */
+  clip-path: inset(0 60% 0 0 round 0 200vmax 200vmax 0);
+  transition: clip-path var(--dur-main) var(--ease-main), border-radius var(--dur-main) var(--ease-main);
+}
+
+.orbital-overlay.is-expanded .orbital-overlay-fill {
+  clip-path: inset(0 0 0 0 round 0 0 0 0);
+}
+
+/* Integrated content on top of golden background */
+.orbital-expanded-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  padding: clamp(16px, 2.2vw, 28px);
+  color: #1a1406;
+  /* Single scrollbar: scroll within content; page behind is frozen */
+  overflow: auto;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--dur-main) var(--ease-main) 120ms, transform var(--dur-main) var(--ease-main) 120ms;
+}
+
+.orbital-overlay.is-expanded .orbital-expanded-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Top bar */
+.expanded-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(54, 43, 18, 0.25);
+  background: linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0));
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  backdrop-filter: blur(2px);
+}
+
+.title-wrap {
+  display: grid;
+  gap: 2px;
+}
+
+.expanded-title {
   margin: 0;
+  font-family: Papyrus, "Trajan Pro", "Cinzel", serif;
+  font-size: clamp(18px, 2.6vw, 32px);
+  letter-spacing: 0.4px;
 }
 
-.age-events li {
-  margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  border-left: 3px solid #ffd700;
-  padding: 12px;
-  transition: all 0.3s ease;
+.expanded-sub {
+  font-size: clamp(12px, 1.2vw, 14px);
+  opacity: 0.85;
 }
 
-.age-events li:hover {
+.close-btn {
+  appearance: none;
+  border: 1px solid rgba(54, 43, 18, 0.35);
+  background: rgba(255,255,255,0.06);
+  color: #2b230d;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform var(--dur-quick) ease, background var(--dur-quick) ease, border-color var(--dur-quick) ease;
+}
+
+.close-btn:hover {
+  transform: scale(1.04);
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(54, 43, 18, 0.5);
+}
+
+/* Body area */
+.expanded-body {
+  padding-top: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.expanded-desc {
+  font-size: clamp(14px, 1.3vw, 16px);
+  line-height: 1.55;
+  color: #231c0b;
+}
+
+/* Example grid layout for entries */
+.expanded-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: clamp(10px, 1.5vw, 16px);
+}
+
+.grid-item {
+  grid-column: span 4;
   background: rgba(255, 255, 255, 0.08);
-  transform: translateX(4px);
+  border: 1px solid rgba(54, 43, 18, 0.26);
+  border-radius: 14px;
+  padding: clamp(10px, 1.4vw, 16px);
+  backdrop-filter: blur(1px);
+  transition: transform var(--dur-quick) var(--ease-main), box-shadow var(--dur-quick) var(--ease-main);
 }
 
-.age-events li strong {
-  color: #ffd700;
-  font-weight: bold;
+.grid-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,0.08);
 }
 
-.age-events li p {
-  margin: 5px 0 0 0;
-  font-size: 0.9rem;
-  color: #ddd;
+.item-head {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+  color: #2a220e;
+  text-transform: uppercase;
+}
+
+.item-body {
+  font-size: 14px;
+  color: #2a220e;
+  opacity: 0.95;
+}
+
+/* Events section styling */
+.age-events-section {
+  margin-top: 20px;
+}
+
+.events-title {
+  font-size: clamp(16px, 1.8vw, 20px);
+  font-weight: 700;
+  color: #2a220e;
+  margin-bottom: 16px;
+  font-family: Papyrus, "Trajan Pro", "Cinzel", serif;
+  text-align: center;
+}
+
+.event-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2a220e;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.event-description {
+  font-size: 13px;
+  color: #2a220e;
+  opacity: 0.9;
   line-height: 1.4;
+  margin: 0;
 }
 
 .more-events-note {
   text-align: center;
-  color: rgba(206, 181, 72, 0.6);
+  color: #2a220e;
+  opacity: 0.8;
   font-style: italic;
-  margin-top: 1rem;
-  font-size: 0.9rem;
+  font-size: 14px;
+  margin-top: 16px;
 }
 
-/* No events styling */
-.no-events {
+/* Loading and error states */
+.loading-state, .error-state, .no-events-state {
   text-align: center;
-  padding: 2rem;
-  color: rgba(206, 181, 72, 0.6);
+  padding: 40px 20px;
 }
 
-.no-events .icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.no-events h4 {
-  color: #CEB548;
-  margin-bottom: 0.5rem;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
-}
-
-.no-events p {
-  font-size: 0.9rem;
-}
-
-/* Loading spinner */
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: rgba(206, 181, 72, 0.7);
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid rgba(206, 181, 72, 0.1);
-  border-left: 4px solid #CEB548;
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(42, 34, 14, 0.2);
+  border-top: 2px solid #2a220e;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  margin: 0 auto 16px;
 }
 
 @keyframes spin {
@@ -274,148 +321,112 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .semicircle-content {
-    width: 95%;
-    padding: 20px 16px 16px;
-    margin: 20px auto 10px;
+.loading-text, .error-text {
+  color: #2a220e;
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+.error-text {
+  color: #8b4513;
+}
+
+/* Responsive */
+@media (max-width: 960px) {
+  .grid-item { grid-column: span 6; }
+}
+
+@media (max-width: 640px) {
+  .grid-item { grid-column: span 12; }
+  
+  .orbital-stack {
+    padding-left: 8px;
   }
   
-  .semicircle-content h2 {
-    font-size: 1.6rem;
+  .orbital-layer {
+    padding-right: 8px;
   }
   
-  .close-button {
-    top: 12px;
-    right: 12px;
-    font-size: 24px;
+  .orbital-layer-label {
+    gap: 4px;
   }
   
-  /* Make text slightly larger on mobile for easier clicking */
-  .orbit-text.clickable-text {
-    font-size: 18px;
+  .label-title {
+    font-size: 13px;
   }
   
-  .orbit-text.clickable-text:hover {
-    font-size: 20px;
+  .label-sub {
+    font-size: 11px;
   }
 }
 
-/* Z-index management for proper layering */
-.semicircle-layers {
-  z-index: 1;
+@media (max-width: 480px) {
+  .orbital-expanded-content {
+    padding: clamp(12px, 4vw, 20px);
+  }
+  
+  .expanded-topbar {
+    padding-bottom: 8px;
+  }
+  
+  .close-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .expanded-body {
+    gap: 12px;
+  }
 }
 
-.orbital-elements {
-  z-index: 5;
-}
-
-.central-sun-flat {
-  z-index: 6;
-}
-
-/* Ensure planets are above semicircle layers but below text */
-.planet-node {
-  z-index: 7;
-}
-
-.orbit-text {
-  z-index: 8;
-}
-
-/* Smooth transitions for all interactive elements */
-* {
-  transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .orbital-overlay-fill,
+  .orbital-expanded-content,
+  .orbital-stack.is-hidden {
+    transition: none !important;
+  }
+  
+  .loading-spinner {
+    animation: none !important;
+  }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .expandable-orbital-dial {
-    background: #000;
+  .orbital-layer-outline {
+    border-width: 3px;
   }
   
-  .semicircle-content {
-    background: rgba(0, 0, 0, 0.95);
-    border: 1px solid #CEB548;
+  .expanded-title, .item-head, .events-title {
+    font-weight: 800;
   }
   
-  .orbit-text.clickable-text {
-    filter: drop-shadow(0 0 4px rgba(206, 181, 72, 1));
-  }
-  
-  .semicircle-layer {
-    stroke-width: 2;
-    stroke-opacity: 0.5;
+  .grid-item {
+    border-width: 2px;
   }
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .semicircle-layer,
-  .age-events li,
-  .planet-node {
-    animation: none;
+/* Print styles */
+@media print {
+  .orbital-overlay {
+    position: static;
+    background: white;
+    color: black;
   }
   
-  .orbit-text.clickable-text:hover {
-    transform: none;
-    font-size: 20px;
+  .orbital-overlay-fill {
+    display: none;
   }
   
-  .semicircle-layer {
-    transition: opacity 0.3s ease, transform 0.5s ease;
+  .close-btn {
+    display: none;
   }
   
-  .semicircle-content {
-    animation: none;
+  .orbital-expanded-content {
     opacity: 1;
     transform: none;
+    overflow: visible;
+    height: auto;
   }
-  
-  * {
-    transition: opacity 0.3s ease;
-  }
-}
-
-/* Focus styles for accessibility */
-.orbit-text.clickable-text:focus {
-  outline: 2px solid #CEB548;
-  outline-offset: 2px;
-  fill: #ffd700;
-}
-
-.close-button:focus {
-  outline: 2px solid #CEB548;
-  outline-offset: 2px;
-}
-
-/* Hover effects for semicircle layers when not expanded */
-.semicircle-layer:not(.expanded):hover {
-  stroke-opacity: 0.4;
-  filter: brightness(1.1);
-}
-
-/* Ensure smooth scrolling in content areas */
-.semicircle-content {
-  scroll-behavior: smooth;
-}
-
-/* Custom scrollbar for content area */
-.semicircle-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.semicircle-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.semicircle-content::-webkit-scrollbar-thumb {
-  background: rgba(206, 181, 72, 0.5);
-  border-radius: 3px;
-}
-
-.semicircle-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(206, 181, 72, 0.8);
 }

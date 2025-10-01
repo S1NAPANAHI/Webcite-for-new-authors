@@ -570,7 +570,7 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
             ))}
           </defs>
 
-          {/* ENHANCED SEMICIRCLE LAYERS with crisp morphing animation */}
+          {/* 🎨 ENHANCED SEMICIRCLE LAYERS with PROGRESSIVE 3D DEPTH SHADOWS */}
           <g className="semicircle-layers enhanced crisp">
             {orbitingPlanets.map((planet, index) => {
               const isThisExpanded = expandedAge?.id === planet.age.id;
@@ -598,10 +598,13 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
                     style={{
                       transformOrigin: `${CENTER_X}px ${CENTER_Y}px`,
                       zIndex: isThisExpanded ? 999 : (50 - index),
-                      // Removed all blur filters for crisp rendering
-                      filter: isThisExpanded && animationState.expandProgress > 0.2
-                        ? `drop-shadow(0 0 ${60 + (animationState.expandProgress * 80)}px rgba(255, 215, 0, ${0.7 + (animationState.expandProgress * 0.3)}))` 
-                        : `drop-shadow(0 2px ${4 + (index * 2)}px rgba(0, 0, 0, 0.4))`,
+                      // ✨ KEY ENHANCEMENT: PROGRESSIVE 3D DEPTH SHADOWS ✨
+                      // Formula: Y-offset increases with layer depth (2 + index)
+                      // Blur radius scales progressively (4 + index * 2)
+                      // Creates realistic stacking illusion with deeper shadows for outer layers
+                      filter: isThisExpanded
+                        ? `drop-shadow(0 ${4 + animationState.expandProgress * 16}px ${8 + animationState.expandProgress * 20}px rgba(0, 0, 0, 0.5))`
+                        : `drop-shadow(0 ${2 + index}px ${4 + (index * 2)}px rgba(0, 0, 0, 0.45))`,
                       opacity: otherLayersExpanded ? fadeOpacity * 0.05 : (0.8 + (index * 0.04)),
                       cursor: (animationState.isExpanding || animationState.isCollapsing) 
                         ? "wait" 
@@ -696,7 +699,7 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
             ))}
           </g>
 
-          {/* Enhanced central sun with crisp edges */}
+          {/* Enhanced central sun with crisp edges and subtle shadow */}
           <circle
             cx={CENTER_X} cy={CENTER_Y} r={SUN_RADIUS}
             fill={GOLD}
@@ -704,12 +707,12 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
             style={{
               opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 2.5) : 1,
               transform: `scale(${expandedAge ? Math.max(0.6, 1 - animationState.expandProgress * 0.4) : 1})`,
-              // Crisp sun rendering - no blur
-              filter: "drop-shadow(0 0 12px rgba(206, 181, 72, 0.6))"
+              // Enhanced central sun shadow for depth consistency
+              filter: "drop-shadow(0 3px 8px rgba(0, 0, 0, 0.3))"
             }}
           />
 
-          {/* Enhanced moving planets with crisp rendering */}
+          {/* Enhanced moving planets with crisp rendering and depth shadows */}
           <g 
             clipPath="url(#rightHalfClip)"
             style={{ 
@@ -728,8 +731,8 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
                     fill={GOLD}
                     className={`planet-node enhanced crisp ${selected ? 'selected' : ''}`}
                     style={{ 
-                      // Crisp planet rendering
-                      filter: "drop-shadow(0 1px 4px rgba(0, 0, 0, 0.4))"
+                      // Enhanced planet shadow for depth consistency
+                      filter: "drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35))"
                     }}
                   />
                   {selected && (
@@ -739,8 +742,8 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
                       className="selection-ring enhanced crisp" 
                       opacity="0.9"
                       style={{
-                        // Crisp selection ring
-                        filter: "drop-shadow(0 0 4px rgba(206, 181, 72, 0.3))"
+                        // Enhanced selection ring shadow
+                        filter: "drop-shadow(0 1px 4px rgba(206, 181, 72, 0.4))"
                       }}
                     />
                   )}
@@ -754,10 +757,16 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
       {/* Enhanced expanded content overlay */}
       {renderExpandedContent()}
       
-      {/* Subtle loading overlay during animation */}
+      {/* Enhanced loading overlay during animation with depth effect */}
       {(animationState.isExpanding || animationState.isCollapsing) && (
         <div className="animation-overlay enhanced crisp">
-          <div className="animation-feedback enhanced crisp">
+          <div 
+            className="animation-feedback enhanced crisp"
+            style={{
+              // Add subtle depth to loading overlay
+              filter: "drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2))"
+            }}
+          >
             <div className="feedback-spinner"></div>
             <span className="feedback-text">
               {animationState.isExpanding ? 'Expanding...' : 'Collapsing...'}

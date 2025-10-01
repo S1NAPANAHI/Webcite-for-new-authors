@@ -55,62 +55,9 @@
   transform-origin: 80px 400px; /* CENTER_X CENTER_Y */
 }
 
-.semicircle-layer.expanded {
-  animation: expandSemicircleLayer 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
-}
-
-@keyframes expandSemicircleLayer {
-  0% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-  20% {
-    transform: scale(1.2);
-    opacity: 0.85;
-  }
-  60% {
-    transform: scale(1.8);
-    opacity: 0.9;
-  }
-  100% {
-    transform: scale(3);
-    opacity: 1;
-  }
-}
-
-/* Reverse animation for collapse */
-.expandable-orbital-dial:not(.has-expanded) .semicircle-layer {
-  animation: collapseSemicircleLayer 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
-}
-
-@keyframes collapseSemicircleLayer {
-  0% {
-    transform: scale(3);
-    opacity: 1;
-  }
-  40% {
-    transform: scale(1.8);
-    opacity: 0.9;
-  }
-  80% {
-    transform: scale(1.2);
-    opacity: 0.85;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.8;
-  }
-}
-
 /* Hide orbital elements when expanded */
 .expandable-orbital-dial.has-expanded .orbital-elements {
   opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-/* Hide non-expanded semicircle layers when one is expanded */
-.expandable-orbital-dial.has-expanded .semicircle-layer:not(.expanded) {
-  opacity: 0.1;
   transition: opacity 0.5s ease;
 }
 
@@ -160,168 +107,118 @@
   filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
 }
 
-/* Content overlay styling */
-.expanded-content {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: transparent;
-  z-index: 1000;
-  pointer-events: auto;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.4s ease;
+/* SEMICIRCLE CONTENT - Content inside the expanded semicircle layer */
+.semicircle-content {
+  position: relative;
+  display: block;
+  width: 92%;
+  margin: 40px auto 18px;
+  padding: 32px 24px 24px;
+  background: rgba(20, 18, 38, 0.88);
+  border-radius: 14px 14px 44px 44px;
+  box-shadow: 0 6px 44px 0 rgba(255, 215, 0, 0.20);
+  color: #fff;
+  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+  animation: fadeinContent 1s cubic-bezier(0.5, 0, 0.4, 1);
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
-.expanded-content.visible {
-  opacity: 1;
-  transform: translateY(0);
+@keyframes fadeinContent {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(60px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
-.close-btn {
+.close-button {
   position: absolute;
-  top: 2rem;
-  right: 2rem;
-  width: 48px;
-  height: 48px;
-  border: 2px solid #CEB548;
-  border-radius: 50%;
-  background: rgba(15, 15, 20, 0.9);
-  color: #CEB548;
-  font-size: 20px;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: #ffd700;
+  font-size: 28px;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  z-index: 2;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
-  z-index: 1001;
+  border-radius: 50%;
 }
 
-.close-btn:hover {
-  background: rgba(206, 181, 72, 0.1);
+.close-button:hover {
+  color: #fff;
   transform: scale(1.1);
+  background: rgba(255, 215, 0, 0.1);
 }
 
-.close-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Content area styling */
-.content-area {
-  position: absolute;
-  top: 50%;
-  right: 2rem;
-  transform: translateY(-50%);
-  max-width: 400px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 2rem;
-  background: rgba(20, 20, 25, 0.95);
-  border: 2px solid rgba(206, 181, 72, 0.4);
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-}
-
-/* Age info styling */
-.age-info {
-  margin-bottom: 2rem;
-}
-
-.age-title {
-  color: #CEB548;
+/* Age content styling inside expanded semicircle */
+.semicircle-content h2 {
+  color: #ffd700;
   font-size: 2rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+  margin-bottom: 8px;
   font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
 }
 
-.age-meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
+.age-duration {
+  color: #e0e0e0;
+  font-style: italic;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
 }
 
-.age-meta span {
-  padding: 0.25rem 0.75rem;
-  background: rgba(206, 181, 72, 0.1);
-  border: 1px solid rgba(206, 181, 72, 0.3);
-  border-radius: 6px;
-  font-size: 0.9rem;
-  color: #CEB548;
-}
-
-.age-desc {
-  color: rgba(206, 181, 72, 0.9);
+.age-description {
   line-height: 1.6;
+  margin-bottom: 18px;
+  color: rgba(206, 181, 72, 0.9);
   font-size: 1rem;
 }
 
-/* Events styling */
-.events-list h3 {
-  color: #CEB548;
+.age-events h3 {
+  color: #ffd700;
+  margin-bottom: 12px;
   font-size: 1.4rem;
-  margin-bottom: 1rem;
   font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
 }
 
-.events-container {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-height: 300px;
-  overflow-y: auto;
+.age-events ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
 }
 
-.event-card {
-  padding: 1rem;
-  background: rgba(15, 15, 20, 0.7);
-  border: 1px solid rgba(206, 181, 72, 0.2);
-  border-radius: 8px;
+.age-events li {
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid #ffd700;
+  padding: 12px;
   transition: all 0.3s ease;
-  opacity: 0;
-  animation: fadeInEvent 0.5s ease forwards;
 }
 
-@keyframes fadeInEvent {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.event-card:hover {
-  background: rgba(206, 181, 72, 0.05);
-  border-color: rgba(206, 181, 72, 0.4);
+.age-events li:hover {
+  background: rgba(255, 255, 255, 0.08);
   transform: translateX(4px);
 }
 
-.event-year {
-  color: #CEB548;
+.age-events li strong {
+  color: #ffd700;
   font-weight: bold;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
 }
 
-.event-name {
-  color: #CEB548;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.event-summary {
-  color: rgba(206, 181, 72, 0.7);
+.age-events li p {
+  margin: 5px 0 0 0;
   font-size: 0.9rem;
+  color: #ddd;
   line-height: 1.4;
 }
 
@@ -330,6 +227,7 @@
   color: rgba(206, 181, 72, 0.6);
   font-style: italic;
   margin-top: 1rem;
+  font-size: 0.9rem;
 }
 
 /* No events styling */
@@ -347,6 +245,11 @@
 .no-events h4 {
   color: #CEB548;
   margin-bottom: 0.5rem;
+  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+}
+
+.no-events p {
+  font-size: 0.9rem;
 }
 
 /* Loading spinner */
@@ -373,20 +276,20 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .content-area {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    right: 1rem;
-    bottom: 1rem;
-    max-width: none;
-    max-height: none;
-    transform: none;
+  .semicircle-content {
+    width: 95%;
+    padding: 20px 16px 16px;
+    margin: 20px auto 10px;
   }
   
-  .close-btn {
-    top: 1rem;
-    right: 1rem;
+  .semicircle-content h2 {
+    font-size: 1.6rem;
+  }
+  
+  .close-button {
+    top: 12px;
+    right: 12px;
+    font-size: 24px;
   }
   
   /* Make text slightly larger on mobile for easier clicking */
@@ -432,9 +335,9 @@
     background: #000;
   }
   
-  .expanded-content {
+  .semicircle-content {
     background: rgba(0, 0, 0, 0.95);
-    border-color: #CEB548;
+    border: 1px solid #CEB548;
   }
   
   .orbit-text.clickable-text {
@@ -450,7 +353,7 @@
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   .semicircle-layer,
-  .event-card,
+  .age-events li,
   .planet-node {
     animation: none;
   }
@@ -461,7 +364,13 @@
   }
   
   .semicircle-layer {
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.5s ease;
+  }
+  
+  .semicircle-content {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
   
   * {
@@ -476,8 +385,37 @@
   fill: #ffd700;
 }
 
+.close-button:focus {
+  outline: 2px solid #CEB548;
+  outline-offset: 2px;
+}
+
 /* Hover effects for semicircle layers when not expanded */
 .semicircle-layer:not(.expanded):hover {
   stroke-opacity: 0.4;
-  fill-opacity: 1.2;
+  filter: brightness(1.1);
+}
+
+/* Ensure smooth scrolling in content areas */
+.semicircle-content {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for content area */
+.semicircle-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.semicircle-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.semicircle-content::-webkit-scrollbar-thumb {
+  background: rgba(206, 181, 72, 0.5);
+  border-radius: 3px;
+}
+
+.semicircle-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(206, 181, 72, 0.8);
 }

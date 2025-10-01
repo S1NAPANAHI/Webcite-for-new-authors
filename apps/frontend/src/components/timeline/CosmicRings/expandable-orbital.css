@@ -1,0 +1,472 @@
+/* Expandable Orbital Timeline Dial CSS */
+/* Base styling similar to layered timeline but adapted for orbital */
+
+.expandable-orbital-dial {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(15, 15, 20, 1) 0%,
+    rgba(25, 25, 30, 1) 50%,
+    rgba(20, 20, 25, 1) 100%
+  );
+  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+  color: #CEB548;
+}
+
+.orbital-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(206, 181, 72, 0.03) 0%,
+    rgba(206, 181, 72, 0.01) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.orbital-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.orbital-svg.expandable {
+  transition: all 0.3s ease;
+}
+
+/* Expanded semicircle animations */
+.expanded-semicircle {
+  animation: expandSemicircle 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
+  transform-origin: 80px 400px; /* CENTER_X CENTER_Y */
+}
+
+@keyframes expandSemicircle {
+  0% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+  20% {
+    opacity: 0.3;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reverse animation for collapse */
+.expandable-orbital-dial:not(.has-expanded) .expanded-semicircle {
+  animation: collapseSemicircle 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45) forwards;
+}
+
+@keyframes collapseSemicircle {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  40% {
+    opacity: 0.7;
+    transform: scale(0.8);
+  }
+  80% {
+    opacity: 0.3;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.1);
+  }
+}
+
+/* Expanded age layer */
+.expanded-age-layer {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.expanded-age-layer.visible {
+  opacity: 1;
+}
+
+/* Hide orbital elements when expanded */
+.expandable-orbital-dial.has-expanded .orbital-elements {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* Planet nodes */
+.planet-node.expandable {
+  transition: all 0.3s ease;
+  filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6));
+}
+
+.planet-node.expandable:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 12px rgba(206, 181, 72, 0.8));
+}
+
+.planet-node.selected {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
+  50% { filter: drop-shadow(0 0 16px rgba(206, 181, 72, 1)); }
+  100% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
+}
+
+/* Content overlay styling */
+.expanded-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: transparent;
+  z-index: 1000;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.4s ease;
+}
+
+.expanded-content.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.close-btn {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 48px;
+  height: 48px;
+  border: 2px solid #CEB548;
+  border-radius: 50%;
+  background: rgba(15, 15, 20, 0.9);
+  color: #CEB548;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+}
+
+.close-btn:hover {
+  background: rgba(206, 181, 72, 0.1);
+  transform: scale(1.1);
+}
+
+.close-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Content area styling */
+.content-area {
+  position: absolute;
+  top: 50%;
+  right: 2rem;
+  transform: translateY(-50%);
+  max-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 2rem;
+  background: rgba(20, 20, 25, 0.95);
+  border: 2px solid rgba(206, 181, 72, 0.4);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Age info styling */
+.age-info {
+  margin-bottom: 2rem;
+}
+
+.age-title {
+  color: #CEB548;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+}
+
+.age-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.age-meta span {
+  padding: 0.25rem 0.75rem;
+  background: rgba(206, 181, 72, 0.1);
+  border: 1px solid rgba(206, 181, 72, 0.3);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #CEB548;
+}
+
+.age-desc {
+  color: rgba(206, 181, 72, 0.9);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Events styling */
+.events-list h3 {
+  color: #CEB548;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+}
+
+.events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.event-card {
+  padding: 1rem;
+  background: rgba(15, 15, 20, 0.7);
+  border: 1px solid rgba(206, 181, 72, 0.2);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  opacity: 0;
+  animation: fadeInEvent 0.5s ease forwards;
+}
+
+@keyframes fadeInEvent {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.event-card:hover {
+  background: rgba(206, 181, 72, 0.05);
+  border-color: rgba(206, 181, 72, 0.4);
+  transform: translateX(4px);
+}
+
+.event-year {
+  color: #CEB548;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.event-name {
+  color: #CEB548;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.event-summary {
+  color: rgba(206, 181, 72, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.more-events-note {
+  text-align: center;
+  color: rgba(206, 181, 72, 0.6);
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+/* No events styling */
+.no-events {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(206, 181, 72, 0.6);
+}
+
+.no-events .icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.no-events h4 {
+  color: #CEB548;
+  margin-bottom: 0.5rem;
+}
+
+/* Loading spinner */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: rgba(206, 181, 72, 0.7);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(206, 181, 72, 0.1);
+  border-left: 4px solid #CEB548;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Age info panel - positioned when not expanded */
+.selected-age-info.vertical.improved {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  max-width: 300px;
+  padding: 1.5rem;
+  background: rgba(20, 20, 25, 0.95);
+  border: 2px solid rgba(206, 181, 72, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.selected-age-info .age-title.papyrus {
+  color: #CEB548;
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.selected-age-info .age-years.papyrus {
+  color: rgba(206, 181, 72, 0.8);
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.selected-age-info .age-description.papyrus {
+  color: rgba(206, 181, 72, 0.7);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Instructions styling */
+.instructions.expanded-capable {
+  position: fixed;
+  bottom: 2rem;
+  left: 2rem;
+  max-width: 300px;
+  padding: 1.5rem;
+  background: rgba(20, 20, 25, 0.9);
+  border: 2px solid rgba(206, 181, 72, 0.3);
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  z-index: 100;
+}
+
+.instructions h3 {
+  color: #CEB548;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+}
+
+.instructions p {
+  color: rgba(206, 181, 72, 0.9);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.instructions .tips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.instructions .tips span {
+  color: rgba(206, 181, 72, 0.8);
+  font-size: 0.85rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .content-area {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
+    max-height: none;
+    transform: none;
+  }
+  
+  .selected-age-info.vertical.improved,
+  .instructions.expanded-capable {
+    position: fixed;
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+  }
+  
+  .close-btn {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+* {
+  transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .expandable-orbital-dial {
+    background: #000;
+  }
+  
+  .expanded-content,
+  .selected-age-info,
+  .instructions {
+    background: rgba(0, 0, 0, 0.95);
+    border-color: #CEB548;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .expanded-semicircle,
+  .event-card,
+  .planet-node {
+    animation: none;
+  }
+  
+  * {
+    transition: none;
+  }
+}

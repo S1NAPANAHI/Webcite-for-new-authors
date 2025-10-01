@@ -157,12 +157,13 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     };
   }, [expandedAge]);
 
-  const handlePlanetClick = (planet: OrbitingPlanet, event: React.MouseEvent) => {
+  // Updated to handle text clicks instead of planet clicks
+  const handleTextClick = (planet: OrbitingPlanet, event: React.MouseEvent) => {
     event.stopPropagation();
     
     if (isAnimating) return;
 
-    console.log(`Planet ${planet.ageIndex + 1} clicked:`, planet.age.name);
+    console.log(`Text for ${planet.ageIndex + 1} clicked:`, planet.age.name);
     
     setIsAnimating(true);
     
@@ -409,7 +410,7 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
                 );
               })}
 
-              {/* Static text integrated into orbit lines */}
+              {/* CLICKABLE text integrated into orbit lines */}
               {orbitingPlanets.map((planet, index) => (
                 <text
                   key={`orbit-text-${index}`}
@@ -417,8 +418,10 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
                   fontFamily="Papyrus, Comic Sans MS, fantasy, cursive"
                   fill={GOLD}
                   fontWeight="bold"
-                  className="orbit-text static papyrus positioned"
+                  className="orbit-text static papyrus positioned clickable-text"
                   letterSpacing="0.08em"
+                  onClick={(e) => handleTextClick(planet, e)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <textPath
                     href={`#expandable-orbit-path-${index}`}
@@ -444,9 +447,9 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
             />
           )}
 
-          {/* CLIPPED GROUP: Planets with smooth masking transition */}
+          {/* CLIPPED GROUP: Planets with smooth masking transition - NON-CLICKABLE */}
           <g clipPath="url(#rightHalfClip)">
-            {/* MOVING Planets - hide when that age is expanded */}
+            {/* MOVING Planets - hide when that age is expanded, NON-INTERACTIVE */}
             {orbitingPlanets.map((planet, index) => {
               if (expandedAge?.id === planet.age.id) return null; // Hide expanded planet
               
@@ -460,12 +463,11 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
                     cy={position.y}
                     r={NODE_RADIUS}
                     fill={GOLD}
-                    className={`planet-node moving expandable ${selected ? 'selected' : ''}`}
-                    onClick={(e) => handlePlanetClick(planet, e)}
-                    style={{ cursor: 'pointer' }}
+                    className={`planet-node moving non-clickable ${selected ? 'selected' : ''}`}
+                    style={{ pointerEvents: 'none', cursor: 'default' }}
                   />
                   
-                  {/* Selection ring */}
+                  {/* Selection ring - also non-clickable */}
                   {selected && (
                     <circle
                       cx={position.x}
@@ -476,6 +478,7 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
                       fill="none"
                       className="selection-ring moving"
                       opacity="0.8"
+                      style={{ pointerEvents: 'none' }}
                     />
                   )}
                 </g>
@@ -569,11 +572,11 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
       {!expandedAge && (
         <div className="instructions expanded-capable">
           <h3>Orbital Timeline</h3>
-          <p>Click any golden planet to expand its age across the page.</p>
+          <p>Click any age name text along the orbital paths to expand its details across the page.</p>
           <div className="tips">
-            <span>🪐 Click planets to expand ages</span>
+            <span>📜 Click age name texts to expand</span>
+            <span>🪐 Golden planets are visual elements</span>
             <span>☀️ Golden sun at center</span>
-            <span>📜 Age names along orbital paths</span>
             <span>✨ Smooth expansion animations</span>
           </div>
         </div>

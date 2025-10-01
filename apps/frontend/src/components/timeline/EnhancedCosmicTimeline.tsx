@@ -220,36 +220,35 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             />
           </div>
         )}
-      </div>
-
-      {/* Welcome message when no age is selected and in hybrid mode */}
-      {!selectedAge && viewMode === 'hybrid' && (
-        <div className="welcome-overlay">
-          <div className="welcome-content">
-            <h2 className="welcome-title">Zoroastervers Timeline</h2>
-            <p className="welcome-description">
-              Explore the cosmic ages through an expandable orbital design. Click on any golden planet orbiting the left half-circle to expand its age across the full page.
-            </p>
-            <div className="welcome-features">
-              <div className="feature-item">
-                <span className="feature-icon">🪐</span>
-                <span>Nine cosmic ages as orbiting planets</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">☀️</span>
-                <span>Central golden sun</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">📜</span>
-                <span>Age names rotate along orbital paths</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">🎭</span>
-                <span>Click planets to expand ages across page</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">✨</span>
-                <span>Smooth semicircle expansion animations</span>
+        {/* Welcome message when no age is selected and in hybrid mode */}
+        {!selectedAge && viewMode === 'hybrid' && (
+          <div className="welcome-overlay">
+            <div className="welcome-content">
+              <h2 className="welcome-title">Zoroastervers Timeline</h2>
+              <p className="welcome-description">
+                Explore the cosmic ages through an expandable orbital design. Click on any golden planet orbiting the left half-circle to expand its age across the full page.
+              </p>
+              <div className="welcome-features">
+                <div className="feature-item">
+                  <span className="feature-icon">🪐</span>
+                  <span>Nine cosmic ages as orbiting planets</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-icon">☀️</span>
+                  <span>Central golden sun</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-icon">📜</span>
+                  <span>Age names rotate along orbital paths</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-icon">🎭</span>
+                  <span>Click planets to expand ages across page</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-icon">✨</span>
+                  <span>Smooth semicircle expansion animations</span>
+                </div>
               </div>
             </div>
           </div>

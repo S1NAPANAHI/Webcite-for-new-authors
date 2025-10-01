@@ -603,4 +603,168 @@ export const ImprovedExpandableOrbitalDial: React.FC<ImprovedExpandableOrbitalDi
                         ? `drop-shadow(0 0 ${60 + (animationState.expandProgress * 80)}px rgba(255, 215, 0, ${0.7 + (animationState.expandProgress * 0.3)}))` 
                         : `drop-shadow(0 2px ${4 + (index * 2)}px rgba(0, 0, 0, 0.4))`,
                       opacity: otherLayersExpanded ? fadeOpacity * 0.05 : (0.8 + (index * 0.04)),
-                      cursor: (animationState.isExpanding || animationState.isCollapsing) ? \"wait\" : \n                              (otherLayersExpanded ? \"not-allowed\" : \"pointer\"),\n                      pointerEvents: (animationState.isExpanding || animationState.isCollapsing || otherLayersExpanded) ? \"none\" : \"auto\",\n                      // Crisp edge rendering\n                      strokeLinejoin: 'round',\n                      strokeLinecap: 'round'\n                    }}\n                    onClick={(e) => {\n                      if (!animationState.isExpanding && !animationState.isCollapsing && (!expandedAge || isThisExpanded)) {\n                        handleSemicircleClick(planet, e);\n                      }\n                    }}\n                  />\n                </g>\n              );\n            })}\n          </g>\n\n          {/* Enhanced orbital elements with crisp rendering */}\n          <g \n            className=\"orbital-elements enhanced crisp\"\n            style={{\n              opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 1.8) : 1,\n              transform: `scale(${expandedAge ? Math.max(0.85, 1 - animationState.expandProgress * 0.15) : 1})`,\n              pointerEvents: (animationState.isExpanding || animationState.isCollapsing || expandedAge) ? \"none\" : \"auto\"\n            }}\n          >\n            {/* Crisp orbit lines */}\n            {orbitingPlanets.map((planet, index) => {\n              const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType);\n              return (\n                <g key={`crisp-orbit-${index}`}>\n                  <path \n                    d={segments.beforeText} \n                    stroke={GOLD} \n                    strokeWidth={2} \n                    fill=\"none\" \n                    className=\"orbit-line enhanced crisp\" \n                    strokeLinecap=\"round\"\n                    style={{\n                      // Crisp line rendering - no blur\n                      shapeRendering: 'geometricPrecision'\n                    }}\n                  />\n                  <path \n                    d={segments.afterText} \n                    stroke={GOLD} \n                    strokeWidth={2} \n                    fill=\"none\" \n                    className=\"orbit-line enhanced crisp\" \n                    strokeLinecap=\"round\"\n                    style={{\n                      // Crisp line rendering - no blur\n                      shapeRendering: 'geometricPrecision'\n                    }}\n                  />\n                </g>\n              );\n            })}\n\n            {/* Enhanced age text labels with crisp rendering */}\n            {orbitingPlanets.map((planet, index) => (\n              <text\n                key={`crisp-text-${index}`}\n                fontSize=\"16\" // Slightly smaller for better proportions\n                fontFamily=\"'Segoe UI', 'Arial', sans-serif\" // Crisper font rendering\n                fill={GOLD}\n                fontWeight=\"600\"\n                className=\"orbit-text enhanced crisp clickable-text\"\n                letterSpacing=\"0.05em\"\n                style={{ \n                  cursor: (animationState.isExpanding || animationState.isCollapsing) ? \"wait\" : \"pointer\",\n                  // Crisp text rendering\n                  textRendering: 'geometricPrecision',\n                  fontSmooth: 'never',\n                  WebkitFontSmoothing: 'none'\n                }}\n                onClick={(e) => {\n                  if (!animationState.isExpanding && !animationState.isCollapsing) {\n                    handleTextClick(planet, e);\n                  }\n                }}\n              >\n                <textPath href={`#crisp-orbit-path-${index}`} startOffset=\"50%\" textAnchor=\"middle\">\n                  {planet.planetType}\n                </textPath>\n              </text>\n            ))}\n          </g>\n\n          {/* Enhanced central sun with crisp edges */}\n          <circle\n            cx={CENTER_X} cy={CENTER_Y} r={SUN_RADIUS}\n            fill={GOLD}\n            className=\"central-sun enhanced crisp\"\n            style={{\n              opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 2.5) : 1,\n              transform: `scale(${expandedAge ? Math.max(0.6, 1 - animationState.expandProgress * 0.4) : 1})`,\n              // Crisp sun rendering - no blur\n              filter: \"drop-shadow(0 0 12px rgba(206, 181, 72, 0.6))\"\n            }}\n          />\n\n          {/* Enhanced moving planets with crisp rendering */}\n          <g \n            clipPath=\"url(#rightHalfClip)\"\n            style={{ \n              opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 1.8) : 1,\n              transform: `scale(${expandedAge ? Math.max(0.75, 1 - animationState.expandProgress * 0.25) : 1})`\n            }}\n          >\n            {orbitingPlanets.map((planet, index) => {\n              const position = calculatePlanetPosition(index);\n              const selected = selectedAge?.id === planet.age.id;\n              \n              return (\n                <g key={`crisp-planet-${index}`}>\n                  <circle\n                    cx={position.x} cy={position.y} r={NODE_RADIUS}\n                    fill={GOLD}\n                    className={`planet-node enhanced crisp ${selected ? 'selected' : ''}`}\n                    style={{ \n                      // Crisp planet rendering\n                      filter: \"drop-shadow(0 1px 4px rgba(0, 0, 0, 0.4))\"\n                    }}\n                  />\n                  {selected && (\n                    <circle\n                      cx={position.x} cy={position.y} r={NODE_RADIUS + 4}\n                      stroke={GOLD} strokeWidth={1.5} fill=\"none\"\n                      className=\"selection-ring enhanced crisp\" \n                      opacity=\"0.9\"\n                      style={{\n                        // Crisp selection ring\n                        filter: \"drop-shadow(0 0 4px rgba(206, 181, 72, 0.3))\"\n                      }}\n                    />\n                  )}\n                </g>\n              );\n            })}\n          </g>\n        </svg>\n      </div>\n      \n      {/* Enhanced expanded content overlay */}\n      {renderExpandedContent()}\n      \n      {/* Subtle loading overlay during animation */}\n      {(animationState.isExpanding || animationState.isCollapsing) && (\n        <div className=\"animation-overlay enhanced crisp\">\n          <div className=\"animation-feedback enhanced crisp\">\n            <div className=\"feedback-spinner\"></div>\n            <span className=\"feedback-text\">\n              {animationState.isExpanding ? 'Expanding...' : 'Collapsing...'}\n            </span>\n          </div>\n        </div>\n      )}\n    </div>\n  );\n};
+                      cursor: (animationState.isExpanding || animationState.isCollapsing) 
+                        ? "wait" 
+                        : (otherLayersExpanded ? "not-allowed" : "pointer"),
+                      pointerEvents: (animationState.isExpanding || animationState.isCollapsing || otherLayersExpanded) 
+                        ? "none" 
+                        : "auto",
+                      // Crisp edge rendering
+                      strokeLinejoin: 'round',
+                      strokeLinecap: 'round'
+                    }}
+                    onClick={(e) => {
+                      if (!animationState.isExpanding && !animationState.isCollapsing && (!expandedAge || isThisExpanded)) {
+                        handleSemicircleClick(planet, e);
+                      }
+                    }}
+                  />
+                </g>
+              );
+            })}
+          </g>
+
+          {/* Enhanced orbital elements with crisp rendering */}
+          <g 
+            className="orbital-elements enhanced crisp"
+            style={{
+              opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 1.8) : 1,
+              transform: `scale(${expandedAge ? Math.max(0.85, 1 - animationState.expandProgress * 0.15) : 1})`,
+              pointerEvents: (animationState.isExpanding || animationState.isCollapsing || expandedAge) ? "none" : "auto"
+            }}
+          >
+            {/* Crisp orbit lines */}
+            {orbitingPlanets.map((planet, index) => {
+              const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType);
+              return (
+                <g key={`crisp-orbit-${index}`}>
+                  <path 
+                    d={segments.beforeText} 
+                    stroke={GOLD} 
+                    strokeWidth={2} 
+                    fill="none" 
+                    className="orbit-line enhanced crisp" 
+                    strokeLinecap="round"
+                    style={{
+                      // Crisp line rendering - no blur
+                      shapeRendering: 'geometricPrecision'
+                    }}
+                  />
+                  <path 
+                    d={segments.afterText} 
+                    stroke={GOLD} 
+                    strokeWidth={2} 
+                    fill="none" 
+                    className="orbit-line enhanced crisp" 
+                    strokeLinecap="round"
+                    style={{
+                      // Crisp line rendering - no blur
+                      shapeRendering: 'geometricPrecision'
+                    }}
+                  />
+                </g>
+              );
+            })}
+
+            {/* Enhanced age text labels with crisp rendering */}
+            {orbitingPlanets.map((planet, index) => (
+              <text
+                key={`crisp-text-${index}`}
+                fontSize="16" // Slightly smaller for better proportions
+                fontFamily="'Segoe UI', 'Arial', sans-serif" // Crisper font rendering
+                fill={GOLD}
+                fontWeight="600"
+                className="orbit-text enhanced crisp clickable-text"
+                letterSpacing="0.05em"
+                style={{ 
+                  cursor: (animationState.isExpanding || animationState.isCollapsing) ? "wait" : "pointer",
+                  // Crisp text rendering
+                  textRendering: 'geometricPrecision',
+                  fontSmooth: 'never',
+                  WebkitFontSmoothing: 'none'
+                }}
+                onClick={(e) => {
+                  if (!animationState.isExpanding && !animationState.isCollapsing) {
+                    handleTextClick(planet, e);
+                  }
+                }}
+              >
+                <textPath href={`#crisp-orbit-path-${index}`} startOffset="50%" textAnchor="middle">
+                  {planet.planetType}
+                </textPath>
+              </text>
+            ))}
+          </g>
+
+          {/* Enhanced central sun with crisp edges */}
+          <circle
+            cx={CENTER_X} cy={CENTER_Y} r={SUN_RADIUS}
+            fill={GOLD}
+            className="central-sun enhanced crisp"
+            style={{
+              opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 2.5) : 1,
+              transform: `scale(${expandedAge ? Math.max(0.6, 1 - animationState.expandProgress * 0.4) : 1})`,
+              // Crisp sun rendering - no blur
+              filter: "drop-shadow(0 0 12px rgba(206, 181, 72, 0.6))"
+            }}
+          />
+
+          {/* Enhanced moving planets with crisp rendering */}
+          <g 
+            clipPath="url(#rightHalfClip)"
+            style={{ 
+              opacity: expandedAge ? Math.max(0, 1 - animationState.expandProgress * 1.8) : 1,
+              transform: `scale(${expandedAge ? Math.max(0.75, 1 - animationState.expandProgress * 0.25) : 1})`
+            }}
+          >
+            {orbitingPlanets.map((planet, index) => {
+              const position = calculatePlanetPosition(index);
+              const selected = selectedAge?.id === planet.age.id;
+              
+              return (
+                <g key={`crisp-planet-${index}`}>
+                  <circle
+                    cx={position.x} cy={position.y} r={NODE_RADIUS}
+                    fill={GOLD}
+                    className={`planet-node enhanced crisp ${selected ? 'selected' : ''}`}
+                    style={{ 
+                      // Crisp planet rendering
+                      filter: "drop-shadow(0 1px 4px rgba(0, 0, 0, 0.4))"
+                    }}
+                  />
+                  {selected && (
+                    <circle
+                      cx={position.x} cy={position.y} r={NODE_RADIUS + 4}
+                      stroke={GOLD} strokeWidth={1.5} fill="none"
+                      className="selection-ring enhanced crisp" 
+                      opacity="0.9"
+                      style={{
+                        // Crisp selection ring
+                        filter: "drop-shadow(0 0 4px rgba(206, 181, 72, 0.3))"
+                      }}
+                    />
+                  )}
+                </g>
+              );
+            })}
+          </g>
+        </svg>
+      </div>
+      
+      {/* Enhanced expanded content overlay */}
+      {renderExpandedContent()}
+      
+      {/* Subtle loading overlay during animation */}
+      {(animationState.isExpanding || animationState.isCollapsing) && (
+        <div className="animation-overlay enhanced crisp">
+          <div className="animation-feedback enhanced crisp">
+            <div className="feedback-spinner"></div>
+            <span className="feedback-text">
+              {animationState.isExpanding ? 'Expanding...' : 'Collapsing...'}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

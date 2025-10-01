@@ -31,7 +31,6 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
   const [planetAngles, setPlanetAngles] = useState<number[]>([]);
   const [expandedAge, setExpandedAge] = useState<Age | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [showContent, setShowContent] = useState(false);
   const [viewportDimensions, setViewportDimensions] = useState({
     width: typeof window !== 'undefined' ? window.innerWidth : 1920,
     height: typeof window !== 'undefined' ? window.innerHeight : 1080
@@ -40,7 +39,6 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
 
   // Constants for VERTICAL half-circle design (top to bottom on left side)
   const GOLD = '#CEB548';
-  const SVG_SIZE = 800;
   const CENTER_X = 80; // Left side position
   const CENTER_Y = 400; // Vertical center
   const SUN_RADIUS = 24;
@@ -77,17 +75,6 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Calculate max radius for full viewport coverage
-  const getMaxRadius = (): number => {
-    const { width, height } = viewportDimensions;
-    // Calculate diagonal distance from center to farthest corner + padding
-    const radiusToRightEdge = width - CENTER_X;
-    const radiusToTopEdge = CENTER_Y;
-    const radiusToBottomEdge = height - CENTER_Y;
-    const maxDistance = Math.max(radiusToRightEdge, radiusToTopEdge, radiusToBottomEdge);
-    return maxDistance + 200; // Extra padding for complete coverage
-  };
 
   // Initialize orbiting planets with randomized starting positions
   useEffect(() => {
@@ -157,7 +144,7 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     };
   }, [expandedAge]);
 
-  // Updated to handle text clicks instead of planet clicks
+  // Updated to handle text clicks for semicircle expansion
   const handleTextClick = (planet: OrbitingPlanet, event: React.MouseEvent) => {
     event.stopPropagation();
     
@@ -166,24 +153,18 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     console.log(`Text for ${planet.ageIndex + 1} clicked:`, planet.age.name);
     
     setIsAnimating(true);
+    onAgeSelect(planet.age);
     
     if (expandedAge?.id === planet.age.id) {
       // Collapse current expanded age
-      setShowContent(false);
+      setExpandedAge(null);
       setTimeout(() => {
-        setExpandedAge(null);
-        setTimeout(() => {
-          setIsAnimating(false);
-        }, 1200);
-      }, 200);
+        setIsAnimating(false);
+      }, 1200);
     } else {
       // Expand clicked age
       setExpandedAge(planet.age);
-      onAgeSelect(planet.age);
-      
-      // Show content after expansion completes
       setTimeout(() => {
-        setShowContent(true);
         setIsAnimating(false);
       }, 1200);
     }
@@ -192,14 +173,11 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
   const handleCloseExpanded = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setShowContent(false);
     
+    setExpandedAge(null);
     setTimeout(() => {
-      setExpandedAge(null);
-      setTimeout(() => {
-        setIsAnimating(false);
-      }, 1200);
-    }, 200);
+      setIsAnimating(false);
+    }, 1200);
   };
 
   // Calculate position for FULL orbit with current angle from state
@@ -278,23 +256,6 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     `;
   };
 
-  // Create expandable semicircle path for the expanded age - covers full viewport
-  const createExpandableSemicirclePath = (radius: number) => {
-    const maxRadius = getMaxRadius();
-    const startX = CENTER_X;
-    const startY = CENTER_Y - maxRadius;
-    const endX = CENTER_X;
-    const endY = CENTER_Y + maxRadius;
-    
-    // Create full semicircle path for expansion that covers viewport
-    return `
-      M ${startX} ${startY}
-      A ${maxRadius} ${maxRadius} 0 0 1 ${endX} ${endY}
-      L ${CENTER_X} ${CENTER_Y}
-      Z
-    `;
-  };
-
   const isSelected = (planet: OrbitingPlanet) => {
     return selectedAge?.id === planet.age.id;
   };
@@ -311,7 +272,55 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     return age.name || age.title || `Age ${age.age_number}` || 'Unknown Age';
   };
 
-  const maxRadius = getMaxRadius();
+  // Render expanded content inside the semicircle
+  const renderExpandedContent = () => {
+    if (!expandedAge || !expandedPlanet) return null;
+    return (
+      <div className="semicircle-content">
+        <button className="close-button" onClick={handleCloseExpanded}>
+          ×
+        </button>
+        <h2>{getAgeDisplayName(expandedAge)}</h2>
+        <p className="age-duration">
+          {expandedAge.start_year || '∞'} – {expandedAge.end_year || '∞'}
+        </p>
+        <p className="age-description">{expandedAge.description}</p>
+        
+        {/* Events list */}
+        {events.length > 0 && (
+          <div className="age-events">
+            <h3>Timeline Events</h3>
+            <ul>
+              {events.slice(0, 6).map((event, index) => (
+                <li key={event.id}>
+                  <strong>{new Date(event.date).getFullYear()}:</strong> {event.title}
+                  <p>{event.description?.substring(0, 100)}...</p>
+                </li>
+              ))}
+            </ul>
+            {events.length > 6 && (
+              <p className="more-events-note">+{events.length - 6} more events...</p>
+            )}
+          </div>
+        )}
+        
+        {events.length === 0 && !loading && (
+          <div className="no-events">
+            <div className="icon">📖</div>
+            <h4>No Events Recorded</h4>
+            <p>This age has no timeline events yet.</p>
+          </div>
+        )}
+        
+        {loading && (
+          <div className="loading">
+            <div className="spinner"></div>
+            <p>Loading events...</p>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className={`expandable-orbital-dial ${className} ${expandedAge ? 'has-expanded' : ''}`} ref={containerRef}>
@@ -374,11 +383,10 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
             ))}
             
             {/* Expanded age gradient */}
-            <radialGradient id="expanded-age-gradient" cx="0.1" cy="0.5" r="0.8">
-              <stop offset="0%" stopColor="rgba(206, 181, 72, 0.15)" />
-              <stop offset="30%" stopColor="rgba(206, 181, 72, 0.08)" />
-              <stop offset="70%" stopColor="rgba(206, 181, 72, 0.03)" />
-              <stop offset="100%" stopColor="rgba(15, 15, 20, 0.95)" />
+            <radialGradient id="semicircleExpandGrad" cx="50%" cy="80%" r="80%">
+              <stop offset="0%" stopColor="#ffd700" stopOpacity="0.7" />
+              <stop offset="60%" stopColor="#ffd700" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#1a1a2e" stopOpacity="0.8" />
             </radialGradient>
             
             {/* CLIPPING: Extended clip path to cover orbit line overflow */}
@@ -402,24 +410,50 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
               return (
                 <g key={`semicircle-layer-${index}`} className="semicircle-layer-group">
                   <path
-                    d={isThisExpanded ? createExpandableSemicirclePath(layerRadius) : createSemicircleLayerPath(layerRadius)}
-                    fill={`url(#layer-gradient-${index})`}
+                    d={createSemicircleLayerPath(layerRadius)}
+                    fill={isThisExpanded ? "url(#semicircleExpandGrad)" : `url(#layer-gradient-${index})`}
                     stroke={GOLD}
-                    strokeWidth={isThisExpanded ? "3" : "1"}
+                    strokeWidth={isThisExpanded ? "6" : "1"}
                     strokeOpacity={isThisExpanded ? "0.8" : "0.2"}
                     className={`semicircle-layer ${isThisExpanded ? 'expanded' : ''}`}
                     data-age-index={index}
                     style={{
                       transformOrigin: `${CENTER_X}px ${CENTER_Y}px`,
-                      zIndex: 9 - index // 9th age (index 8) has lowest z-index, 1st age (index 0) has highest
+                      zIndex: 9 - index, // 9th age (index 8) has lowest z-index, 1st age (index 0) has highest
+                      transition: "all 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45)",
+                      transform: isThisExpanded ? "scale(8.5, 6.5)" : "scale(1)",
+                      filter: isThisExpanded ? "drop-shadow(0 0 64px #ffd700)" : "none",
+                      opacity: expandedAge ? (isThisExpanded ? 1 : 0.07) : 1,
+                      cursor: isThisExpanded ? "auto" : "pointer"
+                    }}
+                    onClick={() => {
+                      if (!expandedAge) {
+                        handleTextClick(planet, { stopPropagation: () => {} } as React.MouseEvent);
+                      }
                     }}
                   />
+
+                  {/* Expanded content inside the semicircle */}
+                  {isThisExpanded && (
+                    <foreignObject
+                      x={-layerRadius * 6.5}
+                      y={-layerRadius * 2.45}
+                      width={layerRadius * 13}
+                      height={layerRadius * 5}
+                      style={{
+                        zIndex: 99,
+                        pointerEvents: 'auto'
+                      }}
+                    >
+                      {renderExpandedContent()}
+                    </foreignObject>
+                  )}
                 </g>
               );
             })}
           </g>
 
-          {/* Regular orbit lines and text - above the semicircle layers */}
+          {/* Regular orbit lines and text - above the semicircle layers but hidden when expanded */}
           {!expandedAge && (
             <g className="orbital-elements">
               {/* Orbit lines with DYNAMIC text-sized cut-outs */}
@@ -493,9 +527,7 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
           {/* CLIPPED GROUP: Planets with smooth masking transition - NON-CLICKABLE */}
           <g clipPath="url(#rightHalfClip)">
             {/* MOVING Planets - hide when that age is expanded, NON-INTERACTIVE */}
-            {orbitingPlanets.map((planet, index) => {
-              if (expandedAge?.id === planet.age.id) return null; // Hide expanded planet
-              
+            {!expandedAge && orbitingPlanets.map((planet, index) => {
               const position = calculatePlanetPosition(index);
               const selected = isSelected(planet);
               
@@ -530,73 +562,6 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
           </g>
         </svg>
       </div>
-
-      {/* Content overlay - appears within expanded semicircle */}
-      {expandedAge && expandedPlanet && showContent && (
-        <div className="expanded-content visible">
-          <button 
-            className="close-btn"
-            onClick={handleCloseExpanded}
-            disabled={isAnimating}
-          >
-            ✕
-          </button>
-          
-          <div className="content-area">
-            <div className="age-info">
-              <h1 className="age-title">{getAgeDisplayName(expandedAge)}</h1>
-              
-              <div className="age-meta">
-                <span className="years">
-                  {expandedAge.start_year || '∞'} - {expandedAge.end_year || '∞'}
-                </span>
-                <span className="age-num">Age {expandedPlanet.ageIndex + 1}</span>
-                <span className="events-count">{events.length} Events</span>
-              </div>
-              
-              <p className="age-desc">{expandedAge.description}</p>
-            </div>
-            
-            {/* Events list */}
-            {events.length > 0 && (
-              <div className="events-list">
-                <h3>Timeline Events</h3>
-                <div className="events-container">
-                  {events.slice(0, 6).map((event, index) => (
-                    <div 
-                      key={event.id} 
-                      className="event-card"
-                      style={{ animationDelay: `${index * 0.1 + 0.5}s` }}
-                    >
-                      <div className="event-year">{new Date(event.date).getFullYear()}</div>
-                      <div className="event-name">{event.title}</div>
-                      <div className="event-summary">{event.description?.substring(0, 100)}...</div>
-                    </div>
-                  ))}
-                </div>
-                {events.length > 6 && (
-                  <div className="more-events-note">+{events.length - 6} more events...</div>
-                )}
-              </div>
-            )}
-            
-            {events.length === 0 && !loading && (
-              <div className="no-events">
-                <div className="icon">📖</div>
-                <h4>No Events Recorded</h4>
-                <p>This age has no timeline events yet.</p>
-              </div>
-            )}
-            
-            {loading && (
-              <div className="loading">
-                <div className="spinner"></div>
-                <p>Loading events...</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

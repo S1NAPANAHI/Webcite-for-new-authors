@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { OrbitalTimelineDial } from './CosmicRings/OrbitalTimelineDial';
-import { LayeredTimelineInterface } from './LayeredTimeline/LayeredTimelineInterface';
+import { ExpandableOrbitalDial } from './CosmicRings/ExpandableOrbitalDial';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
@@ -10,7 +9,7 @@ import { useTimelineData } from './hooks/useTimelineData';
 import { Age, TimelineEvent } from '../../lib/api-timeline';
 import './enhanced-cosmic-timeline.css';
 
-export type ViewMode = 'hybrid' | 'linear' | 'layered';
+export type ViewMode = 'hybrid' | 'linear';
 
 export const EnhancedCosmicTimeline: React.FC = () => {
   const { selectedAge, setSelectedAge } = useTimelineContext();
@@ -24,8 +23,6 @@ export const EnhancedCosmicTimeline: React.FC = () => {
 
   const handleViewToggle = () => {
     if (viewMode === 'hybrid') {
-      setViewMode('layered');
-    } else if (viewMode === 'layered') {
       setViewMode('linear');
     } else {
       setViewMode('hybrid');
@@ -73,15 +70,6 @@ export const EnhancedCosmicTimeline: React.FC = () => {
   const getViewModeInfo = () => {
     switch (viewMode) {
       case 'hybrid':
-        return {
-          icon: (
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 2L3 7v11h4v-6h6v6h4V7l-7-5z" />
-            </svg>
-          ),
-          label: 'Layered View'
-        };
-      case 'layered':
         return {
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -136,22 +124,11 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         {/* Conditional View Rendering */}
         {viewMode === 'hybrid' && (
           <div className="orbital-timeline-section">
-            <OrbitalTimelineDial
+            <ExpandableOrbitalDial
               ages={ages}
               selectedAge={selectedAge}
               onAgeSelect={handleAgeSelect}
-              className="half-circle-orbital-dial"
-            />
-          </div>
-        )}
-        
-        {viewMode === 'layered' && (
-          <div className="layered-timeline-section">
-            <LayeredTimelineInterface
-              ages={ages}
-              selectedAge={selectedAge}
-              onAgeSelect={handleAgeSelect}
-              className="layered-timeline-interface"
+              className="expandable-orbital-dial-container"
             />
           </div>
         )}
@@ -174,7 +151,7 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           <div className="welcome-content">
             <h2 className="welcome-title">Zoroasterverse Timeline</h2>
             <p className="welcome-description">
-              Explore the cosmic ages through an orbital design. Click on any golden planet orbiting the left half-circle to discover its era and events.
+              Explore the cosmic ages through an expandable orbital design. Click on any golden planet orbiting the left half-circle to expand its age across the full page.
             </p>
             <div className="welcome-features">
               <div className="feature-item">
@@ -191,37 +168,11 @@ export const EnhancedCosmicTimeline: React.FC = () => {
               </div>
               <div className="feature-item">
                 <span className="feature-icon">🎭</span>
-                <span>Switch to layered view for card interface</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Welcome message for layered view */}
-      {!selectedAge && viewMode === 'layered' && (
-        <div className="welcome-overlay layered-welcome">
-          <div className="welcome-content">
-            <h2 className="welcome-title">Layered Timeline Interface</h2>
-            <p className="welcome-description">
-              Nine glassy layers stack from bottom to top, representing the cosmic ages. Click any layer to expand and explore that age in detail.
-            </p>
-            <div className="welcome-features">
-              <div className="feature-item">
-                <span className="feature-icon">🃏</span>
-                <span>Semi-circular glassy card layers</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">📚</span>
-                <span>Stacked from oldest (bottom) to newest (top)</span>
+                <span>Click planets to expand ages across page</span>
               </div>
               <div className="feature-item">
                 <span className="feature-icon">✨</span>
-                <span>Click to expand and read age details</span>
-              </div>
-              <div className="feature-item">
-                <span className="feature-icon">🔄</span>
-                <span>Smooth animations and glassy effects</span>
+                <span>Smooth semicircle expansion animations</span>
               </div>
             </div>
           </div>
@@ -264,8 +215,7 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           position: relative;
         }
         
-        .orbital-timeline-section,
-        .layered-timeline-section {
+        .orbital-timeline-section {
           flex: 1;
           width: 100%;
           position: relative;
@@ -294,11 +244,6 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           border: 2px solid rgba(206, 181, 72, 0.3);
           border-radius: 12px;
           backdrop-filter: blur(4px);
-        }
-        
-        .welcome-overlay.layered-welcome {
-          background: rgba(25, 25, 30, 0.9);
-          border-color: rgba(206, 181, 72, 0.4);
         }
         
         .welcome-title {

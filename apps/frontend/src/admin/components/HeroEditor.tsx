@@ -56,7 +56,8 @@ const HeroEditor: React.FC = () => {
       if (!response.ok) {
         // If both APIs fail, use fallback content
         console.warn('⚠️ Both API endpoints failed, using fallback content');
-hero_title: 'ZOROASTERVERS',
+        const fallbackContent: HeroContent = {
+          hero_title: 'ZOROASTERVERS',
           hero_subtitle: '',
           hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
           hero_quote: 'Happiness comes to them who bring happiness to others.',

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { CartIcon } from './CartIcon';
 import ThemeToggle from './components/ui/ThemeToggle';
-import { Search, Menu, X, ChevronDown } from 'lucide-react';
+import { Search, Menu, X, ChevronDown, Smartphone } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 // Type for the auth state passed as props
@@ -188,6 +188,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header ref={headerRef} className={styles.zoroHeader}>
             {/* Left Section: Search and Theme Toggle */}
             <div className={styles.leftControls}>
+              {/* Android App Download Link */}
+              <NavLink
+                to="/download-app"
+                onClick={handleLinkClick}
+                className={`${styles.navLink} ${styles.touchFriendly}`}
+                aria-label="Download Android App"
+              >
+                <Smartphone size={20} />
+              </NavLink>
+
               {/* Search Bar - Desktop */}
               <form className={`${styles.searchForm} ${styles.desktopSearch}`}>
                 <input type="text" placeholder="Search..." />

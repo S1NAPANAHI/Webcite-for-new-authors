@@ -186,46 +186,94 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header ref={headerRef} className={styles.zoroHeader}>
-      {/* Logo */}
-      <div className={styles.logo}>
-        <NavLink to="/" onClick={handleLinkClick}>
-          <h1>Zoroastervers</h1>
-        </NavLink>
-      </div>
-
-      {/* Desktop Header Controls */}
-      <div className={styles.headerControls}>
-        {/* Search Bar - Desktop */}
-        <form className={`${styles.searchForm} ${styles.desktopSearch}`}>
-          <input type="text" placeholder="Search..." />
-          <button type="submit">
-            <Search size={16} />
-          </button>
-        </form>
-
-        {/* Mobile Search Toggle */}
-        <button 
-          className={styles.mobileSearchToggle}
-          onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-          aria-label="Toggle search"
-        >
-          <Search size={20} />
-        </button>
-
-        {/* Theme Toggle */}
-        <ThemeToggle />
-
-        {/* Mobile Menu Toggle - ENHANCED */}
-        <button 
-          className={`${styles.mobileMenuToggle} ${styles.touchFriendlyButton}`}
-          onClick={toggleMobileMenu}
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
+            {/* Left Section: Search and Theme Toggle */}
+            <div className={styles.leftControls}>
+              {/* Search Bar - Desktop */}
+              <form className={`${styles.searchForm} ${styles.desktopSearch}`}>
+                <input type="text" placeholder="Search..." />
+                <button type="submit">
+                  <Search size={16} />
+                </button>
+              </form>
+      
+              {/* Mobile Search Toggle */}
+              <button
+                className={styles.mobileSearchToggle}
+                onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                aria-label="Toggle search"
+              >
+                <Search size={20} />
+              </button>
+      
+              {/* Theme Toggle */}
+              <ThemeToggle />
+            </div>
+      
+            {/* Center Section: Logo */}
+            <div className={styles.logo}>
+              <NavLink to="/" onClick={handleLinkClick}>
+                <h1>Zoroastervers</h1>
+              </NavLink>
+            </div>
+      
+            {/* Right Section: Mobile Menu Toggle and Navigation */}
+            <div className={styles.rightControls}>
+              {/* Mobile Menu Toggle - ENHANCED */}
+              <button
+                className={`${styles.mobileMenuToggle} ${styles.touchFriendlyButton}`}
+                onClick={toggleMobileMenu}
+                aria-label="Toggle navigation menu"
+                aria-expanded={isMobileMenuOpen}
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+      
+              {/* Navigation Menu (Desktop) */}
+              <nav className={styles.desktopNav}>
+                <ul className={styles.navMenu}>
+                  {navLinks.map(link => (
+                    <li key={link.name} className={link.children ? styles.dropdown : ''}>
+                      {link.onClick ? (
+                        <button
+                          onClick={link.onClick}
+                          className={`${styles.navLink} ${styles.touchFriendly}`}
+                        >
+                          {link.name}
+                        </button>
+                      ) : link.children ? (
+                        <>
+                          <DropdownButton
+                            label={link.name}
+                            isOpen={expandedDropdown === link.name}
+                            onClick={(e) => toggleDropdown(link.name, e)}
+                          />
+                          <ul className={`${styles.dropdownMenu} ${expandedDropdown === link.name ? styles.expanded : ''}`}>
+                            {link.children.map(childLink => (
+                              <li key={childLink.name}>
+                                <NavLink
+                                  to={childLink.path}
+                                  className={`${styles.dropdownMenuItem} ${styles.touchFriendly}`}
+                                  onClick={handleLinkClick}
+                                >
+                                  {childLink.name}
+                                </NavLink>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : (
+                        <NavLinkComponent
+                          to={link.path}
+                          onClick={handleLinkClick}
+                        >
+                          {link.name}
+                        </NavLinkComponent>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
       {/* Mobile Search Bar */}
       <div className={`${styles.mobileSearchContainer} ${isSearchExpanded ? styles.expanded : ''}`}>
         <form className={styles.searchForm}>

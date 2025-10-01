@@ -1,9 +1,8 @@
 /* Header Container - FIXED TRANSPARENCY ISSUE */
 .zoroHeader {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* Left, Center (Logo), Right */
   align-items: center;
-  /* SOLID BACKGROUND - NO MORE TRANSPARENCY */
   background: var(--card);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -16,6 +15,22 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   border-bottom: 2px solid var(--border);
   min-height: 70px;
+}
+
+/* Left Controls (Search, Theme Toggle) */
+.leftControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-self: start; /* Align to the start of the grid column */
+}
+
+/* Right Controls (Mobile Menu Toggle, Desktop Nav) */
+.rightControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-self: end; /* Align to the end of the grid column */
 }
 
 /* Dark theme specific navbar */
@@ -33,7 +48,12 @@ html[data-theme="light"] .zoroHeader {
 }
 
 /* Logo */
+.logo {
+  text-align: center; /* Center the logo within its grid column */
+}
+
 .logo h1 {
+  font-family: 'Papyrus', cursive; /* Apply Papyrus font with fallback */
   font-size: 1.8rem;
   margin: 0;
   color: var(--primary);
@@ -50,13 +70,6 @@ html[data-theme="light"] .zoroHeader {
   color: var(--primary);
   transform: scale(1.02);
   transition: all 0.2s ease;
-}
-
-/* Header Controls Container */
-.headerControls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 /* Desktop Search */
@@ -195,6 +208,12 @@ html[data-theme="light"] .zoroHeader {
 .navbar {
   position: relative;
 }
+
+.desktopNav {
+  display: block; /* Default to block for desktop */
+}
+
+/* Mobile Menu Overlay */
 
 .navMenu {
   list-style: none;
@@ -402,12 +421,26 @@ html[data-theme="dark"] .iconMoon {
   .zoroHeader {
     padding: 1rem;
     flex-wrap: wrap;
+    justify-content: space-between; /* Distribute items */
     position: sticky;
     top: 0;
     background: var(--card) !important;
     border-bottom: 3px solid var(--primary);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     z-index: 1000;
+    grid-template-columns: 1fr 1fr; /* Adjust grid for mobile */
+  }
+
+  .leftControls {
+    order: 2; /* Move to the right */
+    justify-self: end;
+    gap: 0.75rem;
+  }
+
+  .rightControls {
+    order: 1; /* Move to the left */
+    justify-self: start;
+    gap: 0.75rem;
   }
 
   /* Dark theme mobile */
@@ -422,16 +455,24 @@ html[data-theme="dark"] .iconMoon {
     border-bottom: 3px solid var(--primary);
   }
 
+  .logo {
+    grid-column: 1 / -1; /* Span full width */
+    text-align: center;
+    margin-bottom: 1rem; /* Add some space below logo */
+  }
+
   .logo h1 {
     font-size: 1.5rem;
     color: var(--primary);
   }
 
-  /* Show mobile controls, hide desktop search */
-  .desktopSearch {
+  /* Hide desktop search and navigation */
+  .desktopSearch,
+  .desktopNav {
     display: none;
   }
 
+  /* Show mobile controls */
   .mobileSearchToggle,
   .mobileMenuToggle {
     display: flex;
@@ -458,6 +499,7 @@ html[data-theme="dark"] .iconMoon {
     transition: transform 0.3s ease;
     z-index: 999;
     pointer-events: none;
+    display: block; /* Ensure it's block for mobile */
   }
 
   .navbar.mobileMenuOpen {
@@ -707,13 +749,45 @@ html[data-theme="dark"] .iconMoon {
 
 /* Desktop Styles - Ensure dropdowns work */
 @media (min-width: 769px) {
+  .leftControls {
+    display: flex;
+  }
+
+  .rightControls {
+    display: flex;
+  }
+
+  .desktopSearch {
+    display: flex;
+  }
+
   .mobileMenuToggle,
   .mobileSearchToggle {
     display: none;
   }
 
-  .desktopSearch {
-    display: flex;
+  .desktopNav {
+    display: block; /* Show desktop navigation */
+  }
+
+  .navbar {
+    display: none; /* Hide mobile navigation on desktop */
+  }
+
+  .navMenu {
+    flex-direction: row;
+    gap: 2rem;
+    padding: 0;
+    background: transparent !important;
+    border: none;
+    box-shadow: none;
+    position: static;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  .navMenu li {
+    border-bottom: none;
   }
 
   /* Desktop dropdown behavior */

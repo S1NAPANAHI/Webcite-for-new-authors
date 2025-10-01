@@ -1,5 +1,4 @@
-/* Expandable Orbital Timeline Dial CSS */
-/* Base styling similar to layered timeline but adapted for orbital */
+/* Enhanced Expandable Orbital CSS with Stacked Semicircle Animation */
 
 .expandable-orbital-dial {
   position: relative;
@@ -12,8 +11,6 @@
     rgba(25, 25, 30, 1) 50%,
     rgba(20, 20, 25, 1) 100%
   );
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
-  color: #CEB548;
 }
 
 .orbital-background {
@@ -23,9 +20,9 @@
   right: 0;
   bottom: 0;
   background: radial-gradient(
-    ellipse at center,
-    rgba(206, 181, 72, 0.03) 0%,
-    rgba(206, 181, 72, 0.01) 40%,
+    ellipse at 10% 50%,
+    rgba(206, 181, 72, 0.05) 0%,
+    rgba(206, 181, 72, 0.02) 40%,
     transparent 70%
   );
   pointer-events: none;
@@ -37,236 +34,289 @@
   height: 100%;
 }
 
-.orbital-svg.expandable {
-  transition: all 0.3s ease;
+.orbital-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
-/* SEMICIRCLE LAYERS - Stacked underneath orbital elements */
-.semicircle-layers {
-  z-index: 1;
-}
-
+/* ===== STACKED SEMICIRCLE LAYERS ===== */
 .semicircle-layer-group {
-  position: relative;
+  isolation: isolate;
 }
 
 .semicircle-layer {
-  transition: all 1.2s cubic-bezier(0.61, 0.25, 0.54, 1.45);
-  transform-origin: 80px 400px; /* CENTER_X CENTER_Y */
-}
-
-/* Hide orbital elements when expanded */
-.expandable-orbital-dial.has-expanded .orbital-elements {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-/* Planet nodes - now non-clickable, purely visual */
-.planet-node.non-clickable {
-  transition: all 0.3s ease;
-  filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6));
-  pointer-events: none;
-  cursor: default;
-}
-
-.planet-node.selected {
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
-  50% { filter: drop-shadow(0 0 16px rgba(206, 181, 72, 1)); }
-  100% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
-}
-
-/* CLICKABLE TEXT STYLES */
-.orbit-text.clickable-text {
-  transition: all 0.2s ease;
+  transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: pointer;
-  z-index: 10;
+  vector-effect: non-scaling-stroke;
+  will-change: transform, opacity, filter;
 }
 
-.orbit-text.clickable-text:hover {
-  fill: #ffd700;
-  font-size: 22px;
-  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
-  transform: scale(1.05);
+/* Hover effect for non-expanded semicircles */
+.semicircle-layer.clickable-semicircle:hover:not(.expanded) {
+  filter: drop-shadow(0 0 20px rgba(206, 181, 72, 0.4)) !important;
+  transform: scale(1.02) !important;
+  transition: all 0.3s ease !important;
 }
 
-.orbit-text.clickable-text:active {
-  transform: scale(0.95);
-  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1));
+/* Expanded semicircle animation */
+.semicircle-layer.expanded {
+  cursor: auto;
+  animation: expandPulse 2s ease-in-out infinite;
 }
 
-/* Add a subtle glow to indicate clickability */
-.orbit-text.clickable-text {
-  filter: drop-shadow(0 0 2px rgba(206, 181, 72, 0.3));
-}
-
-.orbit-text.clickable-text:hover {
-  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
-}
-
-/* SEMICIRCLE CONTENT - Content inside the expanded semicircle layer */
-.semicircle-content {
-  position: relative;
-  display: block;
-  width: 92%;
-  margin: 40px auto 18px;
-  padding: 32px 24px 24px;
-  background: rgba(20, 18, 38, 0.88);
-  border-radius: 14px 14px 44px 44px;
-  box-shadow: 0 6px 44px 0 rgba(255, 215, 0, 0.20);
-  color: #fff;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
-  animation: fadeinContent 1s cubic-bezier(0.5, 0, 0.4, 1);
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-@keyframes fadeinContent {
-  0% {
-    opacity: 0;
-    transform: scale(0.85) translateY(60px);
+@keyframes expandPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 80px rgba(255, 215, 0, 0.6));
   }
-  100% {
+  50% {
+    filter: drop-shadow(0 0 100px rgba(255, 215, 0, 0.8));
+  }
+}
+
+/* ===== EXPANDED CONTENT OVERLAY ===== */
+.expanded-age-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: overlayFadeIn 0.6s ease-out;
+  will-change: opacity, backdrop-filter;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.expanded-content-container {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1200px;
+  background: linear-gradient(
+    135deg,
+    rgba(20, 20, 25, 0.95) 0%,
+    rgba(25, 25, 30, 0.95) 50%,
+    rgba(20, 20, 25, 0.95) 100%
+  );
+  border: 2px solid rgba(206, 181, 72, 0.4);
+  border-radius: 16px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(206, 181, 72, 0.1),
+    inset 0 1px 0 rgba(206, 181, 72, 0.1);
+  backdrop-filter: blur(12px);
+  animation: contentSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(206, 181, 72, 0.3) rgba(20, 20, 25, 0.3);
+}
+
+@keyframes contentSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(40px);
+  }
+  to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
 
-.close-button {
+/* ===== ENHANCED CLOSE BUTTON ===== */
+.close-button-enhanced {
   position: absolute;
-  top: 16px;
+  top: 20px;
   right: 20px;
-  background: none;
-  border: none;
-  color: #ffd700;
-  font-size: 28px;
-  font-weight: bold;
+  width: 40px;
+  height: 40px;
+  background: rgba(206, 181, 72, 0.2);
+  border: 1px solid rgba(206, 181, 72, 0.4);
+  border-radius: 8px;
+  color: #CEB548;
   cursor: pointer;
-  z-index: 2;
-  transition: all 0.2s ease;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  transition: all 0.3s ease;
+  z-index: 1001;
 }
 
-.close-button:hover {
-  color: #fff;
-  transform: scale(1.1);
-  background: rgba(255, 215, 0, 0.1);
+.close-button-enhanced:hover {
+  background: rgba(206, 181, 72, 0.3);
+  border-color: rgba(206, 181, 72, 0.6);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(206, 181, 72, 0.2);
 }
 
-/* Age content styling inside expanded semicircle */
-.semicircle-content h2 {
-  color: #ffd700;
-  font-size: 2rem;
-  margin-bottom: 8px;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+.close-button-enhanced:active {
+  transform: scale(0.95);
+}
+
+.close-button-enhanced:focus {
+  outline: 2px solid rgba(206, 181, 72, 0.8);
+  outline-offset: 2px;
+}
+
+/* ===== EXPANDED CONTENT LAYOUT ===== */
+.expanded-content-inner {
+  padding: 60px 40px 40px;
+}
+
+.age-header {
+  text-align: center;
+  margin-bottom: 40px;
+  border-bottom: 2px solid rgba(206, 181, 72, 0.2);
+  padding-bottom: 30px;
+}
+
+.age-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #CEB548;
+  font-family: Georgia, serif;
+  margin-bottom: 12px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .age-duration {
-  color: #e0e0e0;
-  font-style: italic;
-  margin-bottom: 14px;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
+  color: rgba(206, 181, 72, 0.8);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.age-description-section {
+  margin-bottom: 40px;
 }
 
 .age-description {
-  line-height: 1.6;
-  margin-bottom: 18px;
-  color: rgba(206, 181, 72, 0.9);
-  font-size: 1rem;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-.age-events h3 {
-  color: #ffd700;
-  margin-bottom: 12px;
-  font-size: 1.4rem;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+/* ===== EVENTS SECTION ===== */
+.age-events-section {
+  margin-top: 40px;
 }
 
-.age-events ul {
-  list-style: none;
-  padding-left: 0;
-  margin: 0;
+.events-title {
+  font-size: 1.8rem;
+  color: #CEB548;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30px;
+  font-family: Georgia, serif;
 }
 
-.age-events li {
-  margin-bottom: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 6px;
-  border-left: 3px solid #ffd700;
-  padding: 12px;
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.event-card {
+  background: rgba(206, 181, 72, 0.05);
+  border: 1px solid rgba(206, 181, 72, 0.2);
+  border-radius: 12px;
+  padding: 20px;
   transition: all 0.3s ease;
 }
 
-.age-events li:hover {
-  background: rgba(255, 255, 255, 0.08);
-  transform: translateX(4px);
+.event-card:hover {
+  background: rgba(206, 181, 72, 0.08);
+  border-color: rgba(206, 181, 72, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
-.age-events li strong {
-  color: #ffd700;
-  font-weight: bold;
-}
-
-.age-events li p {
-  margin: 5px 0 0 0;
+.event-year {
   font-size: 0.9rem;
-  color: #ddd;
+  color: #CEB548;
+  font-weight: bold;
+  margin-bottom: 8px;
+  letter-spacing: 0.05em;
+}
+
+.event-title {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  margin-bottom: 8px;
   line-height: 1.4;
+}
+
+.event-description {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.5;
+  margin: 0;
 }
 
 .more-events-note {
   text-align: center;
-  color: rgba(206, 181, 72, 0.6);
+  color: rgba(206, 181, 72, 0.8);
   font-style: italic;
-  margin-top: 1rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
 }
 
-/* No events styling */
-.no-events {
+/* ===== EMPTY AND LOADING STATES ===== */
+.no-events-state {
   text-align: center;
-  padding: 2rem;
-  color: rgba(206, 181, 72, 0.6);
+  padding: 60px 20px;
 }
 
-.no-events .icon {
+.no-events-icon {
   font-size: 3rem;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+  opacity: 0.6;
 }
 
-.no-events h4 {
-  color: #CEB548;
-  margin-bottom: 0.5rem;
-  font-family: "Papyrus", "Comic Sans MS", fantasy, cursive;
+.no-events-title {
+  font-size: 1.4rem;
+  color: rgba(206, 181, 72, 0.8);
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
-.no-events p {
-  font-size: 0.9rem;
+.no-events-description {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-/* Loading spinner */
-.loading {
+.loading-state {
   text-align: center;
-  padding: 2rem;
-  color: rgba(206, 181, 72, 0.7);
+  padding: 60px 20px;
 }
 
-.spinner {
+.loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(206, 181, 72, 0.1);
-  border-left: 4px solid #CEB548;
+  border: 3px solid rgba(206, 181, 72, 0.2);
+  border-top: 3px solid #CEB548;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
+  margin: 0 auto 20px;
 }
 
 @keyframes spin {
@@ -274,148 +324,205 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .semicircle-content {
-    width: 95%;
-    padding: 20px 16px 16px;
-    margin: 20px auto 10px;
-  }
-  
-  .semicircle-content h2 {
-    font-size: 1.6rem;
-  }
-  
-  .close-button {
-    top: 12px;
-    right: 12px;
-    font-size: 24px;
-  }
-  
-  /* Make text slightly larger on mobile for easier clicking */
-  .orbit-text.clickable-text {
-    font-size: 18px;
-  }
-  
-  .orbit-text.clickable-text:hover {
-    font-size: 20px;
-  }
+.loading-text {
+  color: rgba(206, 181, 72, 0.8);
+  font-size: 1rem;
 }
 
-/* Z-index management for proper layering */
-.semicircle-layers {
-  z-index: 1;
-}
-
+/* ===== ORBITAL ELEMENTS FADE ANIMATION ===== */
 .orbital-elements {
-  z-index: 5;
+  transition: opacity 0.6s ease;
+  will-change: opacity;
 }
 
 .central-sun-flat {
-  z-index: 6;
+  transition: all 0.6s ease;
 }
 
-/* Ensure planets are above semicircle layers but below text */
+/* ===== ENHANCED PLANET NODES ===== */
 .planet-node {
-  z-index: 7;
+  transition: all 0.3s ease;
+}
+
+.planet-node.selected {
+  filter: drop-shadow(0 0 12px rgba(206, 181, 72, 0.8)) !important;
+}
+
+/* ===== HIGH-QUALITY RENDERING ===== */
+.orbit-line {
+  shape-rendering: geometricPrecision;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .orbit-text {
-  z-index: 8;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Smooth transitions for all interactive elements */
-* {
-  transition: transform 0.3s ease, filter 0.3s ease, opacity 0.3s ease;
+/* ===== CUSTOM SCROLLBAR ===== */
+.expanded-content-container::-webkit-scrollbar {
+  width: 8px;
 }
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .expandable-orbital-dial {
-    background: #000;
+.expanded-content-container::-webkit-scrollbar-track {
+  background: rgba(20, 20, 25, 0.3);
+  border-radius: 4px;
+}
+
+.expanded-content-container::-webkit-scrollbar-thumb {
+  background: rgba(206, 181, 72, 0.3);
+  border-radius: 4px;
+}
+
+.expanded-content-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(206, 181, 72, 0.5);
+}
+
+/* ===== FOCUS ACCESSIBILITY ===== */
+.semicircle-layer:focus {
+  outline: 2px solid rgba(206, 181, 72, 0.8);
+  outline-offset: 2px;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 1024px) {
+  .expanded-content-container {
+    width: 95vw;
+    max-height: 85vh;
   }
   
-  .semicircle-content {
-    background: rgba(0, 0, 0, 0.95);
-    border: 1px solid #CEB548;
+  .expanded-content-inner {
+    padding: 50px 30px 30px;
   }
   
-  .orbit-text.clickable-text {
-    filter: drop-shadow(0 0 4px rgba(206, 181, 72, 1));
+  .age-title {
+    font-size: 2rem;
   }
   
-  .semicircle-layer {
-    stroke-width: 2;
-    stroke-opacity: 0.5;
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
   }
 }
 
-/* Reduced motion support */
+@media (max-width: 768px) {
+  .expanded-content-inner {
+    padding: 40px 20px 20px;
+  }
+  
+  .age-title {
+    font-size: 1.8rem;
+  }
+  
+  .age-description {
+    font-size: 1rem;
+  }
+  
+  .event-card {
+    padding: 15px;
+  }
+  
+  .close-button-enhanced {
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .expanded-content-container {
+    width: 98vw;
+    max-height: 90vh;
+    border-radius: 12px;
+  }
+  
+  .expanded-content-inner {
+    padding: 30px 15px 20px;
+  }
+  
+  .age-title {
+    font-size: 1.6rem;
+  }
+  
+  .age-duration {
+    font-size: 1rem;
+  }
+  
+  .events-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .event-card {
+    padding: 12px;
+  }
+  
+  .close-button-enhanced {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* ===== ANIMATION PERFORMANCE OPTIMIZATIONS ===== */
+.semicircle-layer {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.expanded-age-overlay {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
 @media (prefers-reduced-motion: reduce) {
   .semicircle-layer,
-  .age-events li,
-  .planet-node {
-    animation: none;
+  .expanded-age-overlay,
+  .expanded-content-container,
+  .orbital-elements,
+  .central-sun-flat {
+    transition: none !important;
+    animation: none !important;
   }
   
-  .orbit-text.clickable-text:hover {
-    transform: none;
-    font-size: 20px;
+  .semicircle-layer.expanded {
+    animation: none !important;
+  }
+}
+
+/* ===== ENHANCED VISUAL EFFECTS ===== */
+.has-expanded .orbital-background {
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(206, 181, 72, 0.08) 0%,
+    rgba(206, 181, 72, 0.03) 40%,
+    transparent 70%
+  );
+  transition: background 0.8s ease;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .expandable-orbital-dial {
+    background: linear-gradient(
+      135deg,
+      rgba(8, 8, 12, 1) 0%,
+      rgba(15, 15, 20, 1) 50%,
+      rgba(12, 12, 16, 1) 100%
+    );
   }
   
-  .semicircle-layer {
-    transition: opacity 0.3s ease, transform 0.5s ease;
+  .expanded-content-container {
+    background: linear-gradient(
+      135deg,
+      rgba(12, 12, 16, 0.98) 0%,
+      rgba(18, 18, 22, 0.98) 50%,
+      rgba(15, 15, 20, 0.98) 100%
+    );
   }
-  
-  .semicircle-content {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-  
-  * {
-    transition: opacity 0.3s ease;
-  }
-}
-
-/* Focus styles for accessibility */
-.orbit-text.clickable-text:focus {
-  outline: 2px solid #CEB548;
-  outline-offset: 2px;
-  fill: #ffd700;
-}
-
-.close-button:focus {
-  outline: 2px solid #CEB548;
-  outline-offset: 2px;
-}
-
-/* Hover effects for semicircle layers when not expanded */
-.semicircle-layer:not(.expanded):hover {
-  stroke-opacity: 0.4;
-  filter: brightness(1.1);
-}
-
-/* Ensure smooth scrolling in content areas */
-.semicircle-content {
-  scroll-behavior: smooth;
-}
-
-/* Custom scrollbar for content area */
-.semicircle-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.semicircle-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.semicircle-content::-webkit-scrollbar-thumb {
-  background: rgba(206, 181, 72, 0.5);
-  border-radius: 3px;
-}
-
-.semicircle-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(206, 181, 72, 0.8);
 }

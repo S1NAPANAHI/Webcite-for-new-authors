@@ -2,7 +2,7 @@
 
 ## Overview
 
-We've successfully redesigned the Zoroasterverse timeline page from a node-based circular design to an elegant **concentric disk layers system** that matches your vision perfectly. This redesign improves readability, user interaction, and maintains the mystical cosmic aesthetic.
+We've successfully redesigned the Zoroastervers timeline page from a node-based circular design to an elegant **concentric disk layers system** that matches your vision perfectly. This redesign improves readability, user interaction, and maintains the mystical cosmic aesthetic.
 
 ## 🎯 What's New
 

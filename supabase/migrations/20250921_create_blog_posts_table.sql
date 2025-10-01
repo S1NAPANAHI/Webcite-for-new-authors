@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
     content TEXT NOT NULL,
     featured_image TEXT,
     cover_url TEXT, -- Alternative field name support
-    author TEXT DEFAULT 'Zoroasterverse Team',
+    author TEXT DEFAULT 'Zoroastervers Team',
     status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
     is_featured BOOLEAN DEFAULT FALSE,
     category TEXT DEFAULT 'News',

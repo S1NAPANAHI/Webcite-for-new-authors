@@ -2,7 +2,7 @@
 # Comprehensive Backend Startup Script
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "    ZOROASTERVERSE BACKEND STARTUP     " -ForegroundColor Cyan  
+Write-Host "    ZOROASTERVERS BACKEND STARTUP     " -ForegroundColor Cyan  
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 

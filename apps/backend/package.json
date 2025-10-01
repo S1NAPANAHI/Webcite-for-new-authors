@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Backend API for Zoroasterverse e-commerce platform",
+  "description": "Backend API for Zoroastervers e-commerce platform",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -43,6 +43,6 @@
     "digital-downloads",
     "subscriptions"
   ],
-  "author": "Zoroasterverse Team",
+  "author": "Zoroastervers Team",
   "license": "MIT"
 }

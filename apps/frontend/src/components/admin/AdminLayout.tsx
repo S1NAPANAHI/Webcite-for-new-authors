@@ -129,7 +129,7 @@ export default function AdminLayout() {
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="font-bold text-lg">Zoroasterverse</h1>
+              <h1 className="font-bold text-lg">Zoroastervers</h1>
               <p className="text-xs opacity-75">Admin Panel</p>
             </div>
           </div>

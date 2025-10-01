@@ -1157,7 +1157,7 @@ ON CONFLICT (date) DO NOTHING;
 
 -- Sample homepage content
 INSERT INTO public.homepage_content (title, content, section, order_position) VALUES 
-('Welcome to Zoroasterverse', 'Experience the epic saga of cosmic proportions', 'hero', 1),
+('Welcome to Zoroastervers', 'Experience the epic saga of cosmic proportions', 'hero', 1),
 ('About the Universe', 'Dive into a world where ancient wisdom meets modern storytelling', 'about', 2),
 ('Latest Updates', 'Stay up to date with the latest releases and announcements', 'updates', 3)
 ON CONFLICT DO NOTHING;
@@ -1173,10 +1173,10 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.posts (author_id, title, slug, content, excerpt, status, published_at) 
 SELECT 
     (SELECT id FROM auth.users LIMIT 1),
-    'Welcome to Zoroasterverse',
-    'welcome-to-zoroasterverse',
-    'Welcome to the official Zoroasterverse website! Here you''ll find epic stories, rich lore, and an engaged community of readers. Stay tuned for exciting updates and new content releases.',
-    'Welcome to the official Zoroasterverse website! Discover epic stories and rich lore.',
+    'Welcome to Zoroastervers',
+    'welcome-to-zoroastervers',
+    'Welcome to the official Zoroastervers website! Here you''ll find epic stories, rich lore, and an engaged community of readers. Stay tuned for exciting updates and new content releases.',
+    'Welcome to the official Zoroastervers website! Discover epic stories and rich lore.',
     'published',
     now() - INTERVAL '1 day'
 WHERE EXISTS (SELECT 1 FROM auth.users)
@@ -1184,7 +1184,7 @@ ON CONFLICT (slug) DO NOTHING;
 
 -- Add a fallback blog post if no users exist yet
 INSERT INTO public.posts (author_id, title, slug, content, excerpt, status, published_at) VALUES 
-(NULL, 'Welcome to Zoroasterverse', 'welcome-post', 'Welcome to our amazing universe of stories!', 'Welcome to our universe!', 'published', now())
+(NULL, 'Welcome to Zoroastervers', 'welcome-post', 'Welcome to our amazing universe of stories!', 'Welcome to our universe!', 'published', now())
 ON CONFLICT (slug) DO NOTHING;
 
 -- ==============================================================================
@@ -1244,4 +1244,4 @@ CREATE INDEX IF NOT EXISTS idx_daily_spins_date ON public.daily_spins(spin_date)
 -- END OF SCHEMA DEPLOYMENT
 -- ==============================================================================
 
-COMMENT ON SCHEMA public IS 'ZOROASTERVERSE unified database schema v2.0 with frontend compatibility tables';
+COMMENT ON SCHEMA public IS 'Zoroastervers unified database schema v2.0 with frontend compatibility tables';

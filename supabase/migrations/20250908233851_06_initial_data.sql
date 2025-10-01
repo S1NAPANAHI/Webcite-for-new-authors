@@ -134,7 +134,7 @@ ON CONFLICT (price_id) DO NOTHING;
 
 -- Sample homepage content
 INSERT INTO public.homepage_content (title, content, section, order_position) VALUES 
-('Welcome to Zoroasterverse', 'Experience the epic saga of cosmic proportions', 'hero', 1),
+('Welcome to Zoroastervers', 'Experience the epic saga of cosmic proportions', 'hero', 1),
 ('About the Universe', 'Dive into a world where ancient wisdom meets modern storytelling', 'about', 2),
 ('Latest Updates', 'Stay up to date with the latest releases and announcements', 'updates', 3)
 ON CONFLICT DO NOTHING;

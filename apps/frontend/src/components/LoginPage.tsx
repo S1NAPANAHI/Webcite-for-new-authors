@@ -358,7 +358,7 @@ const LoginPage: React.FC = () => {
       <div style={portalStyle}>
         {/* Header */}
         <div>
-          <h1 style={titleStyle}>Zoroasterverse</h1>
+          <h1 style={titleStyle}>Zoroastervers</h1>
           <p style={subtitleStyle}>Sacred Portal of Ancient Wisdom</p>
         </div>
 

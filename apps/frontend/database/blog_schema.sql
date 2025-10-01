@@ -1,4 +1,4 @@
--- Enhanced Blog System Schema for Zoroasterverse
+-- Enhanced Blog System Schema for Zoroastervers
 -- Run this in your Supabase SQL editor
 
 -- First, ensure we have the basic blog posts table (update if needed)
@@ -351,7 +351,7 @@ SELECT
     bp.*,
     bc.name as category_name,
     bc.color as category_color,
-    COALESCE(bp.author, 'Zoroasterverse Team') as display_author,
+    COALESCE(bp.author, 'Zoroastervers Team') as display_author,
     ARRAY_AGG(DISTINCT bt.name) FILTER (WHERE bt.name IS NOT NULL) as tag_names,
     ARRAY_AGG(DISTINCT bt.slug) FILTER (WHERE bt.slug IS NOT NULL) as tag_slugs
 FROM blog_posts bp

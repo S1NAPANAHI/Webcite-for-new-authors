@@ -137,14 +137,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('zoroasterverse-cart');
+    const savedCart = localStorage.getItem('zoroastervers-cart');
     if (savedCart) {
       try {
         const cartItems = JSON.parse(savedCart);
         dispatch({ type: 'LOAD_CART', payload: cartItems });
       } catch (error) {
         console.error('Failed to load cart from localStorage:', error);
-        localStorage.removeItem('zoroasterverse-cart');
+localStorage.removeItem('zoroastervers-cart');
       }
     }
   }, []);
@@ -152,9 +152,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     if (state.items.length > 0) {
-      localStorage.setItem('zoroasterverse-cart', JSON.stringify(state.items));
+      localStorage.setItem('zoroastervers-cart', JSON.stringify(state.items));
     } else {
-      localStorage.removeItem('zoroasterverse-cart');
+localStorage.removeItem('zoroastervers-cart');
     }
   }, [state.items]);
 
@@ -175,7 +175,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     dispatch({ type: 'CLEAR_CART' });
-    localStorage.removeItem('zoroasterverse-cart');
+    localStorage.removeItem('zoroastervers-cart');
   };
 
   const toggleCart = () => {

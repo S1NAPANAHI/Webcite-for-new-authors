@@ -222,7 +222,7 @@ export const SubscriptionPage: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Subscription Management</h1>
-          <p className="text-gray-400">Manage your Zoroasterverse subscription and billing</p>
+          <p className="text-gray-400">Manage your Zoroastervers subscription and billing</p>
         </div>
 
         {/* Refresh Message */}
@@ -318,7 +318,7 @@ export const SubscriptionPage: React.FC = () => {
                     <>
                       <li className="flex items-center gap-2 text-green-700 dark:text-green-300">
                         <CheckCircle className="w-4 h-4" />
-                        Full access to all Zoroasterverse content
+                        Full access to all Zoroastervers content
                       </li>
                       <li className="flex items-center gap-2 text-green-700 dark:text-green-300">
                         <CheckCircle className="w-4 h-4" />
@@ -352,7 +352,7 @@ export const SubscriptionPage: React.FC = () => {
                 <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg p-4 border border-primary/20">
                   <h3 className="font-semibold text-primary mb-2">Upgrade to Premium</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                    Get full access to all content and support the Zoroasterverse!
+                    Get full access to all content and support the Zoroastervers!
                   </p>
                   <Link 
                     to="/subscriptions"

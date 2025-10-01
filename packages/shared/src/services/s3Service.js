@@ -18,7 +18,7 @@ const s3Client = new S3Client({
   }
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'zoroasterverse-ebooks';
+const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'zoroastervers-ebooks';
 
 /**
  * Generate a pre-signed URL for secure file download

@@ -238,7 +238,7 @@ const SubscriptionsPage: React.FC = () => {
           <div className="flex items-center justify-center mb-6">
             <Heart className="w-8 h-8 text-red-500 mr-2" />
             <h1 className="text-4xl md:text-5xl font-bold text-white font-['Cinzel']">
-              Support the Zoroasterverse
+              Support the Zoroastervers
             </h1>
           </div>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">

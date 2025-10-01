@@ -60,7 +60,7 @@ export default function BlogPostPage() {
     if (post) {
       fetchRelatedPosts();
       // Update page title and meta
-      document.title = post.meta_title || `${post.title} | Zoroasterverse Blog`;
+      document.title = post.meta_title || `${post.title} | Zoroastervers Blog`;
       if (post.meta_description) {
         const metaDescription = document.querySelector('meta[name="description"]');
         if (metaDescription) {
@@ -227,7 +227,7 @@ export default function BlogPostPage() {
     try {
       await navigator.share({
         title: post.title,
-        text: post.excerpt || `Read "${post.title}" on Zoroasterverse Blog`,
+        text: post.excerpt || `Read "${post.title}" on Zoroastervers Blog`,
         url: window.location.href
       });
       console.log('📤 Post shared successfully');

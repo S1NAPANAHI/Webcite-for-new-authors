@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoroasterverse: Mythic Timeline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-main">
+                    <h1 class="app-title">ZOROASTERVERSE</h1>
+                    <p class="app-subtitle">A Mythic Timeline Through Nine Ages</p>
+                </div>
+                <button class="theme-toggle" id="themeToggle">
+                    <span class="theme-icon">☾</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Layout -->
+        <main class="main-content">
+            <div class="cosmic-layout">
+                <!-- Left Panel - Cosmic Dial -->
+                <div class="left-panel">
+                    <div class="cosmic-dial-container">
+                        <div class="cosmic-dial" id="cosmicDial">
+                            <!-- Cosmic rings and age nodes will be generated here -->
+                        </div>
+                        <div class="dial-center">
+                            <div class="center-symbol">⚡</div>
+                            <div class="center-label">ZURVAN</div>
+                        </div>
+                    </div>
+                    <div class="dial-instructions">
+                        <p>Select any age to explore its timeline</p>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Timeline Display -->
+                <div class="right-panel">
+                    <!-- Welcome Screen -->
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <div class="welcome-content">
+                            <h2 class="welcome-title">COSMIC OVERVIEW</h2>
+                            <p class="welcome-text">Nine ages of creation, transformation, and destiny await your exploration. Click any age node in the cosmic dial to begin your journey through the mythic timeline.</p>
+                            <div class="cosmic-metrics">
+                                <div class="metric">
+                                    <span class="metric-value">IX</span>
+                                    <span class="metric-label">AGES</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-value">V</span>
+                                    <span class="metric-label">BOOKS</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-value">∞</span>
+                                    <span class="metric-label">CYCLES</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Panel -->
+                    <div class="timeline-panel hidden" id="timelinePanel">
+                        <div class="timeline-header">
+                            <button class="back-button" id="backButton">← RETURN TO OVERVIEW</button>
+                            <div class="age-header">
+                                <h2 class="age-title" id="ageTitle"></h2>
+                                <p class="age-tagline" id="ageTagline"></p>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-content">
+                            <div class="timeline-track" id="timelineTrack">
+                                <!-- Event cards will be generated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="footer-content">
+                <button class="footer-action" id="libraryButton">
+                    <span class="action-icon">📚</span>
+                    <span class="action-label">LIBRARY</span>
+                </button>
+                <p class="footer-text">Explore the mythic cycles of creation, transformation, and eternal return</p>
+                <button class="footer-action" id="shopButton">
+                    <span class="action-icon">🛒</span>
+                    <span class="action-label">SHOP</span>
+                </button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Event Detail Modal -->
+    <div class="modal hidden" id="eventModal">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle"></h3>
+                <button class="modal-close" id="modalClose">✕</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Event details will be populated here -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn--primary" id="modalLibraryBtn">
+                    <span class="btn-icon">📚</span>
+                    <span>LIBRARY</span>
+                </button>
+                <button class="btn btn--secondary" id="modalShopBtn">
+                    <span class="btn-icon">🛒</span>
+                    <span>SHOP</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="tooltip hidden" id="tooltip">
+        <div class="tooltip-content" id="tooltipContent"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

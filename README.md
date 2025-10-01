@@ -1,4 +1,4 @@
-# Zoroasterverse
+# Zoroastervers
 
 ## Development Setup
 

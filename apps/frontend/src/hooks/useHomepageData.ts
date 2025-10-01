@@ -196,7 +196,7 @@ async function fetchFromSupabase() {
     // Create response structure
     const fallbackContent = content || {
       id: 'homepage',
-      hero_title: 'Zoroasterverse',
+      hero_title: 'Zoroastervers',
       hero_subtitle: '',
       hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
       hero_quote: '"Happiness comes to them who bring happiness to others."',
@@ -291,7 +291,7 @@ export const useHomepageData = () => {
       const fallbackData = {
         content: {
           id: 'homepage',
-          hero_title: 'Zoroasterverse',
+          hero_title: 'Zoroastervers',
           hero_subtitle: '',
           hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
           hero_quote: '"Happiness comes to them who bring happiness to others."',
@@ -552,7 +552,7 @@ export const useHomepageQuotes = () => {
         const cleanup = homepageContext.registerQuotesRefresh(fetchQuotes);
         return cleanup;
       } catch (error) {
-        console.warn('⚠️ Failed to register quotes refresh callback:', error);
+        console.warn('⚠️ Failed to invalidate quotes cache via context:', error);
       }
     }
   }, [homepageContext, fetchQuotes]);

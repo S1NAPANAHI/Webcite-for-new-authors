@@ -38,9 +38,9 @@ interface LatestPostsProps {
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: '1',
-    title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
+    title: 'Welcome to Zoroastervers: Your Gateway to Ancient Wisdom',
     excerpt: 'Discover the profound teachings of Zoroaster and explore the rich tapestry of Persian mythology in our literary universe.',
-    slug: 'welcome-to-zoroasterverse',
+    slug: 'welcome-to-zoroastervers',
     created_at: new Date().toISOString(),
     featured_image: null, // Will use fallback image
     author: 'Sina Panahi',

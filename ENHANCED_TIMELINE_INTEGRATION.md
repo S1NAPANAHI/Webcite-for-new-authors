@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to integrate the enhanced cosmic timeline dial with stone-like textures, metallic finishes, and rotation animations into your existing Zoroasterverse timeline page.
+This guide explains how to integrate the enhanced cosmic timeline dial with stone-like textures, metallic finishes, and rotation animations into your existing Zoroastervers timeline page.
 
 ## New Components Added
 

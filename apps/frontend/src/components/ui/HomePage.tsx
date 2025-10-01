@@ -39,7 +39,7 @@ export const UIHomePage: React.FC<UIHomePageProps> = ({ data, loading, error }) 
         
         <div className="container mx-auto px-4 py-20 text-center relative z-10">
           <h1 className="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-            Welcome to <span className="text-amber-600 dark:text-amber-400">Zoroasterverse</span>
+            Welcome to <span className="text-amber-600 dark:text-amber-400">Zoroastervers</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-4xl mx-auto leading-relaxed">
             Discover the ancient wisdom of Zoroastrianism and its profound impact on modern thought, 

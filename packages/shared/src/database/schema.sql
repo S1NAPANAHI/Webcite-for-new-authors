@@ -1,4 +1,4 @@
--- Zoroasterverse E-commerce Database Schema
+-- Zoroastervers E-commerce Database Schema
 -- Run this file to create all necessary tables
 
 -- Enable UUID extension
@@ -159,8 +159,8 @@ CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions FO
 
 -- Insert sample data for testing
 INSERT INTO products (slug, title, description, is_bundle, status, published_at) VALUES
-('the-first-saga', 'The First Saga', 'An epic tale of adventure and discovery in the Zoroasterverse.', FALSE, 'published', NOW()),
-('complete-collection', 'Complete Collection', 'All books in the Zoroasterverse series in one bundle.', TRUE, 'published', NOW())
+('the-first-saga', 'The First Saga', 'An epic tale of adventure and discovery in the Zoroastervers.', FALSE, 'published', NOW()),
+('complete-collection', 'Complete Collection', 'All books in the Zoroastervers series in one bundle.', TRUE, 'published', NOW())
 ON CONFLICT (slug) DO NOTHING;
 
 -- Insert sample prices

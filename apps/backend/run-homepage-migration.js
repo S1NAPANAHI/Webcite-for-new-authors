@@ -112,7 +112,7 @@ async function runMigration() {
       .from('homepage_content')
       .upsert({
         id: 'homepage',
-        hero_title: 'Zoroasterverse',
+        hero_title: 'Zoroastervers',
         hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
         hero_quote: '"Happiness comes to them who bring happiness to others."',
         cta_button_text: 'Learn More',

@@ -271,7 +271,7 @@ const BlogPostEditor = () => {
         excerpt,
         cover_url: coverUrl || null,
         featured_image: coverUrl || null, // Sync both fields
-        author: author || user.email || 'Zoroasterverse Team',
+        author: author || user.email || 'Zoroastervers Team',
         author_id: user.id,
         status: publishNow ? 'published' : status,
         published_at: publishNow ? new Date().toISOString() : null,

@@ -75,7 +75,7 @@ INSERT INTO public.homepage_content (
     show_progress_metrics
 ) VALUES (
     'homepage',
-    'Zoroasterverse',
+    'Zoroastervers',
     '',
     'Learn about the teachings of the prophet Zarathustra, the history of one of the world''s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
     '"Happiness comes to them who bring happiness to others."',

@@ -160,7 +160,7 @@ export const SimpleDashboardPage: React.FC = () => {
       {/* Header */}
       <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome to Zoroasterverse Admin
+          Welcome to Zoroastervers Admin
         </h1>
         <p className="text-gray-600 dark:text-gray-300 mt-2">
           Manage your worldbuilding platform with powerful admin tools

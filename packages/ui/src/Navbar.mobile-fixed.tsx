@@ -202,7 +202,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center shadow-md">
             <span className="text-primary-foreground font-bold text-sm lg:text-base">Z</span>
           </div>
-          <h1 className="text-lg lg:text-xl font-bold text-primary">Zoroasterverse</h1>
+          <h1 className="text-lg lg:text-xl font-bold text-primary">Zoroastervers</h1>
         </NavLink>
       </div>
 

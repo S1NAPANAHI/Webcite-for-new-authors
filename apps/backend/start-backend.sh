@@ -2,7 +2,7 @@
 # Comprehensive Backend Startup Script for Mac/Linux
 
 echo "========================================"
-echo "    ZOROASTERVERSE BACKEND STARTUP     "
+echo "    ZOROASTERVERS BACKEND STARTUP     "
 echo "========================================"
 echo ""
 

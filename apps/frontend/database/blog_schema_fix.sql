@@ -187,7 +187,7 @@ SELECT
     bc.color as category_color,
     bc.slug as category_slug,
     u.email as author_email,
-    COALESCE(bp.author, u.email, 'Zoroasterverse Team') as display_author,
+    COALESCE(bp.author, u.email, 'Zoroastervers Team') as display_author,
     ARRAY_AGG(DISTINCT bt.name) FILTER (WHERE bt.name IS NOT NULL) as tag_names,
     ARRAY_AGG(DISTINCT bt.slug) FILTER (WHERE bt.slug IS NOT NULL) as tag_slugs
 FROM blog_posts bp

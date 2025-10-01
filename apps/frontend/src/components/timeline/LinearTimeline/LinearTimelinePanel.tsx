@@ -64,7 +64,7 @@ export const LinearTimelinePanel: React.FC<LinearTimelinePanelProps> = ({
           Linear Timeline View
         </h2>
         <p className="text-timeline-text/70">
-          Chronological journey through the ages of the Zoroasterverse
+          Chronological journey through the ages of the Zoroastervers
         </p>
       </div>
 

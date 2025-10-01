@@ -149,7 +149,7 @@ export const EnhancedCosmicTimeline: React.FC = () => {
       {!selectedAge && viewMode === 'hybrid' && (
         <div className="welcome-overlay">
           <div className="welcome-content">
-            <h2 className="welcome-title">Zoroasterverse Timeline</h2>
+            <h2 className="welcome-title">Zoroastervers Timeline</h2>
             <p className="welcome-description">
               Explore the cosmic ages through an expandable orbital design. Click on any golden planet orbiting the left half-circle to expand its age across the full page.
             </p>

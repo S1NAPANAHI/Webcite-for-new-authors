@@ -147,7 +147,7 @@ WITH CHECK (is_user_admin(auth.uid()));
 $readmeContent = @"
 # Activity and Tracking Migrations
 
-This directory contains database migrations for user activity tracking and analytics in the Zoroasterverse application.
+This directory contains database migrations for user activity tracking and analytics in the Zoroastervers application.
 
 ## Directory Structure
 

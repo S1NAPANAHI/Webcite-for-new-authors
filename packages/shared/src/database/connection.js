@@ -10,7 +10,7 @@ const pool = new Pool({
   max: 10, // Reduced max connections for connection pooler
   idleTimeoutMillis: 10000, // Close idle clients after 10 seconds
   connectionTimeoutMillis: 5000, // Increase timeout to 5 seconds
-  application_name: 'zoroasterverse-backend', // Add application name for monitoring
+  application_name: 'zoroastervers-backend', // Add application name for monitoring
 });
 
 // Test database connection

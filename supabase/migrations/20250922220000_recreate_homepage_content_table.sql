@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS public.homepage_content CASCADE;
 -- Create homepage_content table with the correct schema
 CREATE TABLE public.homepage_content (
   id TEXT PRIMARY KEY DEFAULT 'homepage',
-  hero_title TEXT NOT NULL DEFAULT 'Zoroasterverse'::TEXT,
+  hero_title TEXT NOT NULL DEFAULT 'Zoroastervers'::TEXT,
   hero_subtitle TEXT NULL DEFAULT ''::TEXT,
   hero_description TEXT NOT NULL DEFAULT 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.'::TEXT,
   hero_quote TEXT NOT NULL DEFAULT '"Happiness comes to them who bring happiness to others."'::TEXT,
@@ -41,7 +41,7 @@ INSERT INTO public.homepage_content (
     show_progress_metrics
 ) VALUES (
     'homepage',
-    'Zoroasterverse',
+    'Zoroastervers',
     '',
     'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
     '"Happiness comes to them who bring happiness to others."',

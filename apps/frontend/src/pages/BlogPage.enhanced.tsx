@@ -68,7 +68,7 @@ export default function BlogPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-6">
-              Zoroasterverse Blog
+              Zoroastervers Blog
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
               Dive deep into the rich mythology, characters, and stories that make up the Zoroasterverse. 

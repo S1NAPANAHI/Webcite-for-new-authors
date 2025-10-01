@@ -179,7 +179,7 @@ console.log('✅ Created RLS policies');
 // Create README.md
 const README_CONTENT = `# Activity and Tracking Migrations
 
-This directory contains database migrations for user activity tracking and analytics in the Zoroasterverse application.
+This directory contains database migrations for user activity tracking and analytics in the Zoroastervers application.
 
 ## Directory Structure
 

@@ -80,7 +80,7 @@ export const SubscriptionPage: React.FC = () => {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-                Unlock the Full Zoroasterverse Experience
+                Unlock the Full Zoroastervers Experience
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
                 Join our community of readers and get exclusive access to the complete story as it unfolds.
@@ -229,7 +229,7 @@ export const SubscriptionPage: React.FC = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Begin Your Journey?</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Join thousands of readers who are already exploring the Zoroasterverse.
+            Join thousands of readers who are already exploring the Zoroastervers.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <button

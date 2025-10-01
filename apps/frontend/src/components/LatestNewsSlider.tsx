@@ -31,12 +31,12 @@ interface BlogPost {
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: 'fallback-1',
-    title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
-    slug: 'welcome-to-zoroasterverse',
+    title: 'Welcome to Zoroastervers: Your Gateway to Ancient Wisdom',
+    slug: 'welcome-to-zoroastervers',
     excerpt: 'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
-    content: 'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world\'s oldest monotheistic religions, offers profound insights into the nature of good and evil, free will, and the cosmic struggle between light and darkness.',
+    content: 'Welcome to Zoroastervers, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world\'s oldest monotheistic religions, offers profound insights into the nature of good and evil, free will, and the cosmic struggle between light and darkness.',
     featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=600&fit=crop&crop=center',
-    author: 'Zoroasterverse Team',
+    author: 'Zoroastervers Team',
     published_at: new Date().toISOString(),
     views: 856,
     likes_count: 42,
@@ -311,7 +311,7 @@ export default function LatestNewsSlider() {
                     <div className="flex flex-wrap items-center gap-6 text-sm text-gray-400 mb-8">
                       <span className="flex items-center gap-2">
                         <User className="w-4 h-4" />
-                        {post.author || 'Zoroasterverse Team'}
+                        {post.author || 'Zoroastervers Team'}
                       </span>
                       <span className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />

@@ -1,5 +1,5 @@
 -- ==============================================================================
--- ZOROASTERVERSE E-COMMERCE CATALOG ENHANCEMENT
+-- ZOROASTERVERS E-COMMERCE CATALOG ENHANCEMENT
 -- ==============================================================================
 -- This migration extends the existing schema to support full e-commerce operations
 -- with Stripe integration, inventory management, and order processing
@@ -796,4 +796,4 @@ SELECT
 FROM public.orders o
 LEFT JOIN public.profiles p ON o.user_id = p.id;
 
-COMMENT ON SCHEMA public IS 'ZOROASTERVERSE enhanced e-commerce schema with Stripe catalog integration v3.0';
+COMMENT ON SCHEMA public IS 'ZOROASTERVERS enhanced e-commerce schema with Stripe catalog integration v3.0';

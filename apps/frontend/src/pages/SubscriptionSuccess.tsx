@@ -131,7 +131,7 @@ const SubscriptionSuccess: React.FC = () => {
             transition={{ delay: 0.2, duration: 0.6 }}
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
-              Welcome to the Zoroasterverse!
+              Welcome to the Zoroastervers!
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
               Your subscription is now active. Get ready to dive into an epic journey of adventure and discovery.

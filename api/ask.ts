@@ -39,7 +39,7 @@ interface ChunkResult {
 }
 
 function buildSystemPrompt(): string {
-  return `You are an expert guide for the Zoroasterverse, a fantasy series inspired by Persian mythology and Zoroastrian beliefs. Your role is to provide accurate, engaging answers about the world, characters, and lore.
+  return `You are an expert guide for the Zoroastervers a fantasy series inspired by Persian mythology and Zoroastrian beliefs. Your role is to provide accurate, engaging answers about the world, characters, and lore.
 
 Guidelines:
 - Use ONLY the provided context documents to answer questions
@@ -114,7 +114,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (typedMatches.length === 0) {
       return res.status(200).json({
-        answer: "I don't have information about that topic in my current knowledge base. Could you try rephrasing your question or asking about characters, lore, or locations from the Zoroasterverse?",
+        answer: "I don't have information about that topic in my current knowledge base. Could you try rephrasing your question or asking about characters, lore, or locations from the Zoroastervers?",
         references: [],
         query: query
       });

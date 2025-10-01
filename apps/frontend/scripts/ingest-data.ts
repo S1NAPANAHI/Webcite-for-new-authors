@@ -7,7 +7,7 @@ const sampleData = [
     kind: 'character' as const,
     title: 'Asha Vardaan',
     slug: 'asha-vardaan',
-    text: `Asha Vardaan is the protagonist of the Zoroasterverse series. Born in the ancient city of Persepolis, she possesses the rare ability to communicate with the divine flames of Ahura Mazda. Her journey begins when she discovers her heritage as a descendant of the legendary Fereydun.
+    text: `Asha Vardaan is the protagonist of the Zoroastervers series. Born in the ancient city of Persepolis, she possesses the rare ability to communicate with the divine flames of Ahura Mazda. Her journey begins when she discovers her heritage as a descendant of the legendary Fereydun.
 
     Throughout the first book, Asha struggles with her newfound powers while navigating the complex political landscape of the Persian Empire. Her character arc focuses on accepting responsibility and learning to balance her human desires with her divine destiny.
 

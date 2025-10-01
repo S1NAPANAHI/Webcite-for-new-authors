@@ -150,7 +150,7 @@ export const LoginPage: React.FC = () => {
       <div className="auth-container">
         {/* Header */}
         <div className="auth-header">
-          <h1>Zoroasterverse</h1>
+          <h1>Zoroastervers</h1>
           <p>Join our community of readers and writers</p>
         </div>
 

@@ -47,16 +47,16 @@ INSERT INTO blog_posts (
     published_at
 ) VALUES 
 (
-    'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
-    'welcome-to-zoroasterverse',
+    'Welcome to Zoroastervers: Your Gateway to Ancient Wisdom',
+    'welcome-to-zoroastervers',
     'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
-    'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world''s oldest monotheistic religions, offers profound insights into the nature of good and evil, the importance of free will, and the cosmic struggle between light and darkness. 
+    'Welcome to Zoroastervers, where ancient wisdom meets modern understanding. Zoroastrianism, one of the world''s oldest monotheistic religions, offers profound insights into the nature of good and evil, the importance of free will, and the cosmic struggle between light and darkness. 
 
 Founded by the prophet Zoroaster (also known as Zarathustra) sometime between 1500-1000 BCE, Zoroastrianism introduced revolutionary concepts that would later influence Judaism, Christianity, and Islam. The religion''s emphasis on ethical dualism, the worship of Ahura Mazda as the "Wise Lord," and the importance of individual choice in determining one''s spiritual destiny created a framework for understanding divine justice and human responsibility.
 
-At Zoroasterverse, we explore these timeless teachings and their relevance to contemporary spiritual seekers, philosophers, and anyone interested in the roots of monotheistic thought.',
+At Zoroastervers, we explore these timeless teachings and their relevance to contemporary spiritual seekers, philosophers, and anyone interested in the roots of monotheistic thought.',
     'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=600&fit=crop',
-    'Zoroasterverse Team',
+    'Zoroastervers Team',
     'published',
     true,
     'Philosophy',
@@ -99,14 +99,14 @@ ON CONFLICT (slug) DO NOTHING;
 -- Now let's add tags to these posts using your existing blog_post_tags junction table
 -- Get the post IDs and tag IDs, then create the relationships
 
--- For "Welcome to Zoroasterverse" post
+-- For "Welcome to Zoroastervers" post
 INSERT INTO blog_post_tags (blog_post_id, tag_id)
 SELECT 
     bp.id as blog_post_id,
     bt.id as tag_id
 FROM blog_posts bp
 CROSS JOIN blog_tags bt
-WHERE bp.slug = 'welcome-to-zoroasterverse'
+WHERE bp.slug = 'welcome-to-zoroastervers'
   AND bt.slug IN ('philosophy', 'religion', 'history')
 ON CONFLICT DO NOTHING;
 

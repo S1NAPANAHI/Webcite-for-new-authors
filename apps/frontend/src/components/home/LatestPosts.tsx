@@ -140,7 +140,7 @@ const LatestPosts: React.FC = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Latest Stories</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Discovering the latest tales from the Zoroasterverse
+              Discovering the latest tales from the Zoroastervers
             </p>
           </div>
           
@@ -225,7 +225,7 @@ const LatestPosts: React.FC = () => {
               <h3 className="text-gray-700 font-semibold mb-2">No Stories Yet</h3>
               <p className="text-gray-600 text-sm mb-6">No blog posts are available at the moment.</p>
               <p className="text-gray-500 text-xs mb-4">
-                Check back soon for new content from the Zoroasterverse!
+                Check back soon for new content from the Zoroastervers!
               </p>
               <Button 
                 as={Link}

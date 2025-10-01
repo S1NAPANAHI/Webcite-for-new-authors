@@ -44,12 +44,12 @@ interface LatestPostsProps {
 const FALLBACK_POSTS: BlogPost[] = [
   {
     id: 'sample-1',
-    title: 'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
-    slug: 'welcome-to-zoroasterverse',
+    title: 'Welcome to Zoroastervers: Your Gateway to Ancient Wisdom',
+    slug: 'welcome-to-zoroastervers',
     excerpt: 'Discover the profound teachings of Zoroaster and explore how this ancient religion continues to inspire modern seekers of truth and wisdom.',
-    content: 'Welcome to Zoroasterverse, where ancient wisdom meets modern understanding.',
+    content: 'Welcome to Zoroastervers, where ancient wisdom meets modern understanding.',
     featured_image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=1200&h=800&fit=crop&crop=center',
-    author: 'Zoroasterverse Team',
+    author: 'Zoroastervers Team',
     category: 'Philosophy',
     published_at: new Date().toISOString(),
     views: 856,
@@ -413,7 +413,7 @@ export const LatestPosts: React.FC<LatestPostsProps> = ({
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            {post.author || 'Zoroasterverse Team'}
+                            {post.author || 'Zoroastervers Team'}
                           </span>
                           <span className="flex items-center gap-1">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

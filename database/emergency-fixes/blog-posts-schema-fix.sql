@@ -59,8 +59,8 @@ ON public.blog_posts FOR ALL
 TO authenticated 
 USING (auth.jwt() ->> 'email' IN (
   'spanahinz@gmail.com',
-  'admin@zoroasterverse.com',
-  'sina@zoroasterverse.com'
+  'admin@zoroastervers.com',
+  'sina@zoroastervers.com'
 ));
 
 -- Fix 4: Create sample data if table is empty (for testing)
@@ -78,10 +78,10 @@ INSERT INTO public.blog_posts (
   status
 ) VALUES 
 (
-  'Welcome to Zoroasterverse: Your Gateway to Ancient Wisdom',
+  'Welcome to Zoroastervers: Your Gateway to Ancient Wisdom',
   'Discover the profound teachings of Zarathustra and explore the rich tapestry of Persian mythology in our literary universe. This comprehensive guide will introduce you to the fundamental concepts that shape our stories and philosophy.',
   'Discover the profound teachings of Zarathustra and explore the rich tapestry of Persian mythology in our literary universe.',
-  'welcome-to-zoroasterverse',
+  'welcome-to-zoroastervers',
   now(),
   null, -- Will use fallback image
   null, -- Will use fallback image

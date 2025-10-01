@@ -49,7 +49,7 @@ const mockDashboardData: DashboardData = {
     { id: 'chap3', title: 'The Sacred Flame', state: 'published', created_at: new Date(Date.now() - 172800000).toISOString(), book: 'The Fire Temple' },
   ],
   users: [
-    { id: 'user1', email: 'admin@zoroasterverse.com', subscription_status: 'admin', created_at: new Date(Date.now() - 2592000000).toISOString(), last_active: new Date().toISOString() },
+    { id: 'user1', email: 'admin@zoroastervers.com', subscription_status: 'admin', created_at: new Date(Date.now() - 2592000000).toISOString(), last_active: new Date().toISOString() },
     { id: 'user2', email: 'premium@reader.com', subscription_status: 'premium', created_at: new Date(Date.now() - 1296000000).toISOString(), last_active: new Date(Date.now() - 86400000).toISOString() },
     { id: 'user3', email: 'beta@tester.com', subscription_status: 'beta', created_at: new Date(Date.now() - 604800000).toISOString(), last_active: new Date(Date.now() - 3600000).toISOString() },
   ],

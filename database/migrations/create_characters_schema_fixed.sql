@@ -1,4 +1,4 @@
--- Character Management Schema for Zoroasterverse (FIXED VERSION)
+-- Character Management Schema for Zoroastervers (FIXED VERSION)
 -- This creates a comprehensive character management system with relationships, abilities, and appearances
 
 -- =============================================================================

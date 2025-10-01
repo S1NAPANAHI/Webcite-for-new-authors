@@ -1,5 +1,5 @@
--- Add sample Zoroasterverse products for the Sacred Treasury store
--- Migration: Add Zoroasterverse Sample Products
+-- Add sample Zoroastervers products for the Sacred Treasury store
+-- Migration: Add Zoroastervers Sample Products
 -- Created: 2025-09-29
 
 -- Insert sample products
@@ -101,7 +101,7 @@ INSERT INTO products (
   'ccb-005',
   'Complete Collection Bundle',
   'Everything + Exclusive Bonus Content',
-  'Get the entire Zoroasterverse collection at an incredible 40% savings! Includes all books, guides, character art, and exclusive bonus content including author commentary, deleted scenes, and a digital soundtrack inspired by Persian music.',
+  'Get the entire Zoroastervers collection at an incredible 40% savings! Includes all books, guides, character art, and exclusive bonus content including author commentary, deleted scenes, and a digital soundtrack inspired by Persian music.',
   'bundle',
   2999, -- $29.99 (40% off individual prices)
   'published',
@@ -120,7 +120,7 @@ INSERT INTO products (
   'mms-006',
   'Monthly Mythology Subscription',
   'Unlimited Access to Growing Content Library',
-  'Get unlimited access to the expanding Zoroasterverse library! New stories, guides, and exclusive content added monthly. Includes early access to new releases, subscriber-only content, and monthly mythology deep-dives.',
+  'Get unlimited access to the expanding Zoroastervers library! New stories, guides, and exclusive content added monthly. Includes early access to new releases, subscriber-only content, and monthly mythology deep-dives.',
   'subscription',
   999, -- $9.99/month
   'published',
@@ -139,7 +139,7 @@ INSERT INTO products (
   'cpc-007',
   'Character Portraits Collection',
   'Digital Art Pack - Heroes and Villains',
-  'Beautiful digital artwork featuring the major characters from the Zoroasterverse. High-resolution portraits of Darius, Yasmin, Ahriman, and other beloved characters, perfect for wallpapers or printing. Includes concept art and character development sketches.',
+  'Beautiful digital artwork featuring the major characters from the Zoroastervers. High-resolution portraits of Darius, Yasmin, Ahriman, and other beloved characters, perfect for wallpapers or printing. Includes concept art and character development sketches.',
   'art',
   599, -- $5.99
   'published',
@@ -157,8 +157,8 @@ INSERT INTO products (
 (
   'fsc-008',
   'Sample Chapter: The Awakening',
-  'Free Introduction to the Zoroasterverse',
-  'Discover the Zoroasterverse with this free sample chapter from The Fire Temple Chronicles. Meet Darius as he begins his journey and get a taste of the epic adventure that awaits. Perfect introduction for new readers!',
+  'Free Introduction to the Zoroastervers',
+  'Discover the Zoroastervers with this free sample chapter from The Fire Temple Chronicles. Meet Darius as he begins his journey and get a taste of the epic adventure that awaits. Perfect introduction for new readers!',
   'book',
   0, -- Free
   'published',
@@ -282,4 +282,4 @@ INSERT INTO product_tags (product_id, tag) VALUES
 ON CONFLICT (product_id, tag) DO NOTHING;
 
 -- Update statistics
-SELECT 'Sample Zoroasterverse products added successfully!' as message;
+SELECT 'Sample Zoroastervers products added successfully!' as message;

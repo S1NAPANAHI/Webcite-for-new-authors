@@ -122,7 +122,7 @@ export const SubscriptionSuccessPage: React.FC = () => {
         </h1>
         
         <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6">
-          Welcome to the Zoroasterverse! You now have access to all premium content.
+          Welcome to the Zoroastervers! You now have access to all premium content.
         </p>
 
         {/* Status Update Section */}

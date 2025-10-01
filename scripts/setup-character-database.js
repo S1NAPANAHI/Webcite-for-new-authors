@@ -30,7 +30,7 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   process.exit(1);
 }
 
-console.log('\n🌍 Zoroasterverse Character Database Setup');
+console.log('\n🌍 Zoroastervers Character Database Setup');
 console.log('=' .repeat(50));
 console.log(`🔗 Supabase URL: ${SUPABASE_URL}`);
 console.log(`🔑 Service Key: ${'*'.repeat(20)}...`);

@@ -35,7 +35,7 @@ const AboutPage: React.FC = () => {
             <div className="text-slate-200 leading-relaxed space-y-4">
               <p>
                 Greetings, fellow travelers of the digital cosmos. I am the architect behind the 
-                <span className="text-purple-400 font-semibold"> Zoroasterverse</span>, a realm where 
+                <span className="text-purple-400 font-semibold"> Zoroastervers</span>, a realm where 
                 ancient wisdom meets modern technology, and where stories unfold across dimensions 
                 of imagination and code.
               </p>
@@ -70,15 +70,15 @@ const AboutPage: React.FC = () => {
             </div>
           </section>
 
-          {/* The Zoroasterverse Project */}
+          {/* The Zoroastervers Project */}
           <section className="mb-16 bg-slate-800/40 backdrop-blur-sm rounded-xl p-8 border border-gold-500/20">
             <h2 className="text-3xl font-semibold text-gold-400 mb-6 flex items-center">
               <span className="mr-3">🌌</span>
-              The Zoroasterverse Chronicles
+              The Zoroastervers Chronicles
             </h2>
             <div className="text-slate-200 leading-relaxed space-y-4">
               <p>
-                The <strong className="text-purple-400">Zoroasterverse</strong> represents the culmination 
+                The <strong className="text-purple-400">Zoroastervers</strong> represents the culmination 
                 of my vision: a digital sanctuary where ancient Zoroastrian wisdom, cosmic philosophy, 
                 and cutting-edge technology converge to create something entirely new.
               </p>
@@ -164,7 +164,7 @@ const AboutPage: React.FC = () => {
             </h2>
             <div className="text-slate-200 leading-relaxed space-y-4">
               <p>
-                The Zoroasterverse thrives on collaboration and community. Whether you're interested 
+                The Zoroastervers thrives on collaboration and community. Whether you're interested 
                 in contributing to the codebase, participating in beta reading programs, or simply 
                 exploring the depths of this digital cosmos, your journey is welcome here.
               </p>
@@ -202,7 +202,7 @@ const AboutPage: React.FC = () => {
             <p className="text-slate-200 leading-relaxed max-w-2xl mx-auto">
               Every day brings new discoveries, new challenges, and new opportunities to push 
               the boundaries of what's possible when technology serves the highest good. 
-              The Zoroasterverse is not just a project—it's a living testament to the power 
+              The Zoroastervers is not just a project—it's a living testament to the power 
               of combining ancient wisdom with modern innovation.
             </p>
             <div className="mt-8">

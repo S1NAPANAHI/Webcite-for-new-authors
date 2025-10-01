@@ -215,7 +215,7 @@ WITH CHECK (is_user_admin(auth.uid()));`
 // Create README.md
 const README_CONTENT = `# Content Management Migrations
 
-This directory contains database migrations for content management in the Zoroasterverse application, including works, chapters, posts, and other content types.
+This directory contains database migrations for content management in the Zoroastervers application, including works, chapters, posts, and other content types.
 
 ## Directory Structure
 

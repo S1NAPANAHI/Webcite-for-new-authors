@@ -56,8 +56,7 @@ const HeroEditor: React.FC = () => {
       if (!response.ok) {
         // If both APIs fail, use fallback content
         console.warn('⚠️ Both API endpoints failed, using fallback content');
-        const fallbackContent: HeroContent = {
-          hero_title: 'ZOROASTERVERSE',
+hero_title: 'ZOROASTERVERS',
           hero_subtitle: '',
           hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
           hero_quote: 'Happiness comes to them who bring happiness to others.',
@@ -97,7 +96,7 @@ const HeroEditor: React.FC = () => {
       
       // Set fallback values that match your current live site
       setHeroData({
-        hero_title: 'ZOROASTERVERSE',
+        hero_title: 'ZOROASTERVERS',
         hero_subtitle: '',
         hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
         hero_quote: 'Happiness comes to them who bring happiness to others.',
@@ -255,7 +254,7 @@ const HeroEditor: React.FC = () => {
               value={heroData.hero_title}
               onChange={(e) => handleInputChange('hero_title', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter hero title (e.g., ZOROASTERVERSE)"
+              placeholder="Enter hero title (e.g., ZOROASTERVERS)"
             />
           </div>
 

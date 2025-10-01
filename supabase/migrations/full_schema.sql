@@ -1,4 +1,4 @@
--- Full Database Schema for Zoroasterverse Platform
+-- Full Database Schema for Zoroastervers Platform
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

@@ -1,7 +1,7 @@
 {
   "name": "api-functions",
   "version": "1.0.0",
-  "description": "Serverless API functions for Zoroasterverse",
+  "description": "Serverless API functions for Zoroastervers",
   "type": "module",
   "dependencies": {
     "stripe": "^14.5.0",

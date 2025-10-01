@@ -1,4 +1,4 @@
--- Add sample products for the Zoroasterverse shop
+-- Add sample products for the Zoroastervers shop
 -- This migration creates sample books, guides, and bundles with Persian mythology themes
 
 -- Insert sample products
@@ -124,11 +124,11 @@ INSERT INTO products (
 -- Bundles
 (
   gen_random_uuid(),
-  'complete-zoroasterverse-collection',
-  'Complete Zoroasterverse Collection',
-  'Complete Zoroasterverse Collection: Books & Guides',
+  'complete-zoroastervers-collection',
+  'Complete Zoroastervers Collection',
+  'Complete Zoroastervers Collection: Books & Guides',
   'Everything You Need for Your Persian Mythology Journey',
-  'Get the complete Zoroasterverse experience with this exclusive bundle containing all our published books, study guides, and bonus content. Save 40% compared to individual purchases and gain access to exclusive behind-the-scenes materials.',
+  'Get the complete Zoroastervers experience with this exclusive bundle containing all our published books, study guides, and bonus content. Save 40% compared to individual purchases and gain access to exclusive behind-the-scenes materials.',
   'bundle',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
   true,
@@ -177,8 +177,8 @@ INSERT INTO products (
   'character-portraits-collection',
   'Character Portraits Collection',
   'Character Portraits Collection: Digital Art',
-  'Beautiful Illustrations of Zoroasterverse Characters',
-  'A stunning collection of high-resolution character portraits featuring the heroes and villains of the Zoroasterverse. Perfect for fans, artists, and anyone who appreciates beautiful fantasy art inspired by Persian mythology.',
+  'Beautiful Illustrations of Zoroastervers Characters',
+  'A stunning collection of high-resolution character portraits featuring the heroes and villains of the Zoroastervers. Perfect for fans, artists, and anyone who appreciates beautiful fantasy art inspired by Persian mythology.',
   'guide', -- Using 'guide' for art collections
   'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=600&fit=crop',
   false,
@@ -202,8 +202,8 @@ INSERT INTO products (
   'fire-temple-sample',
   'Fire Temple Chronicles - Free Sample',
   'Fire Temple Chronicles: Chapter One (Free)',
-  'Discover the World of Zoroasterverse',
-  'Get a taste of the Zoroasterverse with this free sample chapter from The Fire Temple Chronicles. Experience the rich world-building and compelling storytelling that brings Persian mythology to life.',
+  'Discover the World of Zoroastervers',
+  'Get a taste of the Zoroastervers with this free sample chapter from The Fire Temple Chronicles. Experience the rich world-building and compelling storytelling that brings Persian mythology to life.',
   'book',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
   false,

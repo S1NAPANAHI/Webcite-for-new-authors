@@ -80,7 +80,7 @@ router.post('/create-subscription', async (req, res) => {
         plan_id: plan.paypal_plan_id,
         start_time: new Date(Date.now() + 60000).toISOString(), // Start in 1 minute
         application_context: {
-          brand_name: 'Zoroasterverse',
+          brand_name: 'Zoroastervers',
           locale: 'en-US',
           shipping_preference: 'NO_SHIPPING',
           user_action: 'SUBSCRIBE_NOW',
@@ -91,7 +91,7 @@ router.post('/create-subscription', async (req, res) => {
           return_url: successUrl,
           cancel_url: cancelUrl,
         },
-        custom_id: `zoroasterverse_${planId}_${Date.now()}`,
+        custom_id: `zoroastervers_${planId}_${Date.now()}`,
       }),
     });
 

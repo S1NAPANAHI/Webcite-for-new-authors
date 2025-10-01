@@ -58,7 +58,7 @@ export const ShoppingCart: React.FC = () => {
                 <ShoppingBag className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-slate-300 mb-2">Your cart is empty</h3>
                 <p className="text-slate-500 text-sm mb-6">
-                  Start exploring our Zoroasterverse collection to add items to your cart.
+                  Start exploring our Zoroastervers collection to add items to your cart.
                 </p>
                 <button 
                   onClick={toggleCart}

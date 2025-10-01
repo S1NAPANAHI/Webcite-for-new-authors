@@ -3,7 +3,7 @@ const sgMail = require('@sendgrid/mail');
 // Configure SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@zoroasterverse.com';
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@zoroastervers.com';
 
 /**
  * Send purchase confirmation email with download links
@@ -22,7 +22,7 @@ async function sendPurchaseEmail(to, data) {
     const msg = {
       to,
       from: FROM_EMAIL,
-      subject: '🎉 Your Zoroasterverse eBook is Ready!',
+      subject: '🎉 Your Zoroastervers eBook is Ready!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -46,7 +46,7 @@ async function sendPurchaseEmail(to, data) {
           <div class="container">
             <div class="header">
               <h1>🎉 Your eBook is Ready!</h1>
-              <p>Thank you for your purchase from Zoroasterverse</p>
+              <p>Thank you for your purchase from Zoroastervers</p>
             </div>
             
             <div class="content">
@@ -85,9 +85,9 @@ async function sendPurchaseEmail(to, data) {
             </div>
             
             <div class="footer">
-              <p>Thank you for choosing Zoroasterverse!</p>
-              <p>If you have any questions, please contact us at support@zoroasterverse.com</p>
-              <p>© ${new Date().getFullYear()} Zoroasterverse. All rights reserved.</p>
+              <p>Thank you for choosing Zoroastervers!</p>
+              <p>If you have any questions, please contact us at support@zoroastervers.com</p>
+<p>© ${new Date().getFullYear()} Zoroastervers. All rights reserved.</p>
             </div>
           </div>
         </body>
@@ -118,12 +118,12 @@ async function sendSubscriptionEmail(to, type, data) {
 
     switch (type) {
       case 'welcome':
-        subject = '🎉 Welcome to Zoroasterverse!';
+        subject = '🎉 Welcome to Zoroastervers!';
         html = generateWelcomeEmail(data);
         break;
       
       case 'trial_ending':
-        subject = '⏰ Your Zoroasterverse Trial is Ending Soon';
+        subject = '⏰ Your Zoroastervers Trial is Ending Soon';
         html = generateTrialEndingEmail(data);
         break;
       
@@ -133,7 +133,7 @@ async function sendSubscriptionEmail(to, type, data) {
         break;
       
       case 'subscription_canceled':
-        subject = '👋 Your Zoroasterverse Subscription Has Been Canceled';
+        subject = '👋 Your Zoroastervers Subscription Has Been Canceled';
         html = generateSubscriptionCanceledEmail(data);
         break;
       
@@ -171,7 +171,7 @@ function generateWelcomeEmail(data) {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to Zoroasterverse</title>
+      <title>Welcome to Zoroastervers</title>
       <style>
         body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -185,7 +185,7 @@ function generateWelcomeEmail(data) {
     <body>
       <div class="container">
         <div class="header">
-          <h1>🎉 Welcome to Zoroasterverse!</h1>
+          <h1>🎉 Welcome to Zoroastervers!</h1>
           <p>Your subscription is now active</p>
         </div>
         
@@ -207,7 +207,7 @@ function generateWelcomeEmail(data) {
             <li>Access your exclusive content in the library</li>
             <li>Download new releases as they become available</li>
             <li>Enjoy early access to upcoming content</li>
-            <li>Participate in the Zoroasterverse community</li>
+            <li>Participate in the Zoroastervers community</li>
           </ul>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -217,8 +217,8 @@ function generateWelcomeEmail(data) {
         </div>
         
         <div class="footer">
-          <p>Welcome to the Zoroasterverse family!</p>
-          <p>© ${new Date().getFullYear()} Zoroasterverse. All rights reserved.</p>
+          <p>Welcome to the Zoroastervers family!</p>
+          <p>© ${new Date().getFullYear()} Zoroastervers. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -251,13 +251,13 @@ function generateTrialEndingEmail(data) {
       <div class="container">
         <div class="header">
           <h1>⏰ Trial Ending Soon</h1>
-          <p>Don't lose access to Zoroasterverse</p>
+          <p>Don't lose access to Zoroastervers</p>
         </div>
         
         <div class="content">
           <div class="warning">
             <h3>⚠️ Your free trial is ending soon!</h3>
-            <p>To continue enjoying unlimited access to Zoroasterverse content, please ensure your payment method is up to date.</p>
+            <p>To continue enjoying unlimited access to Zoroastervers content, please ensure your payment method is up to date.</p>
           </div>
           
           <h3>What happens next?</h3>
@@ -274,8 +274,8 @@ function generateTrialEndingEmail(data) {
         </div>
         
         <div class="footer">
-          <p>Questions? Contact us at support@zoroasterverse.com</p>
-          <p>© ${new Date().getFullYear()} Zoroasterverse. All rights reserved.</p>
+          <p>Questions? Contact us at support@zoroastervers.com</p>
+          <p>© ${new Date().getFullYear()} Zoroastervers. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -338,8 +338,8 @@ function generatePaymentFailedEmail(data) {
         </div>
         
         <div class="footer">
-          <p>Need help? Contact us at support@zoroasterverse.com</p>
-          <p>© ${new Date().getFullYear()} Zoroasterverse. All rights reserved.</p>
+          <p>Need help? Contact us at support@zoroastervers.com</p>
+          <p>© ${new Date().getFullYear()} Zoroastervers. All rights reserved.</p>
         </div>
       </div>
     </body>
@@ -389,12 +389,12 @@ function generateSubscriptionCanceledEmail(data) {
             <a href="${process.env.CORS_ORIGIN}/support" class="btn">Give Feedback</a>
           </div>
           
-          <p>Thank you for being part of the Zoroasterverse community!</p>
+          <p>Thank you for being part of the Zoroastervers community!</p>
         </div>
         
         <div class="footer">
-          <p>Questions? Contact us at support@zoroasterverse.com</p>
-          <p>© ${new Date().getFullYear()} Zoroasterverse. All rights reserved.</p>
+          <p>Questions? Contact us at support@zoroastervers.com</p>
+          <p>© ${new Date().getFullYear()} Zoroastervers. All rights reserved.</p>
         </div>
       </div>
     </body>

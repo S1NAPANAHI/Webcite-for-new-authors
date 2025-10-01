@@ -711,7 +711,7 @@ export default function LibraryPage() {
         {/* Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Zoroasterverse Library</h1>
+            <h1 className="text-3xl font-bold text-foreground">Zoroastervers Library</h1>
             <p className="text-muted-foreground mt-1">
               Discover and read epic tales from the world of ancient Persia
             </p>

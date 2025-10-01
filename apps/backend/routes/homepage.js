@@ -91,7 +91,7 @@ router.get('/', requireSupabase, async (req, res) => {
     // Handle content not found gracefully
     const content = contentResult.data || {
       id: 'homepage',
-      hero_title: 'Zoroasterverse',
+      hero_title: 'Zoroastervers',
       hero_subtitle: '',
       hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
       hero_quote: '"Happiness comes to them who bring happiness to others."',
@@ -155,7 +155,7 @@ router.get('/hero', requireSupabase, async (req, res) => {
 
     // Handle hero content not found gracefully with live site defaults
     const heroContent = data || {
-      hero_title: 'ZOROASTERVERSE',
+      hero_title: 'ZOROASTERVERS',
       hero_subtitle: '',
       hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the worlds oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
       hero_quote: 'Happiness comes to them who bring happiness to others.',
@@ -252,7 +252,7 @@ router.get('/content', requireSupabase, async (req, res) => {
     // Handle content not found gracefully
     const content = data || {
       id: 'homepage',
-      hero_title: 'Zoroasterverse',
+      hero_title: 'Zoroastervers',
       hero_subtitle: '',
       hero_description: 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.',
       hero_quote: '"Happiness comes to them who bring happiness to others."',

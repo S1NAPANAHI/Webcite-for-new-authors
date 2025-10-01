@@ -143,7 +143,7 @@ const HeroSection: React.FC<{
   quotes?: ProphecyQuote[]
 }> = ({ homepageData, spinsLeft, setSpinsLeft, onSpin, quotes }) => {
     const content = homepageData?.content;
-    const title = content?.hero_title || 'Zoroasterverse';
+    const title = content?.hero_title || 'Zoroastervers';
     const quote = content?.hero_quote || '"Happiness comes to them who bring happiness to others."';
     const intro = content?.hero_description || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
     const ctaText = content?.cta_button_text || 'Learn More';

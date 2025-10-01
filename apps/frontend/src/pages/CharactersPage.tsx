@@ -397,7 +397,7 @@ const CharactersPage: React.FC = () => {
             <div>
               <h1 className="text-4xl font-bold text-foreground mb-2">Characters</h1>
               <p className="text-xl text-muted-foreground">
-                Explore the rich cast of characters in the Zoroasterverse
+                Explore the rich cast of characters in the Zoroastervers
               </p>
             </div>
             

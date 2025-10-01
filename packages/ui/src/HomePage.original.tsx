@@ -517,7 +517,7 @@ const DualScrollingProphecy: React.FC<{ spinsLeft: number, setSpinsLeft: React.D
 
 // --- UI COMPONENTS ---
 const HeroSection: React.FC<{ contentMap: Map<string, HomepageContentItem>, spinsLeft: number, setSpinsLeft: React.Dispatch<React.SetStateAction<number>> }> = ({ contentMap, spinsLeft, setSpinsLeft }) => {
-    const title = contentMap.get('hero_title')?.content || 'Zoroasterverse';
+    const title = contentMap.get('hero_title')?.content || 'Zoroastervers';
     const quote = contentMap.get('hero_quote')?.content || '“Happiness comes to them who bring happiness to others.”';
     const intro = contentMap.get('hero_description')?.content || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world’s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
 

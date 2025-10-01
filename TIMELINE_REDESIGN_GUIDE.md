@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide documents the enhanced Hybrid Cosmic + Linear Timeline redesign for the Zoroasterverse timeline page. The new design preserves the mystical cosmic aesthetic while dramatically improving functionality and user experience.
+This guide documents the enhanced Hybrid Cosmic + Linear Timeline redesign for the Zoroastervers timeline page. The new design preserves the mystical cosmic aesthetic while dramatically improving functionality and user experience.
 
 ## Key Features Implemented
 
@@ -284,7 +284,7 @@ When contributing to the timeline:
 
 ## Conclusion
 
-This redesign maintains the magical cosmic aesthetic of your Zoroasterverse while creating a much more functional and engaging timeline experience. Users can:
+This redesign maintains the magical cosmic aesthetic of your Zoroastervers while creating a much more functional and engaging timeline experience. Users can:
 
 1. **Discover**: Start with the beautiful cosmic dial
 2. **Explore**: Dive into specific ages with detailed views

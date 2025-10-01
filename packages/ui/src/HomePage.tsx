@@ -147,7 +147,7 @@ const HeroSection: React.FC<{
     // Use API data if available, otherwise fall back to old contentMap system
     const apiContent = homepageApiData?.content;
     
-    const title = apiContent?.hero_title || contentMap.get('hero_title')?.content || 'Zoroasterverse';
+    const title = apiContent?.hero_title || contentMap.get('hero_title')?.content || 'Zoroastervers';
     const quote = apiContent?.hero_quote || contentMap.get('hero_quote')?.content || '"Happiness comes to them who bring happiness to others."';
     const intro = apiContent?.hero_description || contentMap.get('hero_description')?.content || 'Learn about the teachings of the prophet Zarathustra, the history of one of the world\'s oldest religions, and the principles of Good Thoughts, Good Words, and Good Deeds.';
     const ctaText = apiContent?.cta_button_text || 'Learn More';

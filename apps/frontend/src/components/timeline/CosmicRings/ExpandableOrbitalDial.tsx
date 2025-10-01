@@ -1,20 +1,7 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from 'react';
 import { Age } from '../../../lib/api-timeline';
 import { useEventsByAge } from '../hooks/useTimelineData';
-import "./expandable-orbital.css";
-
-type Layer = {
-  id: string;
-  title: string;
-  subtitle?: string;
-  description?: string;
-  // Optional custom content for the expanded view
-  content?: React.ReactNode;
-  // Optional orbit color; if not provided, gold is used
-  color?: string;
-  // For integration with existing Age data
-  age?: Age;
-};
+import './expandable-orbital.css';
 
 export interface ExpandableOrbitalDialProps {
   ages: Age[];
@@ -23,244 +10,532 @@ export interface ExpandableOrbitalDialProps {
   className?: string;
 }
 
-const DEFAULT_LAYERS: Layer[] = [
-  { id: "1", title: "Primordial Age", subtitle: "The Dawn", description: "The first light and ordering of creation." },
-  { id: "2", title: "Heroic Age", subtitle: "Champions Rise", description: "Epic deeds and trials across the lands." },
-  { id: "3", title: "Dynastic Age", subtitle: "Kingdoms Forge", description: "Thrones rise, empires clash, oaths are sworn." },
-];
+interface OrbitingPlanet {
+  age: Age;
+  orbitRadius: number;
+  angle: number;
+  speed: number;
+  size: number;
+  planetType: string;
+  initialAngle: number;
+  ageIndex: number;
+}
 
 export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
   ages,
   selectedAge,
   onAgeSelect,
-  className = '',
+  className = ''
 }) => {
-  // Convert ages to layers format
-  const layers = useMemo(() => {
-    if (ages.length === 0) return DEFAULT_LAYERS;
-    
-    return ages.map((age, index) => ({
-      id: age.id,
-      title: age.name || age.title || `Age ${age.age_number}` || 'Unknown Age',
-      subtitle: `${age.start_year || '∞'} – ${age.end_year || '∞'}`,
-      description: age.description || 'No description available for this age.',
-      age: age,
-    }));
-  }, [ages]);
+  const [orbitingPlanets, setOrbitingPlanets] = useState<OrbitingPlanet[]>([]);
+  const [planetAngles, setPlanetAngles] = useState<number[]>([]);
+  const [expandedAge, setExpandedAge] = useState<Age | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [viewportDimensions, setViewportDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
+    height: typeof window !== 'undefined' ? window.innerHeight : 1080
+  });
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const [active, setActive] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  // Constants for VERTICAL half-circle design
+  const GOLD = '#CEB548';
+  const CENTER_X = 80;
+  const CENTER_Y = 400;
+  const SUN_RADIUS = 24;
+  const NODE_RADIUS = 16;
+  
+  // Improved spacing for better stacking
+  const MIN_ORBIT_RADIUS = 72;
+  const ORBIT_STEP = 44;
+  
+  // Animation constants
+  const FULL_CIRCLE = 2 * Math.PI;
+  const BASE_SPEED = 0.008;
+  const HIDDEN_SPEED_MULTIPLIER = 3;
+  
+  const NORMAL_SPEED_START = (340 * Math.PI) / 180;
+  const NORMAL_SPEED_END = (200 * Math.PI) / 180;
+
+  const ageNames = [
+    'First Age', 'Second Age', 'Third Age', 'Fourth Age', 'Fifth Age',
+    'Sixth Age', 'Seventh Age', 'Eighth Age', 'Ninth Age'
+  ];
+
+  // Update viewport dimensions on resize
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Disable body scroll when expanded
   useEffect(() => {
-    if (expanded) {
+    if (expandedAge) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       return () => {
         document.body.style.overflow = prev;
       };
     }
-  }, [expanded]);
+  }, [expandedAge]);
 
   // Close on Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape" && expanded) collapse();
+      if (e.key === "Escape" && expandedAge) handleCloseExpanded();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [expanded]);
+  }, [expandedAge]);
 
-  const expand = (idx: number) => {
-    setActive(idx);
-    // Select the age for parent component
-    if (layers[idx].age) {
-      onAgeSelect(layers[idx].age!);
+  // Initialize orbiting planets
+  useEffect(() => {
+    if (ages.length === 0) return;
+
+    const planets: OrbitingPlanet[] = ages.map((age, index) => {
+      const randomStartAngle = Math.random() * 2 * Math.PI;
+      
+      return {
+        age,
+        orbitRadius: MIN_ORBIT_RADIUS + (index * ORBIT_STEP),
+        angle: randomStartAngle,
+        speed: 0.015 + (index * 0.003),
+        size: NODE_RADIUS,
+        planetType: ageNames[index] || `${age.age_number} Age`,
+        initialAngle: randomStartAngle,
+        ageIndex: index
+      };
+    });
+
+    setOrbitingPlanets(planets);
+    setPlanetAngles(planets.map(p => p.initialAngle));
+  }, [ages]);
+
+  // Animation loop - pause when expanded
+  useEffect(() => {
+    let animationId: number;
+    
+    if (expandedAge) return;
+    
+    const animate = () => {
+      setPlanetAngles(prevAngles => 
+        prevAngles.map((angle) => {
+          let normalizedAngle = (angle % FULL_CIRCLE + FULL_CIRCLE) % FULL_CIRCLE;
+          const isInNormalSpeedRange = (normalizedAngle >= NORMAL_SPEED_START) || (normalizedAngle <= NORMAL_SPEED_END);
+          
+          let delta = isInNormalSpeedRange ? BASE_SPEED : BASE_SPEED * HIDDEN_SPEED_MULTIPLIER;
+          return angle + delta;
+        })
+      );
+      
+      animationId = requestAnimationFrame(animate);
+    };
+    
+    animationId = requestAnimationFrame(animate);
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+    };
+  }, [expandedAge]);
+
+  // Handle semicircle clicks with smooth expansion
+  const handleSemicircleClick = (planet: OrbitingPlanet, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (isAnimating) return;
+
+    console.log(`Semicircle ${planet.ageIndex + 1} clicked:`, planet.age.name);
+    
+    setIsAnimating(true);
+    onAgeSelect(planet.age);
+    
+    if (expandedAge?.id === planet.age.id) {
+      // Collapse
+      setExpandedAge(null);
+      setTimeout(() => setIsAnimating(false), 1200);
+    } else {
+      // Expand with smooth animation
+      setExpandedAge(planet.age);
+      setTimeout(() => setIsAnimating(false), 1200);
     }
-    // Small delay lets CSS read initial state before animating
-    requestAnimationFrame(() => setExpanded(true));
   };
 
-  const collapse = () => {
-    setExpanded(false);
-    // Let the collapse animation finish before clearing active
-    setTimeout(() => setActive(null), 350);
+  // Handle text label clicks 
+  const handleTextClick = (planet: OrbitingPlanet, event: React.MouseEvent) => {
+    event.stopPropagation();
+    handleSemicircleClick(planet, event);
   };
 
-  const onBackgroundClick = (e: React.MouseEvent) => {
+  const handleCloseExpanded = (event?: React.MouseEvent) => {
+    if (event) event.stopPropagation();
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    setExpandedAge(null);
+    setTimeout(() => setIsAnimating(false), 1200);
+  };
+
+  const handleBackgroundClick = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest(".orbital-expanded-content")) return;
-    collapse();
+    if (expandedAge && !isAnimating) {
+      handleCloseExpanded();
+    }
+  };
+
+  // Calculate planet positions
+  const calculatePlanetPosition = (planetIndex: number) => {
+    if (!planetAngles[planetIndex] || !orbitingPlanets[planetIndex]) {
+      return { x: CENTER_X, y: CENTER_Y, angle: 0 };
+    }
+    
+    const planet = orbitingPlanets[planetIndex];
+    const currentAngle = planetAngles[planetIndex];
+    const displayAngle = currentAngle - Math.PI / 2;
+    
+    const x = CENTER_X + Math.cos(displayAngle) * planet.orbitRadius;
+    const y = CENTER_Y + Math.sin(displayAngle) * planet.orbitRadius;
+    
+    return { x, y, angle: displayAngle };
+  };
+
+  // Create semicircle paths
+  const createSemicircleLayerPath = (radius: number) => {
+    const startX = CENTER_X;
+    const startY = CENTER_Y - radius;
+    const endX = CENTER_X;
+    const endY = CENTER_Y + radius;
+    
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY} L ${CENTER_X} ${CENTER_Y} Z`;
+  };
+
+  // Create orbit paths for text
+  const createVerticalHalfCirclePath = (radius: number) => {
+    const startX = CENTER_X;
+    const startY = CENTER_Y - radius;
+    const endX = CENTER_X;
+    const endY = CENTER_Y + radius;
+    
+    return `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
+  };
+
+  // Create segmented orbit paths
+  const createSegmentedOrbitPath = (radius: number, textContent: string) => {
+    const avgCharWidth = 12;
+    const letterSpacing = 0.08;
+    const approxTextWidth = textContent.length * avgCharWidth * (1 + letterSpacing);
+    const arcLength = approxTextWidth + 20;
+    const textSegmentAngle = arcLength / radius;
+    
+    const startAngle = -Math.PI / 2;
+    const endAngle = Math.PI / 2;
+    const textCenterAngle = 0;
+    const textStartAngle = textCenterAngle - textSegmentAngle / 2;
+    const textEndAngle = textCenterAngle + textSegmentAngle / 2;
+    
+    const startX = CENTER_X + Math.cos(startAngle) * radius;
+    const startY = CENTER_Y + Math.sin(startAngle) * radius;
+    const cutStartX = CENTER_X + Math.cos(textStartAngle) * radius;
+    const cutStartY = CENTER_Y + Math.sin(textStartAngle) * radius;
+    const cutEndX = CENTER_X + Math.cos(textEndAngle) * radius;
+    const cutEndY = CENTER_Y + Math.sin(textEndAngle) * radius;
+    const endX = CENTER_X + Math.cos(endAngle) * radius;
+    const endY = CENTER_Y + Math.sin(endAngle) * radius;
+    
+    return {
+      beforeText: `M ${startX} ${startY} A ${radius} ${radius} 0 0 1 ${cutStartX} ${cutStartY}`,
+      afterText: `M ${cutEndX} ${cutEndY} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`
+    };
+  };
+
+  const { events, loading, error } = useEventsByAge(expandedAge?.id || '');
+
+  const getAgeDisplayName = (age: Age): string => {
+    return age.name || age.title || `Age ${age.age_number}` || 'Unknown Age';
+  };
+
+  // Render expanded content overlay
+  const renderExpandedContent = () => {
+    if (!expandedAge) return null;
+    
+    return (
+      <div className="orbital-overlay is-expanded" onClick={handleBackgroundClick}>
+        <div className="orbital-overlay-fill" style={{ "--ring-color": "var(--gold-500)" } as React.CSSProperties} />
+        
+        <div className="orbital-expanded-content" onClick={(e) => e.stopPropagation()}>
+          <div className="expanded-topbar">
+            <div className="title-wrap">
+              <h2 className="expanded-title">{getAgeDisplayName(expandedAge)}</h2>
+              <div className="expanded-sub">
+                {expandedAge.start_year || '∞'} – {expandedAge.end_year || '∞'}
+              </div>
+            </div>
+
+            <button className="close-btn" onClick={handleCloseExpanded} aria-label="Close">
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M18 6L6 18M6 6l12 12"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div className="expanded-body">
+            {expandedAge.description ? (
+              <p className="expanded-desc">{expandedAge.description}</p>
+            ) : null}
+
+            <div className="age-events-section">
+              {events.length > 0 && (
+                <>
+                  <h3 className="events-title">Timeline Events</h3>
+                  <div className="expanded-grid">
+                    {events.slice(0, 6).map((event) => (
+                      <div key={event.id} className="grid-item">
+                        <div className="item-head">
+                          {new Date(event.date).getFullYear()}
+                        </div>
+                        <div className="item-body">
+                          <h4 className="event-title">{event.title}</h4>
+                          <p className="event-description">
+                            {event.description?.substring(0, 120)}
+                            {event.description && event.description.length > 120 ? '...' : ''}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {events.length > 6 && (
+                    <p className="more-events-note">
+                      +{events.length - 6} more events in this age
+                    </p>
+                  )}
+                </>
+              )}
+              
+              {events.length === 0 && !loading && (
+                <div className="expanded-grid">
+                  <div className="grid-item">
+                    <div className="item-head">Key Event</div>
+                    <div className="item-body">Founding of sacred order and covenantal rite.</div>
+                  </div>
+                  <div className="grid-item">
+                    <div className="item-head">Adversary</div>
+                    <div className="item-body">Serpentine usurper stirs at the edge of empire.</div>
+                  </div>
+                  <div className="grid-item">
+                    <div className="item-head">Relics</div>
+                    <div className="item-body">Avestan tablets, consecrated flame, seven seals.</div>
+                  </div>
+                </div>
+              )}
+              
+              {loading && (
+                <div className="loading-state">
+                  <div className="loading-spinner"></div>
+                  <p className="loading-text">Loading events...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
-    <div ref={rootRef} className={`orbital-dial-root ${className}`}>
-      {/* Stacked semicircles (compact state) */}
-      <div className={`orbital-stack ${expanded ? "is-hidden" : ""}`}>
-        {layers.map((layer, i) => (
-          <button
-            key={layer.id}
-            className="orbital-layer"
-            style={
-              {
-                // Control offset and thickness per ring; tweak as needed
-                "--layer-index": i,
-                "--ring-color": layer.color || "var(--gold-500)",
-              } as React.CSSProperties
-            }
-            onClick={() => expand(i)}
-            aria-label={`Open ${layer.title}`}
-          >
-            <span className="orbital-layer-outline" />
-            <span className="orbital-layer-label">
-              <span className="label-title">{layer.title}</span>
-              {layer.subtitle ? <span className="label-sub">{layer.subtitle}</span> : null}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* Full-screen expansion with integrated content (no modal) */}
-      {active !== null && (
-        <div
-          className={`orbital-overlay ${expanded ? "is-expanded" : "is-collapsing"}`}
-          onMouseDown={onBackgroundClick}
-          role="dialog"
-          aria-modal="true"
-          aria-label={`${layers[active].title} details`}
+    <div className={`expandable-orbital-dial ${className} ${expandedAge ? 'has-expanded' : ''}`} ref={containerRef}>
+      <div className="orbital-background" />
+      
+      <div className="orbital-container">
+        <svg 
+          width={viewportDimensions.width}
+          height={viewportDimensions.height}
+          viewBox={`0 0 ${viewportDimensions.width} ${viewportDimensions.height}`}
+          className="orbital-svg expandable"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh'
+          }}
         >
-          {/* This is the golden background that animates from a left-side semicircle to full-screen */}
-          <div
-            className="orbital-overlay-fill"
-            style={
-              {
-                "--ring-color": layers[active].color || "var(--gold-500)",
-              } as React.CSSProperties
-            }
+          <defs>
+            {/* Text paths */}
+            {orbitingPlanets.map((planet, index) => (
+              <path
+                key={`textpath-${index}`}
+                id={`expandable-orbit-path-${index}`}
+                d={createVerticalHalfCirclePath(planet.orbitRadius)}
+                fill="none"
+              />
+            ))}
+            
+            {/* Filters and gradients */}
+            <filter id="subtleChalkyTexture" x="-5%" y="-5%" width="110%" height="110%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="0.8"/>
+            </filter>
+            
+            {orbitingPlanets.map((planet, index) => (
+              <radialGradient 
+                key={`layer-gradient-${index}`}
+                id={`layer-gradient-${index}`} 
+                cx="0.1" cy="0.5" r="0.8"
+              >
+                <stop offset="0%" stopColor={`rgba(206, 181, 72, ${0.03 + (index * 0.015)})`} />
+                <stop offset="50%" stopColor={`rgba(206, 181, 72, ${0.02 + (index * 0.01)})`} />
+                <stop offset="100%" stopColor="rgba(15, 15, 20, 0.2)" />
+              </radialGradient>
+            ))}
+            
+            <radialGradient id="semicircleExpandGrad" cx="50%" cy="50%" r="80%">
+              <stop offset="0%" stopColor="#ffd700" stopOpacity="0.9" />
+              <stop offset="40%" stopColor="#CEB548" stopOpacity="0.7" />
+              <stop offset="80%" stopColor="#8B7539" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#1a1a2e" stopOpacity="0.9" />
+            </radialGradient>
+            
+            <clipPath id="rightHalfClip">
+              <rect 
+                x={CENTER_X - 4} y={0} 
+                width={viewportDimensions.width - (CENTER_X - 4)}
+                height={viewportDimensions.height} 
+              />
+            </clipPath>
+          </defs>
+
+          {/* ENHANCED SEMICIRCLE LAYERS - The main stacked expandable elements */}
+          <g className="semicircle-layers" style={{ opacity: expandedAge ? 0.1 : 1, transition: "opacity 0.6s ease" }}>
+            {orbitingPlanets.map((planet, index) => {
+              const isThisExpanded = expandedAge?.id === planet.age.id;
+              const layerRadius = planet.orbitRadius;
+              
+              return (
+                <g key={`semicircle-layer-${index}`} className="semicircle-layer-group">
+                  <path
+                    d={createSemicircleLayerPath(layerRadius)}
+                    fill={isThisExpanded ? "url(#semicircleExpandGrad)" : `url(#layer-gradient-${index})`}
+                    stroke={GOLD}
+                    strokeWidth={isThisExpanded ? "3" : "1.5"}
+                    strokeOpacity={isThisExpanded ? "0.8" : "0.3"}
+                    className={`semicircle-layer clickable-semicircle ${isThisExpanded ? 'expanded' : ''}`}
+                    data-age-index={index}
+                    style={{
+                      transformOrigin: `${CENTER_X}px ${CENTER_Y}px`,
+                      zIndex: isThisExpanded ? 999 : (50 - index),
+                      transition: "all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                      filter: isThisExpanded 
+                        ? "drop-shadow(0 0 80px rgba(255, 215, 0, 0.6))" 
+                        : `drop-shadow(0 0 4px rgba(206, 181, 72, ${0.2 + (index * 0.05)}))`,
+                      opacity: expandedAge ? (isThisExpanded ? 1 : 0.1) : (0.7 + (index * 0.05)),
+                      cursor: expandedAge ? (isThisExpanded ? "auto" : "not-allowed") : "pointer"
+                    }}
+                    onClick={(e) => {
+                      if (!expandedAge || isThisExpanded) {
+                        handleSemicircleClick(planet, e);
+                      }
+                    }}
+                  />
+                </g>
+              );
+            })}
+          </g>
+
+          {/* Orbital elements - fade when expanded */}
+          <g 
+            className="orbital-elements"
+            style={{
+              opacity: expandedAge ? 0 : 1,
+              transition: "opacity 0.6s ease",
+              pointerEvents: expandedAge ? "none" : "auto"
+            }}
+          >
+            {/* Orbit lines */}
+            {orbitingPlanets.map((planet, index) => {
+              const segments = createSegmentedOrbitPath(planet.orbitRadius, planet.planetType);
+              return (
+                <g key={`orbit-segments-${index}`}>
+                  <path d={segments.beforeText} stroke={GOLD} strokeWidth={2.5} fill="none" 
+                    className="orbit-line static" strokeLinecap="round" />
+                  <path d={segments.afterText} stroke={GOLD} strokeWidth={2.5} fill="none" 
+                    className="orbit-line static" strokeLinecap="round" />
+                </g>
+              );
+            })}
+
+            {/* Age text labels - CLICKABLE */}
+            {orbitingPlanets.map((planet, index) => (
+              <text
+                key={`orbit-text-${index}`}
+                fontSize="18"
+                fontFamily="Papyrus, serif"
+                fill={GOLD}
+                fontWeight="bold"
+                className="orbit-text clickable-text"
+                letterSpacing="0.08em"
+                style={{ cursor: "pointer" }}
+                onClick={(e) => handleTextClick(planet, e)}
+              >
+                <textPath href={`#expandable-orbit-path-${index}`} startOffset="50%" textAnchor="middle">
+                  {planet.planetType}
+                </textPath>
+              </text>
+            ))}
+          </g>
+
+          {/* Central sun */}
+          <circle
+            cx={CENTER_X} cy={CENTER_Y} r={SUN_RADIUS}
+            fill={GOLD}
+            className="central-sun-flat"
+            style={{
+              opacity: expandedAge ? 0 : 1,
+              transition: "opacity 0.6s ease",
+              filter: "drop-shadow(0 0 12px rgba(206, 181, 72, 0.6))"
+            }}
           />
 
-          {/* Integrated content on the golden background */}
-          <ExpandedContent 
-            layer={layers[active]} 
-            onClose={collapse}
-            onContentClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+          {/* Moving planets */}
+          <g 
+            clipPath="url(#rightHalfClip)"
+            style={{ opacity: expandedAge ? 0 : 1, transition: "opacity 0.6s ease" }}
+          >
+            {orbitingPlanets.map((planet, index) => {
+              const position = calculatePlanetPosition(index);
+              const selected = selectedAge?.id === planet.age.id;
+              
+              return (
+                <g key={`planet-group-${index}`}>
+                  <circle
+                    cx={position.x} cy={position.y} r={NODE_RADIUS}
+                    fill={GOLD}
+                    className={`planet-node ${selected ? 'selected' : ''}`}
+                    style={{ filter: "drop-shadow(0 0 6px rgba(206, 181, 72, 0.4))" }}
+                  />
+                  {selected && (
+                    <circle
+                      cx={position.x} cy={position.y} r={NODE_RADIUS + 6}
+                      stroke={GOLD} strokeWidth={2} fill="none"
+                      className="selection-ring" opacity="0.8"
+                    />
+                  )}
+                </g>
+              );
+            })}
+          </g>
+        </svg>
+      </div>
+      
+      {/* Expanded content overlay */}
+      {renderExpandedContent()}
     </div>
   );
 };
-
-// Separate component for expanded content to keep main component clean
-interface ExpandedContentProps {
-  layer: Layer;
-  onClose: () => void;
-  onContentClick: (e: React.MouseEvent) => void;
-}
-
-const ExpandedContent: React.FC<ExpandedContentProps> = ({ layer, onClose, onContentClick }) => {
-  const { events, loading, error } = useEventsByAge(layer.age?.id || '');
-
-  return (
-    <div className="orbital-expanded-content" onMouseDown={onContentClick}>
-      <div className="expanded-topbar">
-        <div className="title-wrap">
-          <h2 className="expanded-title">{layer.title}</h2>
-          {layer.subtitle ? <div className="expanded-sub">{layer.subtitle}</div> : null}
-        </div>
-
-        <button className="close-btn" onClick={onClose} aria-label="Close">
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M18 6L6 18M6 6l12 12"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div className="expanded-body">
-        {layer.description ? (
-          <p className="expanded-desc">{layer.description}</p>
-        ) : null}
-
-        {/* Events section */}
-        {layer.age && (
-          <div className="age-events-section">
-            {loading && (
-              <div className="loading-state">
-                <div className="loading-spinner"></div>
-                <p className="loading-text">Loading events...</p>
-              </div>
-            )}
-            
-            {error && (
-              <div className="error-state">
-                <p className="error-text">Failed to load events</p>
-              </div>
-            )}
-            
-            {!loading && !error && events.length > 0 && (
-              <>
-                <h3 className="events-title">Timeline Events</h3>
-                <div className="expanded-grid">
-                  {events.slice(0, 6).map((event) => (
-                    <div key={event.id} className="grid-item">
-                      <div className="item-head">
-                        {new Date(event.date).getFullYear()}
-                      </div>
-                      <div className="item-body">
-                        <h4 className="event-title">{event.title}</h4>
-                        <p className="event-description">
-                          {event.description?.substring(0, 120)}
-                          {event.description && event.description.length > 120 ? '...' : ''}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {events.length > 6 && (
-                  <p className="more-events-note">
-                    +{events.length - 6} more events in this age
-                  </p>
-                )}
-              </>
-            )}
-            
-            {!loading && !error && events.length === 0 && (
-              <div className="no-events-state">
-                <div className="item-head">No Events</div>
-                <div className="item-body">This age has no recorded timeline events yet.</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Example content when no age data */}
-        {!layer.age && (
-          <div className="expanded-grid">
-            <div className="grid-item">
-              <div className="item-head">Key Event</div>
-              <div className="item-body">Founding of sacred order and covenantal rite.</div>
-            </div>
-            <div className="grid-item">
-              <div className="item-head">Adversary</div>
-              <div className="item-body">Serpentine usurper stirs at the edge of empire.</div>
-            </div>
-            <div className="grid-item">
-              <div className="item-head">Relics</div>
-              <div className="item-body">Avestan tablets, consecrated flame, seven seals.</div>
-            </div>
-          </div>
-        )}
-
-        {/* If a layer provides custom content, render it after defaults */}
-        {layer.content}
-      </div>
-    </div>
-  );
-};
-
-export default ExpandableOrbitalDial;

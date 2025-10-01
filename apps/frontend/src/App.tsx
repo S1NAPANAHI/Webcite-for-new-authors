@@ -73,6 +73,7 @@ import LearnCategoriesManager from './pages/admin/learn/LearnCategoriesManager';
 import StorePage from './pages/StorePage';
 // NEW: Social Media Generator Import
 import { SocialMediaRoutes } from './admin/SocialMediaRoutes';
+import DownloadAppPage from './pages/DownloadAppPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -211,6 +212,7 @@ const AppContent: React.FC = () => {
         <Route path="/learn" element={<LearnPageEnhanced />} />
         <Route path="/learn/authors-journey/:slug" element={<AuthorJourneyPostPage />} />
         <Route path="/learn/writing-guides/:slug" element={<WritingGuidePage />} />
+        <Route path="/download-app" element={<DownloadAppPage />} />
         
         {/* New Library Routes */}
         <Route path="/library" element={<LibraryPageNew />} />

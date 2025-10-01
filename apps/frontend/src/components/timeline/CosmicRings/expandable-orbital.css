@@ -106,15 +106,12 @@
   transition: opacity 0.3s ease;
 }
 
-/* Planet nodes */
-.planet-node.expandable {
+/* Planet nodes - now non-clickable, purely visual */
+.planet-node.non-clickable {
   transition: all 0.3s ease;
   filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6));
-}
-
-.planet-node.expandable:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 12px rgba(206, 181, 72, 0.8));
+  pointer-events: none;
+  cursor: default;
 }
 
 .planet-node.selected {
@@ -125,6 +122,33 @@
   0% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
   50% { filter: drop-shadow(0 0 16px rgba(206, 181, 72, 1)); }
   100% { filter: drop-shadow(0 0 8px rgba(206, 181, 72, 0.6)); }
+}
+
+/* CLICKABLE TEXT STYLES */
+.orbit-text.clickable-text {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.orbit-text.clickable-text:hover {
+  fill: #ffd700;
+  font-size: 22px;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+  transform: scale(1.05);
+}
+
+.orbit-text.clickable-text:active {
+  transform: scale(0.95);
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 1));
+}
+
+/* Add a subtle glow to indicate clickability */
+.orbit-text.clickable-text {
+  filter: drop-shadow(0 0 2px rgba(206, 181, 72, 0.3));
+}
+
+.orbit-text.clickable-text:hover {
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.9));
 }
 
 /* Content overlay styling */
@@ -372,7 +396,7 @@
   line-height: 1.4;
 }
 
-/* Instructions styling */
+/* Instructions styling - updated to reflect text-based interaction */
 .instructions.expanded-capable {
   position: fixed;
   bottom: 2rem;
@@ -437,6 +461,15 @@
     top: 1rem;
     right: 1rem;
   }
+  
+  /* Make text slightly larger on mobile for easier clicking */
+  .orbit-text.clickable-text {
+    font-size: 18px;
+  }
+  
+  .orbit-text.clickable-text:hover {
+    font-size: 20px;
+  }
 }
 
 /* Smooth transitions for all interactive elements */
@@ -456,6 +489,10 @@
     background: rgba(0, 0, 0, 0.95);
     border-color: #CEB548;
   }
+  
+  .orbit-text.clickable-text {
+    filter: drop-shadow(0 0 4px rgba(206, 181, 72, 1));
+  }
 }
 
 /* Reduced motion support */
@@ -466,7 +503,19 @@
     animation: none;
   }
   
+  .orbit-text.clickable-text:hover {
+    transform: none;
+    font-size: 20px;
+  }
+  
   * {
     transition: none;
   }
+}
+
+/* Focus styles for accessibility */
+.orbit-text.clickable-text:focus {
+  outline: 2px solid #CEB548;
+  outline-offset: 2px;
+  fill: #ffd700;
 }

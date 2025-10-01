@@ -262,17 +262,34 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
     };
   };
 
-  // Create expandable semicircle path for the expanded age
-  const createExpandableSemicirclePath = (radius: number) => {
+  // Create semicircle layer path for stacking
+  const createSemicircleLayerPath = (radius: number) => {
     const startX = CENTER_X;
     const startY = CENTER_Y - radius;
     const endX = CENTER_X;
     const endY = CENTER_Y + radius;
     
-    // Create full semicircle path for expansion
+    // Create filled semicircle path
     return `
       M ${startX} ${startY}
       A ${radius} ${radius} 0 0 1 ${endX} ${endY}
+      L ${CENTER_X} ${CENTER_Y}
+      Z
+    `;
+  };
+
+  // Create expandable semicircle path for the expanded age - covers full viewport
+  const createExpandableSemicirclePath = (radius: number) => {
+    const maxRadius = getMaxRadius();
+    const startX = CENTER_X;
+    const startY = CENTER_Y - maxRadius;
+    const endX = CENTER_X;
+    const endY = CENTER_Y + maxRadius;
+    
+    // Create full semicircle path for expansion that covers viewport
+    return `
+      M ${startX} ${startY}
+      A ${maxRadius} ${maxRadius} 0 0 1 ${endX} ${endY}
       L ${CENTER_X} ${CENTER_Y}
       Z
     `;
@@ -341,7 +358,22 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
               />
             </filter>
             
-            {/* Gradient for expanded age */}
+            {/* Gradients for semicircle layers */}
+            {orbitingPlanets.map((planet, index) => (
+              <radialGradient 
+                key={`layer-gradient-${index}`}
+                id={`layer-gradient-${index}`} 
+                cx="0.1" 
+                cy="0.5" 
+                r="0.8"
+              >
+                <stop offset="0%" stopColor={`rgba(206, 181, 72, ${0.02 + (index * 0.01)})`} />
+                <stop offset="50%" stopColor={`rgba(206, 181, 72, ${0.01 + (index * 0.005)})`} />
+                <stop offset="100%" stopColor="rgba(15, 15, 20, 0.1)" />
+              </radialGradient>
+            ))}
+            
+            {/* Expanded age gradient */}
             <radialGradient id="expanded-age-gradient" cx="0.1" cy="0.5" r="0.8">
               <stop offset="0%" stopColor="rgba(206, 181, 72, 0.15)" />
               <stop offset="30%" stopColor="rgba(206, 181, 72, 0.08)" />
@@ -361,22 +393,33 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
             </clipPath>
           </defs>
 
-          {/* Expanded age semicircle - render first so it's behind everything */}
-          {expandedAge && expandedPlanet && (
-            <g className={`expanded-age-layer ${showContent ? 'visible' : ''}`}>
-              <path
-                d={createExpandableSemicirclePath(maxRadius)}
-                fill="url(#expanded-age-gradient)"
-                stroke={GOLD}
-                strokeWidth="2"
-                strokeOpacity="0.8"
-                className="expanded-semicircle"
-                data-age={expandedPlanet.ageIndex}
-              />
-            </g>
-          )}
+          {/* SEMICIRCLE LAYERS - Stacked underneath orbital elements */}
+          <g className="semicircle-layers">
+            {orbitingPlanets.map((planet, index) => {
+              const isThisExpanded = expandedAge?.id === planet.age.id;
+              const layerRadius = planet.orbitRadius;
+              
+              return (
+                <g key={`semicircle-layer-${index}`} className="semicircle-layer-group">
+                  <path
+                    d={isThisExpanded ? createExpandableSemicirclePath(layerRadius) : createSemicircleLayerPath(layerRadius)}
+                    fill={`url(#layer-gradient-${index})`}
+                    stroke={GOLD}
+                    strokeWidth={isThisExpanded ? "3" : "1"}
+                    strokeOpacity={isThisExpanded ? "0.8" : "0.2"}
+                    className={`semicircle-layer ${isThisExpanded ? 'expanded' : ''}`}
+                    data-age-index={index}
+                    style={{
+                      transformOrigin: `${CENTER_X}px ${CENTER_Y}px`,
+                      zIndex: 9 - index // 9th age (index 8) has lowest z-index, 1st age (index 0) has highest
+                    }}
+                  />
+                </g>
+              );
+            })}
+          </g>
 
-          {/* Regular orbit lines and text - hidden when expanded */}
+          {/* Regular orbit lines and text - above the semicircle layers */}
           {!expandedAge && (
             <g className="orbital-elements">
               {/* Orbit lines with DYNAMIC text-sized cut-outs */}
@@ -489,8 +532,8 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
       </div>
 
       {/* Content overlay - appears within expanded semicircle */}
-      {expandedAge && expandedPlanet && (
-        <div className={`expanded-content ${showContent ? 'visible' : ''}`}>
+      {expandedAge && expandedPlanet && showContent && (
+        <div className="expanded-content visible">
           <button 
             className="close-btn"
             onClick={handleCloseExpanded}
@@ -551,33 +594,6 @@ export const ExpandableOrbitalDial: React.FC<ExpandableOrbitalDialProps> = ({
                 <p>Loading events...</p>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Age info panel - only show when not expanded */}
-      {selectedAge && !expandedAge && (
-        <div className="selected-age-info vertical improved">
-          <h3 className="age-title papyrus">{selectedAge.name || selectedAge.title}</h3>
-          <p className="age-years papyrus">
-            {selectedAge.start_year ? `${selectedAge.start_year}` : '∞'} - {selectedAge.end_year || '∞'}
-          </p>
-          <p className="age-description papyrus">
-            {selectedAge.description?.substring(0, 150)}...
-          </p>
-        </div>
-      )}
-
-      {/* Instructions - only show when not expanded */}
-      {!expandedAge && (
-        <div className="instructions expanded-capable">
-          <h3>Orbital Timeline</h3>
-          <p>Click any age name text along the orbital paths to expand its details across the page.</p>
-          <div className="tips">
-            <span>📜 Click age name texts to expand</span>
-            <span>🪐 Golden planets are visual elements</span>
-            <span>☀️ Golden sun at center</span>
-            <span>✨ Smooth expansion animations</span>
           </div>
         </div>
       )}

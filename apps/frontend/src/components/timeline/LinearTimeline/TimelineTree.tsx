@@ -321,17 +321,19 @@ const TimelineTree = () => {
     };
   };
 
-  // Create straight orthogonal paths with extended vertical segments
+  // FIXED: Create straight orthogonal paths that go DOWNWARD from parent to child
   const createOrthogonalPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
     if (isAgeToEvent) {
-      // Age to Event - Extended 120px vertical drop for better hierarchy
-      const verticalDrop = 120;
+      // Age to Event - DOWNWARD from age bottom, extended 180px vertical drop
+      const verticalDrop = 180; // Increased for better visibility
       const midY = y1 + verticalDrop;
+      // Ensure we go DOWN: start at age bottom (y1), go down to midY, then horizontal to x2, then down to event top (y2)
       return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     } else {
-      // Event to Sub-event - Extended 80px vertical drop for clearer separation
-      const verticalDrop = 80;
+      // Event to Sub-event - DOWNWARD from event bottom, extended 120px vertical drop  
+      const verticalDrop = 120; // Increased for better visibility
       const midY = y1 + verticalDrop;
+      // Ensure we go DOWN: start at event bottom (y1), go down to midY, then horizontal to x2, then down to sub-event top (y2)
       return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     }
   };
@@ -348,20 +350,26 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              // Age bottom to Event top - proper downward flow
-              newLines.push({
-                path: createOrthogonalPath(agePos.x, agePos.bottom, eventPos.x, eventPos.top, true)
-              });
+              // FIXED: Age bottom to Event top - ensure downward flow
+              // Only create line if event is actually below the age (y2 > y1)
+              if (eventPos.top > agePos.bottom) {
+                newLines.push({
+                  path: createOrthogonalPath(agePos.x, agePos.bottom, eventPos.x, eventPos.top, true)
+                });
+              }
             }
 
             if (expandedEvents[event.id as keyof typeof expandedEvents]) {
               event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  // Event bottom to Sub-event top - proper downward flow
-                  newLines.push({
-                    path: createOrthogonalPath(eventPos.x, eventPos.bottom, subPos.x, subPos.top, false)
-                  });
+                  // FIXED: Event bottom to Sub-event top - ensure downward flow
+                  // Only create line if sub-event is actually below the event (y2 > y1)
+                  if (subPos.top > eventPos.bottom) {
+                    newLines.push({
+                      path: createOrthogonalPath(eventPos.x, eventPos.bottom, subPos.x, subPos.top, false)
+                    });
+                  }
                 }
               });
             }
@@ -373,7 +381,7 @@ const TimelineTree = () => {
     };
 
     calculateLines();
-    const timer = setTimeout(calculateLines, 100);
+    const timer = setTimeout(calculateLines, 200); // Increased timeout for better stability
     const handleResize = () => calculateLines();
     window.addEventListener('resize', handleResize);
     return () => {
@@ -384,7 +392,7 @@ const TimelineTree = () => {
 
   return (
     <div className="min-h-screen relative">
-      {/* Clean Dark Background - Removed Blue Backdrop */}
+      {/* Clean Dark Background */}
       <div className="absolute inset-0 bg-slate-900">
         {/* Animated particles */}
         <div className="absolute inset-0 overflow-hidden">
@@ -527,7 +535,7 @@ const TimelineTree = () => {
             </svg>
 
             {/* Central Timeline Spine */}
-            <div className="flex flex-col gap-20 relative" style={{ zIndex: 10, marginLeft: '50%', transform: 'translateX(-50%)' }}>
+            <div className="flex flex-col gap-24 relative" style={{ zIndex: 10, marginLeft: '50%', transform: 'translateX(-50%)' }}>
               {agesData.map((age, ageIndex) => (
                 <div key={age.id} className="relative">
                   {/* Age Card - Central Spine */}
@@ -562,7 +570,7 @@ const TimelineTree = () => {
 
                   {/* Events - Horizontal Branching */}
                   {expandedNodes[age.id as keyof typeof expandedNodes] && (
-                    <div className="mt-32 animate-fadeIn"> {/* Increased spacing for extended vertical lines */}
+                    <div className="mt-48 animate-fadeIn"> {/* INCREASED spacing for longer vertical lines */}
                       {/* Events Row - Horizontal Layout */}
                       <div className="flex justify-center gap-16">
                         {age.events.map((event, eventIdx) => (
@@ -604,7 +612,7 @@ const TimelineTree = () => {
 
                             {/* Sub-events - Horizontal Expansion */}
                             {expandedEvents[event.id as keyof typeof expandedEvents] && (
-                              <div className="mt-20 animate-fadeIn"> {/* Increased spacing for extended vertical lines */}
+                              <div className="mt-32 animate-fadeIn"> {/* INCREASED spacing for longer vertical lines */}
                                 {/* Sub-events in Horizontal Row */}
                                 <div className="flex gap-4 justify-start">
                                   {event.subEvents.map((subEvent, subIdx) => (

@@ -321,16 +321,23 @@ const TimelineTree = () => {
     };
   };
 
-  // Create smooth curved paths for connections
-  const createCurvedPath = (x1: number, y1: number, x2: number, y2: number, controlOffset: number = 50) => {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const ctrl1x = x1 + dx * 0.3;
-    const ctrl1y = y1;
-    const ctrl2x = x2 - dx * 0.3;
-    const ctrl2y = y2;
-    
-    return `M ${x1} ${y1} C ${ctrl1x} ${ctrl1y} ${ctrl2x} ${ctrl2y} ${x2} ${y2}`;
+  // Create MUCH more subtle curved paths for connections
+  const createCurvedPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
+    if (isAgeToEvent) {
+      // Age to Event - gentle curve downward
+      const ctrl1x = x1;
+      const ctrl1y = y1 + 30;  // Small vertical offset
+      const ctrl2x = x2;
+      const ctrl2y = y2 - 30;  // Small vertical offset
+      return `M ${x1} ${y1} C ${ctrl1x} ${ctrl1y} ${ctrl2x} ${ctrl2y} ${x2} ${y2}`;
+    } else {
+      // Event to Sub-event - almost straight with minimal curve
+      const ctrl1x = x1 + 20;  // Very small horizontal offset
+      const ctrl1y = y1;       // No vertical curve
+      const ctrl2x = x2 - 20;  // Very small horizontal offset
+      const ctrl2y = y2;       // No vertical curve
+      return `M ${x1} ${y1} C ${ctrl1x} ${ctrl1y} ${ctrl2x} ${ctrl2y} ${x2} ${y2}`;
+    }
   };
 
   useEffect(() => {
@@ -345,9 +352,9 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              // Age to Event connection
+              // Age to Event connection - subtle curve
               newLines.push({
-                path: createCurvedPath(agePos.x, agePos.bottom, eventPos.x, eventPos.y)
+                path: createCurvedPath(agePos.x, agePos.bottom, eventPos.x, eventPos.y, true)
               });
             }
 
@@ -355,9 +362,9 @@ const TimelineTree = () => {
               event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  // Event to Sub-event connection
+                  // Event to Sub-event connection - almost straight
                   newLines.push({
-                    path: createCurvedPath(eventPos.right, eventPos.y, subPos.left, subPos.y)
+                    path: createCurvedPath(eventPos.right, eventPos.y, subPos.left, subPos.y, false)
                   });
                 }
               });

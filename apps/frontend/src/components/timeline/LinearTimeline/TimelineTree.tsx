@@ -408,15 +408,15 @@ const TimelineTree = () => {
     return `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
   };
 
-  // Create bridge path between ages (chronological connections) - FIXED VERSION
+  // Create bridge path between ages (chronological connections) - FULLY FIXED VERSION
   const createBridgePath = (sourcePos: NodePos, targetPos: NodePos): string => {
     const bridgeDropDistance = 160; // Drop distance for bridge
     
     const startX = sourcePos.centerX;
     const startY = sourcePos.bottom;
     const targetX = targetPos.centerX;
-    // FIXED: Connect to the actual TOP of the target card (not offset inside)
-    const targetY = targetPos.top; // Connect to the actual top edge
+    // FIXED: Connect exactly to the top edge of the target card (no offset)
+    const targetY = targetPos.top;
     const midY = startY + bridgeDropDistance;
 
     return `M ${startX} ${startY} L ${startX} ${midY} L ${targetX} ${midY} L ${targetX} ${targetY}`;
@@ -606,7 +606,7 @@ const TimelineTree = () => {
                 </g>
               ))}
               
-              {/* Connection Nodes - ADJUSTED FOR PROPER POSITIONING */}
+              {/* Connection Nodes - FULLY CORRECTED FOR PROPER BRIDGE CONNECTIONS */}
               {agesData.map((age) => {
                 const agePos = getNodePosition(age.id);
                 if (!agePos) return null;
@@ -625,7 +625,7 @@ const TimelineTree = () => {
                       />
                     )}
                     
-                    {/* Age top node (for bridge connections) - POSITIONED AT EXACT TOP */}
+                    {/* Age top node (for bridge connections) - POSITIONED EXACTLY AT TOP EDGE */}
                     <circle
                       cx={agePos.centerX}
                       cy={agePos.top}

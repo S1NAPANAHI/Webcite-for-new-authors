@@ -408,17 +408,22 @@ const TimelineTree = () => {
     return `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
   };
 
-  // Create bridge path between ages (chronological connections) - FULLY FIXED VERSION
+  // FIXED: Create bridge path between ages with proper downward flow
   const createBridgePath = (sourcePos: NodePos, targetPos: NodePos): string => {
     const bridgeDropDistance = 160; // Drop distance for bridge
     
+    // Start from the bottom of the source node (latest sub-event/event)
     const startX = sourcePos.centerX;
-    const startY = sourcePos.bottom;
+    const startY = sourcePos.bottom; // Use bottom of source node
+    
+    // Target the top of the next age card
     const targetX = targetPos.centerX;
-    // FIXED: Connect exactly to the top edge of the target card (no offset)
-    const targetY = targetPos.top;
-    const midY = startY + bridgeDropDistance;
-
+    const targetY = targetPos.top; // Target top of next age
+    
+    // Calculate the intermediate Y position - should be BELOW the source
+    const midY = Math.max(startY + bridgeDropDistance, targetY - 50); // Ensure we go down then to target
+    
+    // Create path: down from source → across → down to target top
     return `M ${startX} ${startY} L ${startX} ${midY} L ${targetX} ${midY} L ${targetX} ${targetY}`;
   };
 
@@ -457,7 +462,7 @@ const TimelineTree = () => {
         });
       });
 
-      // 2. CHRONOLOGICAL BRIDGES: Latest node of age N → Age N+1
+      // 2. CHRONOLOGICAL BRIDGES: Latest node of age N → Age N+1 (FIXED)
       for (let i = 0; i < agesData.length - 1; i++) {
         const currentAge = agesData[i];
         const nextAge = agesData[i + 1];
@@ -465,8 +470,9 @@ const TimelineTree = () => {
         const latestNode = getLatestNodeForAge(currentAge);
         const nextAgePos = getNodePosition(nextAge.id);
         
-        // Create bridge if both positions exist and next age is below current latest node
-        if (latestNode && nextAgePos && nextAgePos.top > latestNode.bottom) {
+        // Create bridge only if both positions exist
+        // REMOVED the check that was preventing bridges when next age is above latest node
+        if (latestNode && nextAgePos) {
           const bridgePath = createBridgePath(latestNode, nextAgePos);
           newLines.push({ path: bridgePath, type: 'bridge' });
         }
@@ -671,15 +677,27 @@ const TimelineTree = () => {
                             if (!subPos) return null;
                             
                             return (
-                              <circle
-                                key={`sub-node-${subEvent.id}`}
-                                cx={subPos.centerX}
-                                cy={subPos.top + 6}
-                                r="3"
-                                fill="url(#subEventNodeGradient)"
-                                stroke="#0891b2"
-                                strokeWidth="1.5"
-                              />
+                              <g key={`sub-node-group-${subEvent.id}`}>
+                                {/* Sub-event top node */}
+                                <circle
+                                  cx={subPos.centerX}
+                                  cy={subPos.top + 6}
+                                  r="3"
+                                  fill="url(#subEventNodeGradient)"
+                                  stroke="#0891b2"
+                                  strokeWidth="1.5"
+                                />
+                                {/* Sub-event bottom node (for bridge connections) */}
+                                <circle
+                                  cx={subPos.centerX}
+                                  cy={subPos.bottom}
+                                  r="3"
+                                  fill="url(#subEventNodeGradient)"
+                                  stroke="#0891b2"
+                                  strokeWidth="1.5"
+                                  opacity="0.7"
+                                />
+                              </g>
                             );
                           })}
                         </g>

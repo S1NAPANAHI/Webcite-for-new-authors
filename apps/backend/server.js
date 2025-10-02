@@ -31,6 +31,8 @@ import releasesRoutes from './routes/releases.js';
 import charactersRoutesFactory from './src/routes/characters.js';
 // Import commerce routes (NEW FOR CUSTOMER MANAGEMENT)
 import commerceRoutes from './routes/commerce.js';
+// Import authentication routes (NEW FOR ANDROID APP)
+import authRoutes from './routes/auth.js';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -178,7 +180,7 @@ async function startServer() {
 
   // Add enhanced debug logging middleware
   app.use((req, res, next) => {
-    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases') || req.path.startsWith('/api/characters') || req.path.startsWith('/api/commerce')) {
+    if (req.method === 'OPTIONS' || req.path.startsWith('/api/stripe') || req.path.startsWith('/api/subscription') || req.path.startsWith('/api/homepage') || req.path.startsWith('/api/releases') || req.path.startsWith('/api/characters') || req.path.startsWith('/api/commerce') || req.path.startsWith('/api/auth')) {
       console.log('🔍 Request:', {
         method: req.method,
         path: req.path,
@@ -193,6 +195,7 @@ async function startServer() {
   // ========================================
   // MOUNT ROUTE MODULES
   // ========================================
+  app.use('/api/auth', authRoutes); // NEW: Authentication API for Android app
   app.use('/api/subscription', subscriptionRoutes); // Enhanced subscription API
   app.use('/api/homepage', homepageRoutes); // Homepage management API
   app.use('/api/releases', releasesRoutes); // NEW: Releases management API
@@ -274,8 +277,8 @@ async function startServer() {
             quantity: 1,
           },
         ],
-        success_url: `${process.env.FRONTEND_URL}/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/subscriptions`,
+        success_url: `https://www.zoroastervers.com/subscription-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `https://www.zoroastervers.com/subscriptions`,
         metadata: {
           user_id: userId,
         },
@@ -343,6 +346,14 @@ async function startServer() {
     console.log(`✅ CORS configured for:`, Array.from(allowedOrigins));
     console.log(`🔧 Using Stripe API version: 2024-09-30.acacia`);
     console.log(`🎣 Webhook endpoint: http://localhost:${PORT}/api/stripe/webhook`);
+    
+    // NEW: Authentication endpoints for Android app
+    console.log(`🔐 Auth API: http://localhost:${PORT}/api/auth/signin`);
+    console.log(`🔐 Auth Register: http://localhost:${PORT}/api/auth/signup`);
+    console.log(`🔐 Auth Refresh: http://localhost:${PORT}/api/auth/refresh`);
+    console.log(`👤 User Info: http://localhost:${PORT}/api/auth/me`);
+    console.log(`🚪 Auth Signout: http://localhost:${PORT}/api/auth/signout`);
+    
     console.log(`📊 Enhanced Subscription API: http://localhost:${PORT}/api/subscription/status`);
     console.log(`🔄 Subscription refresh: http://localhost:${PORT}/api/subscription/refresh`);
     console.log(`💳 Billing info: http://localhost:${PORT}/api/subscription/billing`);

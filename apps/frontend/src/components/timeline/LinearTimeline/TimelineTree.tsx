@@ -321,23 +321,6 @@ const TimelineTree = () => {
     };
   };
 
-  // FIXED: Create straight orthogonal paths that go DOWNWARD from parent to child
-  const createOrthogonalPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
-    if (isAgeToEvent) {
-      // Age to Event - DOWNWARD from age bottom, extended 180px vertical drop
-      const verticalDrop = 180; // Increased for better visibility
-      const midY = y1 + verticalDrop;
-      // Ensure we go DOWN: start at age bottom (y1), go down to midY, then horizontal to x2, then down to event top (y2)
-      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
-    } else {
-      // Event to Sub-event - DOWNWARD from event bottom, extended 120px vertical drop  
-      const verticalDrop = 120; // Increased for better visibility
-      const midY = y1 + verticalDrop;
-      // Ensure we go DOWN: start at event bottom (y1), go down to midY, then horizontal to x2, then down to sub-event top (y2)
-      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
-    }
-  };
-
   useEffect(() => {
     const calculateLines = () => {
       const newLines: Line[] = [];
@@ -345,33 +328,67 @@ const TimelineTree = () => {
       agesData.forEach((age) => {
         if (expandedNodes[age.id as keyof typeof expandedNodes]) {
           const agePos = getCenter(age.id);
+          if (!agePos) return;
           
-          age.events.forEach((event, eventIdx) => {
-            const eventPos = getCenter(event.id);
+          // Get all event positions for this age
+          const eventPositions = age.events.map(event => ({
+            event,
+            pos: getCenter(event.id)
+          })).filter(item => item.pos !== null);
+          
+          if (eventPositions.length === 0) return;
+          
+          // Find the top-most event card Y position
+          const eventTopY = Math.min(...eventPositions.map(item => item.pos!.top));
+          
+          // FIXED: Draw straight vertical line from age bottom to event level
+          const verticalPath = `M ${agePos.x} ${agePos.bottom} L ${agePos.x} ${eventTopY}`;
+          newLines.push({ path: verticalPath });
+          
+          // FIXED: Draw horizontal lines at event level to each event card
+          eventPositions.forEach(({ event, pos }) => {
+            if (!pos) return;
             
-            if (agePos && eventPos) {
-              // FIXED: Age bottom to Event top - ensure downward flow
-              // Only create line if event is actually below the age (y2 > y1)
-              if (eventPos.top > agePos.bottom) {
-                newLines.push({
-                  path: createOrthogonalPath(agePos.x, agePos.bottom, eventPos.x, eventPos.top, true)
+            // Horizontal line from center spine to event card
+            const horizontalPath = `M ${agePos.x} ${eventTopY} L ${pos.x} ${eventTopY}`;
+            newLines.push({ path: horizontalPath });
+            
+            // Short vertical line from horizontal to event card top (if needed)
+            if (pos.top > eventTopY) {
+              const connectPath = `M ${pos.x} ${eventTopY} L ${pos.x} ${pos.top}`;
+              newLines.push({ path: connectPath });
+            }
+            
+            // Handle sub-events
+            if (expandedEvents[event.id as keyof typeof expandedEvents]) {
+              const subEventPositions = event.subEvents.map(subEvent => ({
+                subEvent,
+                pos: getCenter(subEvent.id)
+              })).filter(item => item.pos !== null);
+              
+              if (subEventPositions.length > 0) {
+                // Find the top-most sub-event Y position
+                const subEventTopY = Math.min(...subEventPositions.map(item => item.pos!.top));
+                
+                // Vertical line from event bottom to sub-event level
+                const subVerticalPath = `M ${pos.x} ${pos.bottom} L ${pos.x} ${subEventTopY}`;
+                newLines.push({ path: subVerticalPath });
+                
+                // Horizontal lines to each sub-event
+                subEventPositions.forEach(({ subEvent, pos: subPos }) => {
+                  if (!subPos) return;
+                  
+                  // Horizontal line from event center to sub-event
+                  const subHorizontalPath = `M ${pos.x} ${subEventTopY} L ${subPos.x} ${subEventTopY}`;
+                  newLines.push({ path: subHorizontalPath });
+                  
+                  // Short vertical line to sub-event top (if needed)
+                  if (subPos.top > subEventTopY) {
+                    const subConnectPath = `M ${subPos.x} ${subEventTopY} L ${subPos.x} ${subPos.top}`;
+                    newLines.push({ path: subConnectPath });
+                  }
                 });
               }
-            }
-
-            if (expandedEvents[event.id as keyof typeof expandedEvents]) {
-              event.subEvents.forEach((subEvent, subIdx) => {
-                const subPos = getCenter(subEvent.id);
-                if (eventPos && subPos) {
-                  // FIXED: Event bottom to Sub-event top - ensure downward flow
-                  // Only create line if sub-event is actually below the event (y2 > y1)
-                  if (subPos.top > eventPos.bottom) {
-                    newLines.push({
-                      path: createOrthogonalPath(eventPos.x, eventPos.bottom, subPos.x, subPos.top, false)
-                    });
-                  }
-                }
-              });
             }
           });
         }
@@ -381,7 +398,7 @@ const TimelineTree = () => {
     };
 
     calculateLines();
-    const timer = setTimeout(calculateLines, 200); // Increased timeout for better stability
+    const timer = setTimeout(calculateLines, 200);
     const handleResize = () => calculateLines();
     window.addEventListener('resize', handleResize);
     return () => {
@@ -435,7 +452,7 @@ const TimelineTree = () => {
                 </radialGradient>
               </defs>
               
-              {/* Connection Lines - Straight orthogonal paths */}
+              {/* Connection Lines - Straight paths */}
               {lines.map((line, index) => (
                 <g key={index}>
                   {/* Glow effect */}
@@ -570,7 +587,7 @@ const TimelineTree = () => {
 
                   {/* Events - Horizontal Branching */}
                   {expandedNodes[age.id as keyof typeof expandedNodes] && (
-                    <div className="mt-48 animate-fadeIn"> {/* INCREASED spacing for longer vertical lines */}
+                    <div className="mt-48 animate-fadeIn">
                       {/* Events Row - Horizontal Layout */}
                       <div className="flex justify-center gap-16">
                         {age.events.map((event, eventIdx) => (
@@ -612,7 +629,7 @@ const TimelineTree = () => {
 
                             {/* Sub-events - Horizontal Expansion */}
                             {expandedEvents[event.id as keyof typeof expandedEvents] && (
-                              <div className="mt-32 animate-fadeIn"> {/* INCREASED spacing for longer vertical lines */}
+                              <div className="mt-32 animate-fadeIn">
                                 {/* Sub-events in Horizontal Row */}
                                 <div className="flex gap-4 justify-start">
                                   {event.subEvents.map((subEvent, subIdx) => (

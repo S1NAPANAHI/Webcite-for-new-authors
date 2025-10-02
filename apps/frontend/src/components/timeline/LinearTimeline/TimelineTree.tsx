@@ -411,6 +411,7 @@ const TimelineTree = () => {
   // FIXED: Create bridge path between ages with proper downward flow
   const createBridgePath = (sourcePos: NodePos, targetPos: NodePos): string => {
     const bridgeDropDistance = 160; // Drop distance for bridge
+    const clearanceFromTarget = 80; // Additional clearance above target
     
     // Start from the bottom of the source node (latest sub-event/event)
     const startX = sourcePos.centerX;
@@ -420,8 +421,13 @@ const TimelineTree = () => {
     const targetX = targetPos.centerX;
     const targetY = targetPos.top; // Target top of next age
     
-    // Calculate the intermediate Y position - should be BELOW the source
-    const midY = Math.max(startY + bridgeDropDistance, targetY - 50); // Ensure we go down then to target
+    // FIXED: Calculate the intermediate Y position - ensure it's always below the source
+    // and provides proper clearance above the target
+    const bridgeY = startY + bridgeDropDistance;
+    const clearanceY = targetY - clearanceFromTarget;
+    
+    // Choose the lower Y position to ensure proper downward flow
+    const midY = Math.max(bridgeY, clearanceY);
     
     // Create path: down from source → across → down to target top
     return `M ${startX} ${startY} L ${startX} ${midY} L ${targetX} ${midY} L ${targetX} ${targetY}`;
@@ -471,7 +477,6 @@ const TimelineTree = () => {
         const nextAgePos = getNodePosition(nextAge.id);
         
         // Create bridge only if both positions exist
-        // REMOVED the check that was preventing bridges when next age is above latest node
         if (latestNode && nextAgePos) {
           const bridgePath = createBridgePath(latestNode, nextAgePos);
           newLines.push({ path: bridgePath, type: 'bridge' });

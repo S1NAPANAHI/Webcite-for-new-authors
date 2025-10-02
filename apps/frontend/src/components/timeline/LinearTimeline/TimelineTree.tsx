@@ -247,8 +247,7 @@ const TimelineTree = () => {
           date: 'Year 30000',
           subEvents: [
             { id: 'age8_e1_sub1', label: 'Cosmic Battlefield', content: 'Reality itself becomes the arena' },
-            { id: 'age8_e1_sub2', label: 'Heroes' Last Stand', content: 'Champions make ultimate sacrifice' }
-          ]
+                          { id: 'age8_e1_sub2', label: 'Heroes\' Last Stand', content: 'Champions make ultimate sacrifice' }          ]
         },
         {
           id: 'age8_event2',

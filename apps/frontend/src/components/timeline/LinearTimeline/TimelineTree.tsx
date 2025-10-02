@@ -321,6 +321,21 @@ const TimelineTree = () => {
     };
   };
 
+  // Create connection path with proper line direction (downward from parent to child)
+  const createConnectingPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
+    if (isAgeToEvent) {
+      // Age to Event: Go straight down, then horizontal, then down to connect
+      const verticalDrop = 120;
+      const midY = y1 + verticalDrop;
+      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+    } else {
+      // Event to Sub-event: Same pattern but shorter drop
+      const verticalDrop = 80;
+      const midY = y1 + verticalDrop;
+      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+    }
+  };
+
   useEffect(() => {
     const calculateLines = () => {
       const newLines: Line[] = [];
@@ -330,65 +345,42 @@ const TimelineTree = () => {
           const agePos = getCenter(age.id);
           if (!agePos) return;
           
-          // Get all event positions for this age
-          const eventPositions = age.events.map(event => ({
-            event,
-            pos: getCenter(event.id)
-          })).filter(item => item.pos !== null);
-          
-          if (eventPositions.length === 0) return;
-          
-          // Find the top-most event card Y position
-          const eventTopY = Math.min(...eventPositions.map(item => item.pos!.top));
-          
-          // FIXED: Draw straight vertical line from age bottom to event level
-          const verticalPath = `M ${agePos.x} ${agePos.bottom} L ${agePos.x} ${eventTopY}`;
-          newLines.push({ path: verticalPath });
-          
-          // FIXED: Draw horizontal lines at event level to each event card
-          eventPositions.forEach(({ event, pos }) => {
-            if (!pos) return;
+          age.events.forEach((event) => {
+            const eventPos = getCenter(event.id);
+            if (!eventPos) return;
             
-            // Horizontal line from center spine to event card
-            const horizontalPath = `M ${agePos.x} ${eventTopY} L ${pos.x} ${eventTopY}`;
-            newLines.push({ path: horizontalPath });
-            
-            // Short vertical line from horizontal to event card top (if needed)
-            if (pos.top > eventTopY) {
-              const connectPath = `M ${pos.x} ${eventTopY} L ${pos.x} ${pos.top}`;
-              newLines.push({ path: connectPath });
+            // Only draw lines that go downward (eventPos.top > agePos.bottom)
+            if (eventPos.top > agePos.bottom) {
+              // Create connecting path from age bottom to event top
+              const path = createConnectingPath(
+                agePos.x, 
+                agePos.bottom, 
+                eventPos.x, 
+                eventPos.top, 
+                true
+              );
+              newLines.push({ path });
             }
             
             // Handle sub-events
             if (expandedEvents[event.id as keyof typeof expandedEvents]) {
-              const subEventPositions = event.subEvents.map(subEvent => ({
-                subEvent,
-                pos: getCenter(subEvent.id)
-              })).filter(item => item.pos !== null);
-              
-              if (subEventPositions.length > 0) {
-                // Find the top-most sub-event Y position
-                const subEventTopY = Math.min(...subEventPositions.map(item => item.pos!.top));
+              event.subEvents.forEach((subEvent) => {
+                const subPos = getCenter(subEvent.id);
+                if (!subPos) return;
                 
-                // Vertical line from event bottom to sub-event level
-                const subVerticalPath = `M ${pos.x} ${pos.bottom} L ${pos.x} ${subEventTopY}`;
-                newLines.push({ path: subVerticalPath });
-                
-                // Horizontal lines to each sub-event
-                subEventPositions.forEach(({ subEvent, pos: subPos }) => {
-                  if (!subPos) return;
-                  
-                  // Horizontal line from event center to sub-event
-                  const subHorizontalPath = `M ${pos.x} ${subEventTopY} L ${subPos.x} ${subEventTopY}`;
-                  newLines.push({ path: subHorizontalPath });
-                  
-                  // Short vertical line to sub-event top (if needed)
-                  if (subPos.top > subEventTopY) {
-                    const subConnectPath = `M ${subPos.x} ${subEventTopY} L ${subPos.x} ${subPos.top}`;
-                    newLines.push({ path: subConnectPath });
-                  }
-                });
-              }
+                // Only draw lines that go downward (subPos.top > eventPos.bottom)
+                if (subPos.top > eventPos.bottom) {
+                  // Create connecting path from event bottom to sub-event top
+                  const subPath = createConnectingPath(
+                    eventPos.x, 
+                    eventPos.bottom, 
+                    subPos.x, 
+                    subPos.top, 
+                    false
+                  );
+                  newLines.push({ path: subPath });
+                }
+              });
             }
           });
         }
@@ -398,7 +390,7 @@ const TimelineTree = () => {
     };
 
     calculateLines();
-    const timer = setTimeout(calculateLines, 200);
+    const timer = setTimeout(calculateLines, 300); // Increased timeout for stability
     const handleResize = () => calculateLines();
     window.addEventListener('resize', handleResize);
     return () => {
@@ -452,7 +444,7 @@ const TimelineTree = () => {
                 </radialGradient>
               </defs>
               
-              {/* Connection Lines - Straight paths */}
+              {/* Connection Lines - Orthogonal paths */}
               {lines.map((line, index) => (
                 <g key={index}>
                   {/* Glow effect */}

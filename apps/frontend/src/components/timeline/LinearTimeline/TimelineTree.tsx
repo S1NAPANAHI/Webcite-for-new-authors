@@ -165,7 +165,7 @@ const TimelineTree = () => {
           description: 'Legendary figures shape destiny',
           date: 'Year 15000',
           subEvents: [
-            { id: 'age5_e1_sub1', label: 'Rostam's Deeds', content: 'The greatest hero performs mighty acts' },
+            { id: 'age5_e1_sub1', label: 'Rostam\'s Deeds', content: 'The greatest hero performs mighty acts' },
             { id: 'age5_e1_sub2', label: 'Kings Crowned', content: 'Just rulers take their thrones' },
             { id: 'age5_e1_sub3', label: 'Wisdom Keepers', content: 'Sages preserve ancient knowledge' }
           ]

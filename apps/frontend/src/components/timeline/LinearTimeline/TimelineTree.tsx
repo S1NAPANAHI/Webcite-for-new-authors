@@ -321,16 +321,16 @@ const TimelineTree = () => {
     };
   };
 
-  // Vertical branching path for Age -> Events
-  const createVerticalBranchPath = (x1: number, y1: number, x2: number, y2: number, radius: number = 20) => {
-    const midY = y1 + (y2 - y1) * 0.3;
-    return `M ${x1} ${y1} L ${x1} ${midY} Q ${x1} ${midY + radius} ${x1 + (x2 > x1 ? radius : -radius)} ${midY + radius} L ${x2 - (x2 > x1 ? radius : -radius)} ${midY + radius} Q ${x2} ${midY + radius} ${x2} ${midY + radius * 2} L ${x2} ${y2}`;
-  };
-
-  // Horizontal branching path for Event -> Sub-events
-  const createHorizontalBranchPath = (x1: number, y1: number, x2: number, y2: number, radius: number = 16) => {
-    const midX = x1 + (x2 - x1) * 0.3;
-    return `M ${x1} ${y1} L ${midX} ${y1} Q ${midX + radius} ${y1} ${midX + radius} ${y1 + (y2 > y1 ? radius : -radius)} L ${midX + radius} ${y2 - (y2 > y1 ? radius : -radius)} Q ${midX + radius} ${y2} ${midX + radius * 2} ${y2} L ${x2} ${y2}`;
+  // Create smooth curved paths for connections
+  const createCurvedPath = (x1: number, y1: number, x2: number, y2: number, controlOffset: number = 50) => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const ctrl1x = x1 + dx * 0.3;
+    const ctrl1y = y1;
+    const ctrl2x = x2 - dx * 0.3;
+    const ctrl2y = y2;
+    
+    return `M ${x1} ${y1} C ${ctrl1x} ${ctrl1y} ${ctrl2x} ${ctrl2y} ${x2} ${y2}`;
   };
 
   useEffect(() => {
@@ -345,17 +345,9 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              // Age to Event connection - branch to alternate sides
-              const isEven = eventIdx % 2 === 0;
-              const branchX = isEven ? agePos.left - 50 : agePos.right + 50;
-              
+              // Age to Event connection
               newLines.push({
-                path: createVerticalBranchPath(agePos.x, agePos.bottom, branchX, eventPos.y)
-              });
-              
-              // Connect branch to event
-              newLines.push({
-                path: `M ${branchX} ${eventPos.y} L ${isEven ? eventPos.left : eventPos.right} ${eventPos.y}`
+                path: createCurvedPath(agePos.x, agePos.bottom, eventPos.x, eventPos.y)
               });
             }
 
@@ -363,9 +355,9 @@ const TimelineTree = () => {
               event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  // Event to Sub-event connection - horizontal branching
+                  // Event to Sub-event connection
                   newLines.push({
-                    path: createHorizontalBranchPath(eventPos.right, eventPos.y, subPos.left, subPos.y)
+                    path: createCurvedPath(eventPos.right, eventPos.y, subPos.left, subPos.y)
                   });
                 }
               });
@@ -388,7 +380,7 @@ const TimelineTree = () => {
   }, [expandedNodes, expandedEvents, agesData]);
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative overflow-auto">
       {/* Clean Dark Background - No Purple */}
       <div className="absolute inset-0 bg-slate-900">
         {/* Animated particles */}
@@ -407,10 +399,10 @@ const TimelineTree = () => {
       </div>
 
       <div className="relative z-10 p-8 pb-32">
-        {/* Vertical 1×9 layout container */}
-        <div className="w-full max-w-6xl mx-auto relative" ref={containerRef}>
+        {/* Vertical timeline container with horizontal expansion space */}
+        <div className="w-full relative" ref={containerRef} style={{ minWidth: '100vw' }}>
           {/* Enhanced SVG with glowing effects */}
-          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
+          <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 5, minWidth: '200vw', minHeight: '100%' }}>
             <defs>
               <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style={{ stopColor: '#f59e0b', stopOpacity: 1 }} />
@@ -452,15 +444,15 @@ const TimelineTree = () => {
             ))}
           </svg>
 
-          {/* Vertical Layout: 1 Column, 9 Rows */}
-          <div className="flex flex-col gap-12 relative" style={{ zIndex: 10 }}>
+          {/* Central Timeline Spine */}
+          <div className="flex flex-col gap-16 relative" style={{ zIndex: 10, marginLeft: '50%', transform: 'translateX(-50%)' }}>
             {agesData.map((age, ageIndex) => (
-              <div key={age.id} className="w-full">
-                {/* Age Card */}
+              <div key={age.id} className="relative">
+                {/* Age Card - Central Spine */}
                 <div 
                   ref={el => refs.current[age.id] = el}
                   onClick={() => toggleNode(age.id)}
-                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-2xl mx-auto"
+                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-96 mx-auto"
                 >
                   {/* Card glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
@@ -486,19 +478,18 @@ const TimelineTree = () => {
                   </div>
                 </div>
 
-                {/* Events - Positioned to sides */}
+                {/* Events - Horizontal Branching */}
                 {expandedNodes[age.id as keyof typeof expandedNodes] && (
-                  <div className="w-full mt-8 animate-fadeIn">
-                    <div className="relative">
+                  <div className="mt-12 animate-fadeIn">
+                    {/* Events Row - Horizontal Layout */}
+                    <div className="flex justify-center gap-16">
                       {age.events.map((event, eventIdx) => (
-                        <div key={event.id} className={`absolute w-80 ${
-                          eventIdx % 2 === 0 ? 'left-0' : 'right-0'
-                        }`} style={{ top: `${eventIdx * 250}px` }}>
+                        <div key={event.id} className="relative">
                           {/* Event Card */}
                           <div 
                             ref={el => refs.current[event.id] = el}
                             onClick={() => toggleEvent(event.id)}
-                            className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full"
+                            className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-80"
                           >
                             {/* Event card glow */}
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
@@ -529,13 +520,14 @@ const TimelineTree = () => {
                             </div>
                           </div>
 
-                          {/* Sub-events */}
+                          {/* Sub-events - Horizontal Expansion */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && (
-                            <div className="mt-4 animate-fadeIn">
-                              <div className="flex flex-col gap-3 ml-6">
+                            <div className="mt-6 animate-fadeIn">
+                              {/* Sub-events in Horizontal Row */}
+                              <div className="flex gap-4 justify-start">
                                 {event.subEvents.map((subEvent, subIdx) => (
-                                  <div key={subEvent.id} className="w-full">
-                                    <div className="mb-1">
+                                  <div key={subEvent.id} className="w-64">
+                                    <div className="mb-2 text-center">
                                       <span className="text-xs font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
                                         {subEvent.label}
                                       </span>
@@ -552,8 +544,8 @@ const TimelineTree = () => {
                                       <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-3 group-hover:border-cyan-400/40 transition-all duration-300">
                                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-teal-500/5 rounded-lg"></div>
                                         
-                                        <div className="relative flex items-center">
-                                          <Clock size={12} className="text-cyan-400 mr-2 flex-shrink-0" />
+                                        <div className="relative flex items-start">
+                                          <Clock size={12} className="text-cyan-400 mr-2 flex-shrink-0 mt-0.5" />
                                           <p className="text-slate-200 text-xs leading-relaxed">{subEvent.content}</p>
                                         </div>
                                       </div>
@@ -566,8 +558,6 @@ const TimelineTree = () => {
                         </div>
                       ))}
                     </div>
-                    {/* Spacer to prevent overlap */}
-                    <div style={{ height: `${age.events.length * 250 + 100}px` }}></div>
                   </div>
                 )}
               </div>

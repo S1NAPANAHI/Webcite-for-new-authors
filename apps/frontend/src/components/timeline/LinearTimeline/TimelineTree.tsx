@@ -321,22 +321,16 @@ const TimelineTree = () => {
     };
   };
 
-  // Create MUCH more subtle curved paths for connections
-  const createCurvedPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
+  // Create straight orthogonal paths with 90-degree turns
+  const createOrthogonalPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
     if (isAgeToEvent) {
-      // Age to Event - gentle curve downward
-      const ctrl1x = x1;
-      const ctrl1y = y1 + 30;  // Small vertical offset
-      const ctrl2x = x2;
-      const ctrl2y = y2 - 30;  // Small vertical offset
-      return `M ${x1} ${y1} C ${ctrl1x} ${ctrl1y} ${ctrl2x} ${ctrl2y} ${x2} ${y2}`;
+      // Age to Event - straight down, then horizontal, then straight to target
+      const midY = y1 + (y2 - y1) * 0.5;
+      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     } else {
-      // Event to Sub-event - almost straight with minimal curve
-      const ctrl1x = x1 + 20;  // Very small horizontal offset
-      const ctrl1y = y1;       // No vertical curve
-      const ctrl2x = x2 - 20;  // Very small horizontal offset
-      const ctrl2y = y2;       // No vertical curve
-      return `M ${x1} ${y1} C ${ctrl1x} ${ctrl1y} ${ctrl2x} ${ctrl2y} ${x2} ${y2}`;
+      // Event to Sub-event - straight right, then down, then to target
+      const midX = x1 + (x2 - x1) * 0.5;
+      return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
     }
   };
 
@@ -352,9 +346,9 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              // Age to Event connection - subtle curve
+              // Age to Event connection - orthogonal path
               newLines.push({
-                path: createCurvedPath(agePos.x, agePos.bottom, eventPos.x, eventPos.y, true)
+                path: createOrthogonalPath(agePos.x, agePos.bottom, eventPos.x, eventPos.top, true)
               });
             }
 
@@ -362,9 +356,9 @@ const TimelineTree = () => {
               event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  // Event to Sub-event connection - almost straight
+                  // Event to Sub-event connection - orthogonal path
                   newLines.push({
-                    path: createCurvedPath(eventPos.right, eventPos.y, subPos.left, subPos.y, false)
+                    path: createOrthogonalPath(eventPos.x, eventPos.bottom, subPos.x, subPos.top, false)
                   });
                 }
               });
@@ -423,7 +417,13 @@ const TimelineTree = () => {
                   <feMergeNode in="SourceGraphic"/>
                 </feMerge>
               </filter>
+              <radialGradient id="nodeGradient" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: '#f59e0b', stopOpacity: 1 }} />
+              </radialGradient>
             </defs>
+            
+            {/* Connection Lines - Straight orthogonal paths */}
             {lines.map((line, index) => (
               <g key={index}>
                 {/* Glow effect */}
@@ -431,9 +431,9 @@ const TimelineTree = () => {
                   d={line.path}
                   fill="none"
                   stroke="url(#lineGradient)"
-                  strokeWidth="6"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
+                  strokeWidth="4"
+                  strokeLinejoin="miter"
+                  strokeLinecap="square"
                   opacity="0.3"
                   filter="url(#glow)"
                 />
@@ -442,13 +442,84 @@ const TimelineTree = () => {
                   d={line.path}
                   fill="none"
                   stroke="url(#lineGradient)"
-                  strokeWidth="3"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  className="animate-pulse"
+                  strokeWidth="2"
+                  strokeLinejoin="miter"
+                  strokeLinecap="square"
                 />
               </g>
             ))}
+            
+            {/* Connection Nodes */}
+            {agesData.map((age) => {
+              const agePos = getCenter(age.id);
+              if (!agePos) return null;
+              
+              return (
+                <g key={`nodes-${age.id}`}>
+                  {/* Age bottom node */}
+                  {expandedNodes[age.id as keyof typeof expandedNodes] && (
+                    <circle
+                      cx={agePos.x}
+                      cy={agePos.bottom}
+                      r="4"
+                      fill="url(#nodeGradient)"
+                      stroke="#f59e0b"
+                      strokeWidth="1"
+                    />
+                  )}
+                  
+                  {/* Event nodes */}
+                  {expandedNodes[age.id as keyof typeof expandedNodes] && age.events.map((event) => {
+                    const eventPos = getCenter(event.id);
+                    if (!eventPos) return null;
+                    
+                    return (
+                      <g key={`event-nodes-${event.id}`}>
+                        {/* Event top node */}
+                        <circle
+                          cx={eventPos.x}
+                          cy={eventPos.top}
+                          r="3"
+                          fill="#3b82f6"
+                          stroke="#1e40af"
+                          strokeWidth="1"
+                        />
+                        
+                        {/* Event bottom node */}
+                        {expandedEvents[event.id as keyof typeof expandedEvents] && (
+                          <circle
+                            cx={eventPos.x}
+                            cy={eventPos.bottom}
+                            r="3"
+                            fill="#3b82f6"
+                            stroke="#1e40af"
+                            strokeWidth="1"
+                          />
+                        )}
+                        
+                        {/* Sub-event nodes */}
+                        {expandedEvents[event.id as keyof typeof expandedEvents] && event.subEvents.map((subEvent) => {
+                          const subPos = getCenter(subEvent.id);
+                          if (!subPos) return null;
+                          
+                          return (
+                            <circle
+                              key={`sub-node-${subEvent.id}`}
+                              cx={subPos.x}
+                              cy={subPos.top}
+                              r="2"
+                              fill="#06b6d4"
+                              stroke="#0891b2"
+                              strokeWidth="1"
+                            />
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+            })}
           </svg>
 
           {/* Central Timeline Spine */}

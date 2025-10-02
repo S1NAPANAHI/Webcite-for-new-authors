@@ -321,16 +321,18 @@ const TimelineTree = () => {
     };
   };
 
-  // Create straight orthogonal paths with 90-degree turns
+  // Create straight orthogonal paths with LONGER vertical segments
   const createOrthogonalPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
     if (isAgeToEvent) {
-      // Age to Event - straight down, then horizontal, then straight to target
-      const midY = y1 + (y2 - y1) * 0.5;
+      // Age to Event - EXTENDED vertical drop: straight down, then horizontal, then straight to target
+      const verticalDrop = 80; // Increased from 30px to 80px for better separation
+      const midY = y1 + verticalDrop;
       return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     } else {
-      // Event to Sub-event - straight right, then down, then to target
-      const midX = x1 + (x2 - x1) * 0.5;
-      return `M ${x1} ${y1} L ${midX} ${y1} L ${midX} ${y2} L ${x2} ${y2}`;
+      // Event to Sub-event - EXTENDED vertical drop: straight down, then horizontal, then to target
+      const verticalDrop = 60; // Increased from 25px to 60px for clearer hierarchy
+      const midY = y1 + verticalDrop;
+      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     }
   };
 
@@ -346,7 +348,7 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              // Age to Event connection - orthogonal path
+              // Age to Event connection - orthogonal path with extended vertical
               newLines.push({
                 path: createOrthogonalPath(agePos.x, agePos.bottom, eventPos.x, eventPos.top, true)
               });
@@ -356,7 +358,7 @@ const TimelineTree = () => {
               event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  // Event to Sub-event connection - orthogonal path
+                  // Event to Sub-event connection - orthogonal path with extended vertical
                   newLines.push({
                     path: createOrthogonalPath(eventPos.x, eventPos.bottom, subPos.x, subPos.top, false)
                   });

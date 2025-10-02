@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ImprovedExpandableOrbitalDial } from './CosmicRings/ImprovedExpandableOrbitalDial';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
-import { TimelineTree } from './LinearTimeline/TimelineTree'; // Import TimelineTree
+import TimelineTree from './LinearTimeline/TimelineTree'; // Import TimelineTree
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
 import { ModeToggle } from './Navigation/ModeToggle';
 import { useTimelineContext } from '../../contexts/TimelineContext';

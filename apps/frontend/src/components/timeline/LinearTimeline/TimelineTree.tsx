@@ -27,6 +27,19 @@ interface Line {
   type?: 'connection' | 'bridge';
 }
 
+interface NodePos {
+  id: string;
+  type: 'age' | 'event' | 'subEvent';
+  x: number;
+  y: number;
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+  centerX: number;
+  centerY: number;
+}
+
 const TimelineTree = () => {
   const [expandedNodes, setExpandedNodes] = useState({
     age1: false,
@@ -307,86 +320,102 @@ const TimelineTree = () => {
     }));
   };
 
-  const getCenter = (id: string) => {
+  // Enhanced position calculation with more detailed return data
+  const getNodePosition = (id: string): NodePos | null => {
     const ref = refs.current[id];
     if (!ref || !containerRef.current) return null;
+    
     const rect = ref.getBoundingClientRect();
     const containerRect = containerRef.current.getBoundingClientRect();
+    
+    const centerX = rect.left + rect.width / 2 - containerRect.left;
+    const centerY = rect.top + rect.height / 2 - containerRect.top;
+    
     return {
-      x: rect.left + rect.width / 2 - containerRect.left,
-      y: rect.top + rect.height / 2 - containerRect.top,
-      bottom: rect.bottom - containerRect.top,
+      id,
+      type: id.includes('sub') ? 'subEvent' : id.includes('event') ? 'event' : 'age',
+      x: centerX,
+      y: centerY,
       top: rect.top - containerRect.top,
+      bottom: rect.bottom - containerRect.top,
+      left: rect.left - containerRect.left,
       right: rect.right - containerRect.left,
-      left: rect.left - containerRect.left
+      centerX,
+      centerY
     };
   };
 
   // Helper function to find rightmost node from array
-  const pickRightmost = (positions: any[]) => {
-    if (positions.length === 0) return null;
-    return positions.reduce((rightmost, current) => 
-      current.x > rightmost.x ? current : rightmost
+  const pickRightmost = (nodes: NodePos[]): NodePos | null => {
+    if (nodes.length === 0) return null;
+    return nodes.reduce((rightmost, current) => 
+      current.centerX > rightmost.centerX ? current : rightmost
     );
   };
 
   // Find latest (rightmost) node for an age - priority: sub-event > event > age card
-  const getLatestNodeForAge = (age: AgeData) => {
+  const getLatestNodeForAge = (age: AgeData): NodePos | null => {
     // Priority 1: Find rightmost sub-event if any are visible
-    const subEventPositions: any[] = [];
+    const subEventNodes: NodePos[] = [];
     age.events.forEach(event => {
       if (expandedEvents[event.id as keyof typeof expandedEvents]) {
         event.subEvents.forEach(subEvent => {
-          const subPos = getCenter(subEvent.id);
-          if (subPos) subEventPositions.push(subPos);
+          const subPos = getNodePosition(subEvent.id);
+          if (subPos) subEventNodes.push(subPos);
         });
       }
     });
     
-    if (subEventPositions.length > 0) {
-      return pickRightmost(subEventPositions);
+    if (subEventNodes.length > 0) {
+      return pickRightmost(subEventNodes);
     }
     
     // Priority 2: Find rightmost event if age is expanded
     if (expandedNodes[age.id as keyof typeof expandedNodes]) {
-      const eventPositions: any[] = [];
+      const eventNodes: NodePos[] = [];
       age.events.forEach(event => {
-        const eventPos = getCenter(event.id);
-        if (eventPos) eventPositions.push(eventPos);
+        const eventPos = getNodePosition(event.id);
+        if (eventPos) eventNodes.push(eventPos);
       });
       
-      if (eventPositions.length > 0) {
-        return pickRightmost(eventPositions);
+      if (eventNodes.length > 0) {
+        return pickRightmost(eventNodes);
       }
     }
     
     // Priority 3: Fallback to age card itself
-    return getCenter(age.id);
+    return getNodePosition(age.id);
   };
 
-  // Create connection path with proper line direction (downward from parent to child)
-  const createConnectingPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
-    if (isAgeToEvent) {
-      // Age to Event: Go straight down, then horizontal, then down to connect
-      const verticalDrop = 120;
-      const midY = y1 + verticalDrop;
-      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
-    } else {
-      // Event to Sub-event: Same pattern but shorter drop
-      const verticalDrop = 80;
-      const midY = y1 + verticalDrop;
-      return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
-    }
-  };
-
-  // Create bridge path between ages (from latest node of age to next age top)
-  const createBridgePath = (sourcePos: any, targetPos: any) => {
-    const bridgeDropDistance = 160; // Extended drop for bridges
-    const nodeOffset = 10;
+  // Create orthogonal path with proper downward flow
+  const createOrthogonalPath = (
+    startPos: NodePos,
+    endPos: NodePos,
+    isAgeToEvent: boolean = false
+  ): string => {
+    const verticalDrop = isAgeToEvent ? 140 : 100; // Extended drop distances
+    const nodeOffset = 8; // Offset to connect at edge of cards
     
-    const startX = sourcePos.x;
+    const startX = startPos.centerX;
+    const startY = startPos.bottom;
+    const endX = endPos.centerX;
+    const endY = endPos.top + nodeOffset;
+    
+    // Calculate intermediate Y position
+    const midY = startY + verticalDrop;
+    
+    // Create path: down → across → down to connect
+    return `M ${startX} ${startY} L ${startX} ${midY} L ${endX} ${midY} L ${endX} ${endY}`;
+  };
+
+  // Create bridge path between ages (chronological connections)
+  const createBridgePath = (sourcePos: NodePos, targetPos: NodePos): string => {
+    const bridgeDropDistance = 180; // Extra drop for bridges to avoid conflicts
+    const nodeOffset = 12;
+    
+    const startX = sourcePos.centerX;
     const startY = sourcePos.bottom;
-    const targetX = targetPos.x;
+    const targetX = targetPos.centerX;
     const targetY = targetPos.top + nodeOffset;
     const midY = startY + bridgeDropDistance;
 
@@ -397,61 +426,46 @@ const TimelineTree = () => {
     const calculateLines = () => {
       const newLines: Line[] = [];
       
-      // EXISTING CONNECTIONS: Age to Event and Event to Sub-event
+      // 1. HIERARCHICAL CONNECTIONS: Age → Event → Sub-event
       agesData.forEach((age) => {
-        if (expandedNodes[age.id as keyof typeof expandedNodes]) {
-          const agePos = getCenter(age.id);
-          if (!agePos) return;
+        const agePos = getNodePosition(age.id);
+        if (!agePos || !expandedNodes[age.id as keyof typeof expandedNodes]) return;
+        
+        age.events.forEach((event) => {
+          const eventPos = getNodePosition(event.id);
+          if (!eventPos) return;
           
-          age.events.forEach((event) => {
-            const eventPos = getCenter(event.id);
-            if (!eventPos) return;
-            
-            // Only draw lines that go downward (eventPos.top > agePos.bottom)
-            if (eventPos.top > agePos.bottom) {
-              // Create connecting path from age bottom to event top
-              const path = createConnectingPath(
-                agePos.x, 
-                agePos.bottom, 
-                eventPos.x, 
-                eventPos.top, 
-                true
-              );
-              newLines.push({ path, type: 'connection' });
-            }
-            
-            // Handle sub-events
-            if (expandedEvents[event.id as keyof typeof expandedEvents]) {
-              event.subEvents.forEach((subEvent) => {
-                const subPos = getCenter(subEvent.id);
-                if (!subPos) return;
-                
-                // Only draw lines that go downward (subPos.top > eventPos.bottom)
-                if (subPos.top > eventPos.bottom) {
-                  // Create connecting path from event bottom to sub-event top
-                  const subPath = createConnectingPath(
-                    eventPos.x, 
-                    eventPos.bottom, 
-                    subPos.x, 
-                    subPos.top, 
-                    false
-                  );
-                  newLines.push({ path: subPath, type: 'connection' });
-                }
-              });
-            }
-          });
-        }
+          // Age to Event connection (only if event is below age)
+          if (eventPos.top > agePos.bottom) {
+            const path = createOrthogonalPath(agePos, eventPos, true);
+            newLines.push({ path, type: 'connection' });
+          }
+          
+          // Event to Sub-event connections
+          if (expandedEvents[event.id as keyof typeof expandedEvents]) {
+            event.subEvents.forEach((subEvent) => {
+              const subPos = getNodePosition(subEvent.id);
+              if (!subPos) return;
+              
+              // Event to Sub-event connection (only if sub-event is below event)
+              if (subPos.top > eventPos.bottom) {
+                const subPath = createOrthogonalPath(eventPos, subPos, false);
+                newLines.push({ path: subPath, type: 'connection' });
+              }
+            });
+          }
+        });
       });
 
-      // NEW CHRONOLOGICAL BRIDGES: Connect latest node of each age to next age
+      // 2. CHRONOLOGICAL BRIDGES: Latest node of age N → Age N+1
       for (let i = 0; i < agesData.length - 1; i++) {
         const currentAge = agesData[i];
         const nextAge = agesData[i + 1];
         
         const latestNode = getLatestNodeForAge(currentAge);
-        const nextAgePos = getCenter(nextAge.id);
+        const nextAgePos = getNodePosition(nextAge.id);
         
+        // Create bridge if both positions exist and next age is below current latest node
         if (latestNode && nextAgePos && nextAgePos.top > latestNode.bottom) {
           const bridgePath = createBridgePath(latestNode, nextAgePos);
           newLines.push({ path: bridgePath, type: 'bridge' });
@@ -461,15 +475,20 @@ const TimelineTree = () => {
       setLines(newLines);
     };
 
-    calculateLines();
-    const timer = setTimeout(calculateLines, 300);
-    const handleResize = () => calculateLines();
+    // Calculate lines with improved timing
+    const timer = setTimeout(calculateLines, 350); // Allow more time for layout
+    calculateLines(); // Also calculate immediately
+    
+    const handleResize = () => {
+      setTimeout(calculateLines, 200); // Debounce resize calculations
+    };
+    
     window.addEventListener('resize', handleResize);
     return () => {
       clearTimeout(timer);
       window.removeEventListener('resize', handleResize);
     };
-  }, [expandedNodes, expandedEvents, agesData]);
+  }, [expandedNodes, expandedEvents]);
 
   return (
     <div className="min-h-screen relative">
@@ -498,14 +517,15 @@ const TimelineTree = () => {
             {/* Enhanced SVG with glowing effects */}
             <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 5, minWidth: '200vw', minHeight: '100%' }}>
               <defs>
-                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" style={{ stopColor: '#f59e0b', stopOpacity: 1 }} />
                   <stop offset="50%" style={{ stopColor: '#ef4444', stopOpacity: 1 }} />
                   <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
                 </linearGradient>
                 <linearGradient id="bridgeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
-                  <stop offset="100%" style={{ stopColor: '#fde68a', stopOpacity: 1 }} />
+                  <stop offset="0%" style={{ stopColor: '#fbbf24', stopOpacity: 0.9 }} />
+                  <stop offset="50%" style={{ stopColor: '#f59e0b', stopOpacity: 0.8 }} />
+                  <stop offset="100%" style={{ stopColor: '#fde68a', stopOpacity: 0.9 }} />
                 </linearGradient>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -514,9 +534,17 @@ const TimelineTree = () => {
                     <feMergeNode in="SourceGraphic"/>
                   </feMerge>
                 </filter>
-                <radialGradient id="nodeGradient" cx="50%" cy="50%" r="50%">
+                <radialGradient id="ageNodeGradient" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
                   <stop offset="100%" style={{ stopColor: '#f59e0b', stopOpacity: 1 }} />
+                </radialGradient>
+                <radialGradient id="eventNodeGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" style={{ stopColor: '#60a5fa', stopOpacity: 1 }} />
+                  <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
+                </radialGradient>
+                <radialGradient id="subEventNodeGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" style={{ stopColor: '#22d3ee', stopOpacity: 1 }} />
+                  <stop offset="100%" style={{ stopColor: '#06b6d4', stopOpacity: 1 }} />
                 </radialGradient>
               </defs>
               
@@ -531,7 +559,7 @@ const TimelineTree = () => {
                         d={line.path}
                         fill="none"
                         stroke="url(#bridgeGradient)"
-                        strokeWidth="3"
+                        strokeWidth="4"
                         strokeLinejoin="miter"
                         strokeLinecap="square"
                         opacity="0.4"
@@ -542,21 +570,22 @@ const TimelineTree = () => {
                         d={line.path}
                         fill="none"
                         stroke="url(#bridgeGradient)"
-                        strokeWidth="2"
+                        strokeWidth="2.5"
                         strokeLinejoin="miter"
                         strokeLinecap="square"
-                        opacity="0.85"
+                        opacity="0.9"
+                        strokeDasharray="8,4"
                       />
                     </>
                   ) : (
-                    // Regular Connection Lines
+                    // Regular Hierarchical Connection Lines
                     <>
                       {/* Glow effect */}
                       <path
                         d={line.path}
                         fill="none"
-                        stroke="url(#lineGradient)"
-                        strokeWidth="4"
+                        stroke="url(#connectionGradient)"
+                        strokeWidth="5"
                         strokeLinejoin="miter"
                         strokeLinecap="square"
                         opacity="0.3"
@@ -566,10 +595,11 @@ const TimelineTree = () => {
                       <path
                         d={line.path}
                         fill="none"
-                        stroke="url(#lineGradient)"
+                        stroke="url(#connectionGradient)"
                         strokeWidth="2"
                         strokeLinejoin="miter"
                         strokeLinecap="square"
+                        opacity="0.95"
                       />
                     </>
                   )}
@@ -578,76 +608,77 @@ const TimelineTree = () => {
               
               {/* Connection Nodes */}
               {agesData.map((age) => {
-                const agePos = getCenter(age.id);
+                const agePos = getNodePosition(age.id);
                 if (!agePos) return null;
                 
                 return (
                   <g key={`nodes-${age.id}`}>
-                    {/* Age bottom node */}
+                    {/* Age bottom node (when expanded) */}
                     {expandedNodes[age.id as keyof typeof expandedNodes] && (
                       <circle
-                        cx={agePos.x}
+                        cx={agePos.centerX}
                         cy={agePos.bottom}
-                        r="4"
-                        fill="url(#nodeGradient)"
+                        r="5"
+                        fill="url(#ageNodeGradient)"
                         stroke="#f59e0b"
-                        strokeWidth="1"
+                        strokeWidth="1.5"
                       />
                     )}
                     
                     {/* Age top node (for bridge connections) */}
                     <circle
-                      cx={agePos.x}
-                      cy={agePos.top + 10}
-                      r="3"
+                      cx={agePos.centerX}
+                      cy={agePos.top + 12}
+                      r="4"
                       fill="#fbbf24"
                       stroke="#f59e0b"
-                      strokeWidth="1"
+                      strokeWidth="1.5"
+                      opacity="0.8"
                     />
                     
                     {/* Event nodes */}
                     {expandedNodes[age.id as keyof typeof expandedNodes] && age.events.map((event) => {
-                      const eventPos = getCenter(event.id);
+                      const eventPos = getNodePosition(event.id);
                       if (!eventPos) return null;
                       
                       return (
                         <g key={`event-nodes-${event.id}`}>
                           {/* Event top node */}
                           <circle
-                            cx={eventPos.x}
-                            cy={eventPos.top}
-                            r="3"
-                            fill="#3b82f6"
+                            cx={eventPos.centerX}
+                            cy={eventPos.top + 8}
+                            r="4"
+                            fill="url(#eventNodeGradient)"
                             stroke="#1e40af"
-                            strokeWidth="1"
+                            strokeWidth="1.5"
                           />
                           
-                          {/* Event bottom node */}
+                          {/* Event bottom node (when expanded) */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && (
                             <circle
-                              cx={eventPos.x}
+                              cx={eventPos.centerX}
                               cy={eventPos.bottom}
-                              r="3"
-                              fill="#3b82f6"
+                              r="4"
+                              fill="url(#eventNodeGradient)"
                               stroke="#1e40af"
-                              strokeWidth="1"
+                              strokeWidth="1.5"
                             />
                           )}
                           
                           {/* Sub-event nodes */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && event.subEvents.map((subEvent) => {
-                            const subPos = getCenter(subEvent.id);
+                            const subPos = getNodePosition(subEvent.id);
                             if (!subPos) return null;
                             
                             return (
                               <circle
                                 key={`sub-node-${subEvent.id}`}
-                                cx={subPos.x}
-                                cy={subPos.top}
-                                r="2"
-                                fill="#06b6d4"
+                                cx={subPos.centerX}
+                                cy={subPos.top + 6}
+                                r="3"
+                                fill="url(#subEventNodeGradient)"
                                 stroke="#0891b2"
-                                strokeWidth="1"
+                                strokeWidth="1.5"
                               />
                             );
                           })}

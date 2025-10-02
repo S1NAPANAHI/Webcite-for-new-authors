@@ -385,7 +385,7 @@ const TimelineTree = () => {
   }, [expandedNodes, expandedEvents, agesData]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-x-auto">
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         {/* Animated particles */}
@@ -455,8 +455,7 @@ const TimelineTree = () => {
                 <div 
                   ref={el => refs.current[age.id] = el}
                   onClick={() => toggleNode(age.id)}
-                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105"
-                  style={{ width: '450px' }}
+                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-md"
                 >
                   {/* Card glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
@@ -485,15 +484,14 @@ const TimelineTree = () => {
                 {/* Events */}
                 {expandedNodes[age.id as keyof typeof expandedNodes] && (
                   <div className="w-full mt-40 animate-fadeIn">
-                    <div className="flex justify-between items-start px-12 gap-40">
+                    <div className="flex justify-between items-start px-12 gap-10">
                       {age.events.map((event, eventIdx) => (
                         <div key={event.id} className="flex flex-col items-center flex-1" style={{ marginTop: eventIdx === 1 ? '140px' : '0' }}>
                           {/* Event Card */}
                           <div 
                             ref={el => refs.current[event.id] = el}
                             onClick={() => toggleEvent(event.id)}
-                            className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105"
-                            style={{ width: '360px' }}
+                            className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-sm"
                           >
                             {/* Event card glow */}
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500"></div>

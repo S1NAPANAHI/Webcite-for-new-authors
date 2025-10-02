@@ -247,7 +247,8 @@ const TimelineTree = () => {
           date: 'Year 30000',
           subEvents: [
             { id: 'age8_e1_sub1', label: 'Cosmic Battlefield', content: 'Reality itself becomes the arena' },
-                          { id: 'age8_e1_sub2', label: 'Heroes\' Last Stand', content: 'Champions make ultimate sacrifice' }          ]
+            { id: 'age8_e1_sub2', label: 'Heroes\' Last Stand', content: 'Champions make ultimate sacrifice' }
+          ]
         },
         {
           id: 'age8_event2',
@@ -386,8 +387,8 @@ const TimelineTree = () => {
 
   return (
     <div className="min-h-screen relative overflow-x-auto">
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      {/* Updated Background - Removed Purple */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         {/* Animated particles */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="stars"></div>
@@ -404,7 +405,8 @@ const TimelineTree = () => {
       </div>
 
       <div className="relative z-10 p-8">
-        <div className="max-w-7xl mx-auto relative" ref={containerRef}>
+        {/* Expanded Container - Removed max-width constraint */}
+        <div className="w-full relative" ref={containerRef}>
           {/* Enhanced SVG with glowing effects */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
             <defs>
@@ -448,33 +450,34 @@ const TimelineTree = () => {
             ))}
           </svg>
 
-          <div className="flex flex-col items-center gap-20 relative" style={{ zIndex: 10 }}>
+          {/* Updated Layout - Changed to horizontal grid for better space utilization */}
+          <div className="grid grid-cols-3 gap-12 lg:gap-16 xl:gap-20 2xl:gap-24 relative" style={{ zIndex: 10 }}>
             {agesData.map((age, ageIndex) => (
-              <div key={age.id} className="flex flex-col items-center w-full">
+              <div key={age.id} className="flex flex-col items-center">
                 {/* Age Card */}
                 <div 
                   ref={el => refs.current[age.id] = el}
                   onClick={() => toggleNode(age.id)}
-                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-md"
+                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-sm"
                 >
                   {/* Card glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                   
                   {/* Main card */}
-                  <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-amber-500/30 rounded-2xl shadow-2xl p-8 group-hover:border-amber-400/50 transition-all duration-500">
+                  <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-amber-500/30 rounded-2xl shadow-2xl p-6 group-hover:border-amber-400/50 transition-all duration-500">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-red-500/5 rounded-2xl"></div>
                     
                     <div className="relative flex items-center justify-between">
-                      <div className="flex-1">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-2">
+                      <div className="flex-1 pr-2">
+                        <h1 className="text-lg xl:text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-2 leading-tight">
                           {age.title}
                         </h1>
-                        <p className="text-slate-300 text-sm leading-relaxed">{age.description}</p>
+                        <p className="text-slate-300 text-xs xl:text-sm leading-relaxed">{age.description}</p>
                       </div>
-                      <div className="ml-4 p-2 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 group-hover:from-amber-400/30 group-hover:to-red-400/30 transition-all duration-300">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 group-hover:from-amber-400/30 group-hover:to-red-400/30 transition-all duration-300">
                         {expandedNodes[age.id as keyof typeof expandedNodes] ? 
-                          <ChevronDown size={32} className="text-amber-400" /> : 
-                          <ChevronRight size={32} className="text-amber-400" />
+                          <ChevronDown size={20} className="text-amber-400" /> : 
+                          <ChevronRight size={20} className="text-amber-400" />
                         }
                       </div>
                     </div>
@@ -483,40 +486,40 @@ const TimelineTree = () => {
 
                 {/* Events */}
                 {expandedNodes[age.id as keyof typeof expandedNodes] && (
-                  <div className="w-full mt-40 animate-fadeIn">
-                    <div className="flex justify-between items-start px-12 gap-10">
+                  <div className="w-full mt-12 animate-fadeIn">
+                    <div className="flex flex-col gap-8">
                       {age.events.map((event, eventIdx) => (
-                        <div key={event.id} className="flex flex-col items-center flex-1" style={{ marginTop: eventIdx === 1 ? '140px' : '0' }}>
+                        <div key={event.id} className="flex flex-col items-center">
                           {/* Event Card */}
                           <div 
                             ref={el => refs.current[event.id] = el}
                             onClick={() => toggleEvent(event.id)}
-                            className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-sm"
+                            className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full"
                           >
                             {/* Event card glow */}
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
                             
                             {/* Main event card */}
-                            <div className="relative bg-gradient-to-br from-slate-700/90 to-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-xl shadow-xl p-6 group-hover:border-purple-400/50 transition-all duration-500">
+                            <div className="relative bg-gradient-to-br from-slate-700/90 to-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-xl shadow-xl p-4 group-hover:border-purple-400/50 transition-all duration-500">
                               <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 rounded-xl"></div>
                               
                               <div className="relative">
                                 <div className="flex items-center justify-between mb-3">
-                                  <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                                  <h2 className="text-sm xl:text-base font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent pr-2 leading-tight">
                                     {event.title}
                                   </h2>
                                   <div className="p-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20">
                                     {expandedEvents[event.id as keyof typeof expandedEvents] ? 
-                                      <ChevronDown size={24} className="text-purple-400" /> : 
-                                      <ChevronRight size={24} className="text-purple-400" />
+                                      <ChevronDown size={16} className="text-purple-400" /> : 
+                                      <ChevronRight size={16} className="text-purple-400" />
                                     }
                                   </div>
                                 </div>
                                 
-                                <p className="text-slate-300 text-sm mb-3 leading-relaxed">{event.description}</p>
+                                <p className="text-slate-300 text-xs mb-3 leading-relaxed">{event.description}</p>
                                 
                                 <div className="flex items-center text-slate-400 text-xs">
-                                  <Calendar size={14} className="mr-2" />
+                                  <Calendar size={12} className="mr-2" />
                                   <span>{event.date}</span>
                                 </div>
                               </div>
@@ -525,12 +528,12 @@ const TimelineTree = () => {
 
                           {/* Sub-events */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && (
-                            <div className="mt-32 w-full animate-fadeIn">
-                              <div className="flex justify-between items-start gap-6">
+                            <div className="mt-8 w-full animate-fadeIn">
+                              <div className="flex flex-col gap-4">
                                 {event.subEvents.map((subEvent, subIdx) => (
-                                  <div key={subEvent.id} className="flex flex-col items-center flex-1" style={{ marginTop: `${subIdx * 60}px` }}>
-                                    <div className="text-center mb-3">
-                                      <span className="text-sm font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+                                  <div key={subEvent.id} className="flex flex-col items-center">
+                                    <div className="text-center mb-2">
+                                      <span className="text-xs font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
                                         {subEvent.label}
                                       </span>
                                     </div>
@@ -543,12 +546,12 @@ const TimelineTree = () => {
                                       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-lg blur group-hover:blur-md transition-all duration-300"></div>
                                       
                                       {/* Main sub-event card */}
-                                      <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-4 group-hover:border-cyan-400/40 transition-all duration-300"
-                                           style={{ minHeight: '120px' }}>
+                                      <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-3 group-hover:border-cyan-400/40 transition-all duration-300"
+                                           style={{ minHeight: '80px' }}>
                                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-teal-500/5 rounded-lg"></div>
                                         
                                         <div className="relative flex items-center">
-                                          <Clock size={12} className="text-cyan-400 mr-2 flex-shrink-0" />
+                                          <Clock size={10} className="text-cyan-400 mr-2 flex-shrink-0" />
                                           <p className="text-slate-200 text-xs leading-relaxed">{subEvent.content}</p>
                                         </div>
                                       </div>

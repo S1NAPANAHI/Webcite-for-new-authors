@@ -315,30 +315,27 @@ const TimelineTree = () => {
       x: rect.left + rect.width / 2 - containerRect.left,
       y: rect.top + rect.height / 2 - containerRect.top,
       bottom: rect.bottom - containerRect.top,
-      top: rect.top - containerRect.top
+      top: rect.top - containerRect.top,
+      right: rect.right - containerRect.left,
+      left: rect.left - containerRect.left
     };
   };
 
-  const createRoundedPath = (x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, radius: number = 15) => {
-    if (Math.abs(x2 - x1) < 1) {
-      const cornerY1 = y2 - radius;
-      const cornerY2 = y2 + radius;
-      const xDir = x3 > x1 ? radius : -radius;
-      return `M ${x1} ${y1} L ${x1} ${cornerY1} Q ${x1} ${y2} ${x1 + xDir} ${y2} L ${x3 - xDir} ${y2} Q ${x3} ${y2} ${x3} ${cornerY2} L ${x4} ${y4}`;
-    }
-    return `M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4}`;
+  // Vertical branching path for Age -> Events
+  const createVerticalBranchPath = (x1: number, y1: number, x2: number, y2: number, radius: number = 20) => {
+    const midY = y1 + (y2 - y1) * 0.3;
+    return `M ${x1} ${y1} L ${x1} ${midY} Q ${x1} ${midY + radius} ${x1 + (x2 > x1 ? radius : -radius)} ${midY + radius} L ${x2 - (x2 > x1 ? radius : -radius)} ${midY + radius} Q ${x2} ${midY + radius} ${x2} ${midY + radius * 2} L ${x2} ${y2}`;
   };
 
-  // New function for gentle T-junction curves
-  const createGentleRoundedPath = (x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number, radius: number = 16) => {
-    // Create path with gentle curves at T-junctions
-    return `M ${x1} ${y1} L ${x1} ${y2 - radius} Q ${x1} ${y2} ${x1 + (x3 > x1 ? radius : -radius)} ${y2} L ${x3 - (x3 > x1 ? radius : -radius)} ${y2} Q ${x3} ${y2} ${x3} ${y2 + radius} L ${x4} ${y4}`;
+  // Horizontal branching path for Event -> Sub-events
+  const createHorizontalBranchPath = (x1: number, y1: number, x2: number, y2: number, radius: number = 16) => {
+    const midX = x1 + (x2 - x1) * 0.3;
+    return `M ${x1} ${y1} L ${midX} ${y1} Q ${midX + radius} ${y1} ${midX + radius} ${y1 + (y2 > y1 ? radius : -radius)} L ${midX + radius} ${y2 - (y2 > y1 ? radius : -radius)} Q ${midX + radius} ${y2} ${midX + radius * 2} ${y2} L ${x2} ${y2}`;
   };
 
   useEffect(() => {
     const calculateLines = () => {
       const newLines: Line[] = [];
-      const radius = 15;
       
       agesData.forEach((age) => {
         if (expandedNodes[age.id as keyof typeof expandedNodes]) {
@@ -348,22 +345,27 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              const midY = eventIdx === 0 ? agePos.bottom + 50 : eventPos.top - 50;
-              const startX = eventIdx === 0 ? agePos.x - 60 : agePos.x + 60;
+              // Age to Event connection - branch to alternate sides
+              const isEven = eventIdx % 2 === 0;
+              const branchX = isEven ? agePos.left - 50 : agePos.right + 50;
+              
               newLines.push({
-                path: createRoundedPath(startX, agePos.bottom, startX, midY, eventPos.x, midY, eventPos.x, eventPos.top, radius)
+                path: createVerticalBranchPath(agePos.x, agePos.bottom, branchX, eventPos.y)
+              });
+              
+              // Connect branch to event
+              newLines.push({
+                path: `M ${branchX} ${eventPos.y} L ${isEven ? eventPos.left : eventPos.right} ${eventPos.y}`
               });
             }
 
             if (expandedEvents[event.id as keyof typeof expandedEvents]) {
-              event.subEvents.forEach((subEvent) => {
+              event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  const bendY = eventPos.bottom + 40;
-                  // Use gentle rounded path with small radius for elegant T-junctions
-                  const gentleRadius = 16; // Small radius for subtle curves
+                  // Event to Sub-event connection - horizontal branching
                   newLines.push({
-                    path: createGentleRoundedPath(eventPos.x, eventPos.bottom, eventPos.x, bendY, subPos.x, bendY, subPos.x, subPos.top, gentleRadius)
+                    path: createHorizontalBranchPath(eventPos.right, eventPos.y, subPos.left, subPos.y)
                   });
                 }
               });
@@ -386,7 +388,7 @@ const TimelineTree = () => {
   }, [expandedNodes, expandedEvents, agesData]);
 
   return (
-    <div className="min-h-screen relative overflow-auto">
+    <div className="min-h-screen relative">
       {/* Clean Dark Background - No Purple */}
       <div className="absolute inset-0 bg-slate-900">
         {/* Animated particles */}
@@ -404,9 +406,9 @@ const TimelineTree = () => {
         </div>
       </div>
 
-      <div className="relative z-10 p-8">
+      <div className="relative z-10 p-8 pb-32">
         {/* Vertical 1×9 layout container */}
-        <div className="w-full max-w-4xl mx-auto relative" ref={containerRef}>
+        <div className="w-full max-w-6xl mx-auto relative" ref={containerRef}>
           {/* Enhanced SVG with glowing effects */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
             <defs>
@@ -451,14 +453,14 @@ const TimelineTree = () => {
           </svg>
 
           {/* Vertical Layout: 1 Column, 9 Rows */}
-          <div className="flex flex-col gap-8 relative" style={{ zIndex: 10 }}>
+          <div className="flex flex-col gap-12 relative" style={{ zIndex: 10 }}>
             {agesData.map((age, ageIndex) => (
               <div key={age.id} className="w-full">
                 {/* Age Card */}
                 <div 
                   ref={el => refs.current[age.id] = el}
                   onClick={() => toggleNode(age.id)}
-                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-3xl mx-auto"
+                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-2xl mx-auto"
                 >
                   {/* Card glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
@@ -484,12 +486,14 @@ const TimelineTree = () => {
                   </div>
                 </div>
 
-                {/* Events */}
+                {/* Events - Positioned to sides */}
                 {expandedNodes[age.id as keyof typeof expandedNodes] && (
                   <div className="w-full mt-8 animate-fadeIn">
-                    <div className="flex flex-col gap-6 max-w-2xl mx-auto">
+                    <div className="relative">
                       {age.events.map((event, eventIdx) => (
-                        <div key={event.id} className="w-full">
+                        <div key={event.id} className={`absolute w-80 ${
+                          eventIdx % 2 === 0 ? 'left-0' : 'right-0'
+                        }`} style={{ top: `${eventIdx * 250}px` }}>
                           {/* Event Card */}
                           <div 
                             ref={el => refs.current[event.id] = el}
@@ -500,26 +504,26 @@ const TimelineTree = () => {
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
                             
                             {/* Main event card */}
-                            <div className="relative bg-gradient-to-br from-slate-700/90 to-slate-800/90 backdrop-blur-sm border border-blue-500/30 rounded-xl shadow-xl p-5 group-hover:border-blue-400/50 transition-all duration-500">
+                            <div className="relative bg-gradient-to-br from-slate-700/90 to-slate-800/90 backdrop-blur-sm border border-blue-500/30 rounded-xl shadow-xl p-4 group-hover:border-blue-400/50 transition-all duration-500">
                               <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-xl"></div>
                               
-                              <div className="relative flex items-center justify-between">
-                                <div className="flex-1">
-                                  <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+                              <div className="relative">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h2 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                                     {event.title}
                                   </h2>
-                                  <p className="text-slate-300 text-base mb-3 leading-relaxed">{event.description}</p>
-                                  
-                                  <div className="flex items-center text-slate-400 text-sm">
-                                    <Calendar size={16} className="mr-2" />
-                                    <span>{event.date}</span>
+                                  <div className="p-1.5 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20">
+                                    {expandedEvents[event.id as keyof typeof expandedEvents] ? 
+                                      <ChevronDown size={16} className="text-blue-400" /> : 
+                                      <ChevronRight size={16} className="text-blue-400" />
+                                    }
                                   </div>
                                 </div>
-                                <div className="ml-4 p-2 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20">
-                                  {expandedEvents[event.id as keyof typeof expandedEvents] ? 
-                                    <ChevronDown size={20} className="text-blue-400" /> : 
-                                    <ChevronRight size={20} className="text-blue-400" />
-                                  }
+                                <p className="text-slate-300 text-sm mb-2 leading-relaxed">{event.description}</p>
+                                
+                                <div className="flex items-center text-slate-400 text-xs">
+                                  <Calendar size={12} className="mr-1" />
+                                  <span>{event.date}</span>
                                 </div>
                               </div>
                             </div>
@@ -527,12 +531,12 @@ const TimelineTree = () => {
 
                           {/* Sub-events */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && (
-                            <div className="mt-6 w-full animate-fadeIn">
-                              <div className="flex flex-col gap-4 ml-8">
+                            <div className="mt-4 animate-fadeIn">
+                              <div className="flex flex-col gap-3 ml-6">
                                 {event.subEvents.map((subEvent, subIdx) => (
                                   <div key={subEvent.id} className="w-full">
-                                    <div className="mb-2">
-                                      <span className="text-sm font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+                                    <div className="mb-1">
+                                      <span className="text-xs font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
                                         {subEvent.label}
                                       </span>
                                     </div>
@@ -545,12 +549,12 @@ const TimelineTree = () => {
                                       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-lg blur group-hover:blur-md transition-all duration-300"></div>
                                       
                                       {/* Main sub-event card */}
-                                      <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-4 group-hover:border-cyan-400/40 transition-all duration-300">
+                                      <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-3 group-hover:border-cyan-400/40 transition-all duration-300">
                                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-teal-500/5 rounded-lg"></div>
                                         
                                         <div className="relative flex items-center">
-                                          <Clock size={16} className="text-cyan-400 mr-3 flex-shrink-0" />
-                                          <p className="text-slate-200 text-base leading-relaxed">{subEvent.content}</p>
+                                          <Clock size={12} className="text-cyan-400 mr-2 flex-shrink-0" />
+                                          <p className="text-slate-200 text-xs leading-relaxed">{subEvent.content}</p>
                                         </div>
                                       </div>
                                     </div>
@@ -562,6 +566,8 @@ const TimelineTree = () => {
                         </div>
                       ))}
                     </div>
+                    {/* Spacer to prevent overlap */}
+                    <div style={{ height: `${age.events.length * 250 + 100}px` }}></div>
                   </div>
                 )}
               </div>

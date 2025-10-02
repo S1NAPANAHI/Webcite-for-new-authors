@@ -386,9 +386,9 @@ const TimelineTree = () => {
   }, [expandedNodes, expandedEvents, agesData]);
 
   return (
-    <div className="min-h-screen relative overflow-x-auto">
-      {/* Updated Background - Removed Purple */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen relative overflow-auto">
+      {/* Clean Dark Background - No Purple */}
+      <div className="absolute inset-0 bg-slate-900">
         {/* Animated particles */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="stars"></div>
@@ -405,15 +405,15 @@ const TimelineTree = () => {
       </div>
 
       <div className="relative z-10 p-8">
-        {/* Full-width container for horizontal layout */}
-        <div className="w-full relative" ref={containerRef}>
+        {/* Vertical 1×9 layout container */}
+        <div className="w-full max-w-4xl mx-auto relative" ref={containerRef}>
           {/* Enhanced SVG with glowing effects */}
           <svg className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
             <defs>
               <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style={{ stopColor: '#f59e0b', stopOpacity: 1 }} />
                 <stop offset="50%" style={{ stopColor: '#ef4444', stopOpacity: 1 }} />
-                <stop offset="100%" style={{ stopColor: '#8b5cf6', stopOpacity: 1 }} />
+                <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
               </linearGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
@@ -450,34 +450,34 @@ const TimelineTree = () => {
             ))}
           </svg>
 
-          {/* 1×9 Horizontal Grid Layout */}
-          <div className="flex gap-4 relative" style={{ zIndex: 10, minWidth: 'max-content' }}>
+          {/* Vertical Layout: 1 Column, 9 Rows */}
+          <div className="flex flex-col gap-8 relative" style={{ zIndex: 10 }}>
             {agesData.map((age, ageIndex) => (
-              <div key={age.id} className="flex flex-col items-center" style={{ minWidth: '200px' }}>
+              <div key={age.id} className="w-full">
                 {/* Age Card */}
                 <div 
                   ref={el => refs.current[age.id] = el}
                   onClick={() => toggleNode(age.id)}
-                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full"
+                  className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full max-w-3xl mx-auto"
                 >
                   {/* Card glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-red-500/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                   
                   {/* Main card */}
-                  <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-amber-500/30 rounded-2xl shadow-2xl p-4 group-hover:border-amber-400/50 transition-all duration-500">
+                  <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-amber-500/30 rounded-2xl shadow-2xl p-6 group-hover:border-amber-400/50 transition-all duration-500">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-red-500/5 rounded-2xl"></div>
                     
-                    <div className="relative flex flex-col items-center text-center">
-                      <div className="flex-1 mb-2">
-                        <h1 className="text-sm font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-2 leading-tight">
+                    <div className="relative flex items-center justify-between">
+                      <div className="flex-1">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent mb-2">
                           {age.title}
                         </h1>
-                        <p className="text-slate-300 text-xs leading-relaxed">{age.description}</p>
+                        <p className="text-slate-300 text-lg leading-relaxed">{age.description}</p>
                       </div>
-                      <div className="p-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 group-hover:from-amber-400/30 group-hover:to-red-400/30 transition-all duration-300">
+                      <div className="ml-6 p-3 rounded-full bg-gradient-to-r from-amber-500/20 to-red-500/20 group-hover:from-amber-400/30 group-hover:to-red-400/30 transition-all duration-300">
                         {expandedNodes[age.id as keyof typeof expandedNodes] ? 
-                          <ChevronDown size={16} className="text-amber-400" /> : 
-                          <ChevronRight size={16} className="text-amber-400" />
+                          <ChevronDown size={24} className="text-amber-400" /> : 
+                          <ChevronRight size={24} className="text-amber-400" />
                         }
                       </div>
                     </div>
@@ -487,9 +487,9 @@ const TimelineTree = () => {
                 {/* Events */}
                 {expandedNodes[age.id as keyof typeof expandedNodes] && (
                   <div className="w-full mt-8 animate-fadeIn">
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-6 max-w-2xl mx-auto">
                       {age.events.map((event, eventIdx) => (
-                        <div key={event.id} className="flex flex-col items-center">
+                        <div key={event.id} className="w-full">
                           {/* Event Card */}
                           <div 
                             ref={el => refs.current[event.id] = el}
@@ -497,30 +497,29 @@ const TimelineTree = () => {
                             className="group relative cursor-pointer transform transition-all duration-500 hover:scale-105 w-full"
                           >
                             {/* Event card glow */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-500"></div>
                             
                             {/* Main event card */}
-                            <div className="relative bg-gradient-to-br from-slate-700/90 to-slate-800/90 backdrop-blur-sm border border-purple-500/30 rounded-xl shadow-xl p-3 group-hover:border-purple-400/50 transition-all duration-500">
-                              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 rounded-xl"></div>
+                            <div className="relative bg-gradient-to-br from-slate-700/90 to-slate-800/90 backdrop-blur-sm border border-blue-500/30 rounded-xl shadow-xl p-5 group-hover:border-blue-400/50 transition-all duration-500">
+                              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-xl"></div>
                               
-                              <div className="relative text-center">
-                                <div className="flex flex-col items-center mb-2">
-                                  <h2 className="text-xs font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent leading-tight mb-1">
+                              <div className="relative flex items-center justify-between">
+                                <div className="flex-1">
+                                  <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
                                     {event.title}
                                   </h2>
-                                  <div className="p-1 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20">
-                                    {expandedEvents[event.id as keyof typeof expandedEvents] ? 
-                                      <ChevronDown size={12} className="text-purple-400" /> : 
-                                      <ChevronRight size={12} className="text-purple-400" />
-                                    }
+                                  <p className="text-slate-300 text-base mb-3 leading-relaxed">{event.description}</p>
+                                  
+                                  <div className="flex items-center text-slate-400 text-sm">
+                                    <Calendar size={16} className="mr-2" />
+                                    <span>{event.date}</span>
                                   </div>
                                 </div>
-                                
-                                <p className="text-slate-300 text-xs mb-2 leading-relaxed">{event.description}</p>
-                                
-                                <div className="flex items-center justify-center text-slate-400 text-xs">
-                                  <Calendar size={10} className="mr-1" />
-                                  <span>{event.date}</span>
+                                <div className="ml-4 p-2 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20">
+                                  {expandedEvents[event.id as keyof typeof expandedEvents] ? 
+                                    <ChevronDown size={20} className="text-blue-400" /> : 
+                                    <ChevronRight size={20} className="text-blue-400" />
+                                  }
                                 </div>
                               </div>
                             </div>
@@ -529,11 +528,11 @@ const TimelineTree = () => {
                           {/* Sub-events */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && (
                             <div className="mt-6 w-full animate-fadeIn">
-                              <div className="flex flex-col gap-3">
+                              <div className="flex flex-col gap-4 ml-8">
                                 {event.subEvents.map((subEvent, subIdx) => (
-                                  <div key={subEvent.id} className="flex flex-col items-center">
-                                    <div className="text-center mb-1">
-                                      <span className="text-xs font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
+                                  <div key={subEvent.id} className="w-full">
+                                    <div className="mb-2">
+                                      <span className="text-sm font-semibold bg-gradient-to-r from-cyan-400 to-teal-400 bg-clip-text text-transparent">
                                         {subEvent.label}
                                       </span>
                                     </div>
@@ -546,12 +545,12 @@ const TimelineTree = () => {
                                       <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-teal-500/20 rounded-lg blur group-hover:blur-md transition-all duration-300"></div>
                                       
                                       {/* Main sub-event card */}
-                                      <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-2 group-hover:border-cyan-400/40 transition-all duration-300">
+                                      <div className="relative bg-gradient-to-br from-slate-600/80 to-slate-700/80 backdrop-blur-sm border border-cyan-500/25 rounded-lg shadow-lg p-4 group-hover:border-cyan-400/40 transition-all duration-300">
                                         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-teal-500/5 rounded-lg"></div>
                                         
                                         <div className="relative flex items-center">
-                                          <Clock size={8} className="text-cyan-400 mr-1 flex-shrink-0" />
-                                          <p className="text-slate-200 text-xs leading-relaxed">{subEvent.content}</p>
+                                          <Clock size={16} className="text-cyan-400 mr-3 flex-shrink-0" />
+                                          <p className="text-slate-200 text-base leading-relaxed">{subEvent.content}</p>
                                         </div>
                                       </div>
                                     </div>

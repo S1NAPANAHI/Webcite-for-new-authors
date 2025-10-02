@@ -321,17 +321,17 @@ const TimelineTree = () => {
     };
   };
 
-  // Create straight orthogonal paths with LONGER vertical segments
+  // CORRECTED: Create straight orthogonal paths with proper direction
   const createOrthogonalPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
     if (isAgeToEvent) {
-      // Age to Event - EXTENDED vertical drop: straight down, then horizontal, then straight to target
-      const verticalDrop = 80; // Increased from 30px to 80px for better separation
-      const midY = y1 + verticalDrop;
+      // Age to Event - CORRECT: straight DOWN from age, then horizontal, then DOWN to event
+      const verticalDrop = Math.min(80, Math.abs(y2 - y1) * 0.3); // Ensure we go in right direction
+      const midY = y1 + verticalDrop; // Go DOWN from age bottom
       return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     } else {
-      // Event to Sub-event - EXTENDED vertical drop: straight down, then horizontal, then to target
-      const verticalDrop = 60; // Increased from 25px to 60px for clearer hierarchy
-      const midY = y1 + verticalDrop;
+      // Event to Sub-event - CORRECT: straight DOWN from event, then horizontal, then DOWN to sub-event  
+      const verticalDrop = Math.min(60, Math.abs(y2 - y1) * 0.4);
+      const midY = y1 + verticalDrop; // Go DOWN from event bottom
       return `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
     }
   };
@@ -348,7 +348,7 @@ const TimelineTree = () => {
             const eventPos = getCenter(event.id);
             
             if (agePos && eventPos) {
-              // Age to Event connection - orthogonal path with extended vertical
+              // CORRECTED: Age bottom to Event top - should go DOWNWARD
               newLines.push({
                 path: createOrthogonalPath(agePos.x, agePos.bottom, eventPos.x, eventPos.top, true)
               });
@@ -358,7 +358,7 @@ const TimelineTree = () => {
               event.subEvents.forEach((subEvent, subIdx) => {
                 const subPos = getCenter(subEvent.id);
                 if (eventPos && subPos) {
-                  // Event to Sub-event connection - orthogonal path with extended vertical
+                  // CORRECTED: Event bottom to Sub-event top - should go DOWNWARD
                   newLines.push({
                     path: createOrthogonalPath(eventPos.x, eventPos.bottom, subPos.x, subPos.top, false)
                   });
@@ -560,7 +560,7 @@ const TimelineTree = () => {
 
                 {/* Events - Horizontal Branching */}
                 {expandedNodes[age.id as keyof typeof expandedNodes] && (
-                  <div className="mt-12 animate-fadeIn">
+                  <div className="mt-20 animate-fadeIn">
                     {/* Events Row - Horizontal Layout */}
                     <div className="flex justify-center gap-16">
                       {age.events.map((event, eventIdx) => (
@@ -602,7 +602,7 @@ const TimelineTree = () => {
 
                           {/* Sub-events - Horizontal Expansion */}
                           {expandedEvents[event.id as keyof typeof expandedEvents] && (
-                            <div className="mt-6 animate-fadeIn">
+                            <div className="mt-16 animate-fadeIn">
                               {/* Sub-events in Horizontal Row */}
                               <div className="flex gap-4 justify-start">
                                 {event.subEvents.map((subEvent, subIdx) => (

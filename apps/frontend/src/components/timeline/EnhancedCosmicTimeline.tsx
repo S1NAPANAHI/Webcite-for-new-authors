@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ImprovedExpandableOrbitalDial } from './CosmicRings/ImprovedExpandableOrbitalDial';
 import { AgeDetailPanel } from './DetailPanels/AgeDetailPanel';
 import { LinearTimelinePanel } from './LinearTimeline/LinearTimelinePanel';
+import { TimelineTree } from './LinearTimeline/TimelineTree'; // Import TimelineTree
 import { BreadcrumbCompass } from './Navigation/BreadcrumbCompass';
 import { ModeToggle } from './Navigation/ModeToggle';
 import { useTimelineContext } from '../../contexts/TimelineContext';
@@ -9,7 +10,7 @@ import { useTimelineData } from './hooks/useTimelineData';
 import { Age, TimelineEvent } from '../../lib/api-timeline';
 import './enhanced-cosmic-timeline.css';
 
-export type ViewMode = 'hybrid' | 'linear';
+export type ViewMode = 'hybrid' | 'linear' | 'tree'; // Add 'tree' to ViewMode
 
 interface TransitionState {
   isTransitioning: boolean;
@@ -20,7 +21,7 @@ interface TransitionState {
 export const EnhancedCosmicTimeline: React.FC = () => {
   const { selectedAge, setSelectedAge } = useTimelineContext();
   const { ages, loading, error } = useTimelineData();
-  const [viewMode, setViewMode] = useState<ViewMode>('hybrid');
+  const [viewMode, setViewMode] = useState<ViewMode>('tree'); // Set default viewMode to 'tree'
   const [selectedEvents, setSelectedEvents] = useState<TimelineEvent[]>([]);
   const [transitionState, setTransitionState] = useState<TransitionState>({
     isTransitioning: false,
@@ -33,7 +34,14 @@ export const EnhancedCosmicTimeline: React.FC = () => {
   };
 
   const handleViewToggle = () => {
-    const newMode: ViewMode = viewMode === 'hybrid' ? 'linear' : 'hybrid';
+    let newMode: ViewMode;
+    if (viewMode === 'hybrid') {
+      newMode = 'linear';
+    } else if (viewMode === 'linear') {
+      newMode = 'tree';
+    } else {
+      newMode = 'hybrid'; // Cycle back to hybrid
+    }
     
     // Start transition
     setTransitionState({
@@ -116,16 +124,6 @@ export const EnhancedCosmicTimeline: React.FC = () => {
         return {
           icon: (
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-            </svg>
-          ),
-          label: 'Linear View',
-          description: 'Switch to chronological timeline'
-        };
-      case 'linear':
-        return {
-          icon: (
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" fill="none"/>
               <circle cx="10" cy="6" r="2" fill="currentColor"/>
               <circle cx="6" cy="14" r="2" fill="currentColor"/>
@@ -134,6 +132,26 @@ export const EnhancedCosmicTimeline: React.FC = () => {
           ),
           label: 'Orbital View',
           description: 'Return to cosmic orbital display'
+        };
+      case 'linear':
+        return {
+          icon: (
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+            </svg>
+          ),
+          label: 'Linear View',
+          description: 'Switch to chronological timeline'
+        };
+      case 'tree':
+        return {
+          icon: (
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clipRule="evenodd" />
+            </svg>
+          ),
+          label: 'Tree View',
+          description: 'Switch to hierarchical tree timeline'
         };
     }
   };
@@ -220,6 +238,14 @@ export const EnhancedCosmicTimeline: React.FC = () => {
             />
           </div>
         )}
+
+        {/* Tree view overlay */}
+        {viewMode === 'tree' && !transitionState.isTransitioning && (
+          <div className="tree-timeline-overlay improved crisp">
+            <TimelineTree />
+          </div>
+        )}
+
         {/* Welcome message when no age is selected and in hybrid mode */}
         {!selectedAge && viewMode === 'hybrid' && (
           <div className="welcome-overlay">

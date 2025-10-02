@@ -24,6 +24,7 @@ interface AgeData {
 
 interface Line {
   path: string;
+  type?: 'connection' | 'bridge';
 }
 
 const TimelineTree = () => {
@@ -321,6 +322,48 @@ const TimelineTree = () => {
     };
   };
 
+  // Helper function to find rightmost node from array
+  const pickRightmost = (positions: any[]) => {
+    if (positions.length === 0) return null;
+    return positions.reduce((rightmost, current) => 
+      current.x > rightmost.x ? current : rightmost
+    );
+  };
+
+  // Find latest (rightmost) node for an age - priority: sub-event > event > age card
+  const getLatestNodeForAge = (age: AgeData) => {
+    // Priority 1: Find rightmost sub-event if any are visible
+    const subEventPositions: any[] = [];
+    age.events.forEach(event => {
+      if (expandedEvents[event.id as keyof typeof expandedEvents]) {
+        event.subEvents.forEach(subEvent => {
+          const subPos = getCenter(subEvent.id);
+          if (subPos) subEventPositions.push(subPos);
+        });
+      }
+    });
+    
+    if (subEventPositions.length > 0) {
+      return pickRightmost(subEventPositions);
+    }
+    
+    // Priority 2: Find rightmost event if age is expanded
+    if (expandedNodes[age.id as keyof typeof expandedNodes]) {
+      const eventPositions: any[] = [];
+      age.events.forEach(event => {
+        const eventPos = getCenter(event.id);
+        if (eventPos) eventPositions.push(eventPos);
+      });
+      
+      if (eventPositions.length > 0) {
+        return pickRightmost(eventPositions);
+      }
+    }
+    
+    // Priority 3: Fallback to age card itself
+    return getCenter(age.id);
+  };
+
   // Create connection path with proper line direction (downward from parent to child)
   const createConnectingPath = (x1: number, y1: number, x2: number, y2: number, isAgeToEvent: boolean = false) => {
     if (isAgeToEvent) {
@@ -336,10 +379,25 @@ const TimelineTree = () => {
     }
   };
 
+  // Create bridge path between ages (from latest node of age to next age top)
+  const createBridgePath = (sourcePos: any, targetPos: any) => {
+    const bridgeDropDistance = 160; // Extended drop for bridges
+    const nodeOffset = 10;
+    
+    const startX = sourcePos.x;
+    const startY = sourcePos.bottom;
+    const targetX = targetPos.x;
+    const targetY = targetPos.top + nodeOffset;
+    const midY = startY + bridgeDropDistance;
+
+    return `M ${startX} ${startY} L ${startX} ${midY} L ${targetX} ${midY} L ${targetX} ${targetY}`;
+  };
+
   useEffect(() => {
     const calculateLines = () => {
       const newLines: Line[] = [];
       
+      // EXISTING CONNECTIONS: Age to Event and Event to Sub-event
       agesData.forEach((age) => {
         if (expandedNodes[age.id as keyof typeof expandedNodes]) {
           const agePos = getCenter(age.id);
@@ -359,7 +417,7 @@ const TimelineTree = () => {
                 eventPos.top, 
                 true
               );
-              newLines.push({ path });
+              newLines.push({ path, type: 'connection' });
             }
             
             // Handle sub-events
@@ -378,7 +436,7 @@ const TimelineTree = () => {
                     subPos.top, 
                     false
                   );
-                  newLines.push({ path: subPath });
+                  newLines.push({ path: subPath, type: 'connection' });
                 }
               });
             }
@@ -386,11 +444,25 @@ const TimelineTree = () => {
         }
       });
 
+      // NEW CHRONOLOGICAL BRIDGES: Connect latest node of each age to next age
+      for (let i = 0; i < agesData.length - 1; i++) {
+        const currentAge = agesData[i];
+        const nextAge = agesData[i + 1];
+        
+        const latestNode = getLatestNodeForAge(currentAge);
+        const nextAgePos = getCenter(nextAge.id);
+        
+        if (latestNode && nextAgePos && nextAgePos.top > latestNode.bottom) {
+          const bridgePath = createBridgePath(latestNode, nextAgePos);
+          newLines.push({ path: bridgePath, type: 'bridge' });
+        }
+      }
+
       setLines(newLines);
     };
 
     calculateLines();
-    const timer = setTimeout(calculateLines, 300); // Increased timeout for stability
+    const timer = setTimeout(calculateLines, 300);
     const handleResize = () => calculateLines();
     window.addEventListener('resize', handleResize);
     return () => {
@@ -431,6 +503,10 @@ const TimelineTree = () => {
                   <stop offset="50%" style={{ stopColor: '#ef4444', stopOpacity: 1 }} />
                   <stop offset="100%" style={{ stopColor: '#3b82f6', stopOpacity: 1 }} />
                 </linearGradient>
+                <linearGradient id="bridgeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
+                  <stop offset="100%" style={{ stopColor: '#fde68a', stopOpacity: 1 }} />
+                </linearGradient>
                 <filter id="glow">
                   <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                   <feMerge> 
@@ -444,29 +520,59 @@ const TimelineTree = () => {
                 </radialGradient>
               </defs>
               
-              {/* Connection Lines - Orthogonal paths */}
+              {/* Connection Lines */}
               {lines.map((line, index) => (
                 <g key={index}>
-                  {/* Glow effect */}
-                  <path
-                    d={line.path}
-                    fill="none"
-                    stroke="url(#lineGradient)"
-                    strokeWidth="4"
-                    strokeLinejoin="miter"
-                    strokeLinecap="square"
-                    opacity="0.3"
-                    filter="url(#glow)"
-                  />
-                  {/* Main line */}
-                  <path
-                    d={line.path}
-                    fill="none"
-                    stroke="url(#lineGradient)"
-                    strokeWidth="2"
-                    strokeLinejoin="miter"
-                    strokeLinecap="square"
-                  />
+                  {line.type === 'bridge' ? (
+                    // Chronological Bridge Lines
+                    <>
+                      {/* Bridge glow effect */}
+                      <path
+                        d={line.path}
+                        fill="none"
+                        stroke="url(#bridgeGradient)"
+                        strokeWidth="3"
+                        strokeLinejoin="miter"
+                        strokeLinecap="square"
+                        opacity="0.4"
+                        filter="url(#glow)"
+                      />
+                      {/* Main bridge line */}
+                      <path
+                        d={line.path}
+                        fill="none"
+                        stroke="url(#bridgeGradient)"
+                        strokeWidth="2"
+                        strokeLinejoin="miter"
+                        strokeLinecap="square"
+                        opacity="0.85"
+                      />
+                    </>
+                  ) : (
+                    // Regular Connection Lines
+                    <>
+                      {/* Glow effect */}
+                      <path
+                        d={line.path}
+                        fill="none"
+                        stroke="url(#lineGradient)"
+                        strokeWidth="4"
+                        strokeLinejoin="miter"
+                        strokeLinecap="square"
+                        opacity="0.3"
+                        filter="url(#glow)"
+                      />
+                      {/* Main line */}
+                      <path
+                        d={line.path}
+                        fill="none"
+                        stroke="url(#lineGradient)"
+                        strokeWidth="2"
+                        strokeLinejoin="miter"
+                        strokeLinecap="square"
+                      />
+                    </>
+                  )}
                 </g>
               ))}
               
@@ -488,6 +594,16 @@ const TimelineTree = () => {
                         strokeWidth="1"
                       />
                     )}
+                    
+                    {/* Age top node (for bridge connections) */}
+                    <circle
+                      cx={agePos.x}
+                      cy={agePos.top + 10}
+                      r="3"
+                      fill="#fbbf24"
+                      stroke="#f59e0b"
+                      strokeWidth="1"
+                    />
                     
                     {/* Event nodes */}
                     {expandedNodes[age.id as keyof typeof expandedNodes] && age.events.map((event) => {

@@ -15,6 +15,7 @@ import {
 import { Character, CharacterSortOptions } from '../../types/character';
 import { sortCharacters, getCharacterStats } from '../../utils/characterUtils';
 import CharacterCard from './CharacterCard';
+import CharacterCardHorizontal from './CharacterCard.horizontal';
 
 interface CharacterGridProps {
   characters: Character[];
@@ -33,7 +34,7 @@ const CharacterGrid: React.FC<CharacterGridProps> = ({
   sortOptions,
   onSortChange,
   onCharacterClick,
-  viewMode = 'grid',
+  viewMode = 'list', // Changed default to list to showcase horizontal layout
   onViewModeChange,
   className = ''
 }) => {
@@ -182,15 +183,13 @@ const CharacterGrid: React.FC<CharacterGridProps> = ({
           ))}
         </div>
       ) : (
+        // New horizontal list layout
         <div className="space-y-4">
           {sortedCharacters.map((character) => (
-            <CharacterCard
+            <CharacterCardHorizontal
               key={character.id}
               character={character}
-              variant="compact"
               onClick={onCharacterClick}
-              showRelationships={true}
-              showAppearances={true}
               className="character-list-card"
             />
           ))}

@@ -26,7 +26,7 @@ const CharactersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list'); // Changed default to list to show horizontal layout
   
   // Filter and sort state
   const [filters, setFilters] = useState<ICharacterFilters>({

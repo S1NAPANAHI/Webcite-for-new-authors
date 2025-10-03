@@ -63,12 +63,33 @@ export const AgeNode: React.FC<AgeNodeProps> = ({
         </circle>
       )}
       
-      {/* Node Background Circle */}
+      {/* Age Image Background (if image exists) */}
+      {age.image_url && (
+        <defs>
+          <pattern 
+            id={`age-image-${age.id}`} 
+            patternUnits="objectBoundingBox" 
+            width="100%" 
+            height="100%"
+          >
+            <image 
+              href={age.image_url} 
+              x="0" 
+              y="0" 
+              width="1" 
+              height="1" 
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </pattern>
+        </defs>
+      )}
+      
+      {/* Node Background Circle with Image or Solid Fill */}
       <circle
         cx={x} 
         cy={y}
         r={isSelected ? 16 : 12}
-        fill={isSelected ? 'var(--timeline-gold)' : 'var(--timeline-bg)'}
+        fill={age.image_url ? `url(#age-image-${age.id})` : (isSelected ? 'var(--timeline-gold)' : 'var(--timeline-bg)')}
         stroke="var(--timeline-gold)"
         strokeWidth={isSelected ? 3 : 2}
         className="transition-all duration-300 hover:scale-110"
@@ -91,17 +112,19 @@ export const AgeNode: React.FC<AgeNodeProps> = ({
         />
       </circle>
       
-      {/* Inner highlight circle */}
-      <circle
-        cx={x} 
-        cy={y}
-        r={isSelected ? 10 : 8}
-        fill={isSelected ? 'var(--timeline-bg)' : 'var(--timeline-gold)'}
-        opacity={isSelected ? 0.9 : 0.6}
-        className="transition-all duration-300"
-      />
+      {/* Inner highlight circle - only show if no image or when selected */}
+      {(!age.image_url || isSelected) && (
+        <circle
+          cx={x} 
+          cy={y}
+          r={isSelected ? 10 : 8}
+          fill={age.image_url ? 'rgba(0,0,0,0.3)' : (isSelected ? 'var(--timeline-bg)' : 'var(--timeline-gold)')}
+          opacity={isSelected ? 0.9 : 0.6}
+          className="transition-all duration-300"
+        />
+      )}
       
-      {/* Glyph Icon */}
+      {/* Glyph Icon - overlay on image if present */}
       {GlyphComponent ? (
         <foreignObject 
           x={x - (isSelected ? 8 : 6)} 
@@ -111,8 +134,10 @@ export const AgeNode: React.FC<AgeNodeProps> = ({
           className="pointer-events-none"
         >
           <GlyphComponent 
-            className={`w-full h-full transition-all duration-300 ${
-              isSelected ? 'text-timeline-gold' : 'text-timeline-bg'
+            className={`w-full h-full transition-all duration-300 drop-shadow-lg ${
+              age.image_url 
+                ? 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
+                : (isSelected ? 'text-timeline-gold' : 'text-timeline-bg')
             }`} 
           />
         </foreignObject>
@@ -124,7 +149,9 @@ export const AgeNode: React.FC<AgeNodeProps> = ({
           textAnchor="middle" 
           dominantBaseline="middle"
           className={`text-xs font-bold transition-all duration-300 ${
-            isSelected ? 'fill-timeline-bg' : 'fill-timeline-gold'
+            age.image_url 
+              ? 'fill-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]'
+              : (isSelected ? 'fill-timeline-bg' : 'fill-timeline-gold')
           }`}
         >
           {age.symbol || (index + 1)}
@@ -151,9 +178,10 @@ export const AgeNode: React.FC<AgeNodeProps> = ({
         dominantBaseline="middle"
         className={`font-medium transition-all duration-300 pointer-events-none ${
           isSelected 
-            ? 'text-sm fill-timeline-gold opacity-100' 
+            ? 'text-sm fill-timeline-gold font-bold' 
             : 'text-xs fill-timeline-text/70 opacity-0 group-hover:opacity-100'
         }`}
+        transform={`rotate(${angle < 180 ? 0 : 180}, ${x}, ${y + (isSelected ? 35 : 30)})`}
       >
         {age.title}
       </text>
@@ -169,6 +197,24 @@ export const AgeNode: React.FC<AgeNodeProps> = ({
         >
           {age.description.length > 30 ? `${age.description.substring(0, 30)}...` : age.description}
         </text>
+      )}
+      
+      {/* Image indicator dot */}
+      {age.image_url && (
+        <circle
+          cx={x + 12} 
+          cy={y - 12}
+          r="2"
+          fill="var(--timeline-gold)"
+          opacity="0.9"
+        >
+          <animate
+            attributeName="opacity"
+            values="0.9;0.5;0.9"
+            dur="3s"
+            repeatCount="indefinite"
+          />
+        </circle>
       )}
       
       {/* Pulsing dots for major ages */}

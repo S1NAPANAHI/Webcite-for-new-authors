@@ -1,5 +1,6 @@
 import express from 'express';
 import { createClient } from '@supabase/supabase-js';
+import { OAuth2Client } from 'google-auth-library';
 
 const router = express.Router();
 
@@ -7,6 +8,9 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+// Google OAuth client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Sign up endpoint
 router.post('/signup', async (req, res) => {
@@ -114,6 +118,133 @@ router.post('/signin', async (req, res) => {
   }
 });
 
+// Google OAuth sign-in endpoint
+router.post('/signin/google', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+    
+    if (!idToken) {
+      return res.status(400).json({ error: 'Google ID token is required' });
+    }
+    
+    console.log('Auth: Attempting Google OAuth signin');
+    
+    // Verify Google ID token
+    let ticket;
+    try {
+      ticket = await googleClient.verifyIdToken({
+        idToken: idToken,
+        audience: process.env.GOOGLE_CLIENT_ID
+      });
+    } catch (verifyError) {
+      console.error('Auth: Google token verification failed:', verifyError);
+      return res.status(401).json({ error: 'Invalid Google ID token' });
+    }
+    
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email not provided by Google' });
+    }
+    
+    console.log('Auth: Google OAuth verified for email:', email);
+    
+    // Check if user exists in Supabase
+    const { data: existingUser } = await supabase.auth.admin.getUserById(googleId);
+    
+    let authData;
+    
+    if (existingUser?.user) {
+      // User exists, create session
+      console.log('Auth: Existing Google user found:', existingUser.user.id);
+      
+      const { data: sessionData, error: sessionError } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: email
+      });
+      
+      if (sessionError) {
+        console.error('Auth: Session creation error:', sessionError);
+        throw sessionError;
+      }
+      
+      authData = {
+        user: existingUser.user,
+        session: sessionData.properties?.session
+      };
+    } else {
+      // Create new user with Google OAuth
+      console.log('Auth: Creating new Google user for email:', email);
+      
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: email,
+        email_confirm: true,
+        user_metadata: {
+          provider: 'google',
+          google_id: googleId,
+          name: name,
+          picture: picture
+        }
+      });
+      
+      if (createError) {
+        console.error('Auth: Google user creation error:', createError);
+        throw createError;
+      }
+      
+      // Create user profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: newUser.user.id,
+          email: email,
+          role: 'user'
+        });
+      
+      if (profileError && profileError.code !== '23505') {
+        console.warn('Auth: Google profile creation warning:', profileError);
+      }
+      
+      authData = newUser;
+    }
+    
+    // Get user profile for response
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .single();
+    
+    console.log('Auth: Google signin successful for user:', authData.user.id);
+    
+    // For now, generate a JWT-like response (you might want to implement proper JWT)
+    // Since this is for mobile app integration, we'll create a session token
+    const sessionToken = Buffer.from(JSON.stringify({
+      userId: authData.user.id,
+      email: authData.user.email,
+      provider: 'google',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+    })).toString('base64');
+    
+    res.json({
+      user: {
+        id: authData.user.id,
+        email: authData.user.email,
+        role: profile?.role || 'user'
+      },
+      access_token: sessionToken,
+      refresh_token: sessionToken, // For simplicity, using same token
+      expires_at: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+    });
+    
+  } catch (error) {
+    console.error('Auth: Google signin error:', error);
+    res.status(500).json({ error: error.message || 'Google sign-in failed' });
+  }
+});
+
 // Refresh token endpoint
 router.post('/refresh', async (req, res) => {
   try {
@@ -158,6 +289,35 @@ router.get('/me', async (req, res) => {
     const token = authHeader.replace('Bearer ', '');
     console.log('Auth: Getting user info with token');
     
+    // Try to decode as base64 first (for Google OAuth tokens)
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      if (decoded.userId && decoded.email) {
+        // Check if token is expired
+        if (decoded.exp && decoded.exp < Math.floor(Date.now() / 1000)) {
+          return res.status(401).json({ error: 'Token expired' });
+        }
+        
+        // Get user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', decoded.userId)
+          .single();
+        
+        return res.json({
+          user: {
+            id: decoded.userId,
+            email: decoded.email,
+            role: profile?.role || 'user'
+          }
+        });
+      }
+    } catch (decodeError) {
+      // Fall through to Supabase token verification
+    }
+    
+    // Try Supabase token verification
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
@@ -197,6 +357,17 @@ router.post('/signout', async (req, res) => {
 
     const token = authHeader.replace('Bearer ', '');
     console.log('Auth: Signing out user');
+    
+    // For base64 tokens (Google OAuth), we just acknowledge the signout
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      if (decoded.userId) {
+        console.log('Auth: Google OAuth user signed out successfully');
+        return res.json({ message: 'Signed out successfully' });
+      }
+    } catch (decodeError) {
+      // Fall through to Supabase signout
+    }
     
     const { error } = await supabase.auth.admin.signOut(token);
     

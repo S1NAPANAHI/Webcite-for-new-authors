@@ -19,28 +19,104 @@ import {
   AlertTriangle,
   Target
 } from 'lucide-react';
-import { 
-  useDonation, 
-  useActiveTiers, 
-  useActivePaymentMethods,
-  usePaymentMethodConfig 
-} from '../contexts/DonationContext';
 import BuyMeACoffeeWidget from '../components/BuyMeACoffeeWidget';
 import PayPalDonationButton from '../components/PayPalDonationButton';
-import CryptoWalletDonation from '../components/CryptoWalletDonation';
+
+// Temporary static configuration - replace with your actual info
+const donationSettings = {
+  pageTitle: 'Support the Zoroastervers',
+  pageDescription: 'Help bring the epic fantasy world of Zoroaster to life! Your support enables me to dedicate more time to writing, world-building, and creating the immersive experience that readers love.',
+  goalAmount: 1000,
+  currentAmount: 0,
+  showProgress: true,
+  isEnabled: true,
+  thankYouMessage: 'Thank you for supporting the Zoroastervers! Your contribution helps bring this epic fantasy world to life.',
+  impactStats: [
+    { icon: 'BookOpen', title: '5 Books Planned', description: 'Epic fantasy series in development' },
+    { icon: 'Users', title: 'Growing Community', description: 'Dedicated readers and supporters' },
+    { icon: 'Sparkles', title: 'Regular Updates', description: 'New chapters every month' }
+  ]
+};
+
+const donationTiers = [
+  {
+    id: '1',
+    name: 'Coffee Supporter',
+    amount: 5,
+    description: 'Buy me a coffee to fuel late night writing sessions',
+    benefits: ['My heartfelt thanks', 'Recognition as a supporter'],
+    enabled: true
+  },
+  {
+    id: '2', 
+    name: 'Chapter Patron',
+    amount: 15,
+    description: 'Support the creation of a new chapter',
+    benefits: ['Early access to new content', 'Behind-the-scenes updates', 'Name in acknowledgments'],
+    popular: true,
+    enabled: true
+  },
+  {
+    id: '3',
+    name: 'Book Benefactor', 
+    amount: 50,
+    description: 'Help bring an entire book to life',
+    benefits: ['All previous benefits', 'Signed digital copy', 'Character naming rights consultation'],
+    enabled: true
+  },
+  {
+    id: '4',
+    name: 'Epic Sponsor',
+    amount: 100,
+    description: 'Become a major supporter of the Zoroastervers',
+    benefits: ['All previous benefits', 'Monthly video calls', 'Input on story direction', 'Special mention in book credits'],
+    enabled: true
+  }
+];
+
+// Payment methods configuration - REPLACE WITH YOUR INFO
+const paymentMethods = {
+  buymeacoffee: {
+    enabled: true,
+    username: 'sinapanahi' // Replace with YOUR Buy Me a Coffee username
+  },
+  paypal: {
+    enabled: true,
+    paypalId: 'your-paypal-email@example.com', // Replace with YOUR PayPal info
+    quickAmounts: [5, 10, 25, 50]
+  },
+  crypto: {
+    enabled: true,
+    wallets: [
+      { name: 'Bitcoin', symbol: 'BTC', address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh' }, // Replace with YOUR BTC address
+      { name: 'Ethereum', symbol: 'ETH', address: '0x742e4C4C8f27B3E4F3C4E8D3A9E5F7B8C9D0E1F2' } // Replace with YOUR ETH address
+    ]
+  }
+};
 
 const SupportPage: React.FC = () => {
-  const { settings, stats } = useDonation();
-  const activeTiers = useActiveTiers();
-  const activePaymentMethods = useActivePaymentMethods();
-  const coffeeConfig = usePaymentMethodConfig('buymeacoffee');
-  const paypalConfig = usePaymentMethodConfig('paypal');
-  const kofiConfig = usePaymentMethodConfig('kofi');
-  const cryptoConfig = usePaymentMethodConfig('crypto');
-  
   const [selectedTier, setSelectedTier] = useState<any>(null);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [copiedWallet, setCopiedWallet] = useState<string | null>(null);
+
+  // Load settings from localStorage if available
+  const [settings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('donation_settings');
+      return saved ? { ...donationSettings, ...JSON.parse(saved) } : donationSettings;
+    } catch {
+      return donationSettings;
+    }
+  });
+
+  const [tiers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('donation_tiers');
+      return saved ? JSON.parse(saved) : donationTiers;
+    } catch {
+      return donationTiers;
+    }
+  });
 
   // If donations are disabled, show a message
   if (!settings.isEnabled) {
@@ -74,37 +150,23 @@ const SupportPage: React.FC = () => {
     const donationAmount = amount || parseFloat(customAmount) || 5;
     let paypalUrl;
     
-    if (paypalConfig.buttonId) {
-      paypalUrl = `https://www.paypal.com/donate/?hosted_button_id=${paypalConfig.buttonId}&amount=${donationAmount}`;
-    } else if (paypalConfig.paypalId?.includes('@')) {
-      paypalUrl = `https://www.paypal.com/donate/?business=${encodeURIComponent(paypalConfig.paypalId)}&amount=${donationAmount}&currency_code=USD`;
+    if (paymentMethods.paypal.paypalId.includes('@')) {
+      paypalUrl = `https://www.paypal.com/donate/?business=${encodeURIComponent(paymentMethods.paypal.paypalId)}&amount=${donationAmount}&currency_code=USD`;
     } else {
-      paypalUrl = `https://paypal.me/${paypalConfig.paypalId}/${donationAmount}USD`;
+      paypalUrl = `https://paypal.me/${paymentMethods.paypal.paypalId}/${donationAmount}USD`;
     }
     
     window.open(paypalUrl, '_blank');
   };
 
   const handleBuyMeACoffee = () => {
-    if (coffeeConfig.username) {
-      window.open(`https://www.buymeacoffee.com/${coffeeConfig.username}`, '_blank');
-    } else {
-      toast.error('Buy Me a Coffee is not properly configured');
-    }
+    window.open(`https://www.buymeacoffee.com/${paymentMethods.buymeacoffee.username}`, '_blank');
   };
 
-  const handleKoFi = () => {
-    if (kofiConfig.username) {
-      window.open(`https://ko-fi.com/${kofiConfig.username}`, '_blank');
-    } else {
-      toast.error('Ko-fi is not properly configured');
-    }
-  };
+  const progressPercentage = settings.goalAmount ? 
+    Math.min((settings.currentAmount || 0) / settings.goalAmount * 100, 100) : 0;
 
-  const isBuyMeCoffeeEnabled = activePaymentMethods.some(m => m.type === 'buymeacoffee');
-  const isPayPalEnabled = activePaymentMethods.some(m => m.type === 'paypal');
-  const isKoFiEnabled = activePaymentMethods.some(m => m.type === 'kofi');
-  const isCryptoEnabled = activePaymentMethods.some(m => m.type === 'crypto');
+  const activeTiers = tiers.filter(tier => tier.enabled);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background/95 to-background/90">
@@ -140,11 +202,11 @@ const SupportPage: React.FC = () => {
               <div className="w-full bg-muted rounded-full h-4 mb-2">
                 <div 
                   className="bg-gradient-to-r from-purple-500 to-pink-500 h-4 rounded-full transition-all duration-500"
-                  style={{ width: `${stats.goalProgress}%` }}
+                  style={{ width: `${progressPercentage}%` }}
                 />
               </div>
               <div className="text-center text-sm text-muted-foreground">
-                {stats.goalProgress.toFixed(1)}% complete • {stats.donorCount} supporters
+                {progressPercentage.toFixed(1)}% complete
               </div>
             </CardContent>
           </Card>
@@ -166,40 +228,28 @@ const SupportPage: React.FC = () => {
         </div>
 
         {/* Quick Support Buttons */}
-        {(isBuyMeCoffeeEnabled || isPayPalEnabled || isKoFiEnabled) && (
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {isBuyMeCoffeeEnabled && (
-              <Button 
-                onClick={handleBuyMeACoffee}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white"
-                size="lg"
-              >
-                <Coffee className="h-5 w-5 mr-2" />
-                Buy Me a Coffee
-              </Button>
-            )}
-            {isKoFiEnabled && (
-              <Button 
-                onClick={handleKoFi}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-                size="lg"
-              >
-                <Heart className="h-5 w-5 mr-2" />
-                Support on Ko-fi
-              </Button>
-            )}
-            {isPayPalEnabled && (
-              <Button 
-                onClick={() => handlePayPalDonation()}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                size="lg"
-              >
-                <Banknote className="h-5 w-5 mr-2" />
-                Donate via PayPal
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap justify-center gap-4 mb-12">
+          {paymentMethods.buymeacoffee.enabled && (
+            <Button 
+              onClick={handleBuyMeACoffee}
+              className="bg-yellow-500 hover:bg-yellow-600 text-white"
+              size="lg"
+            >
+              <Coffee className="h-5 w-5 mr-2" />
+              Buy Me a Coffee
+            </Button>
+          )}
+          {paymentMethods.paypal.enabled && (
+            <Button 
+              onClick={() => handlePayPalDonation()}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              size="lg"
+            >
+              <Banknote className="h-5 w-5 mr-2" />
+              Donate via PayPal
+            </Button>
+          )}
+        </div>
 
         {/* Donation Tiers */}
         {activeTiers.length > 0 && (
@@ -240,7 +290,7 @@ const SupportPage: React.FC = () => {
                         </li>
                       ))}
                     </ul>
-                    {isPayPalEnabled && (
+                    {paymentMethods.paypal.enabled && (
                       <Button 
                         onClick={(e) => {
                           e.stopPropagation();
@@ -260,7 +310,7 @@ const SupportPage: React.FC = () => {
         )}
 
         {/* Custom Amount */}
-        {isPayPalEnabled && (
+        {paymentMethods.paypal.enabled && (
           <Card className="mb-12">
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -300,60 +350,85 @@ const SupportPage: React.FC = () => {
         )}
 
         {/* Crypto Donations */}
-        {isCryptoEnabled && cryptoConfig.wallets && cryptoConfig.wallets.length > 0 && (
-          <div className="mb-12">
-            <CryptoWalletDonation 
-              wallets={cryptoConfig.wallets}
-              variant="detailed"
-              title="Cryptocurrency Donations"
-              description="Prefer to donate with crypto? Use any of the wallet addresses below."
-            />
-          </div>
+        {paymentMethods.crypto.enabled && (
+          <Card className="mb-12">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Bitcoin className="h-5 w-5 mr-2" />
+                Cryptocurrency Donations
+              </CardTitle>
+              <CardDescription>
+                Prefer to donate with crypto? Use any of the wallet addresses below.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Security Warning */}
+                <div className="flex items-start p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">Security Notice</p>
+                    <p className="text-yellow-700 dark:text-yellow-300">
+                      Always double-check wallet addresses before sending. Cryptocurrency transactions are irreversible.
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Crypto Wallets */}
+                <div className="grid gap-4">
+                  {paymentMethods.crypto.wallets.map((wallet) => (
+                    <div key={wallet.symbol} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Bitcoin className="h-6 w-6 text-orange-500" />
+                        <div>
+                          <h4 className="font-medium">{wallet.name}</h4>
+                          <Badge variant="secondary" className="text-xs">{wallet.symbol}</Badge>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                          {wallet.address.length > 20 
+                            ? `${wallet.address.slice(0, 6)}...${wallet.address.slice(-6)}`
+                            : wallet.address
+                          }
+                        </code>
+                        <Button
+                          onClick={() => copyToClipboard(wallet.address, wallet.symbol)}
+                          variant="ghost"
+                          size="sm"
+                          className="p-2"
+                        >
+                          {copiedWallet === wallet.symbol ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Payment Methods Grid */}
-        {(isBuyMeCoffeeEnabled || isKoFiEnabled || isPayPalEnabled) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {isBuyMeCoffeeEnabled && (
-              <BuyMeACoffeeWidget 
-                username={coffeeConfig.username}
-                variant="card"
-              />
-            )}
-            {isPayPalEnabled && (
-              <PayPalDonationButton 
-                paypalId={paypalConfig.paypalId}
-                buttonId={paypalConfig.buttonId}
-                quickAmounts={paypalConfig.quickAmounts}
-                variant="card"
-              />
-            )}
-            {isKoFiEnabled && (
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={handleKoFi}>
-                <CardContent className="p-6 text-center">
-                  <div className="flex items-center justify-center mb-3">
-                    <Heart className="h-8 w-8 text-red-500 mr-2" />
-                    <h3 className="text-lg font-semibold">Ko-fi</h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Support me with a Ko-fi donation! ❤️
-                  </p>
-                  <Button 
-                    className="bg-red-500 hover:bg-red-600 text-white w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleKoFi();
-                    }}
-                  >
-                    <Heart className="h-4 w-4 mr-2" />
-                    Support on Ko-fi
-                    <ExternalLink className="h-4 w-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+          {paymentMethods.buymeacoffee.enabled && (
+            <BuyMeACoffeeWidget 
+              username={paymentMethods.buymeacoffee.username}
+              variant="card"
+            />
+          )}
+          {paymentMethods.paypal.enabled && (
+            <PayPalDonationButton 
+              paypalId={paymentMethods.paypal.paypalId}
+              quickAmounts={paymentMethods.paypal.quickAmounts}
+              variant="card"
+            />
+          )}
+        </div>
 
         {/* Other Ways to Help */}
         <Card className="mb-12">
@@ -410,23 +485,21 @@ const SupportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* No Payment Methods Warning */}
-        {activePaymentMethods.length === 0 && (
-          <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="flex items-start">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="font-medium text-yellow-800 dark:text-yellow-200">No Payment Methods Enabled</p>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  No payment methods are currently enabled. 
-                  <a href="/admin/donations" className="text-blue-600 hover:underline ml-1">
-                    Configure payment methods in the admin area
-                  </a>.
-                </p>
-              </div>
+        {/* Configuration Notice for Admin */}
+        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-start">
+            <Settings className="h-5 w-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-blue-800 dark:text-blue-200">Admin Configuration</p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                To customize this page, update the configuration in the source code or use the 
+                <a href="/admin/donations" className="text-primary hover:underline ml-1">
+                  admin panel
+                </a> (once fully configured).
+              </p>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

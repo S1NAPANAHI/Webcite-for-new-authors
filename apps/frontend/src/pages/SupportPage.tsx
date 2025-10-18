@@ -17,7 +17,8 @@ import {
   Users,
   Check,
   AlertTriangle,
-  Target
+  Target,
+  Settings
 } from 'lucide-react';
 import BuyMeACoffeeWidget from '../components/BuyMeACoffeeWidget';
 import PayPalDonationButton from '../components/PayPalDonationButton';

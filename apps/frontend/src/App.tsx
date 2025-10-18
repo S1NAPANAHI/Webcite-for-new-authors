@@ -61,8 +61,6 @@ import FileManagerPage from './pages/FileManagerPage';
 import HomepageManager from './admin/components/HomepageManager';
 // CRITICAL: Homepage Context Import
 import { HomepageProvider } from './contexts/HomepageContext';
-// NEW: Donation Context Import
-import { DonationProvider } from './contexts/DonationContext';
 // NEW: Characters Page Import
 import CharactersPage from './pages/CharactersPage';
 // NEW: Individual Character Detail Page Import
@@ -315,17 +313,15 @@ const AppContent: React.FC = () => {
   );
 }
 
-// CRITICAL: Add all context providers
+// App with context providers
 const App: React.FC = () => {
   return (
-    <DonationProvider>
-      <HomepageProvider>
-        <CartProvider className="bg-red-500">
-          <Toaster />
-          <AppContent />
-        </CartProvider>
-      </HomepageProvider>
-    </DonationProvider>
+    <HomepageProvider>
+      <CartProvider className="bg-red-500">
+        <Toaster />
+        <AppContent />
+      </CartProvider>
+    </HomepageProvider>
   );
 };
 

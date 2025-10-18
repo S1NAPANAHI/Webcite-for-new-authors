@@ -74,6 +74,8 @@ import StorePage from './pages/StorePage';
 // NEW: Social Media Generator Import
 import { SocialMediaRoutes } from './admin/SocialMediaRoutes';
 import DownloadAppPage from './pages/DownloadAppPage';
+// NEW: Support Page Import
+import SupportPage from './pages/SupportPage';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -205,6 +207,7 @@ const AppContent: React.FC = () => {
         <Route path="/characters" element={<CharactersPage />} />
         <Route path="/characters/:slug" element={<CharacterDetailPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/support" element={<SupportPage />} />
         <Route path="/blog" element={<BlogPage />} />
         <Route path="/blog/:slug" element={<BlogPostPage />} />
         <Route path="/artist-collaboration" element={<ArtistCollaborationPage />} />

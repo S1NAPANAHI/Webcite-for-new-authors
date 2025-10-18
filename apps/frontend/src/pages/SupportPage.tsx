@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
 import { toast } from 'react-hot-toast';
 import { 
   Coffee, 
@@ -411,18 +410,22 @@ const SupportPage: React.FC = () => {
           </div>
         </div>
 
-        {/* No Payment Methods Warning (Admin Only) */}
+        {/* No Payment Methods Warning */}
         {activePaymentMethods.length === 0 && (
-          <Alert className="mt-8">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              No payment methods are currently enabled. 
-              <a href="/admin/donations" className="text-primary hover:underline ml-1">
-                Configure payment methods in the admin area
-              </a>
-              .
-            </AlertDescription>
-          </Alert>
+          <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-start">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">No Payment Methods Enabled</p>
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  No payment methods are currently enabled. 
+                  <a href="/admin/donations" className="text-blue-600 hover:underline ml-1">
+                    Configure payment methods in the admin area
+                  </a>.
+                </p>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

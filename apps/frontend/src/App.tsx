@@ -76,6 +76,8 @@ import { SocialMediaRoutes } from './admin/SocialMediaRoutes';
 import DownloadAppPage from './pages/DownloadAppPage';
 // NEW: Support Page Import
 import SupportPage from './pages/SupportPage';
+// NEW: Donation Management Import
+import DonationManagement from './pages/admin/DonationManagement';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -289,6 +291,9 @@ const AppContent: React.FC = () => {
         
         {/* REDIRECT: Old customer management page now redirects to unified user management */}
         <Route path="commerce/customers" element={<Navigate to="/admin/settings/users" replace />} />
+        
+        {/* NEW: Donation Management Route */}
+        <Route path="donations" element={<DonationManagement />} />
         
         <Route path="beta/applications" element={<BetaApplicationsManager />} />
         <Route path="beta/managers" element={<PlaceholderPage title="Managers" />} />

@@ -78,6 +78,8 @@ import DownloadAppPage from './pages/DownloadAppPage';
 import SupportPage from './pages/SupportPage';
 // NEW: Donation Management Import
 import DonationManagement from './pages/admin/DonationManagement';
+// NEW: Support Widget Import
+import SupportWidget from './components/SupportWidget';
 
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
   <div className="container mx-auto px-4 py-8 text-center">
@@ -115,6 +117,8 @@ const PublicLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
+      {/* Support Widget - shows on all public pages except /support and admin */}
+      <SupportWidget position="bottom-right" showOnPages="all" autoHide={10000} />
     </div>
   );
 };
@@ -165,6 +169,8 @@ const ProtectedLayout: React.FC = () => {
       >
         <Outlet />
       </Layout>
+      {/* Support Widget - shows on protected pages too (but not admin) */}
+      <SupportWidget position="bottom-right" showOnPages="all" />
     </div>
   );
 };

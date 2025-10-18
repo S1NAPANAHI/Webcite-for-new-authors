@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Textarea } from '../../components/ui/textarea';
+import { Badge } from '../../components/ui/badge';
+import { Switch } from '../../components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { 
   Save, 
   Eye, 
@@ -33,83 +33,144 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useDonation, type DonationTier, type PaymentMethod } from '../../contexts/DonationContext';
+
+// Simple types since we're removing the context dependency temporarily
+interface DonationTier {
+  id: string;
+  name: string;
+  amount: number;
+  description: string;
+  benefits: string[];
+  popular?: boolean;
+  enabled: boolean;
+}
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  type: 'buymeacoffee' | 'paypal' | 'crypto' | 'kofi';
+  enabled: boolean;
+  config: Record<string, any>;
+}
+
+interface DonationSettings {
+  pageTitle: string;
+  pageDescription: string;
+  goalAmount?: number;
+  currentAmount?: number;
+  showProgress: boolean;
+  thankYouMessage: string;
+  isEnabled: boolean;
+}
 
 const DonationManagement: React.FC = () => {
-  const {
-    settings,
-    updateSettings,
-    donationTiers,
-    addDonationTier,
-    updateDonationTier,
-    deleteDonationTier,
-    paymentMethods,
-    updatePaymentMethod,
-    stats,
-    refreshStats,
-    isLoading,
-    hasUnsavedChanges,
-    saveAllChanges
-  } = useDonation();
+  // Simple local state for now
+  const [settings, setSettings] = useState<DonationSettings>({
+    pageTitle: 'Support the Zoroastervers',
+    pageDescription: 'Help bring the epic fantasy world of Zoroaster to life!',
+    goalAmount: 1000,
+    currentAmount: 0,
+    showProgress: true,
+    thankYouMessage: 'Thank you for supporting the Zoroastervers!',
+    isEnabled: true
+  });
 
-  const [activeTab, setActiveTab] = useState('overview');
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [donationTiers, setDonationTiers] = useState<DonationTier[]>([
+    {
+      id: '1',
+      name: 'Coffee Supporter',
+      amount: 5,
+      description: 'Buy me a coffee to fuel late night writing sessions',
+      benefits: ['My heartfelt thanks', 'Recognition as a supporter'],
+      enabled: true
+    },
+    {
+      id: '2', 
+      name: 'Chapter Patron',
+      amount: 15,
+      description: 'Support the creation of a new chapter',
+      benefits: ['Early access to new content', 'Behind-the-scenes updates', 'Name in acknowledgments'],
+      popular: true,
+      enabled: true
+    }
+  ]);
+
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([
+    {
+      id: 'buymeacoffee',
+      name: 'Buy Me a Coffee',
+      type: 'buymeacoffee',
+      enabled: true,
+      config: { username: 'sinapanahi' }
+    },
+    {
+      id: 'paypal',
+      name: 'PayPal',
+      type: 'paypal',
+      enabled: true,
+      config: {
+        paypalId: 'your-paypal-email@example.com',
+        buttonId: '',
+        quickAmounts: [5, 10, 25, 50]
+      }
+    }
+  ]);
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const updateSettings = (updates: Partial<DonationSettings>) => {
+    setSettings(prev => ({ ...prev, ...updates }));
+    setHasUnsavedChanges(true);
+  };
+
+  const updateDonationTier = (id: string, updates: Partial<DonationTier>) => {
+    setDonationTiers(prev => 
+      prev.map(tier => tier.id === id ? { ...tier, ...updates } : tier)
+    );
+    setHasUnsavedChanges(true);
+  };
+
+  const updatePaymentMethod = (id: string, updates: Partial<PaymentMethod>) => {
+    setPaymentMethods(prev => 
+      prev.map(method => method.id === id ? { ...method, ...updates } : method)
+    );
+    setHasUnsavedChanges(true);
+  };
 
   const handleSaveSettings = async () => {
+    setIsLoading(true);
     try {
-      await saveAllChanges();
+      // Save to localStorage for persistence
+      localStorage.setItem('donation_settings', JSON.stringify(settings));
+      localStorage.setItem('donation_tiers', JSON.stringify(donationTiers));
+      localStorage.setItem('payment_methods', JSON.stringify(paymentMethods));
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success('Donation settings saved successfully!');
+      setHasUnsavedChanges(false);
     } catch (error) {
-      toast.error('Failed to save settings. Please try again.');
+      toast.error('Failed to save settings.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handlePreview = () => {
-    // Open the support page in a new tab
     window.open('/support', '_blank');
   };
 
-  const handleAddTier = async () => {
-    const newTier = {
-      name: 'New Tier',
-      amount: 10,
-      description: 'Description for this tier',
-      benefits: ['Benefit 1'],
-      enabled: true
-    };
-    await addDonationTier(newTier);
-  };
-
-  const copyToClipboard = async (text: string, label: string = '') => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(`${label ? label + ' ' : ''}copied to clipboard!`);
+      toast.success('Copied to clipboard!');
     } catch (error) {
       toast.error('Failed to copy');
     }
   };
 
-  const exportSettings = () => {
-    const exportData = {
-      settings,
-      donationTiers,
-      paymentMethods,
-      exportedAt: new Date().toISOString()
-    };
-    
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'donation-settings-export.json';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Settings exported successfully!');
-  };
+  const progressPercentage = settings.goalAmount ? 
+    Math.min((settings.currentAmount || 0) / settings.goalAmount * 100, 100) : 0;
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -129,10 +190,6 @@ const DonationManagement: React.FC = () => {
             <Eye className="h-4 w-4 mr-2" />
             Preview Page
           </Button>
-          <Button onClick={exportSettings} variant="outline">
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Export Settings
-          </Button>
           <Button onClick={handleSaveSettings} disabled={!hasUnsavedChanges || isLoading}>
             <Save className="h-4 w-4 mr-2" />
             {isLoading ? 'Saving...' : 'Save Changes'}
@@ -150,13 +207,12 @@ const DonationManagement: React.FC = () => {
         </Alert>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="settings">Page Settings</TabsTrigger>
           <TabsTrigger value="tiers">Donation Tiers</TabsTrigger>
           <TabsTrigger value="payments">Payment Methods</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -168,14 +224,14 @@ const DonationManagement: React.FC = () => {
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.goalProgress.toFixed(1)}%</div>
+                <div className="text-2xl font-bold">{progressPercentage.toFixed(1)}%</div>
                 <p className="text-xs text-muted-foreground">
                   ${settings.currentAmount} of ${settings.goalAmount} goal
                 </p>
                 <div className="w-full bg-muted rounded-full h-2 mt-2">
                   <div 
                     className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: `${stats.goalProgress}%` }}
+                    style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
               </CardContent>
@@ -236,7 +292,7 @@ const DonationManagement: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Button 
-                  onClick={() => copyToClipboard(window.location.origin + '/support', 'Support page URL')}
+                  onClick={() => copyToClipboard(window.location.origin + '/support')}
                   variant="outline" 
                   className="justify-start"
                 >
@@ -244,7 +300,6 @@ const DonationManagement: React.FC = () => {
                   Copy Support URL
                 </Button>
                 <Button 
-                  onClick={handleAddTier}
                   variant="outline" 
                   className="justify-start"
                 >
@@ -260,7 +315,6 @@ const DonationManagement: React.FC = () => {
                   View Live Page
                 </Button>
                 <Button 
-                  onClick={refreshStats}
                   variant="outline" 
                   className="justify-start"
                 >
@@ -270,58 +324,11 @@ const DonationManagement: React.FC = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Current Configuration Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Active Donation Tiers</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {donationTiers.filter(t => t.enabled).map((tier) => (
-                    <div key={tier.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <div className="font-medium">{tier.name}</div>
-                        <div className="text-sm text-muted-foreground">${tier.amount}</div>
-                      </div>
-                      {tier.popular && <Badge>Popular</Badge>}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Payment Methods Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {paymentMethods.map((method) => (
-                    <div key={method.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        {method.type === 'buymeacoffee' && <Coffee className="h-4 w-4 text-yellow-500" />}
-                        {method.type === 'paypal' && <Banknote className="h-4 w-4 text-blue-600" />}
-                        {method.type === 'crypto' && <Bitcoin className="h-4 w-4 text-orange-500" />}
-                        {method.type === 'kofi' && <Heart className="h-4 w-4 text-red-500" />}
-                        <span className="font-medium">{method.name}</span>
-                      </div>
-                      <Badge variant={method.enabled ? 'default' : 'secondary'}>
-                        {method.enabled ? 'Active' : 'Disabled'}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
         {/* Page Settings Tab */}
         <TabsContent value="settings" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Basic Settings */}
             <Card>
               <CardHeader>
                 <CardTitle>Basic Configuration</CardTitle>
@@ -358,21 +365,9 @@ const DonationManagement: React.FC = () => {
                     rows={3}
                   />
                 </div>
-                
-                <div>
-                  <Label htmlFor="thankYouMessage">Thank You Message</Label>
-                  <Textarea
-                    id="thankYouMessage"
-                    value={settings.thankYouMessage}
-                    onChange={(e) => updateSettings({ thankYouMessage: e.target.value })}
-                    placeholder="Thank you for supporting the project!"
-                    rows={4}
-                  />
-                </div>
               </CardContent>
             </Card>
 
-            {/* Goal & Progress Settings */}
             <Card>
               <CardHeader>
                 <CardTitle>Goal & Progress</CardTitle>
@@ -418,12 +413,12 @@ const DonationManagement: React.FC = () => {
                   <div className="p-4 bg-muted/30 rounded-lg">
                     <div className="flex justify-between text-sm mb-2">
                       <span>Goal Progress Preview</span>
-                      <span>{stats.goalProgress.toFixed(1)}%</span>
+                      <span>{progressPercentage.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-3">
                       <div 
                         className="bg-primary h-3 rounded-full transition-all"
-                        style={{ width: `${stats.goalProgress}%` }}
+                        style={{ width: `${progressPercentage}%` }}
                       />
                     </div>
                   </div>
@@ -431,39 +426,6 @@ const DonationManagement: React.FC = () => {
               </CardContent>
             </Card>
           </div>
-
-          {/* Widget Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Widget Settings</CardTitle>
-              <CardDescription>
-                Configure where donation widgets appear on your site
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={settings.showOnHomepage}
-                    onCheckedChange={(checked) => updateSettings({ showOnHomepage: checked })}
-                  />
-                  <Label>Show on homepage</Label>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={settings.floatingWidget}
-                    onCheckedChange={(checked) => updateSettings({ floatingWidget: checked })}
-                  />
-                  <Label>Floating donation button</Label>
-                </div>
-                
-                <div className="text-sm text-muted-foreground">
-                  <p>Additional widget placement options will be added in future updates.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Donation Tiers Tab */}
@@ -473,7 +435,18 @@ const DonationManagement: React.FC = () => {
               <h3 className="text-lg font-semibold">Donation Tiers</h3>
               <p className="text-muted-foreground">Configure different support levels and their benefits</p>
             </div>
-            <Button onClick={handleAddTier}>
+            <Button onClick={() => {
+              const newTier: DonationTier = {
+                id: Date.now().toString(),
+                name: 'New Tier',
+                amount: 10,
+                description: 'Description for this tier',
+                benefits: ['Benefit 1'],
+                enabled: true
+              };
+              setDonationTiers([...donationTiers, newTier]);
+              setHasUnsavedChanges(true);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               Add Tier
             </Button>
@@ -491,7 +464,10 @@ const DonationManagement: React.FC = () => {
                     {tier.popular && <Badge variant="secondary">Popular</Badge>}
                   </div>
                   <Button
-                    onClick={() => deleteDonationTier(tier.id)}
+                    onClick={() => {
+                      setDonationTiers(tiers => tiers.filter(t => t.id !== tier.id));
+                      setHasUnsavedChanges(true);
+                    }}
                     variant="ghost"
                     size="sm"
                     className="text-destructive"
@@ -517,7 +493,6 @@ const DonationManagement: React.FC = () => {
                         onChange={(e) => updateDonationTier(tier.id, { amount: Number(e.target.value) })}
                         placeholder="5"
                         min="1"
-                        step="1"
                       />
                     </div>
                   </div>
@@ -546,38 +521,14 @@ const DonationManagement: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={tier.popular || false}
-                      onCheckedChange={(checked) => {
-                        // Only allow one popular tier at a time
-                        if (checked) {
-                          donationTiers.forEach(t => {
-                            if (t.id !== tier.id && t.popular) {
-                              updateDonationTier(t.id, { popular: false });
-                            }
-                          });
-                        }
-                        updateDonationTier(tier.id, { popular: checked });
-                      }}
+                      onCheckedChange={(checked) => updateDonationTier(tier.id, { popular: checked })}
                     />
-                    <Label>Mark as popular tier (highlighted)</Label>
+                    <Label>Mark as popular tier</Label>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {donationTiers.length === 0 && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Donation Tiers</h3>
-                <p className="text-muted-foreground mb-4">Create your first donation tier to get started.</p>
-                <Button onClick={handleAddTier}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create First Tier
-                </Button>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
 
         {/* Payment Methods Tab */}
@@ -636,32 +587,6 @@ const DonationManagement: React.FC = () => {
                       </div>
                     )}
                     
-                    {/* Ko-fi Configuration */}
-                    {method.type === 'kofi' && (
-                      <div>
-                        <Label>Ko-fi Username</Label>
-                        <Input
-                          value={method.config.username}
-                          onChange={(e) => updatePaymentMethod(method.id, { 
-                            config: { ...method.config, username: e.target.value }
-                          })}
-                          placeholder="yourusername"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Links will go to: https://ko-fi.com/{method.config.username}
-                        </p>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => window.open(`https://ko-fi.com/${method.config.username}`, '_blank')}
-                          className="mt-2"
-                        >
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Test Link
-                        </Button>
-                      </div>
-                    )}
-                    
                     {/* PayPal Configuration */}
                     {method.type === 'paypal' && (
                       <div className="space-y-4">
@@ -674,25 +599,6 @@ const DonationManagement: React.FC = () => {
                             })}
                             placeholder="your-email@example.com or paypal.me/username"
                           />
-                        </div>
-                        <div>
-                          <Label>PayPal Hosted Button ID (Optional - for better integration)</Label>
-                          <Input
-                            value={method.config.buttonId}
-                            onChange={(e) => updatePaymentMethod(method.id, { 
-                              config: { ...method.config, buttonId: e.target.value }
-                            })}
-                            placeholder="Get this from PayPal's donation button creator"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            <a 
-                              href="https://www.paypal.com/donate/buttons" 
-                              target="_blank" 
-                              className="text-blue-500 hover:underline"
-                            >
-                              Create a PayPal donation button →
-                            </a>
-                          </p>
                         </div>
                         <div>
                           <Label>Quick Amount Options (comma-separated)</Label>
@@ -709,187 +615,11 @@ const DonationManagement: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    
-                    {/* Cryptocurrency Configuration */}
-                    {method.type === 'crypto' && (
-                      <div className="space-y-4">
-                        <Label>Cryptocurrency Wallets</Label>
-                        <Alert>
-                          <AlertTriangle className="h-4 w-4" />
-                          <AlertTitle>Security Warning</AlertTitle>
-                          <AlertDescription>
-                            Double-check all wallet addresses. Crypto transactions cannot be reversed.
-                          </AlertDescription>
-                        </Alert>
-                        
-                        {method.config.wallets?.map((wallet: any, index: number) => (
-                          <div key={index} className="grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 border rounded-lg">
-                            <div>
-                              <Label>Currency Name</Label>
-                              <Input
-                                value={wallet.name}
-                                onChange={(e) => {
-                                  const newWallets = [...method.config.wallets];
-                                  newWallets[index] = { ...wallet, name: e.target.value };
-                                  updatePaymentMethod(method.id, { 
-                                    config: { ...method.config, wallets: newWallets }
-                                  });
-                                }}
-                                placeholder="Bitcoin"
-                              />
-                            </div>
-                            <div>
-                              <Label>Symbol</Label>
-                              <Input
-                                value={wallet.symbol}
-                                onChange={(e) => {
-                                  const newWallets = [...method.config.wallets];
-                                  newWallets[index] = { ...wallet, symbol: e.target.value.toUpperCase() };
-                                  updatePaymentMethod(method.id, { 
-                                    config: { ...method.config, wallets: newWallets }
-                                  });
-                                }}
-                                placeholder="BTC"
-                              />
-                            </div>
-                            <div>
-                              <Label>Wallet Address</Label>
-                              <div className="flex space-x-2">
-                                <Input
-                                  value={wallet.address}
-                                  onChange={(e) => {
-                                    const newWallets = [...method.config.wallets];
-                                    newWallets[index] = { ...wallet, address: e.target.value };
-                                    updatePaymentMethod(method.id, { 
-                                      config: { ...method.config, wallets: newWallets }
-                                    });
-                                  }}
-                                  placeholder="Wallet address"
-                                  className="font-mono text-sm"
-                                />
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => copyToClipboard(wallet.address, `${wallet.symbol} address`)}
-                                  title="Copy address"
-                                >
-                                  <Copy className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="flex items-end">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => {
-                                  const newWallets = method.config.wallets.filter((_: any, i: number) => i !== index);
-                                  updatePaymentMethod(method.id, { 
-                                    config: { ...method.config, wallets: newWallets }
-                                  });
-                                }}
-                                className="text-destructive w-full"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Remove
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-                        
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            const newWallet = { name: '', symbol: '', address: '' };
-                            const newWallets = [...(method.config.wallets || []), newWallet];
-                            updatePaymentMethod(method.id, { 
-                              config: { ...method.config, wallets: newWallets }
-                            });
-                          }}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Wallet
-                        </Button>
-                      </div>
-                    )}
                   </CardContent>
                 )}
               </Card>
             ))}
           </div>
-        </TabsContent>
-
-        {/* Analytics Tab */}
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Raised</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats.totalDonations}</div>
-                <p className="text-xs text-muted-foreground">All time</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Month</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats.monthlyDonations}</div>
-                <p className="text-xs text-muted-foreground">Current month</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Supporters</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.donorCount}</div>
-                <p className="text-xs text-muted-foreground">Total donors</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Popular Tier</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-lg font-bold">{stats.topTier}</div>
-                <p className="text-xs text-muted-foreground">Most chosen</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Analytics Coming Soon</CardTitle>
-              <CardDescription>
-                Detailed donation analytics will be available in a future update
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <BarChart3 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Enhanced Analytics</h3>
-                <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                  Future updates will include detailed analytics such as:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1 max-w-md mx-auto text-left">
-                  <li>• Donation trends over time</li>
-                  <li>• Payment method preferences</li>
-                  <li>• Tier conversion rates</li>
-                  <li>• Geographic donor distribution</li>
-                  <li>• Seasonal donation patterns</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

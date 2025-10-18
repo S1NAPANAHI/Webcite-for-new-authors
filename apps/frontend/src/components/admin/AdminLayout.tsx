@@ -21,7 +21,8 @@ import {
   Home,
   Menu,
   X,
-  GraduationCap
+  GraduationCap,
+  Heart
 } from 'lucide-react'
 import { Link, useLocation, Outlet } from 'react-router-dom'
 
@@ -71,6 +72,8 @@ const sidebarItems = [
       // { label: 'Customers', href: '/admin/commerce/customers' }
     ]
   },
+  // NEW: Donation Management Section
+  { label: 'Donation Management', href: '/admin/donations', icon: Heart },
   {
     label: 'Beta',
     icon: TestTube,
@@ -240,6 +243,7 @@ export default function AdminLayout() {
                 <h2 className="text-xl font-semibold text-foreground">
                   {pathname === '/admin' ? 'Dashboard' : 
                    pathname.includes('/admin/social-media') ? 'Social Media Generator' :
+                   pathname === '/admin/donations' ? 'Donation Management' :
                    pathname.split('/').pop()?.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()) || 'Admin'}
                 </h2>
               </div>
